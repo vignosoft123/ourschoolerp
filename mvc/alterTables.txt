@@ -1,0 +1,102 @@
+
+
+ALTER TABLE `student` ADD `villageID` INT NOT NULL AFTER `schoolyearID`, ADD INDEX `villageID` (`villageID`);
+
+
+ALTER TABLE `student` ADD `studentType` INT NOT NULL AFTER `active`, ADD `aadharCardNumber` VARCHAR(12) NOT NULL AFTER `studentType`, ADD `moles` VARCHAR(250) NOT NULL AFTER `aadharCardNumber`;
+
+26-02-2023
+ALTER TABLE `payment` ADD `comment` TEXT NOT NULL AFTER `globalpaymentID`;
+ALTER TABLE `maininvoice` ADD `maininvoicesectionID` INT(11) NOT NULL AFTER `maininvoiceclassesID`;
+
+
+03-03-2023
+
+ALTER TABLE `student` CHANGE `moles` `mole1` VARCHAR(250) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL;
+ALTER TABLE `student` ADD `mole2` VARCHAR(250) NULL DEFAULT NULL AFTER `mole1`;
+
+
+05-03-2023
+required removed for mole 1 and mole 2and aadhar card
+hmemmber
+    phone
+    village
+teacher 
+    designation
+user 
+    phonr
+student attendance  
+    phone
+
+    hide delete option
+
+
+    INSERT INTO `permissions` (`permissionID`, `description`, `name`, `active`) VALUES (NULL, 'Delete Permission for all records', 'delete', 'yes');
+
+
+category of studnet
+
+student number to parent
+need to check type
+add category type after village
+
+user list change email to phone number
+
+teacher address
+user list phone number
+
+
+
+invoice created date
+
+
+teacher:
+address, phone number, remove email
+user:
+phonenumebr, email remove
+
+
+
+// exam creation 
+multiple class,section,         
+old date
+remove exam attendance
+
+
+//multiple
+add marks
+attendance
+ab
+
+multiple subject marks, grade calculation
+
+send sms marks with total marks
+
+merit stage report  rank postion
+
+progress card report send sms only for single student
+
+with attendace, and without attendance
+
+
+
+//dashboard
+
+subject remove
+students
+teacheers
+user/nontaching
+
+
+
+//exam Modules q
+
+
+
+Mobile Number Validation
+Accountant Voice Count SMS Count
+Invoice Report
+
+
+// 13-05-2023
+ALTER TABLE `transport` ADD `pickupPoint` VARCHAR(250) NULL DEFAULT NULL AFTER `note`;

@@ -1,0 +1,13 @@
+ERROR - 2022-01-31 17:44:34 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:44:36 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:45:40 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:45:46 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:45:48 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:46:02 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:46:06 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:51:55 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:51:58 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 17:52:01 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 18:17:47 --> 404 Page Not Found: Faviconico/index
+ERROR - 2022-01-31 18:18:22 --> 404 Page Not Found: Assets/datatables
+ERROR - 2022-01-31 21:04:14 --> 404 Page Not Found: Assets/datatables
