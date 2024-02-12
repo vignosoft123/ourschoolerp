@@ -32,7 +32,7 @@
 	<div id="printablediv">
 		<div class="row">
 			<div class="col-sm-3">
-				<div class="box box-primary backgroud-image">
+				<div class="box box-primary backgroud-image sss">
 					<div class="box-profile">
 						<div class="profile-card">						
 						<div class="profile-header">
