@@ -135,6 +135,21 @@
 
 
 								<h2 class="h2-title">Student Details</h2>
+
+								<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">First Name</label>
+											<div class="para"><?= $profile->first_name ?></div>
+										</div>
+									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Last Name</label>
+											<div class="para"><?= $profile->last_name ?></div>
+										</div>
+									</div>
+
 								<div class="st-detail-list">
 									<div class="profile-view-tab">
 										<div class="profile-details">

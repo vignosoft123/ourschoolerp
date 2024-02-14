@@ -927,6 +927,8 @@ class Student extends Admin_Controller
 						$this->data['optionalSubjectID'] = 0;
 					}
 
+					$array["first_name"] = $this->input->post("first_name");
+					$array["last_name"] = $this->input->post("last_name");
 					$array["name"] = $this->input->post("name");
 					$array["sex"] = $this->input->post("sex");
 					$array["religion"] = $this->input->post("religion");
@@ -1162,6 +1164,8 @@ class Student extends Admin_Controller
 							$this->load->view('_layout_main', $this->data);
 						} else {
 							$array = array();
+							$array["first_name"] = $this->input->post("first_name");
+							$array["last_name"] = $this->input->post("last_name");
 							$array["name"] = $this->input->post("name");
 							$array["sex"] = $this->input->post("sex");
 							$array["religion"] = $this->input->post("religion");
