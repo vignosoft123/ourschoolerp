@@ -99,6 +99,15 @@
 /* page Header Add Module */
 
 /* Lable Start */
+.teacher-form-info, .ose-form-list{
+  display:grid;
+  gap:0rem 3rem;
+  grid-template-columns:repeat(auto-fit, minmax(min(32rem, 100%), 1fr));
+}
+.teacher-form-info .form-group, .ose-form-list .form-group{
+margin-left: 0px;
+margin-right: 0px;
+}
 .form-horizontal .control-label {
   text-align: left;
   font-size: 14px;
@@ -161,8 +170,8 @@ label {
 .pagination > .active > span:hover,
 .pagination > .active > a:focus,
 .pagination > .active > span:focus {
-  border-color: #242A30;
-  background-color: #242A30;
+  border-color: #016bd6;
+  background-color: #016bd6;
 }
 
 .pagination > li > a,
@@ -1076,7 +1085,7 @@ label {
 }
 
 .ini-bg-primary {
-  background: #6a94c1!important;
+  background: #016bd6 !important;
   color:#232a2f !important;
 }
 
@@ -1096,7 +1105,7 @@ label {
 }
 
 .ini-bg-secondary {
-  background: #8cb0d0!important;
+  background: #ebf2ff !important;
   color:#232a2f !important;
 }
 
@@ -1108,8 +1117,11 @@ label {
   text-align: center;
   border:0.1px solid #ddd;
   padding: 4px 0px; 
-  color: #232a2f !important;
+  color: #232a2f;
 } 
+.attendance_table tr td:first-child{
+  font-weight: 600;
+}
 
 .attendance_table tr th{
   text-align: center;
@@ -1117,6 +1129,7 @@ label {
   color: #232a2f;
   font-weight: 400;
   padding: 4px 0px; 
+  font-weight: 600;
 } 
 
 .profile-user-img {

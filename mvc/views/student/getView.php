@@ -32,11 +32,11 @@
 	<div id="printablediv">
 		<div class="row">
 			<div class="col-sm-3">
-				<div class="box box-primary backgroud-image sss">
+				<div class="box box-primary backgroud-image">
 					<div class="box-profile">
 						<div class="profile-card">						
 						<div class="profile-header">
-							<img class="profile-header-bg" src="/uploads/images/profile-bg-blue.jpg" alt="">
+							<img class="profile-header-bg" src="./../../../uploads/images/profile-bg-blue.jpg" alt="">
 						</div>
 						<div class="profile-body">
 						<div class="profile-img">
@@ -94,7 +94,7 @@
 
 					<div class="tab-content">
 						<div class="active tab-pane" id="profile">
-							<div class="panel-body profile-view-dis">
+							<div class="panel-body profile-view-dis student-view-info">
 							  <h2 class="h2-title">Add Student Firm</h2>
 								<div class="st-detail-list">
 								<div class="profile-view-tab">
@@ -270,34 +270,61 @@
 						//echo "<pre>";print_r($parents);
 						//if (customCompute($parents)) { ?>
 							<div class="tab-pane" id="parents">
-								<div class="panel-body profile-view-dis">
-									<div class="row">
-										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_guargian_name") ?> </span>: <?= $parents->name ?></p>
+								<div class="panel-body profile-view-dis student-view-info">
+									<div class="st-detail-list">
+										<div class="profile-view-tab">										
+											<div class="profile-details">
+												<label class="label-txt"><?= $this->lang->line("parent_guargian_name") ?> </label>
+												<div class="para"> <?= $parents->name ?></div>
+											</div>
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_father_name") ?> </span>: <?= $parents->father_name ?></p>
+											<div class="profile-details">
+												<label class="label-txt"><?= $this->lang->line("parent_father_name") ?>  </label>
+												<div class="para"> <?= $parents->father_name ?></div>
+											</div>											
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_mother_name") ?> </span>: <?= $parents->mother_name ?></p>
+											<div class="profile-details">
+												<label class="label-txt"> <?= $this->lang->line("parent_mother_name") ?> </span> </label>
+												<div class="para">  <?= $parents->mother_name ?></div>
+											</div>											
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_father_profession") ?> </span>: <?= $parents->father_profession ?></p>
+											<div class="profile-details">
+												<label class="label-txt"> <?= $this->lang->line("parent_father_profession") ?></label>
+												<div class="para"><?= $parents->father_profession ?> </div>
+											</div>											
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_mother_profession") ?> </span>: <?= $parents->mother_profession ?></p>
+											<div class="profile-details">
+												<label class="label-txt"> <?= $this->lang->line("parent_mother_profession") ?> </label>
+												<div class="para"><?= $parents->mother_profession ?> </div>
+											</div>											
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_email") ?> </span>: <?= $parents->email ?></p>
+											<div class="profile-details">
+												<label class="label-txt"><?= $this->lang->line("parent_email") ?>   </label>
+												<div class="para"> <?= $parents->email ?> </div>
+											</div>											
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_phone") ?> </span>: <?= $parents->phone ?></p>
+											<div class="profile-details">
+												<label class="label-txt"> <?= $this->lang->line("parent_phone") ?>  </label>
+												<div class="para"> <?= $parents->phone ?></div>
+											</div>											
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_username") ?> </span>: <?= $parents->username ?></p>
+											<div class="profile-details">
+												<label class="label-txt"> <?= $this->lang->line("parent_username") ?> </label>
+												<div class="para"> <?= $parents->username ?></div>
+											</div>											
 										</div>
 										<div class="profile-view-tab">
-											<p><span><?= $this->lang->line("parent_address") ?> </span>: <?= $parents->address ?></p>
+											<div class="profile-details">
+												<label class="label-txt"> <?= $this->lang->line("parent_address") ?> </label>
+												<div class="para"><?= $parents->address ?> </div>
+											</div>											
 										</div>
 									</div>
 								</div>
@@ -516,6 +543,7 @@
 															echo $this->lang->line('student_total_absent') . ':' . $absentCount;
 															?>
 														</p>
+														
 													</div>
 												</div>
 												<br />
@@ -761,13 +789,17 @@
 										<div class="col-sm-12">
 											<p class="totalattendanceCount">
 												<?php
-												echo $this->lang->line('student_total_holiday') . ':' . $holidayCount . ', ';
-												echo $this->lang->line('student_total_weekenday') . ':' . $weekendayCount . ', ';
-												echo $this->lang->line('student_total_leaveday') . ':' . $leavedayCount . ', ';
-												echo $this->lang->line('student_total_present') . ':' . $presentCount . ', ';
-												echo $this->lang->line('student_total_latewithexcuse') . ':' . $lateexcuseCount . ', ';
-												echo $this->lang->line('student_total_late') . ':' . $lateCount . ', ';
-												echo $this->lang->line('student_total_absent') . ':' . $absentCount;
+												echo '<div class="st-attendance-info">';
+												echo '<div class="footer-item">' . $this->lang->line('student_total_holiday') . ': <span class="text-red text-bold">' . $holidayCount . ', ' . '</span>' . '</div>';
+												echo '<div class="footer-item">' . $this->lang->line('student_total_weekenday') . ': <span class="text-red text-bold">' . $weekendayCount . ', ' . '</span>' . '</div>';
+												echo '<div class="footer-item">' . $this->lang->line('student_total_leaveday') . ': <span class="text-red text-bold">' . $leavedayCount . ', ' . '</span>' . '</div>';
+												
+												echo '<div class="footer-item">' . $this->lang->line('student_total_present') . ': <span class="text-red text-bold">' . $presentCount . ', ' . '</span>' . '</div>';
+												echo '<div class="footer-item">' . $this->lang->line('student_total_latewithexcuse') . ': <span class="text-red text-bold">' . $lateexcuseCount . ', ' . '</span>' . '</div>';
+												echo '<div class="footer-item">' . $this->lang->line('student_total_late') . ': <span class="text-red text-bold">' . $lateCount . ', ' . '</span>' . '</div>';
+												echo '<div class="footer-item">' . $this->lang->line('student_total_absent') . ': <span class="text-red text-bold">' . $absentCount . ', ' . '</span>' . '</div>';
+
+												echo '</div>';
 												?>
 											</p>
 										</div>
@@ -780,31 +812,31 @@
 								$optionalsubjectID = $profile->sroptionalsubjectID;
 								if (customCompute($marksettings)) {
 									foreach ($marksettings as $examID => $marksetting) {
-										echo '<div style="border-top:1px solid #23292F; border-left:1px solid #23292F; border-right:1px solid #23292F; border-bottom:1px solid #23292F;" class="box" id="e' . $examID . '">';
-										echo '<div class="box-header" style="background-color:#FFFFFF;">';
+										echo '<div style="border:1px solid #ddd" class="box" id="e' . $examID . '">';
+										echo '<div class="box-header" style="background-color:#ddedfd;">';
 										echo '<h3 class="box-title" style="color:#23292F;">';
 										echo (isset($exams[$examID]) ? $exams[$examID] : '');
 										echo '</h3>';
 										echo '</div>';
 
-										echo '<div class="box-body mark-bodyID" style="border-top:1px solid #23292F;">';
+										echo '<div class="box-body mark-bodyID" style="">';
 										echo "<table class=\"table table-striped table-bordered\" >";
 										echo "<thead>";
 										echo "<tr>";
-										echo "<th class='text-center' rowspan='2' style='background-color:#395C7F;color:#fff;' data-title='" . $this->lang->line("student_subject") . "'>";
+										echo "<th class='text-center' rowspan='2' style='background-color:#016bd6;color:#fff; vertical-align:middle;' data-title='" . $this->lang->line("student_subject") . "'>";
 										echo $this->lang->line("student_subject");
 										echo "</th>";
 
 										foreach ($marksetting as $subjectID => $markpercentageArr) {
 											foreach ($markpercentageArr[(($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own'] as $markpercentageID) {
 												$markpercentagetypelabel =  isset($markpercentages[$markpercentageID]) ? $markpercentages[$markpercentageID]->markpercentagetype : '';
-												echo "<th colspan='2' class='text-center' style='background-color:#395C7F;color:#fff;' data-title='" . $markpercentagetypelabel . "'>";
+												echo "<th colspan='' class='text-center' style='background-color:#016bd6;color:#fff;' data-title='" . $markpercentagetypelabel . "'>";
 												echo $markpercentagetypelabel;
 												echo "</th>";
 											}
 											break;
 										}
-										echo "<th colspan='3' class='text-center' style='background-color:#395C7F;color:#fff;' data-title='" . $this->lang->line("student_total") . "'>";
+										echo "<th colspan='' class='text-center' style='background-color:#016bd6;color:#fff;' data-title='" . $this->lang->line("student_total") . "'>";
 										echo $this->lang->line("student_total");
 										echo "</th>";
 										echo "</tr>";
@@ -822,9 +854,9 @@
 											echo "<th class='text-center' data-title='" . $this->lang->line('student_mark') . "'>";
 											echo $this->lang->line("student_mark");
 											echo "</th>";
-											echo "<th class='text-center' data-title='" . $this->lang->line('student_point') . "'>";
-											echo $this->lang->line("student_point");
-											echo "</th>";
+											// echo "<th class='text-center' data-title='" . $this->lang->line('student_point') . "'>";
+											// echo $this->lang->line("student_point");
+											// echo "</th>";
 											echo "<th class='text-center' data-title='" . $this->lang->line('student_grade') . "'>";
 											echo $this->lang->line("student_grade");
 											echo "</th>";
@@ -1018,21 +1050,21 @@
 										echo "</tbody>";
 										echo "</table>";
 
-										echo '<div class="box-footer" style="padding-left:0px;">';
-										echo '<p class="text-black">' . $this->lang->line('student_total_marks') . ' : <span class="text-red text-bold">' . ini_round($totalFinalMark) . '</span>';
-										echo '&nbsp;&nbsp;&nbsp;&nbsp;' . $this->lang->line('student_total_obtained_marks') . ' : <span class="text-red text-bold">' . ini_round($totalMark) . '</span>';
-										$totalAverageMark = $totalMark / $totalSubject;
-										echo '&nbsp;&nbsp;&nbsp;&nbsp;' . $this->lang->line('student_total_average_marks') . ' : <span class="text-red text-bold">' . ini_round($totalAverageMark) . '</span>';
+										echo '<div class="box-footer st-attendance-info">';
+										echo '<div class="footer-item">' . $this->lang->line('student_total_marks') . ' : <span class="text-red text-bold">' . ini_round($totalFinalMark) . '</span>' . ',' . '</div>';
+										echo '<div class="footer-item">' . $this->lang->line('student_total_obtained_marks') . ' : <span class="text-red text-bold">' . ini_round($totalMark) . '</span>' . ',' . '</div>';
+										// $totalAverageMark = $totalMark / $totalSubject;
+										// echo '<div class="footer-item">' . $this->lang->line('student_total_average_marks') . ' : <span class="text-red text-bold">' . ini_round($totalAverageMark) . '</span>' . ',' . '</div>';
 
-										$totalmarkpercentage  = markCalculationView($totalMark, $totalFinalMark);
-										echo '&nbsp;&nbsp;&nbsp;&nbsp;' . $this->lang->line('student_total_average_marks_percetage') . ' : <span class="text-red text-bold">' . ini_round($totalmarkpercentage) . '</span>';
+										// $totalmarkpercentage  = markCalculationView($totalMark, $totalFinalMark);
+										// echo '<div class="footer-item">' . $this->lang->line('student_total_average_marks_percetage') . ' : <span class="text-red text-bold">' . ini_round($totalmarkpercentage) . '</span>' . ',' . '</div>';
 
 										$gpaAveragePoint = $averagePoint / $totalSubject;
-										echo '&nbsp;&nbsp;&nbsp;&nbsp;' . $this->lang->line('student_gpa') . ' : <span class="text-red text-bold">' . ini_round($gpaAveragePoint) . '</span>';
-										echo '</p>';
+										echo '<div class="footer-item">' . $this->lang->line('student_gpa') . ' : <span class="text-red text-bold">' . ini_round($gpaAveragePoint) . '</span>' . ',' . '</div>';
+										
 										echo '</div>';
 
-										echo '</div>';
+										echo '</div>';	
 										echo "</div>";
 									}
 								}
@@ -1270,7 +1302,9 @@
 
 							<div class="tab-pane" id="document">
 								<?php if (permissionChecker('student_add')) { ?>
-									<input class="btn btn-success btn-sm" style="margin-bottom: 10px" type="button" value="<?= $this->lang->line('student_add_document') ?>" data-toggle="modal" data-target="#documentupload">
+									<div class="doc-btn">
+										<input class="btn-sm ose-btn" type="button" value="<?= $this->lang->line('student_add_document') ?>" data-toggle="modal" data-target="#documentupload">
+									</div>
 								<?php } ?>
 								<div id="hide-table">
 									<table class="table table-striped table-bordered table-hover">
@@ -1380,10 +1414,10 @@
 								<label for="title" class="col-sm-2 control-label">
 									<?= $this->lang->line("student_title") ?> <span class="text-red">*</span>
 								</label>
-								<div class="col-sm-6">
+								<div class="col-sm-8">
 									<input type="text" class="form-control" id="title" name="title" value="<?= set_value('title') ?>">
 								</div>
-								<span class="col-sm-4 control-label" id="title_error">
+								<span class="col-sm-8 control-label" id="title_error">
 								</span>
 							</div>
 
@@ -1391,7 +1425,7 @@
 								<label for="file" class="col-sm-2 control-label">
 									<?= $this->lang->line("student_file") ?> <span class="text-red">*</span>
 								</label>
-								<div class="col-sm-6">
+								<div class="col-sm-8">
 									<div class="input-group image-preview">
 										<input type="text" class="form-control image-preview-filename" disabled="disabled">
 										<span class="input-group-btn">
@@ -1399,7 +1433,7 @@
 												<span class="fa fa-remove"></span>
 												<?= $this->lang->line('student_clear') ?>
 											</button>
-											<div class="btn btn-success image-preview-input">
+											<div class="btn btn-primary image-preview-input">
 												<span class="fa fa-repeat"></span>
 												<span class="image-preview-input-title">
 													<?= $this->lang->line('student_file_browse') ?></span>
@@ -1408,13 +1442,13 @@
 										</span>
 									</div>
 								</div>
-								<span class="col-sm-4 control-label" id="file_error">
+								<span class="col-sm-8 control-label" id="file_error">
 								</span>
 							</div>
 						</div>
 						<div class="modal-footer">
 							<button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?= $this->lang->line('close') ?></button>
-							<input type="button" id="uploadfile" class="btn btn-success" value="<?= $this->lang->line("student_upload") ?>" />
+							<input type="button" id="uploadfile" class="btn btn-primary" value="<?= $this->lang->line("student_upload") ?>" />
 						</div>
 					</div>
 				</div>

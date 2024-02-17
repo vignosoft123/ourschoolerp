@@ -1,5 +1,5 @@
 <?php if(customCompute($profile)) { ?>
-<div class="well">
+<div class="well top-panel-bg">
     <div class="row">
         <div class="col-sm-6">
             <?php if(!permissionChecker('user_view') && permissionChecker('user_add')) { echo btn_sm_add('user/add', $this->lang->line('add_user')); } ?>
@@ -14,7 +14,7 @@
             <button class="btn-cs btn-sm-cs" data-toggle="modal" data-target="#mail"><span class="fa fa-envelope-o"></span> <?=$this->lang->line('mail')?></button>
         </div>
         <div class="col-sm-6">
-            <ol class="breadcrumb">
+            <ol class="breadcrumb bg-transparent">
                 <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
                 <li><a href="<?=base_url("user/index")?>"><?=$this->lang->line('menu_user')?></a></li>
                 <li class="active"><?=$this->lang->line('view')?></li>
@@ -27,22 +27,34 @@
 <div id="printablediv">
     <div class="row">
         <div class="col-sm-3">
-            <div class="box box-primary">
-                <div class="box-body box-profile">
-                    <?=profileviewimage($profile->photo)?>
-                    <h3 class="profile-username text-center"><?=$profile->name?></h3>
-                    <p class="text-muted text-center"><?=isset($usertypes[$profile->usertypeID]) ? $usertypes[$profile->usertypeID] : ''?></p>
-                    <ul class="list-group list-group-unbordered">
+            <div class="box box-primary backgroud-image">
+                <div class="box-profile">
+                <div class="profile-card">	
+                <div class="profile-header">
+                    <img class="profile-header-bg" src="./../../uploads/images/profile-bg-blue.jpg" alt="">
+                </div>	
+                <div class="profile-body">	
+                        <div class="profile-img">
+                             <?=profileviewimage($profile->photo)?>
+                        </div>
+                        <div class="profile-name-info">
+                            <h3 class="profile-username text-center"><?=$profile->name?></h3>
+                            <p class="user-type text-center"><?=isset($usertypes[$profile->usertypeID]) ? $usertypes[$profile->usertypeID] : ''?></p>
+                        </div>
+                    
+                    <ul class="list-group list-group-unbordered profile-list-info">
                         <li class="list-group-item" style="background-color: #FFF">
-                            <b><?=$this->lang->line('user_sex')?></b> <a class="pull-right"><?=$profile->sex?></a>
+                        <span class="h5-title"><?=$this->lang->line('user_sex')?></span><span class="h6-title pull-right"><?=$profile->sex?></span>
                         </li>
                         <li class="list-group-item" style="background-color: #FFF">
-                            <b><?=$this->lang->line('user_dob')?></b> <a class="pull-right"><?=date('d M Y',strtotime($profile->dob))?></a>
+                        <span class="h5-title"><?=$this->lang->line('user_dob')?></span> <span class="h6-title pull-right"><?=date('d M Y',strtotime($profile->dob))?></span>
                         </li>
                         <li class="list-group-item" style="background-color: #FFF">
-                            <b><?=$this->lang->line('user_phone')?></b> <a class="pull-right"><?=$profile->phone?></a>
+                        <span class="h5-title"><?=$this->lang->line('user_phone')?></span> <span class="h6-title pull-right"><?=$profile->phone?></span>
                         </li>
                     </ul>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -64,23 +76,43 @@
                 <div class="tab-content">
                     <div class="active tab-pane" id="profile">
                         <div class="panel-body profile-view-dis">
-                            <div class="row">
+                                <div class="grid-list-info">
+
                                 <div class="profile-view-tab">
-                                    <p><span><?=$this->lang->line("user_jod")?> </span>: <?=date("d M Y", strtotime($profile->jod))?></p>
-                                </div>
-                                <div class="profile-view-tab">
-                                    <p><span><?=$this->lang->line("user_religion")?> </span>: <?=$profile->religion?></p>
-                                </div>
-                                <div class="profile-view-tab">
-                                    <p><span><?=$this->lang->line("user_email")?> </span>: <?=$profile->email?></p>
-                                </div>
-                                <div class="profile-view-tab">
-                                    <p><span><?=$this->lang->line("user_address")?> </span>: <?=$profile->address?></p>
+                                    <div class="profile-details">
+                                        <label class="label-txt"><?=$this->lang->line("user_jod")?>  </label>
+                                        <div class="para"><?=date("d M Y", strtotime($profile->jod))?></div>
+									</div>                                   
                                 </div>
 
                                 <div class="profile-view-tab">
-                                    <p><span><?=$this->lang->line("user_username")?> </span>: <?=$profile->username?></p>
+                                    <div class="profile-details">
+                                        <label class="label-txt"><?=$this->lang->line("user_religion")?> </label>
+                                        <div class="para"><?=$profile->religion?></div>
+									</div>                                    
                                 </div>
+
+                                <div class="profile-view-tab">
+                                    <div class="profile-details">
+                                        <label class="label-txt"><?=$this->lang->line("user_email")?>  </label>
+                                        <div class="para"><?=$profile->email?></div>
+									</div>                                   
+                                </div>
+
+                                <div class="profile-view-tab">
+                                    <div class="profile-details">
+                                        <label class="label-txt"><?=$this->lang->line("user_address")?>  </label>
+                                        <div class="para"><?=$profile->address?></div>
+									</div>                                   
+                                </div>
+
+                                <div class="profile-view-tab">
+                                    <div class="profile-details">
+                                        <label class="label-txt"><?=$this->lang->line("user_username")?>  </label>
+                                        <div class="para"><?=$profile->username?></div>
+									</div>                                    
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -213,15 +245,40 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <p class="totalattendanceCount">
-                                <?=$this->lang->line('user_total_holiday')?>:<?=$holidayCount?>, 
-                                <?=$this->lang->line('user_total_weekenday')?>:<?=$weekendayCount?>, 
-                                <?=$this->lang->line('user_total_leaveday')?>:<?=$leavedayCount?>, 
-                                <?=$this->lang->line('user_total_present')?>:<?=$presentCount?>, 
-                                <?=$this->lang->line('user_total_latewithexcuse')?>:<?=$lateexcuseCount?>, 
-                                <?=$this->lang->line('user_total_late')?>:<?=$lateCount?>, 
-                                <?=$this->lang->line('user_total_absent')?>:<?=$absentCount?>
-                            </p>
+                            <div class="totalattendanceCount">
+                            <div class="st-attendance-info box-footer">
+                                <div class="footer-item">
+                                     <?=$this->lang->line('user_total_holiday')?>
+                                    <span class="text-red text-bold"><?=$holidayCount?>,</span>
+                                </div>
+                                <div class="footer-item">
+                                    <?=$this->lang->line('user_total_weekenday')?>
+                                    <span class="text-red text-bold"><?=$weekendayCount?>,</span>
+                                </div>
+                                <div class="footer-item">
+                                    <?=$this->lang->line('user_total_leaveday')?>
+                                    <span class="text-red text-bold"><?=$leavedayCount?>,</span>
+                                </div>
+                                <div class="footer-item">
+                                    <?=$this->lang->line('user_total_present')?>
+                                    <span class="text-red text-bold"><?=$presentCount?>,</span>
+                                </div>
+                                <div class="footer-item">
+                                    <?=$this->lang->line('user_total_latewithexcuse')?>
+                                    <span class="text-red text-bold"><?=$lateexcuseCount?>,</span>
+                                </div>
+                                <div class="footer-item">
+                                    <?=$this->lang->line('user_total_late')?>
+                                    <span class="text-red text-bold"><?=$lateCount?>,</span>
+                                </div>
+                                <div class="footer-item">
+                                <?=$this->lang->line('user_total_absent')?>
+                                    <span class="text-red text-bold"><?=$absentCount?>,</span>
+                                </div>
+                               
+                                
+                                </div>
+                            </div>
                         </div>
 
                         <?php if(customCompute($manage_salary)) {?>
@@ -448,7 +505,9 @@
                     
                         <div class="tab-pane" id="document">
                             <?php if(permissionChecker('user_add')) { ?>
-                                <input class="btn btn-success btn-sm" style="margin-bottom: 10px" type="button" value="<?=$this->lang->line('user_add_document')?>" data-toggle="modal" data-target="#documentupload">
+                                <div class="doc-btn">
+                                <input class="ose-btn btn-sm" type="button" value="<?=$this->lang->line('user_add_document')?>" data-toggle="modal" data-target="#documentupload">
+                            </div>
                             <?php } ?>
                             <div id="hide-table">
                                 <table class="table table-striped table-bordered table-hover">

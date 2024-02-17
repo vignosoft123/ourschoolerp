@@ -53,7 +53,7 @@
                     else
                         echo "<div class='col-md-4' >";
                     ?>
-                    <label for="classesID" class="  control-label">
+                    <label for="classesID" class="control-label">
                         <?= $this->lang->line("student_classes") ?> <span class="text-red">*</span>
                     </label>
                         <?php
@@ -63,7 +63,7 @@
                         }
                         echo form_dropdown("classesID", $classArray, set_value("classesID"), "id='classesID' class='form-control select2'");
                         ?>
-                    <span class="  control-label">
+                    <span class=" control-label">
                         <?php echo form_error('classesID'); ?>
                     </span>
                     </div><!------ Class----->

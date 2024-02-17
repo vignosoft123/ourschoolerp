@@ -1,16 +1,3 @@
-/*
-| -----------------------------------------------------
-| PRODUCT NAME:   INILABS SCHOOL MANAGEMENT SYSTEM
-| -----------------------------------------------------
-| AUTHOR:     INILABS TEAM
-| -----------------------------------------------------
-| EMAIL:      info@inilabs.net
-| -----------------------------------------------------
-| COPYRIGHT:    RESERVED BY INILABS IT
-| -----------------------------------------------------
-| WEBSITE:      http://inilabs.net
-| -----------------------------------------------------
-*/
 
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700&display=swap');
 
@@ -172,6 +159,12 @@ h6,
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.btn-center{
+  display: flex;
+  align-items: center;
+  justify-content: center !important;
+  margin-top: 20px;
 }
 .page-header > small {
   color: #666;
@@ -1209,14 +1202,15 @@ padding-bottom: 10rem;
 */
 .form-control {
   border-radius: 3px;
-  -moz- border-radius: 3px;
-  -webkit- border-radius: 3px;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
   box-shadow: none;
   border: 1px solid #E2E7EB;
   color: #555;
   font-size: 12px;
   line-height: 1.42857;
   width: 100%;
+  
 }
 .form-control:focus {
   border-color: #b6c2c9 !important;
@@ -1433,7 +1427,10 @@ background:#FA5A7D;
         .small-box .small-box-footer .dark-blue-clr{
           background:#8eaefb;
           }
-
+.box-footer .footer-item{
+  font-size: 16px;
+  color: #333333;
+}
 @media screen and (max-width: 480px) {
   .small-box {
     text-align: center;
@@ -1487,6 +1484,7 @@ background:#FA5A7D;
 .box .box-header {
   position: relative;
   background-color: #ddedfd;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 2px 0px;
   -webkit-border-top-left-radius: 3px;
   -webkit-border-top-right-radius: 3px;
   -webkit-border-bottom-right-radius: 0;
@@ -1499,7 +1497,7 @@ background:#FA5A7D;
   border-top-right-radius: 3px;
   border-bottom-right-radius: 0;
   border-bottom-left-radius: 0;
-  border-bottom: 2px solid #f4f4f4;
+  /* border-bottom: 2px solid #f4f4f4; */
   color: #444;
 }
 .box .box-header:before,
@@ -1518,7 +1516,7 @@ background:#FA5A7D;
   padding: 15px;
   margin: 0;
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 600;
   float: left;
   cursor: default;
   color: #4f4f4f;
@@ -2157,6 +2155,7 @@ Component: timeline
   margin: 0px 15px;
   font-size: 16px;
   color: #4f4f4f;
+  margin-top: 20px;
 }
 .callout.callout-warning {
   background-color: #706326;
@@ -3719,10 +3718,15 @@ fieldset[disabled] .btn-vk.active {
   width: 1.3em;
   fill: #b4b4b4;
 }
+.doc-btn{
+  display: flex;
+  justify-content: end;
+  margin-bottom: 12px;
+}
 .page-header .ose-btn, .ose-btn{
   background-image: linear-gradient(to right, #25aae1, #4481eb, #04befe, #3f86ed);
   background-size: 300% 100%;
-  box-shadow: 0 4px 15px 0 rgba(65, 132, 234, 0.75);
+  /* box-shadow: 0 4px 15px 0 rgba(65, 132, 234, 0.75); */
   font-size: 16px;
   border: none;
   border-radius: 10px;
@@ -3943,23 +3947,26 @@ padding-bottom: 10px;
 .profile-card  .profile-img .profile-user-img{
   border: 1px solid #d0e0ff !important;
 }
-#profile .st-detail-list{
+.student-view-info .st-detail-list, .grid-list-info{
   display:grid;
   gap:1rem;
   grid-template-columns:repeat(auto-fit, minmax(min(26rem, 100%), 1fr));
   padding: 12px 0px;
 }
-#profile .profile-view-tab .profile-details .label-txt{
+.student-view-info .profile-view-tab .profile-details .label-txt,
+.profile-view-dis .profile-view-tab .profile-details .label-txt{
   font-size: 14px;
   color: #667085;
   font-weight: 500;
 }
-#profile .profile-view-tab .profile-details .para{
+.student-view-info .profile-view-tab .profile-details .para,
+.profile-view-dis .profile-view-tab .profile-details .para{
   font-size: 16px;
   color: #2A3549;
   font-weight: 600;
 }
-#profile .h2-title{
+.student-view-info .h2-title,
+.profile-view-dis .h2-title{
   font-size: 16px;
   font-weight: 600;
   color: #01377d;
@@ -3967,7 +3974,7 @@ padding-bottom: 10px;
   padding-bottom: 10px;
 }
 .top-panel-bg{
-  background: url("/../../uploads/images/strip.jpg");
+  background: url("./../../../../uploads/images/strip.jpg");
   width: 100%;
   height: 75px;
   background-size: cover;
@@ -3975,6 +3982,13 @@ padding-bottom: 10px;
 }
 .breadcrumb.bg-transparent{
  background-color: transparent;
+}
+.st-attendance-info{
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #667085;
+  font-size: 14px;
 }
    
 

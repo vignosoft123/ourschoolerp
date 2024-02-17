@@ -13,8 +13,8 @@
                 <?php 
                     if(permissionChecker('user_add')) {
                 ?>
-                    <h5 class="page-header">
-                        <a href="<?php echo base_url('user/add') ?>">
+                    <h5 class="page-header btn-center">
+                        <a class="ose-btn create-btn" href="<?php echo base_url('user/add') ?>">
                             <i class="fa fa-plus"></i> 
                             <?=$this->lang->line('add_title')?>
                         </a>
@@ -22,10 +22,10 @@
                 <?php } ?>
 
                 <div id="hide-table">
-                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                         <thead>
                             <tr>
-                                <th class="col-lg-1"><?=$this->lang->line('slno')?></th>
+                                <th class="col-lg-1 text-center"><?=$this->lang->line('slno')?></th>
                                 <th class="col-lg-2"><?=$this->lang->line('user_photo')?></th>
                                 <th class="col-lg-2"><?=$this->lang->line('user_name')?></th>
                                 <!-- <th class="col-lg-2"><?=$this->lang->line('user_email')?></th> -->
@@ -35,14 +35,14 @@
                                 <th class="col-lg-1"><?=$this->lang->line('user_status')?></th>
                                 <?php } ?>
                                 <?php if(permissionChecker('user_edit') || permissionChecker('user_delete') || permissionChecker('user_view')) { ?>
-                                <th class="col-lg-2"><?=$this->lang->line('action')?></th>
+                                <th class="col-lg-2 text-center"><?=$this->lang->line('action')?></th>
                                 <?php } ?>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if(customCompute($users)) {$i = 1; foreach($users as $user) { ?>
                                 <tr>
-                                    <td data-title="<?=$this->lang->line('slno')?>">
+                                    <td class=" text-center" data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('user_photo')?>">
@@ -72,7 +72,7 @@
                                     </td>
                                     <?php } ?>
                                     <?php if(permissionChecker('user_edit') || permissionChecker('user_delete') || permissionChecker('user_view')) { ?>
-                                    <td data-title="<?=$this->lang->line('action')?>">
+                                    <td class="text-center" data-title="<?=$this->lang->line('action')?>">
                                         <?php echo btn_view('user/view/'.$user->userID, $this->lang->line('view')) ?>
                                         <?php echo btn_edit('user/edit/'.$user->userID, $this->lang->line('edit')) ?>
                                         <?php echo btn_delete('user/delete/'.$user->userID, $this->lang->line('delete')) ?>

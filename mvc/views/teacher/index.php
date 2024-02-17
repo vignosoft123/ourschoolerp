@@ -16,14 +16,15 @@
                 <?php 
                     if(permissionChecker('teacher_add')){
                 ?>
-                <h5 class="page-header"><a href="<?php echo base_url('teacher/add') ?>"><i class="fa fa-plus"></i> 
+                <h5 class="page-header btn-center">
+                    <a class="ose-btn create-btn" href="<?php echo base_url('teacher/add') ?>"><i class="fa fa-plus"></i> 
                     <?=$this->lang->line('add_title')?></a>
                 </h5>
 
                 <?php } ?>
 
                 <div id="hide-table">
-                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                         <thead>
                             <tr>
                                 <th class="col-sm-1"><?=$this->lang->line('slno')?></th>

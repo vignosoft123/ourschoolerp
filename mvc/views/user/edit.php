@@ -13,8 +13,8 @@
     <!-- form start -->
     <div class="box-body">
         <div class="row">
-            <div class="col-sm-10">
-                <form class="form-horizontal" role="form" method="post" enctype="multipart/form-data">
+            <div class="col-sm-12">
+                <form class="form-horizontal ose-form-list" role="form" method="post" enctype="multipart/form-data">
 
                     <?php
                         if(form_error('name'))
@@ -22,14 +22,14 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="user_name" class="col-sm-2 control-label">
+                        <label for="user_name" class="control-label">
                             <?=$this->lang->line("user_name")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="name" name="name" value="<?=set_value('name', $user->name)?>" >
 
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('name'); ?>
                         </span>
                     </div>
@@ -40,10 +40,10 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="dob" class="col-sm-2 control-label">
+                        <label for="dob" class="control-label">
                             <?=$this->lang->line("user_dob")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="dob" name="dob" value="<?=set_value('dob', date("d-m-Y", strtotime($user->dob)))?>" >
                         </div>
                         <span class="col-sm-4 control-label">
@@ -57,15 +57,15 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="sex" class="col-sm-2 control-label">
+                        <label for="sex" class="control-label">
                             <?=$this->lang->line("user_sex")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 echo form_dropdown("sex", array($this->lang->line("user_sex_male") => $this->lang->line("user_sex_male"), $this->lang->line("user_sex_female") => $this->lang->line("user_sex_female")), set_value("sex", $user->sex), "id='sex' class='form-control'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('sex'); ?>
                         </span>
                     </div>
@@ -76,13 +76,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="religion" class="col-sm-2 control-label">
+                        <label for="religion" class="control-label">
                             <?=$this->lang->line("user_religion")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="religion" name="religion" value="<?=set_value('religion', $user->religion)?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('religion'); ?>
                         </span>
                     </div>
@@ -93,13 +93,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="email" class="col-sm-2 control-label">
+                        <label for="email" class="control-label">
                             <?=$this->lang->line("user_email")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="email" name="email" value="<?=set_value('email', $user->email)?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('email'); ?>
                         </span>
                     </div>
@@ -110,13 +110,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="phone" class="col-sm-2 control-label">
+                        <label for="phone" class=" control-label">
                             <?=$this->lang->line("user_phone")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="phone" name="phone" value="<?=set_value('phone', $user->phone)?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('phone'); ?>
                         </span>
                     </div>
@@ -127,13 +127,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="address" class="col-sm-2 control-label">
+                        <label for="address" class=" control-label">
                             <?=$this->lang->line("user_address")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="address" name="address" value="<?=set_value('address', $user->address)?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class=" control-label">
                             <?php echo form_error('address'); ?>
                         </span>
                     </div>
@@ -144,13 +144,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="jod" class="col-sm-2 control-label">
+                        <label for="jod" class=" control-label">
                             <?=$this->lang->line("user_jod")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="jod" name="jod" value="<?=set_value('jod', date("d-m-Y", strtotime($user->jod)))?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class=" control-label">
                             <?php echo form_error('jod'); ?>
                         </span>
                     </div>
@@ -161,10 +161,10 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="photo" class="col-sm-2 control-label">
+                        <label for="photo" class=" control-label">
                             <?=$this->lang->line("user_photo")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <div class="input-group image-preview">
                                 <input type="text" class="form-control image-preview-filename" disabled="disabled">
                                 <span class="input-group-btn">
@@ -172,7 +172,7 @@
                                         <span class="fa fa-remove"></span>
                                         <?=$this->lang->line('user_clear')?>
                                     </button>
-                                    <div class="btn btn-success image-preview-input">
+                                    <div class="btn btn-primary image-preview-input">
                                         <span class="fa fa-repeat"></span>
                                         <span class="image-preview-input-title">
                                         <?=$this->lang->line('user_file_browse')?>
@@ -183,7 +183,7 @@
                             </div>
                         </div>
 
-                        <span class="col-sm-4">
+                        <span class="control-label">
                             <?php echo form_error('photo'); ?>
                         </span>
                     </div>
@@ -194,11 +194,11 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="usertypeID" class="col-sm-2 control-label">
+                        <label for="usertypeID" class="control-label">
                             <?=$this->lang->line("user_usertype")?> <span class="text-red">*</span>
                         </label>
                         
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 $array[0] = $this->lang->line('user_select_usertype');
                                 $blockuser = array(1, 2, 3, 4);
@@ -214,7 +214,7 @@
                                 );
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class=" control-label">
                             <?php echo form_error('usertypeID'); ?>
                         </span>
                     </div>
@@ -225,24 +225,23 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="username" class="col-sm-2 control-label">
+                        <label for="username" class=" control-label">
                             <?=$this->lang->line("user_username")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="username" name="username" value="<?=set_value('username', $user->username)?>" >
                         </div>
-                         <span class="col-sm-4 control-label">
+                         <span class="control-label">
                             <?php echo form_error('username'); ?>
                         </span>
                     </div>
 
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-8">
-                            <input type="submit" class="btn btn-success" value="<?=$this->lang->line("update_user")?>" >
+                </form>
+                <div class="col-md-12">
+                        <div class="btn-center">
+                            <input type="submit" class="ose-btn" value="<?=$this->lang->line("update_user")?>" >
                         </div>
                     </div>
-
-                </form>
             </div>
         </div>
     </div>
