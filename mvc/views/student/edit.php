@@ -222,6 +222,41 @@
                     <div class="student-details-sec">
                         <h2 class="h2-title">Student Details</h2>
                         <div class="row">
+
+                        <?php 
+                                if(form_error('first_name')) 
+                                    echo "<div class='col-md-4 has-error' >";
+                                else     
+                                    echo "<div class='col-md-4' >";
+                            ?>
+                                <label for="first_name" class=" control-label">
+                                    First Name<span class="text-red">*</span>
+                                </label>
+                                
+                                    <input type="text" class="form-control" id="first_name" name="first_name" value="<?=set_value('first_name', $student->first_name)?>" >
+                               
+                                <span class="control-label">
+                                    <?php echo form_error('first_name'); ?>
+                                </span>
+                            </div>
+
+                            <?php 
+                                if(form_error('last_name')) 
+                                    echo "<div class='col-md-4 has-error' >";
+                                else     
+                                    echo "<div class='col-md-4' >";
+                            ?>
+                                <label for="last_name" class=" control-label">
+                                    Last Name <span class="text-red">*</span>
+                                </label>
+                                
+                                    <input type="text" class="form-control" id="last_name" name="last_name" value="<?=set_value('last_name', $student->last_name)?>" >
+                               
+                                <span class="control-label">
+                                    <?php echo form_error('last_name'); ?>
+                                </span>
+                            </div>
+
                             <?php 
                                 if(form_error('name')) 
                                     echo "<div class='col-md-4 has-error' >";
@@ -229,7 +264,7 @@
                                     echo "<div class='col-md-4' >";
                             ?>
                                 <label for="name_id" class=" control-label">
-                                    <?=$this->lang->line("student_name")?> <span class="text-red">*</span>
+                                    ID Card name <span class="text-red">*</span>
                                 </label>
                                 
                                     <input type="text" class="form-control" id="name_id" name="name" value="<?=set_value('name', $student->name)?>" >

@@ -477,7 +477,7 @@ class Tmember extends Admin_Controller {
 		if((int)$pickup_id) {
 			// $string = $this->transport_m->get_transport($transportID);
 			// $string = $this->db->query('SELECT *FROM `transport`WHERE `transportID` ='.$transportID)->row();
-			$string = $this->db->query('SELECT *FROM `pickup_points`WHERE `id` ='.$pickup_id)->row();
+			$string = $this->db->query('SELECT fare FROM `pickup_points`WHERE `id` ='.$pickup_id)->row();
 			// echo $this->db->last_query();die;
 			echo $string->fare;
 		} else {
