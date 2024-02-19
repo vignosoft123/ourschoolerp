@@ -76,6 +76,8 @@ class Biometric extends CI_Controller {
                 $present_or_latepresent = "L";
              }
 
+             echo '$RFID=0#';
+             
            $data = array(
                 'sid' => $SID,
                 'mid' => $MID,
@@ -163,7 +165,7 @@ class Biometric extends CI_Controller {
         }
             // echo $this->db->last_query();die;
            
-            echo '$RFID=0#';
+            // echo '$RFID=0#';
            }
            else
            {
