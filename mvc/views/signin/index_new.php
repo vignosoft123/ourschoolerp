@@ -13,6 +13,18 @@
     <!-- <link rel="stylesheet" href="css/style.css"> -->
 <style>
 /*# sourceMappingURL=style.css.map */
+
+.password-toggle {
+    position: relative;
+  }
+  .password-toggle .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+  }
+  
 .oserp-login,
 .image {
   min-height: 100vh;
@@ -134,8 +146,9 @@ margin-bottom:20px;
                   </div>
                   <div class="form-group margin-bottom-0">
                       <label class="label-txt" for="username">Password</label>
-                      <input class="form-control shadow-sm px-4" placeholder="******" name="password" type="password">
-                  </div>
+                      <input class="form-control shadow-sm px-4" placeholder="******" id="password" name="password" type="password">
+                      <i class="toggle-password fa fa-eye"></i>
+                    </div>
 
                   <div class="remember-sec">
                       <label class="control control--checkbox mb-0">
@@ -171,6 +184,24 @@ margin-bottom:20px;
 
     <!-- JS -->
     <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
     <script src="js/main.js"></script>
+
+    
+    <script>
+       $(document).ready(function(){
+  $('.toggle-password').click(function(){ 
+    $(this).toggleClass('fa-eye fa-eye-slash');
+    var input = $($(this).prev('input'));
+    if (input.attr('type') == 'password') {
+      input.attr('type', 'text');
+    } else {
+      input.attr('type', 'password');
+    }
+  });
+});
+    </script>
+
 </body>
 </html>

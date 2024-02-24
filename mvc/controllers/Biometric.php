@@ -76,6 +76,8 @@ class Biometric extends CI_Controller {
                 $present_or_latepresent = "L";
              }
 
+             echo '$RFID=0#';
+             
            $data = array(
                 'sid' => $SID,
                 'mid' => $MID,
@@ -92,14 +94,17 @@ class Biometric extends CI_Controller {
            {
 
             $sql1 = "select teacherID from teacher where rfid=".$RFID;
-            $teacherID = $this->db->query($sql1)->row()->teacherID;
+            $num_rows = $this->db->query($sql1)->num_row();
+            if($num_rows > 0){
+                $teacherID = $this->db->query($sql1)->row()->teacherID;
+            }
 
             $day_num = $day;
 
            
             
            
-
+        if(!empty($teacherID)){
             //checking attendance exists or not start
                 $this->db->where('teacherID',$teacherID);
                 $this->db->where('monthyear',$month.'-'.$year);
@@ -156,9 +161,11 @@ class Biometric extends CI_Controller {
                     $this->db->insert('tattendance',$attendance_insert);
                 }  
             }          
+
+        }
             // echo $this->db->last_query();die;
            
-            echo '$RFID=0#';
+            // echo '$RFID=0#';
            }
            else
            {
