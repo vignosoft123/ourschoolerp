@@ -13,8 +13,8 @@
     <!-- form start -->
     <div class="box-body">
         <div class="row">
-            <div class="col-sm-10">
-                <form class="form-horizontal" role="form" method="post">
+            <div class="col-sm-12">
+                <form class="form-horizontal ose-vertical-form-list" role="form" method="post">
 
                     <?php
                         if(form_error('classes'))
@@ -22,13 +22,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="classes" class="col-sm-2 control-label">
+                        <label for="classes" class="control-label">
                             <?=$this->lang->line("classes_name")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="classes" name="classes" value="<?=set_value('classes')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('classes'); ?>
                         </span>
                     </div>
@@ -39,13 +39,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="classes_numeric" class="col-sm-2 control-label">
+                        <label for="classes_numeric" class="control-label">
                             <?=$this->lang->line("classes_numeric")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="classes_numeric" name="classes_numeric" value="<?=set_value('classes_numeric')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('classes_numeric'); ?>
                         </span>
                     </div>
@@ -56,10 +56,10 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="teacherID" class="col-sm-2 control-label">
+                        <label for="teacherID" class="control-label">
                             <?=$this->lang->line("teacher_name")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
 
                             <?php
                                 $array = array();
@@ -71,7 +71,7 @@
                                 echo form_dropdown("teacherID", $array, set_value("teacherID"), "id='teacherID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('teacherID'); ?>
                         </span>
                     </div>
@@ -82,30 +82,30 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="note" class="col-sm-2 control-label">
+                        <label for="note" class="control-label">
                             <?=$this->lang->line("classes_note")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <textarea class="form-control" style="resize:none;" id="note" name="note"><?=set_value('note')?></textarea>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('note'); ?>
                         </span>
                     </div>
-
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-8">
-                            <input type="submit" class="btn btn-success" value="<?=$this->lang->line("add_class")?>" >
-                        </div>
-                    </div>
-
                 </form>
-                <?php if ($siteinfos->note==1) { ?>
+
+                <div class="col-md-12">
+                    <div class="btn-center">
+                        <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_class")?>" >
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-12">
+            <?php if ($siteinfos->note==1) { ?>
                     <div class="callout callout-danger">
                         <p><b>Note:</b> Create a teacher before create a new class.</p>
                     </div>
                 <?php } ?>
-
             </div>
         </div>
     </div>

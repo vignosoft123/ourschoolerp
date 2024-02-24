@@ -99,11 +99,18 @@
 /* page Header Add Module */
 
 /* Lable Start */
+.ose-vertical-form-list{
+  display: flex;
+  flex-direction: column; 
+  max-width: 40%;
+  margin:auto;
+}
 .teacher-form-info, .ose-form-list{
   display:grid;
   gap:0rem 3rem;
   grid-template-columns:repeat(auto-fit, minmax(min(32rem, 100%), 1fr));
 }
+
 .teacher-form-info .form-group, .ose-form-list .form-group{
 margin-left: 0px;
 margin-right: 0px;

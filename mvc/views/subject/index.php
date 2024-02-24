@@ -14,7 +14,7 @@
             <div class="col-sm-12">
                 <h5 class="page-header">
                     <?php if(permissionChecker('subject_add')) { ?>
-                        <a href="<?php echo base_url('subject/add') ?>">
+                        <a class="ose-btn create-btn" href="<?php echo base_url('subject/add') ?>">
                             <i class="fa fa-plus"></i>
                             <?=$this->lang->line('add_title')?>
                         </a>
@@ -36,7 +36,7 @@
                 </h5>
 
                 <div id="hide-table">
-                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                         <thead>
                             <tr>
                                 <th><?=$this->lang->line('slno')?></th>

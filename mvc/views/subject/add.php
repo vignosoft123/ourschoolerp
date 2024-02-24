@@ -12,18 +12,18 @@
     <!-- form start -->
     <div class="box-body">
         <div class="row">
-            <div class="col-sm-10">
-                <form class="form-horizontal" role="form" method="post">
+            <div class="col-sm-12">
+                <form class="form-horizontal ose-vertical-form-list" role="form" method="post">
                     <?php
                         if(form_error('classesID'))
                             echo "<div class='form-group has-error' >";
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="classesID" class="col-sm-2 control-label">
+                        <label for="classesID" class="control-label">
                             <?=$this->lang->line("subject_class_name")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                            <?php
                                 $array = array();
                                 $array[0] = $this->lang->line("subject_select_classes");
@@ -33,7 +33,7 @@
                                 echo form_dropdown("classesID", $array, set_value("classesID"), "id='classesID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('classesID'); ?>
                         </span>
                     </div>
@@ -44,10 +44,10 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="teacherID" class="col-sm-2 control-label">
+                        <label for="teacherID" class="control-label">
                             <?=$this->lang->line("subject_teacher_name")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 $array = [];
                                 if(customCompute($teachers)) {
@@ -58,7 +58,7 @@
                                 echo form_multiselect("teacherID[]", $array, set_value("teacherID", $teachersID), "id='teacherID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('teacherID'); ?>
                         </span>
                     </div>
@@ -67,12 +67,12 @@
                         if(form_error('type'))
                             echo "<div class='form-group has-error' >";
                         else
-                            echo "<div class='form-group' >";
+                            echo "<div class='form-group'>";
                     ?>
-                        <label for="type" class="col-sm-2 control-label">
+                        <label for="type" class="control-label">
                             <?=$this->lang->line("subject_type")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 $arraytype['select'] = $this->lang->line("subject_select_type");
                                 $arraytype[0] = $this->lang->line("subject_optional");
@@ -80,7 +80,7 @@
                                 echo form_dropdown("type", $arraytype, set_value("type"), "id='type' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('type'); ?>
                         </span>
                     </div>
@@ -91,13 +91,13 @@
                         else
                             echo "<div class='form-group' style='display:none' >";
                     ?>
-                        <label for="passmark" class="col-sm-2 control-label">
+                        <label for="passmark" class="control-label">
                             <?=$this->lang->line("subject_passmark")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="passmark" name="passmark" value="35" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('passmark'); ?>
                         </span>
                     </div>
@@ -108,13 +108,13 @@
                         else
                             echo "<div class='form-group' style='display:none'>";
                     ?>
-                        <label for="finalmark" class="col-sm-2 control-label">
+                        <label for="finalmark" class="control-label">
                             <?=$this->lang->line("subject_finalmark")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="finalmark" name="finalmark" value="100" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('finalmark'); ?>
                         </span>
                     </div>
@@ -123,15 +123,15 @@
                         if(form_error('subject'))
                             echo "<div class='form-group has-error' >";
                         else
-                            echo "<div class='form-group' >";
+                            echo "<div class='form-group'>";
                     ?>
-                        <label for="subject" class="col-sm-2 control-label">
+                        <label for="subject" class="control-label">
                             <?=$this->lang->line("subject_name")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="subject" name="subject" value="<?=set_value('subject')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('subject'); ?>
                         </span>
                     </div>
@@ -142,13 +142,13 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="subject_author" class="col-sm-2 control-label">
+                        <label for="subject_author" class="control-label">
                             <?=$this->lang->line("subject_author")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="subject_author" name="subject_author" value="<?=set_value('subject_author')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('subject_author'); ?>
                         </span>
                     </div>
@@ -159,30 +159,32 @@
                         else
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="subject_code" class="col-sm-2 control-label">
+                        <label for="subject_code" class="control-label">
                             <?=$this->lang->line("subject_code")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="subject_code" name="subject_code" value="<?=set_value('subject_code')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('subject_code'); ?>
                         </span>
                     </div>
-
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-8">
-                            <input type="submit" class="btn btn-success" value="<?=$this->lang->line("add_subject")?>" >
-                        </div>
-                    </div>
-
                 </form>
+
+                <div class="col-md-12">
+                        <div class="btn-center">
+                            <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_subject")?>" >
+                        </div>
+                </div>
+                    
+            </div> 
+            <div class="col-md-12">  
                 <?php if ($siteinfos->note==1) { ?>
                     <div class="callout callout-danger">
                         <p><b>Note:</b> Create a teacher & class before create a new subject.</p>
                     </div>
                 <?php } ?>
-            </div> <!-- col-sm-8 -->
+            </div>
         </div><!-- row -->
     </div><!-- Body -->
 </div><!-- /.box -->
