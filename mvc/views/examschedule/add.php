@@ -24,19 +24,19 @@
     <!-- form start -->
     <div class="box-body">
         <div class="row">
-            <div class="col-sm-10">
+            <div class="col-sm-12">
                 <form class="form-horizontal" role="form" method="post">
 
                     <?php
                         if(form_error('classesID'))
-                            echo "<div class='form-group has-error' >";
+                            echo "<div class='col-md-4 has-error' >";
                         else
-                            echo "<div class='form-group' >";
+                            echo "<div class='col-md-4' >";
                     ?>
-                        <label for="classesID" class="col-sm-2 control-label">
+                        <label for="classesID" class="control-label">
                             <?=$this->lang->line('examschedule_classes')?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="inpput-field">
                             <?php
                                 $classArray[0] = $this->lang->line("examschedule_select_classes");
                                 if(customCompute($classes)) {
@@ -47,46 +47,20 @@
                                 echo form_dropdown("classesID", $classArray, set_value("classesID"), "id='classesID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('classesID'); ?>
                         </span>
                     </div>
-
-                     <?php
-                        if(form_error('examID'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="examID" class="col-sm-2 control-label">
-                            <?=$this->lang->line("examschedule_name")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="col-sm-6">
-                            <?php
-                                $examArray[0] = $this->lang->line("examschedule_select_exam");
-                                if(customCompute($exams)) {
-                                    foreach ($exams as $exam) {
-                                        $examArray[$exam->examID] = $exam->exam;
-                                    }
-                                }
-                                echo form_dropdown("examID", $examArray, set_value("examID"), "id='examID' class='form-control select2'");
-                            ?>
-                        </div>
-                        <span class="col-sm-4 control-label">
-                            <?php echo form_error('examID'); ?>
-                        </span>
-                    </div>
-
                     <?php
                         if(form_error('sectionID'))
-                            echo "<div class='form-group has-error' >";
+                            echo "<div class='col-md-4 has-error' >";
                         else
-                            echo "<div class='form-group' >";
+                            echo "<div class='col-md-4' >";
                     ?>
-                        <label for="sectionID" class="col-sm-2 control-label">
+                        <label for="sectionID" class="control-label">
                             <?=$this->lang->line("examschedule_section")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="inpput-field">
                             <?php
                                 $sectionArray[0] = $this->lang->line("examschedule_select_section");
                                 if(customCompute($sections)) {
@@ -98,21 +72,48 @@
                                 echo form_multiselect("sectionID[]", $sectionArray, set_value("sectionID"), "id='sectionID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label" id="custom_error" >
+                        <span class="control-label" id="custom_error" >
                             <?php echo form_error('sectionID'); ?>
                         </span>
                     </div>
 
-                    <?php
-                        if(form_error('subjectID'))
+                     <?php
+                        if(form_error('examID'))
                             echo "<div class='col-md-4 has-error' >";
                         else
                             echo "<div class='col-md-4' >";
                     ?>
+                        <label for="examID" class="control-label">
+                            <?=$this->lang->line("examschedule_name")?> <span class="text-red">*</span>
+                        </label>
+                        <div class="inpput-field">
+                            <?php
+                                $examArray[0] = $this->lang->line("examschedule_select_exam");
+                                if(customCompute($exams)) {
+                                    foreach ($exams as $exam) {
+                                        $examArray[$exam->examID] = $exam->exam;
+                                    }
+                                }
+                                echo form_dropdown("examID", $examArray, set_value("examID"), "id='examID' class='form-control select2'");
+                            ?>
+                        </div>
+                        <span class="control-label">
+                            <?php echo form_error('examID'); ?>
+                        </span>
+                    </div>
+
+                    
+
+                    <?php
+                        if(form_error('subjectID'))
+                            echo "<div class='col-md-2 has-error' >";
+                        else
+                            echo "<div class='col-md-2' >";
+                    ?>
                         <label for="subjectID" class=" control-label">
                             <?=$this->lang->line("examschedule_subject")?> <span class="text-red">*</span>
                         </label>
-                        <!-- <div class="col-sm-6"> -->
+                       <div class="inpt-field"> 
                             <?php
                                 $subjectArray[0] = $this->lang->line("examschedule_select_subject");
                                 if(customCompute($subjects)) {
@@ -122,8 +123,8 @@
                                 }
                                 echo form_dropdown("subjectID", $subjectArray, set_value("subjectID"), "id='subjectID' class='form-control select2'");
                             ?>
-                        <!-- </div> -->
-                        <span class="col-sm-4 control-label">
+                         </div> 
+                        <span class="control-label">
                             <?php echo form_error('subjectID'); ?>
                         </span>
                     </div>
@@ -131,16 +132,16 @@
 
                     <?php
                         if(form_error('min_mark'))
-                            echo "<div class='col-md-4 has-error'>";
+                            echo "<div class='col-md-2 has-error'>";
                         else
-                            echo "<div class='col-md-4'>";
+                            echo "<div class='col-md-2'>";
                     ?>
                         <label for="min_mark" class=" control-label">
                             Min Marks
                         </label>
-                        <!-- <div class="col-sm-6"> -->
+                      <div class="input-field">
                             <input type="text" class="form-control" id="min_mark" name="min_mark" value="<?=set_value('min_mark')?>" >
-                        <!-- </div> -->
+                         </div>
                         <span class="col-sm-4 control-label">
                             <?php echo form_error('min_mark'); ?>
                         </span>
@@ -148,17 +149,17 @@
 
                     <?php
                         if(form_error('max_mark'))
-                            echo "<div class='col-md-4 has-error'>";
+                            echo "<div class='col-md-2 has-error'>";
                         else
-                            echo "<div class='col-md-4'>";
+                            echo "<div class='col-md-2'>";
                     ?>
-                        <label for="max_mark" class="  control-label">
+                        <label for="max_mark" class="control-label">
                             Max Marks
                         </label>
-                        <!-- <div class="col-sm-6"> -->
+                      <div class="input-field"> 
                             <input type="text" class="form-control" id="max_mark" name="max_mark" value="<?=set_value('max_mark')?>" >
-                        <!-- </div> -->
-                        <span class="col-sm-4 control-label">
+                       </div>
+                        <span class="control-label">
                             <?php echo form_error('max_mark'); ?>
                         </span>
                     </div>
@@ -167,83 +168,88 @@
 
                     <?php
                         if(form_error('date'))
-                            echo "<div class='form-group has-error' >";
+                            echo "<div class='col-md-2 has-error' >";
                         else
-                            echo "<div class='form-group' >";
+                            echo "<div class='col-md-2' >";
                     ?>
-                        <label for="date" class="col-sm-2 control-label">
+                        <label for="date" class="control-label">
                             <?=$this->lang->line("examschedule_date")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="date" name="date" value="<?=set_value('date')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('date'); ?>
                         </span>
                     </div>
 
                     <?php
                         if(form_error('examfrom'))
-                            echo "<div class='form-group has-error' >";
+                            echo "<div class='col-md-2 has-error' >";
                         else
-                            echo "<div class='form-group' >";
+                            echo "<div class='col-md-2' >";
                     ?>
-                        <label for="examfrom" class="col-sm-2 control-label">
+                        <label for="examfrom" class="control-label">
                             <?=$this->lang->line("examschedule_examfrom")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="examfrom" name="examfrom" value="<?=set_value('examfrom')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('examfrom'); ?>
                         </span>
                     </div>
 
                     <?php
                         if(form_error('examto'))
-                            echo "<div class='form-group has-error'>";
+                            echo "<div class='col-md-2 has-error'>";
                         else
-                            echo "<div class='form-group'>";
+                            echo "<div class='col-md-2'>";
                     ?>
-                        <label for="examto" class="col-sm-2 control-label">
+                        <label for="examto" class="control-label">
                             <?=$this->lang->line("examschedule_examto")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="examto" name="examto" value="<?=set_value('examto')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('examto'); ?>
                         </span>
                     </div>
 
-                    <?php
+                    <!-- <?php
                         if(form_error('room'))
-                            echo "<div class='form-group has-error'>";
+                            echo "<div class='col-md-2 has-error'>";
                         else
-                            echo "<div class='form-group'>";
+                            echo "<div class='col-md-2'>";
                     ?>
-                        <label for="room" class="col-sm-2 control-label">
+                        <label for="room" class="control-label">
                             <?=$this->lang->line("examschedule_room")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="room" name="room" value="<?=set_value('room')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('room'); ?>
                         </span>
-                    </div>
-
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-8">
-                            <input type="submit" id="exam_schedule_btn" class="btn btn-success" value="<?=$this->lang->line("add_examschedule")?>" >
+                    </div> -->
+                   
+                </form>
+                <div class="col-md-12">
+                        
+                        <div class="btn-center">
+                             <a href="#" class="ose-btn"><i class="fa fa-plus"></i> Add Row</a>
+                            <input type="submit" id="exam_schedule_btn" class="ose-btn" value="<?=$this->lang->line("add_examschedule")?>" >
                         </div>
                     </div>
-                </form>
+
+                <div class="col-md-12">
                 <?php if ($siteinfos->note==1) { ?>
                     <div class="callout callout-danger">
                         <p><b>Note:</b> Create exam, class, section & subject before you create a new exam schedule</p>
                     </div>
                 <?php } ?>
+                </div>
             </div>
         </div>
     </div>

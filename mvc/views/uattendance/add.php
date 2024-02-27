@@ -28,7 +28,7 @@
                                 </div>
 
                                 <div class="col-md-4">
-                                    <input type="submit" class="btn btn-success" style="margin-top:20px" value="<?=$this->lang->line("add_attendance")?>" >
+                                    <input type="submit" class="btn btn-primary" style="margin-top:20px" value="<?=$this->lang->line("add_attendance")?>" >
                                 </div>
                             </div>
                         </div>
@@ -48,7 +48,7 @@
             <div class="col-sm-12">
                 <?php if(customCompute($users)) { ?>
                     <div id="hide-table">
-                        <table class="table table-striped table-bordered table-hover">
+                        <table class="table tableBorder table-bordered">
                             <thead>
                                 <tr>
                                     <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
@@ -119,7 +119,7 @@
                         </table>
                     </div>
 
-                    <span style="margin-top: 20px;" class="btn btn-success pull-right save_attendance"><?=$this->lang->line('uattendance_submit')?></span>
+                    <span style="margin-top: 20px;" class="btn btn-primary pull-right save_attendance"><?=$this->lang->line('uattendance_submit')?></span>
 
                     <script type="text/javascript">
                         window.addEventListener('load', function() {

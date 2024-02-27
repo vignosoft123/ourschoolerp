@@ -15,7 +15,7 @@
             <div class="col-sm-12">
                 <form method="POST">
                     <div class="row">
-                        <div class="col-md-10">
+                        <div class="col-md-12">
                             <div class="row">
                                 <div class="col-md-4 col-md-offset-4">
                                     <div class="<?php echo form_error('date') ? 'form-group has-error' : 'form-group'; ?>">
@@ -27,7 +27,7 @@
                                 </div>
 
                                 <div class="col-md-4">
-                                    <input type="submit" class="btn btn-success" style="margin-top:20px" value="<?= $this->lang->line("add_attendance") ?>">
+                                    <input type="submit" class="btn btn-primary" style="margin-top:24px" value="<?= $this->lang->line("add_attendance") ?>">
                                 </div>
                             </div>
                         </div>
@@ -46,7 +46,7 @@
 
                 <?php if (customCompute($teachers)) { ?>
                     <div id="hide-table">
-                        <table class="table table-striped table-bordered table-hover dataTable no-footer">
+                        <table class="table tableBorder table-bordered table-hover dataTable no-footer">
                             <thead>
                                 <tr>
                                     <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
@@ -128,7 +128,7 @@
                         </table>
                     </div>
 
-                    <span style="margin-top: 20px;" class="btn btn-success pull-right save_attendance"><?= $this->lang->line('tattendance_submit') ?></span>
+                    <span style="margin-top: 20px;" class="btn btn-primary pull-right save_attendance"><?= $this->lang->line('tattendance_submit') ?></span>
 
                     <script type="text/javascript">
                         window.addEventListener('load', function() {

@@ -12,22 +12,21 @@
     </div><!-- /.box-header -->
     <div class="box-body">
         <div class="row">
-            <div class="col-sm-10">
-                <form class="form-horizontal" role="form" method="post">
-
+            <div class="col-sm-12">
+                <form class="form-horizontal ose-vertical-form-list" role="form" method="post">
                     <?php 
                         if(form_error('grade')) 
                             echo "<div class='form-group has-error' >";
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="grade" class="col-sm-2 control-label">
+                        <label for="grade" class="control-label">
                             <?=$this->lang->line("grade_name")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="grade" name="grade" value="<?=set_value('grade')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('grade'); ?>
                         </span>
                     </div>
@@ -38,13 +37,13 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="point" class="col-sm-2 control-label">
+                        <label for="point" class="control-label">
                             <?=$this->lang->line("grade_point")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="point" name="point" value="<?=set_value('point')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('point'); ?>
                         </span>
                     </div>
@@ -55,13 +54,13 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="gradefrom" class="col-sm-2 control-label">
+                        <label for="gradefrom" class="control-label">
                             <?=$this->lang->line("grade_gradefrom")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="gradefrom" name="gradefrom" value="<?=set_value('gradefrom')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('gradefrom'); ?>
                         </span>
                     </div>
@@ -72,13 +71,13 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="gradeupto" class="col-sm-2 control-label">
+                        <label for="gradeupto" class="control-label">
                             <?=$this->lang->line("grade_gradeupto")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="gradeupto" name="gradeupto" value="<?=set_value('gradeupto')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('gradeupto'); ?>
                         </span>
                     </div>
@@ -89,23 +88,23 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="note" class="col-sm-2 control-label">
+                        <label for="note" class="control-label">
                             <?=$this->lang->line("grade_note")?>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <textarea style="resize:none;" class="form-control" id="note" name="note"><?=set_value('note')?></textarea>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('note'); ?>
                         </span>
-                    </div>
+                    </div>                    
+                </form>
 
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-8">
-                            <input type="submit" class="btn btn-success" value="<?=$this->lang->line("add_grade")?>" >
+                <div class="col-md-12">
+                        <div class="btn-center">
+                            <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_grade")?>" >
                         </div>
                     </div>
-                </form>
             </div>    
         </div>
     </div>

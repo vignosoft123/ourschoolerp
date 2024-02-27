@@ -23,7 +23,7 @@
             <div class="col-sm-12">
                 <h5 class="page-header">
                     <?php if(permissionChecker('routine_add')) { ?>
-                        <a href="<?php echo base_url('routine/add') ?>">
+                        <a class="ose-btn create-btn" href="<?php echo base_url('routine/add') ?>">
                             <i class="fa fa-plus"></i> 
                             <?=$this->lang->line('add_title')?>
                         </a>
@@ -70,7 +70,7 @@
                         <div class="tab-content" id="scrolling">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table-2">
-                                    <table id="table" class="table table-bordered ">
+                                    <table id="table" class="table table-bordered tableBorder">
                                         <tbody>
                                             <?php
                                                 $flag  = 0;
@@ -128,7 +128,7 @@
                             <?php foreach ($sections as $key => $section) { ?>
                                 <div id="<?=$section->sectionID?>" class="tab-pane">
                                     <div id="hide-table-2">
-                                        <table id="table" class="table table-bordered ">
+                                        <table id="table" class="table table-bordered tableBorder">
                                             <tbody>
                                                 <?php
                                                     if(isset($allsection[$section->section]) && customCompute($allsection[$section->section])) {
@@ -195,7 +195,7 @@
                         <div class="tab-content">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table-2">
-                                    <table id="table" class="table table-striped ">
+                                    <table id="table" class="table table-bordered tableBorder">
                                         <tbody>
                                             <?php
                                                 $flag = 0;

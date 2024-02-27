@@ -686,7 +686,7 @@ label {
 }
 
 .drop-marg {
-  border: 1px solid #09A3A3;
+  /* border: 1px solid #09A3A3; */
   padding-left:0px;
   padding-right:0px;
 }

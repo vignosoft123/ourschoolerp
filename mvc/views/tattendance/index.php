@@ -14,7 +14,7 @@
                 <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
                     <?php if (permissionChecker('tattendance_add')) { ?>
                         <h5 class="page-header">
-                            <a href="<?php echo base_url('tattendance/add') ?>">
+                            <a class="ose-btn create-btn" href="<?php echo base_url('tattendance/add') ?>">
                                 <i class="fa fa-plus"></i>
                                 <?= $this->lang->line('add_title') ?>
                             </a>
@@ -23,7 +23,7 @@
                 <?php } ?>
 
                 <div id="hide-table">
-                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                         <thead>
                             <tr>
                                 <th class="col-sm-2"><?= $this->lang->line('slno') ?></th>
