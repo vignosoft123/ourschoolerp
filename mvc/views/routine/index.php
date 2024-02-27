@@ -42,7 +42,23 @@
                     <?php } ?>
                 </h5>
 
-                <?php if(customCompute($routines) > 0 ) { ?>
+
+                <div id="checkboxs_div" class="">
+                                <?php 
+                                    foreach($days as $ky => $dy){?>
+
+                                    <input style="margin:2px;" type="checkbox"  name="checkbox_day" id="checkbox_day" value="<?php echo $ky;?>"> <?= $dy ?>
+
+                                   
+                                <?php } ?>
+                                <input type="button" class="btn btn-success copy" value="Copy">
+
+                </div>
+
+
+                <?php 
+                //echo "<pre>";print_r($routines);die;
+                if(customCompute($routines) > 0 ) { ?>
                     <div class="nav-tabs-custom">
                         <ul class="nav nav-tabs">
                             <li class="active"><a data-toggle="tab" href="#all" aria-expanded="true"><?=$this->lang->line("routine_all_routine")?></a></li>
@@ -68,9 +84,11 @@
                                                             if(!in_array($dayKey, $weekends)) {
                                                                 if($flag == 0) {
                                                                     echo '<tr>';
+                                                                    echo "<td><input type='radio' class='radio_change' name='radio_change' value='<?php echo $dayKey;?>' > Copy from</td>";
                                                                     echo '<td>'.$day.'</td>';
                                                                     $flag = 1;
                                                                 }
+                                                                
                                                                 echo '<td class="text-center">';
                                                                     echo $routine->start_time.'-'.$routine->end_time.'<br/>';
                                                                     echo $routine->section.'<br/>';
@@ -228,4 +246,40 @@
             axis:"x" // horizontal scrollbar
         });
     } 
+
+    $(document).on('change','.radio_change',function(){
+        $("#checkboxs_div").show();
+        $("#checkboxs_div").fadeIn(500);
+    });
+
+    $(document).on('click','.copy',function(){
+
+        var checkBox1 = []; 
+    var checkBox2 = []; 
+    var i=0; var j = 0;
+    //getting multi checkbox values
+           $('.checkBox1:checked').each(function(){        
+               var values = $(this).val();
+               checkBox1[i++] = values; 
+           });
+
+           $('.checkBox2:checked').each(function(){        
+               var values2 = $(this).val();
+               checkBox2[j++] = values2; 
+           });
+
+           var from = $("input[type='radio'][name='radio_change']:checked").val();
+            
+        $.ajax({
+            
+            type: "post",
+            url: "<?php echo site_url('Routine/copy_timetable'); ?>",
+           dataType: "json", 
+            data: {"from":from},
+            success: function(response)
+            {
+		}
+})
+
+    })
 </script>

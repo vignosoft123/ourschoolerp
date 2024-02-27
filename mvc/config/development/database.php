@@ -73,12 +73,17 @@ $active_record = TRUE;
 
 $db['default']['dsn']	   = ''; 
 
-// $db['default']['hostname'] = 'http://119.18.54.141:2083/';
- $db['default']['hostname'] = '119.18.54.141';
-// $db['default']['hostname'] = '119.18.54.137';
+
+ $db['default']['hostname'] = '119.18.54.141'; 
 $db['default']['username'] = 'mindw2ft_ourschoolerp';
 $db['default']['password'] = '7[oLxwM^gI#T';
 $db['default']['database'] = 'mindw2ft_ourschoolerp';
+
+// $db['default']['hostname'] = 'localhost'; 
+// $db['default']['username'] = 'root';
+// $db['default']['password'] = ''; 
+// $db['default']['database'] = 'ourscupz_school'; //ggs
+
 
 $db['default']['dbdriver'] = 'mysqli';
 $db['default']['dbprefix'] = '';
