@@ -12,7 +12,6 @@
     <div class="box-body">
         <div class="row">
             <div class="col-sm-12">
-
                 <form method="POST">
                     <div class="row">
                         <div class="col-md-10">
@@ -87,7 +86,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group" >
-                                        <input type="submit" class="btn btn-success col-md-12" style="margin-top:20px" value="<?=$this->lang->line("add_attendance")?>" >
+                                        <input type="submit" class="btn btn-primary col-md-12" style="margin-top:24px" value="<?=$this->lang->line("add_attendance")?>" >
                                     </div>
                                 </div>
                             </div>

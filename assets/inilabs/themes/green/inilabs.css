@@ -105,6 +105,17 @@
   max-width: 40%;
   margin:auto;
 }
+.ose-form-column-2{
+  max-width: 80%;
+  margin: auto;
+  display:grid;
+  grid-gap:0rem 2rem;
+  grid-template-columns:repeat(auto-fit, minmax(min(40rem, 100%), 1fr));
+}
+.ose-form-column-2 .form-group{
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
 .teacher-form-info, .ose-form-list{
   display:grid;
   gap:0rem 3rem;
@@ -115,7 +126,7 @@
 margin-left: 0px;
 margin-right: 0px;
 }
-.form-horizontal .control-label {
+.form-horizontal .control-label,  .control-label{
   text-align: left;
   font-size: 14px;
   color: #667085;
@@ -725,7 +736,7 @@ label {
 }
 
 .drop-marg {
-  border: 1px solid #09A3A3;
+  /* border: 1px solid #09A3A3; */
   padding-left:0px;
   padding-right:0px;
 }

@@ -1,8 +1,4 @@
-<?php if ($siteinfos->note == 1) { ?>
-    <div class="callout callout-danger">
-        <p><b>Note:</b> There are two types of attendance, day wise and class wise. you can select your institute attendance system in <a href="<?= base_url('setting') ?>" class="text-blue">settings.</a></p>
-    </div>
-<?php } ?>
+
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-sattendance"></i> <?= $this->lang->line('panel_title') ?></h3>
@@ -82,13 +78,15 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-success col-md-12" style="margin-top: 20px;"><?= $this->lang->line('add_attendance') ?></button>
+                                            <button type="submit" class="btn btn-primary col-md-12" style="margin-top: 24px;"><?= $this->lang->line('add_attendance') ?></button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </form>
+                    
+
                 <?php } else { ?>
                     <form method="POST">
                         <div class="row">
@@ -138,7 +136,7 @@
                                 <div class="row">
                                     <div class="col-md-12">
                                         <div class="form-group">
-                                            <button type="submit" class="btn btn-success col-md-12" style="margin-top: 20px;"><?= $this->lang->line('add_attendance') ?></button>
+                                            <button type="submit" class="btn btn-primary col-md-12" style="margin-top: 24px;"><?= $this->lang->line('add_attendance') ?></button>
                                         </div>
                                     </div>
                                 </div>
@@ -149,6 +147,8 @@
 
                 <?php if (customCompute($sattendanceinfo)) { ?>
                     <div class="col-sm-4 col-sm-offset-4 box-layout-fame">
+                   
+                   
                         <?php
                         echo '<h5><center>' . $this->lang->line('attendance_details') . '</center></h5>';
                         echo '<h5><center>' . $this->lang->line('attendance_classes') . ' : ' . $sattendanceinfo['class'] . '</center></h5>';
@@ -166,7 +166,7 @@
                 <?php if (customCompute($students)) { ?>
 
                     <div id="hide-table">
-                        <table class="table table-striped table-bordered table-hover" id="attendance_table">
+                        <table class="table tableBorder table-bordered table-hover" id="attendance_table">
                             <thead>
                                 <tr>
                                     <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
@@ -281,8 +281,16 @@
                             </tbody>
                         </table>
                     </div>
-                    <span style="margin-top: 20px;" class="btn btn-success pull-right save_attendance"><?= $this->lang->line('sattendance_submit') ?>
+                    <span style="margin-top: 20px;" class="btn btn-primary pull-right save_attendance"><?= $this->lang->line('sattendance_submit') ?>
                     <?php } ?></span>
+
+                    <div class="col-md-12">
+                        <?php if ($siteinfos->note == 1) { ?>
+                            <div class="callout callout-danger">
+                                <p><b>Note:</b> There are two types of attendance, day wise and class wise. you can select your institute attendance system in <a href="<?= base_url('setting') ?>" class="text-blue">settings.</a></p>
+                            </div>
+                        <?php } ?>
+                   </div>
 
                     <script type="text/javascript">
                         window.addEventListener('load', function() {

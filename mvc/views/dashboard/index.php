@@ -325,9 +325,9 @@
 
 <?php if($getActiveUserID == 1 || $getActiveUserID == 5) { ?>
     <div class="row">
-        <div class="col-sm-4">
+        <!-- <div class="col-sm-4">
             <?php $this->load->view('dashboard/ProfileBox'); ?>
-        </div>
+        </div> -->
         <div class="col-sm-8">
             <div class="box">
                 <div class="box-body" style="padding: 10px 0px;">

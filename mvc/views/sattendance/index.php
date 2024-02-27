@@ -17,7 +17,7 @@
                     <h5 class="page-header">
                         <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if(permissionChecker('sattendance_add')) { ?>
-                                <a href="<?php echo base_url('sattendance/add') ?>">
+                                <a class="ose-btn create-btn" href="<?php echo base_url('sattendance/add') ?>">
                                     <i class="fa fa-plus"></i> 
                                     <?=$this->lang->line('add_title')?>
                                 </a>
@@ -50,7 +50,7 @@
                         <div class="tab-content">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table">
-                                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                                         <thead>
                                             <tr>
                                                 <th class="col-sm-2"><?=$this->lang->line('slno')?></th>
@@ -98,7 +98,7 @@
                             <?php foreach ($sections as $key => $section) { ?>
                                 <div id="<?=$section->sectionID?>" class="tab-pane">
                                     <div id="hide-table">
-                                        <table class="table table-striped table-bordered table-hover dataTable no-footer">
+                                        <table class="table table-bordered tableBorder dataTable no-footer">
                                             <thead>
                                                 <tr>
                                                     <th class="col-sm-2"><?=$this->lang->line('slno')?></th>
@@ -153,7 +153,7 @@
                         <div class="tab-content">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table">
-                                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                                         <thead>
                                             <tr>
                                                 <th class="col-sm-2"><?=$this->lang->line('slno')?></th>

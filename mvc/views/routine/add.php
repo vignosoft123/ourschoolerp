@@ -13,18 +13,18 @@
     <!-- form start -->
     <div class="box-body">
         <div class="row">
-            <div class="col-sm-10">
-                <form class="form-horizontal" role="form" method="post">
+            <div class="col-sm-12">
+                <form class="form-horizontal ose-form-column-2" role="form" method="post">
                     <?php 
                         if(form_error('schoolyearID'))
                             echo "<div class='form-group has-error' >";
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="schoolyearID" class="col-sm-2 control-label">
+                        <label for="schoolyearID" class="control-label">
                             <?=$this->lang->line("routine_schoolyear")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 $arrayschoolyear    = [];
                                 $arrayschoolyear[0] = $this->lang->line("routine_select_schoolyear");
@@ -40,7 +40,7 @@
                                 echo form_dropdown("schoolyearID", $arrayschoolyear, set_value("schoolyearID", $defaultschoolyear), "id='schoolyearID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('schoolyearID'); ?>
                         </span>
                     </div>
@@ -51,10 +51,10 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="classesID" class="col-sm-2 control-label">
+                        <label for="classesID" class="control-label">
                             <?=$this->lang->line("routine_classes")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 $arrayclass[0] = $this->lang->line("routine_select_classes");
                                 if(customCompute($classes)) {
@@ -65,7 +65,7 @@
                                 echo form_dropdown("classesID", $arrayclass, set_value("classesID"), "id='classesID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('classesID'); ?>
                         </span>
                     </div>
@@ -76,10 +76,10 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="sectionID" class="col-sm-2 control-label">
+                        <label for="sectionID" class="control-label">
                             <?=$this->lang->line("routine_section")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 $arraysection[0] = $this->lang->line("routine_select_section");
                                 if(customCompute($sections)) {
@@ -90,7 +90,7 @@
                                 echo form_dropdown("sectionID", $arraysection, set_value("sectionID"), "id='sectionID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('sectionID'); ?>
                         </span>
                     </div>
@@ -101,10 +101,10 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="subjectID" class="col-sm-2 control-label">
+                        <label for="subjectID" class="control-label">
                             <?=$this->lang->line("routine_subject")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <?php
                                 $arraysubject = array('0' => $this->lang->line("routine_subject_select"));
                                 if(customCompute($subjects)) {
@@ -115,7 +115,7 @@
                                 echo form_dropdown("subjectID", $arraysubject, set_value("subjectID"), "id='subjectID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('subjectID'); ?>
                         </span>
                     </div>
@@ -126,10 +126,10 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="day" class="col-sm-2 control-label">
+                        <label for="day" class="control-label">
                             <?=$this->lang->line("routine_day")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                              <?php
                                 $weekends = $siteinfos->weekends;
                                 $weekendsKeys = explode(',', $weekends);
@@ -167,7 +167,7 @@
                                 echo form_dropdown("day", $newArrayDay, set_value("day"), "id='day' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('day'); ?>
                         </span>
                     </div>
@@ -178,10 +178,10 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="teacherID" class="col-sm-2 control-label">
+                        <label for="teacherID" class="control-label">
                             <?=$this->lang->line("routine_teacher")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                              <?php
                                 $arrayteacher[0] = $this->lang->line('routine_select_teacher');
                                 if(isset($teachers) && customCompute($teachers)) {
@@ -192,7 +192,7 @@
                                 echo form_dropdown("teacherID", $arrayteacher, set_value("teacherID"), "id='teacherID' class='form-control select2'");
                             ?>
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('teacherID'); ?>
                         </span>
                     </div>
@@ -203,13 +203,13 @@
                         else     
                             echo "<div class='form-group' >";
                     ?>
-                        <label for="start_time" class="col-sm-2 control-label">
+                        <label for="start_time" class="control-label">
                             <?=$this->lang->line("routine_start_time")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="start_time" name="start_time" value="<?=set_value('start_time')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('start_time'); ?>
                         </span>
                     </div>
@@ -220,13 +220,13 @@
                         else     
                             echo "<div class='form-group'>";
                     ?>
-                        <label for="end_time" class="col-sm-2 control-label">
+                        <label for="end_time" class="ccontrol-label">
                             <?=$this->lang->line("routine_end_time")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="end_time" name="end_time" value="<?=set_value('end_time')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('end_time'); ?>
                         </span>
                     </div>
@@ -237,28 +237,29 @@
                         else     
                             echo "<div class='form-group'>";
                     ?>
-                        <label for="room" class="col-sm-2 control-label">
+                        <label for="room" class="control-label">
                             <?=$this->lang->line("routine_room")?> <span class="text-red">*</span>
                         </label>
-                        <div class="col-sm-6">
+                        <div class="input-field">
                             <input type="text" class="form-control" id="room" name="room" value="<?=set_value('room')?>" >
                         </div>
-                        <span class="col-sm-4 control-label">
+                        <span class="control-label">
                             <?php echo form_error('room'); ?>
                         </span>
                     </div>
-
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-8">
-                            <input type="submit" class="btn btn-success" value="<?=$this->lang->line("add_routine")?>" >
+                </form>
+                    <div class="col-md-12">
+                        <div class="btn-center">
+                            <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_routine")?>" >
                         </div>
                     </div>
-                </form>
-            <?php if ($siteinfos->note==1) { ?>
-                <div class="callout callout-danger">
-                    <p><b>Note:</b> Make teacher, class, subject & section before you add routine</p>
-                </div>
-            <?php } ?>
+                    <div class="col-md-12">
+                        <?php if ($siteinfos->note==1) { ?>
+                            <div class="callout callout-danger">
+                                <p><b>Note:</b> Make teacher, class, subject & section before you add routine</p>
+                            </div>
+                        <?php } ?>
+                    </div>
             </div>
         </div>
     </div>

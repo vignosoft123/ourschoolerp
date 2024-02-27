@@ -15,7 +15,7 @@
                 <?php if((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1))) { ?>
                     <?php if(permissionChecker('eattendance_add')) { ?>
                         <h5 class="page-header">
-                            <a href="<?php echo base_url('eattendance/add') ?>">
+                            <a class="ose-btn create-btn" href="<?php echo base_url('eattendance/add') ?>">
                                 <i class="fa fa-plus"></i> 
                                 <?=$this->lang->line('add_title')?>
                             </a>
@@ -23,12 +23,12 @@
                     <?php } ?>
                 <?php } ?>
 
-                <form method="POST">
+                <form class="" method="POST">
                     <div class="row">
                         <div class="col-md-10">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <div class="<?php echo form_error('examID') ? 'form-group has-error' : 'form-group'; ?>">
+                                    <div class="<?php echo form_error('examID') ? 'col-md-4 has-error' : 'form-group'; ?>">
                                         <label for="examID" class="control-label">
                                             <?=$this->lang->line('eattendance_exam')?> <span class="text-red">*</span>
                                         </label>
@@ -46,7 +46,7 @@
                                 </div>
 
                                 <div class="col-md-4">
-                                    <div class="<?php echo form_error('classesID') ? 'form-group has-error' : 'form-group'; ?>" >
+                                    <div class="<?php echo form_error('classesID') ? 'col-md-4 has-error' : 'form-group'; ?>" >
                                         <label for="classesID" class="control-label">
                                             <?=$this->lang->line('eattendance_classes')?> <span class="text-red">*</span>
                                         </label>
@@ -97,7 +97,7 @@
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group" >
-                                        <input type="submit" class="btn btn-success col-md-12" style="margin-top:20px" value="<?=$this->lang->line("view_attendance")?>" >
+                                        <input type="submit" class="btn btn-primary col-md-12" style="margin-top:24px" value="<?=$this->lang->line("view_attendance")?>" >
                                     </div>
                                 </div>
                             </div>
@@ -117,7 +117,7 @@
                         <div class="tab-content">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table">
-                                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                                         <thead>
                                             <tr>
                                                 <th class="col-sm-2"><?=$this->lang->line('slno')?></th>
@@ -172,7 +172,7 @@
                             <?php foreach ($sections as $key => $section) { ?>
                                     <div id="<?=$section->sectionID?>" class="tab-pane">
                                         <div id="hide-table">
-                                            <table class="table table-striped table-bordered table-hover dataTable no-footer">
+                                            <table class="table table-bordered tableBorder dataTable no-footer">
                                                 <thead>
                                                     <tr>
                                                         <th class="col-sm-2"><?=$this->lang->line('slno')?></th>
@@ -238,7 +238,7 @@
                         <div class="tab-content">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table">
-                                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                                         <thead>
                                             <tr>
                                                 <th class="col-sm-2"><?=$this->lang->line('slno')?></th>
