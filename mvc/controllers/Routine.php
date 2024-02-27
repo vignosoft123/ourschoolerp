@@ -422,4 +422,45 @@ class Routine extends Admin_Controller {
 		}
 		return TRUE;
 	}
+
+	public function copy_timetable(){
+		// echo "<pre>";print_r($_POST);die;
+		$days = $_POST['days'];
+		
+		$this->db->where('classesID',$_POST['class_id']);
+		$this->db->where('day',$_POST['from']);
+		$get_data = $this->db->get('routine')->result_array();
+		// 
+		// foreach($get_data as $data){
+
+		// 	$res[] = array(
+		// 		'classesID' => $data['classesID'],
+		// 		'sectionID' => $data['sectionID'],
+		// 		'subjectID' => $data['subjectID'],
+		// 		'schoolyearID' => $data['schoolyearID'],
+		// 		'teacherID' => $data['teacherID'],
+		// 		'day' => $data['schoolyearID'],
+		// 		'start_time' => $data['start_time'],
+		// 		'end_time' => $data['end_time'],
+		// 		'room' => $data['room'],
+		// 	);
+
+		// }
+		// echo "<pre>";print_r($res);die;
+		for($i=0;$i<count($days);$i++){
+			for($j=0;$j<count($get_data);$j++){
+				unset($get_data[$j]['routineID']);
+				$get_data[$j]['day'] = $days[$i];
+
+				// $this->db->where('classesID',$_POST['class_id']);
+				// $this->db->where('day',$days[$i]);
+				// $this->db->get('routine')->num_rows();
+
+				$this->db->insert('routine',$get_data[$j]);			
+
+
+			}
+		}
+		echo 1;die;
+	}
 }

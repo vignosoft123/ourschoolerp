@@ -42,12 +42,12 @@
                     <?php } ?>
                 </h5>
 
-
+                                <input type="hidden" value="" id="class_id">
                 <div id="checkboxs_div" class="">
                                 <?php 
                                     foreach($days as $ky => $dy){?>
 
-                                    <input style="margin:2px;" type="checkbox"  name="checkbox_day" id="checkbox_day" value="<?php echo $ky;?>"> <?= $dy ?>
+                                    <input style="margin:2px;" type="checkbox"  name="checkbox_day" id="checkbox_day" class="checkBox1" value="<?php echo $ky;?>"> <?= $dy ?>
 
                                    
                                 <?php } ?>
@@ -84,8 +84,11 @@
                                                             if(!in_array($dayKey, $weekends)) {
                                                                 if($flag == 0) {
                                                                     echo '<tr>';
-                                                                    echo "<td><input type='radio' class='radio_change' name='radio_change' value='<?php echo $dayKey;?>' > Copy from</td>";
+
+                                                                    echo "<td><input type='radio' class='radio_change' name='radio_change' value='".$dayKey."' my_class='".$routine->classesID."' > Copy from</td>";
+
                                                                     echo '<td>'.$day.'</td>';
+
                                                                     $flag = 1;
                                                                 }
                                                                 
@@ -247,39 +250,40 @@
         });
     } 
 
+    $("#checkboxs_div").hide();
     $(document).on('change','.radio_change',function(){
+        var class_id = $(this).attr('my_class');
         $("#checkboxs_div").show();
         $("#checkboxs_div").fadeIn(500);
+        $("#class_id").val(class_id);
     });
 
     $(document).on('click','.copy',function(){
 
-        var checkBox1 = []; 
-    var checkBox2 = []; 
-    var i=0; var j = 0;
-    //getting multi checkbox values
-           $('.checkBox1:checked').each(function(){        
-               var values = $(this).val();
-               checkBox1[i++] = values; 
-           });
-
-           $('.checkBox2:checked').each(function(){        
-               var values2 = $(this).val();
-               checkBox2[j++] = values2; 
-           });
-
-           var from = $("input[type='radio'][name='radio_change']:checked").val();
+        var checkBox1 = [];  
+        var i=0;  
+        //getting multi checkbox values
+        $('.checkBox1:checked').each(function(){        
+            var values = $(this).val();
+            checkBox1[i++] = values; 
+        }); 
+        var from = $("input[type='radio'][name='radio_change']:checked").val();
+        var class_id = $("#class_id").val();
+       
+        // alert(class_id);
             
         $.ajax({
             
             type: "post",
             url: "<?php echo site_url('Routine/copy_timetable'); ?>",
-           dataType: "json", 
-            data: {"from":from},
+            dataType: "json", 
+            data: {"from":from,"days":checkBox1,"class_id":class_id},
             success: function(response)
             {
-		}
-})
+                alert('Successfully copied');
+                window.location.reload();
+            }
+        })
 
     })
 </script>
