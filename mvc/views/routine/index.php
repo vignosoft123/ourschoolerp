@@ -11,7 +11,7 @@
 ?>
 <div class="box">
     <div class="box-header">
-        <h3 class="box-title"><i class="fa icon-routine"></i> <?=$this->lang->line('panel_title')?></h3>
+        <h3 class="box-title"><i class="fa icon-routine"></i> <?php //echo $this->lang->line('panel_title');?>Timetable</h3>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li class="active"><?=$this->lang->line('menu_routine')?></li>
@@ -24,8 +24,8 @@
                 <h5 class="page-header">
                     <?php if(permissionChecker('routine_add')) { ?>
                         <a class="ose-btn create-btn" href="<?php echo base_url('routine/add') ?>">
-                            <i class="fa fa-plus"></i> 
-                            <?=$this->lang->line('add_title')?>
+                            <i class="fa fa-plus"></i> Timetable
+                            <?php //echo $this->lang->line('add_title')?>
                         </a>
                     <?php } ?>
 
@@ -42,7 +42,8 @@
                     <?php } ?>
                 </h5>
 
-                                <input type="hidden" value="" id="class_id">
+                                <input type="hidden" value="<?= $this->uri->segment(3)?>" id="class_id">
+                                <input type="hidden" value="<?= $this->uri->segment(3)?>" id="classid">
                 <div id="checkboxs_div" class="">
                                 <?php 
                                     foreach($days as $ky => $dy){?>
@@ -268,7 +269,7 @@
             checkBox1[i++] = values; 
         }); 
         var from = $("input[type='radio'][name='radio_change']:checked").val();
-        var class_id = $("#class_id").val();
+        var class_id = $("#classid").val();
        
         // alert(class_id);
             
