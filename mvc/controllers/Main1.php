@@ -81,7 +81,7 @@ public function index()
 		die;
 }
 
-public function update_setting($url=""){
+public function update_setting($url=""){ //activated with encrypted domain 
     
     $encrypted = "no";
     if(!empty($url)){

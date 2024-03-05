@@ -10,6 +10,20 @@
     }
 });
 
+
+$(document).ready(function() {
+    $(".date").datepicker({ 
+        autoclose: true,
+        format: 'dd-mm-yyyy',
+        startDate:'<?=$schoolyearsessionobj->startingdate?>',
+        endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
+        datesDisabled: ["<?=$get_all_holidays;?>"], 
+    });
+    $('.examfrom').timepicker();
+    $('.examto').timepicker();
+})
+
 </script>
 
 <div class="box">
@@ -121,7 +135,7 @@
                                         $subjectArray[$subject->subjectID] = $subject->subject;
                                     }
                                 }
-                                echo form_dropdown("subjectID", $subjectArray, set_value("subjectID"), "id='subjectID' class='form-control select2'");
+                                echo form_dropdown("subjectID[]", $subjectArray, set_value("subjectID"), "id='subjectID' class='form-control select2'");
                             ?>
                          </div> 
                         <span class="control-label">
@@ -140,7 +154,7 @@
                             Min Marks
                         </label>
                       <div class="input-field">
-                            <input type="text" class="form-control" id="min_mark" name="min_mark" value="<?=set_value('min_mark')?>" >
+                            <input type="text" class="form-control" id="min_mark" name="min_mark[]" value="<?=set_value('min_mark')?>" >
                          </div>
                         <span class="col-sm-4 control-label">
                             <?php echo form_error('min_mark'); ?>
@@ -157,7 +171,7 @@
                             Max Marks
                         </label>
                       <div class="input-field"> 
-                            <input type="text" class="form-control" id="max_mark" name="max_mark" value="<?=set_value('max_mark')?>" >
+                            <input type="text" class="form-control" id="max_mark" name="max_mark[]" value="<?=set_value('max_mark')?>" >
                        </div>
                         <span class="control-label">
                             <?php echo form_error('max_mark'); ?>
@@ -176,7 +190,7 @@
                             <?=$this->lang->line("examschedule_date")?> <span class="text-red">*</span>
                         </label>
                         <div class="input-field">
-                            <input type="text" class="form-control" id="date" name="date" value="<?=set_value('date')?>" >
+                            <input type="text" class="form-control date" id="date" name="date[]" value="<?=set_value('date')?>" >
                         </div>
                         <span class="control-label">
                             <?php echo form_error('date'); ?>
@@ -193,7 +207,7 @@
                             <?=$this->lang->line("examschedule_examfrom")?> <span class="text-red">*</span>
                         </label>
                         <div class="input-field">
-                            <input type="text" class="form-control" id="examfrom" name="examfrom" value="<?=set_value('examfrom')?>" >
+                            <input type="text" class="form-control examfrom" id="examfrom" name="examfrom[]" value="<?=set_value('examfrom')?>" >
                         </div>
                         <span class="control-label">
                             <?php echo form_error('examfrom'); ?>
@@ -210,7 +224,7 @@
                             <?=$this->lang->line("examschedule_examto")?> <span class="text-red">*</span>
                         </label>
                         <div class="input-field">
-                            <input type="text" class="form-control" id="examto" name="examto" value="<?=set_value('examto')?>" >
+                            <input type="text" class="form-control examto" id="examto" name="examto[]" value="<?=set_value('examto')?>" >
                         </div>
                         <span class="control-label">
                             <?php echo form_error('examto'); ?>
@@ -234,14 +248,20 @@
                         </span>
                     </div> -->
                    
-                </form>
-                <div class="col-md-12">
+
+                    <div id="dynamic_div" class="col-md-12">
+                        
+                    </div>
+               
+                    <div class="col-md-12">
                         
                         <div class="btn-center">
-                             <a href="#" class="ose-btn"><i class="fa fa-plus"></i> Add Row</a>
+                             <a   class="ose-btn addDetails"><i class="fa fa-plus"></i> Add Row</a>
                             <input type="submit" id="exam_schedule_btn" class="ose-btn" value="<?=$this->lang->line("add_examschedule")?>" >
                         </div>
                     </div>
+
+                    </form>
 
                 <div class="col-md-12">
                 <?php if ($siteinfos->note==1) { ?>
@@ -295,7 +315,7 @@ $('#classesID').change(function(event) {
     }
 });
 
-$("#date").datepicker({
+/*$("#date").datepicker({
     autoclose: true,
     format: 'dd-mm-yyyy',
     startDate:'<?=$schoolyearsessionobj->startingdate?>',
@@ -304,6 +324,31 @@ $("#date").datepicker({
     datesDisabled: ["<?=$get_all_holidays;?>"], 
 });
 $('#examfrom').timepicker();
-$('#examto').timepicker();
+$('#examto').timepicker();*/
+
+
+
+$(document).on('click', ".addDetails", function(){ 
+
+        // alert("hi");
+        var count = $('#dynamic_div div').length;;
+        $dyn_subjects = $("#subjectID").html();
+        var ct = count+1;
+        var markup = '<div class="col-md-2"><label for="s2id_autogen4" class=" control-label"> Subject <span class="text-red">*</span> </label> <div class="inpt-field">  <select name="subjectID[]" id="" class="form-control select2 "> <option value="0">Select Subject</option>'+$dyn_subjects+ '</select> </div>  <span class="control-label"> </span> </div><div class="col-md-2"> <label for="min_mark" class=" control-label"> Min Marks </label> <div class="input-field"> <input type="text" class="form-control" id="min_mark" name="min_mark[]" value="">  </div> <span class="col-sm-4 control-label">  </div><div class="col-md-2"> <label for="max_mark" class="control-label">  Max Marks  </label> <div class="input-field">  <input type="text" class="form-control" id="max_mark" name="max_mark[]" value=""> </div> <span class="control-label"> </span> </div></div> <div class="col-md-2">   <label for="date" class="control-label">  Date <span class="text-red">*</span> </label> <div class="input-field"> <input type="text" class="form-control date" id="date" name="date[]" value=""> </div> <span class="control-label">  </span> </div> <div class="col-md-2"> <label for="examfrom" class="control-label"> Time From <span class="text-red">*</span>  </label> <div class="input-field"> <input type="text" class="form-control examfrom" id="examfrom" name="examfrom[]" value=""> </div> <span class="control-label"> </span>  </div> <div class="col-md-2">  <label for="examto" class="control-label"> Time To <span class="text-red">*</span> </label>  <div class="input-field"> <input type="text" class="form-control examto" id="examto" name="examto[]" value="">  <span class="control-label"> </span> </div> '; 
+         
+        $("#dynamic_div").append(markup);
+
+                $(".date").datepicker({ 
+                autoclose: true,
+                format: 'dd-mm-yyyy',
+                startDate:'<?=$schoolyearsessionobj->startingdate?>',
+                endDate:'<?=$schoolyearsessionobj->endingdate?>',
+                daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
+                datesDisabled: ["<?=$get_all_holidays;?>"], 
+            });
+            $('.examfrom').timepicker();
+            $('.examto').timepicker();
+
+    });
 
 </script>
