@@ -182,6 +182,8 @@ class Examschedule extends Admin_Controller {
 	}
 
 	public function add() {
+
+		
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
 			$this->data['headerassets'] = array(
 				'css' => array(
@@ -212,28 +214,48 @@ class Examschedule extends Admin_Controller {
 			}
 
 			if($_POST) {
-				$rules = $this->rules();
-				$this->form_validation->set_rules($rules);
-				if ($this->form_validation->run() == FALSE) {
-					$this->data["subview"] = "examschedule/add";
-					$this->load->view('_layout_main', $this->data);			
-				} else {
+				// ECHO "<pre>";print_r($_POST);die;
+				// $rules = $this->rules();
+				// $this->form_validation->set_rules($rules);
+				// if ($this->form_validation->run() == FALSE) {
+				// 	$this->data["subview"] = "examschedule/add";
+				// 	$this->load->view('_layout_main', $this->data);			
+				// } else {
+
+					$subjectID = $this->input->post("subjectID");
+					$edate = $this->input->post("date");
+					 
+					$examfrom = $this->input->post("examfrom");
+					$examto = $this->input->post("examto");
+					$min_mark = $this->input->post("min_mark");
+					$max_mark = $this->input->post("max_mark");
+					// echo count($subjectID);die;
+					for($i=0;$i<count($subjectID);$i++){
 					$array = array(
 						"examID" => $this->input->post("examID"),
 						"classesID" => $this->input->post("classesID"),
-						"subjectID" => $this->input->post("subjectID"),
-						"edate" => date("Y-m-d", strtotime($this->input->post("date"))),
-						"examfrom" => $this->input->post("examfrom"),
-						"examto" => $this->input->post("examto"),
-						"min_mark" => $this->input->post("min_mark"),
-						"max_mark" => $this->input->post("max_mark"),
-						"room" => $this->input->post("room"),
+						// "subjectID" => $this->input->post("subjectID"),
+						// "edate" => date("Y-m-d", strtotime($this->input->post("date"))),
+						// "examfrom" => $this->input->post("examfrom"),
+						// "examto" => $this->input->post("examto"),
+						// "min_mark" => $this->input->post("min_mark"),
+						// "max_mark" => $this->input->post("max_mark"),
+
+						"subjectID" => $subjectID[$i],
+						"edate" => date("Y-m-d", strtotime($edate[$i])),
+						"examfrom" => $examfrom[$i],
+						"examto" => $examto[$i],
+						"min_mark" => $min_mark[$i],
+						"max_mark" => $max_mark[$i],
+						// "room" => $this->input->post("room"),
 						"schoolyearID" => $this->session->userdata('defaultschoolyearID')
 					);
 					$arrSections = $this->input->post("sectionID");
 
 					foreach($arrSections as $nSection)
 					{
+
+						// echo "dddd=";print_r($nSection);die;
 						$array['sectionID'] = $nSection;
 
 						//echo "<pre>";	print_r($nSection);
@@ -242,24 +264,26 @@ class Examschedule extends Admin_Controller {
 						$this->db->where('examID',$this->input->post("examID"));
 						$this->db->where('classesID',$this->input->post("classesID"));
 						$this->db->where_in('sectionID',$nSection);
-						$this->db->where('subjectID',$this->input->post("subjectID"));
-						$this->db->where('edate',date("Y-m-d", strtotime($this->input->post("date"))));
+						$this->db->where('subjectID',$subjectID[$i]);
+						$this->db->where('edate',date("Y-m-d", strtotime($edate[$i])));
 						 $cnt = $this->db->get('examschedule')->num_rows();
-						// echo $this->db->last_query();
+						// echo $this->db->last_query();die;
 						//die;
 						if($cnt >= 1){// echo 'if';die;
-							$this->session->set_flashdata('success','Already scheduled the selected items');
-							redirect(base_url("examschedule/index"));
+							// $this->session->set_flashdata('success','Already scheduled the selected items');
+							// redirect(base_url("examschedule/index"));
 						}else{//echo 'else';die;
 							$this->examschedule_m->insert_examschedule($array);
 						}
 
 						
-					}//die;
+					}
+
+				}
 
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 					redirect(base_url("examschedule/index"));
-				}
+				//}
 			} else {
 				$this->data["subview"] = "examschedule/add";
 				$this->load->view('_layout_main', $this->data);

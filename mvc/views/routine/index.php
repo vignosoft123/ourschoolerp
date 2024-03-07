@@ -11,7 +11,7 @@
 ?>
 <div class="box">
     <div class="box-header">
-        <h3 class="box-title"><i class="fa icon-routine"></i> <?=$this->lang->line('panel_title')?></h3>
+        <h3 class="box-title"><i class="fa icon-routine"></i> <?php //echo $this->lang->line('panel_title');?>Timetable</h3>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li class="active"><?=$this->lang->line('menu_routine')?></li>
@@ -24,8 +24,8 @@
                 <h5 class="page-header">
                     <?php if(permissionChecker('routine_add')) { ?>
                         <a class="ose-btn create-btn" href="<?php echo base_url('routine/add') ?>">
-                            <i class="fa fa-plus"></i> 
-                            <?=$this->lang->line('add_title')?>
+                            <i class="fa fa-plus"></i> Timetable
+                            <?php //echo $this->lang->line('add_title')?>
                         </a>
                     <?php } ?>
 
@@ -42,7 +42,24 @@
                     <?php } ?>
                 </h5>
 
-                <?php if(customCompute($routines) > 0 ) { ?>
+                                <input type="hidden" value="<?= $this->uri->segment(3)?>" id="class_id">
+                                <input type="hidden" value="<?= $this->uri->segment(3)?>" id="classid">
+                <div id="checkboxs_div" class="">
+                                <?php 
+                                    foreach($days as $ky => $dy){?>
+
+                                    <input style="margin:2px;" type="checkbox"  name="checkbox_day" id="checkbox_day" class="checkBox1" value="<?php echo $ky;?>"> <?= $dy ?>
+
+                                   
+                                <?php } ?>
+                                <input type="button" class="btn btn-success copy" value="Copy">
+
+                </div>
+
+
+                <?php 
+                //echo "<pre>";print_r($routines);die;
+                if(customCompute($routines) > 0 ) { ?>
                     <div class="nav-tabs-custom">
                         <ul class="nav nav-tabs">
                             <li class="active"><a data-toggle="tab" href="#all" aria-expanded="true"><?=$this->lang->line("routine_all_routine")?></a></li>
@@ -68,9 +85,14 @@
                                                             if(!in_array($dayKey, $weekends)) {
                                                                 if($flag == 0) {
                                                                     echo '<tr>';
+
+                                                                    echo "<td><input type='radio' class='radio_change' name='radio_change' value='".$dayKey."' my_class='".$routine->classesID."' > Copy from</td>";
+
                                                                     echo '<td>'.$day.'</td>';
+
                                                                     $flag = 1;
                                                                 }
+                                                                
                                                                 echo '<td class="text-center">';
                                                                     echo $routine->start_time.'-'.$routine->end_time.'<br/>';
                                                                     echo $routine->section.'<br/>';
@@ -228,4 +250,41 @@
             axis:"x" // horizontal scrollbar
         });
     } 
+
+    $("#checkboxs_div").hide();
+    $(document).on('change','.radio_change',function(){
+        var class_id = $(this).attr('my_class');
+        $("#checkboxs_div").show();
+        $("#checkboxs_div").fadeIn(500);
+        $("#class_id").val(class_id);
+    });
+
+    $(document).on('click','.copy',function(){
+
+        var checkBox1 = [];  
+        var i=0;  
+        //getting multi checkbox values
+        $('.checkBox1:checked').each(function(){        
+            var values = $(this).val();
+            checkBox1[i++] = values; 
+        }); 
+        var from = $("input[type='radio'][name='radio_change']:checked").val();
+        var class_id = $("#classid").val();
+       
+        // alert(class_id);
+            
+        $.ajax({
+            
+            type: "post",
+            url: "<?php echo site_url('Routine/copy_timetable'); ?>",
+            dataType: "json", 
+            data: {"from":from,"days":checkBox1,"class_id":class_id},
+            success: function(response)
+            {
+                alert('Successfully copied');
+                window.location.reload();
+            }
+        })
+
+    })
 </script>

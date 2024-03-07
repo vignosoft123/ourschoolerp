@@ -111,8 +111,14 @@
 
         public function get_user_table($table, $username, $password)
         {  
-            $query = $this->db->get_where($table, [ 'username' => $username, 'password' => $this->hash($password) ]);
+            // $query = $this->db->get_where($table, [ 'username' => $username, 'password' => $this->hash($password) ]);
+            $this->db->where('password',$this->hash($password));
+            $query = $this->db->where('username', $username)->or_where('phone', $username)->get($table);
             return $query->row();
+            echo $this->db->last_query();die;
+
+            // return $this->db->query("select * from $table where (username = '".$username."' or username='".$username."') and password = '".$password."' ")->rows();
+           
         }
 
 
