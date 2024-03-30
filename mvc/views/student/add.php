@@ -556,7 +556,12 @@
                     <?= $this->lang->line("student_village") ?> <span class="text-red">*</span>
                 </label>
                 
-                    <input type="text" class="form-control" id="village_name" name="village_name" value="<?= set_value('village_name') ?>">
+                    <!-- <input type="text" class="form-control" id="village_name" name="village_name" value="<?= set_value('village_name') ?>"> -->
+                    <select id="village_name" name="village_name" class='form-control select2' >
+                        <?php foreach($villages as $v){?>
+                            <option value="<?= $v['villageID']?>"> <?= $v['villageName']?> </option>
+                       <?php  }?>
+                    </select>
                 
                 <span class="  control-label">
                     <?php echo form_error('student_village'); ?>
@@ -705,9 +710,32 @@
                 </div><!-------- End Branch name  ------>
               
 
+
+                <div class="row"> 
+ <?php
+    if (form_error('studentType'))
+        echo "<div class='col-md-4 has-error' >";
+    else
+        echo "<div class='col-md-4' >";
+    ?>
+    <label for="studentType" class="  control-label">
+        <?= $this->lang->line("studentType") ?></span>
+    </label>
+       <?php
+            $studentType = array(3 => "DAY SCHOLAR",1 => "TRANSPORT", 2 => "HOSTEL" );
+        ?> 
+        <?php
+            echo form_dropdown("studentType", $studentType, set_value("studentType"), "id='studentType' class='form-control select2'");
+        ?>
+     <span class="  control-label">
+        <?php echo form_error('studentType'); ?>
+    </span>
+</div> 
+</div>
+
             </div>
         </div> <!-------- End student address details sec------>
-        <div class="transport-details-sec">
+        <div class="transport-details-sec" id="transport_div">
             <h2 class="h2-title">Transport Details</h2>
             <div class="row">
             <?php 
@@ -755,7 +783,7 @@
             </div>
        </div>
 
-       <div class="hostel-details-sec">
+       <div class="hostel-details-sec" id="hostel_div">
             <h2 class="h2-title">Hostel Details</h2>
             <div class="row">
             <?php 
@@ -813,27 +841,7 @@
 
 
 
-<!--<div class="row"> 
- <?php
-    if (form_error('studentType'))
-        echo "<div class='col-md-4 has-error' >";
-    else
-        echo "<div class='col-md-4' >";
-    ?>
-    <label for="studentType" class="  control-label">
-        <?= $this->lang->line("studentType") ?></span>
-    </label>
-       <?php
-            $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR");
-        ?> 
-        <?php
-            echo form_dropdown("studentType", $studentType, set_value("studentType"), "id='studentType' class='form-control select2'");
-        ?>
-     <span class="  control-label">
-        <?php echo form_error('studentType'); ?>
-    </span>
-</div> 
-</div>-->
+
 
 <!--<div class="row">
  <div class="col-md-4 <?= form_error('extraCurricularActivities') ? ' has-error' : ''  ?>">
@@ -991,20 +999,29 @@
     });
 
 
+    $("#transport_div").hide();
+    $("#hostel_div").hide();
+
     $('#studentType').change(function() {
         var studentType = $('#studentType').val();
         if(studentType == 1)
         {   
-            $('.transport').removeClass('hide');
-            $('.hostel').addClass('hide');
+            // $('.transport').removeClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").show();
+            $("#hostel_div").hide();
         }
         else if(studentType==2){
-            $('.transport').addClass('hide');
-            $('.hostel').removeClass('hide');
+            // $('.transport').addClass('hide');
+            // $('.hostel').removeClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").show();
         }
         else{
-            $('.transport').addClass('hide');
-            $('.hostel').addClass('hide');
+            // $('.transport').addClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").hide();
         }
     });
 

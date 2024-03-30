@@ -50,6 +50,15 @@ class Student extends Admin_Controller
 		$this->load->model("tmember_m");
 		$this->load->model("category_m");
 		$this->load->model("hmember_m");
+ 
+        $this->load->model("globalpayment_m");
+        $this->load->model("maininvoice_m"); 
+        $this->load->model('user_m'); 
+        $this->load->model("payment_settings_m");  
+        $this->load->model('payment_gateway_m');
+        $this->load->model('payment_gateway_option_m');
+        
+
 		$language = $this->session->userdata('lang');
 		$this->lang->load('student', $language);
 		$this->lang->load('tmember', $language);
@@ -895,6 +904,10 @@ class Student extends Admin_Controller
 			$this->data['optionalSubjectID'] = 0;
 
 			if ($_POST) {
+				if(!empty($this->input->post("village_name"))){
+					$village_name = $this->db->query('select villageName from villages where villageID='.$this->input->post("village_name"))->row()->villageName;
+				}
+				
 				$rules = $this->rules();
 				$this->form_validation->set_rules($rules);
 				if ($this->input->post('studentType') == 1) {
@@ -959,8 +972,8 @@ class Student extends Admin_Controller
 					$array["create_username"] = $this->session->userdata('username');
 					$array["create_usertype"] = $this->session->userdata('usertype');
 					$array["active"] = 1;
-					$array["villageID"] = $this->input->post('villageID');
-					$array["village_name"] = $this->input->post('village_name');
+					$array["villageID"] = $this->input->post('village_name');
+					$array["village_name"] = $village_name;
 					$array["aadharCardNumber"] = $this->input->post('aadharCardNumber');
 
 					$array["ration_card"] = $this->input->post('ration_card');
@@ -1092,6 +1105,41 @@ class Student extends Admin_Controller
 					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
 					//$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
 
+					//code for auto invoice generation 
+					$class_id = $this->input->post("classesID");
+					$section_id = $this->input->post("sectionID");
+					$year_id = $this->session->userdata('defaultschoolyearID');
+
+					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' ")->row_array();
+
+					$amount = $this->db->query("SELECT fee_amount FROM `school_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
+
+					$subtotal_amount =$amount;
+					$fee_types = array(
+						'feetypeID' => $fee_type['feetypesID'],
+						'amount' => $amount['fee_amount'],
+						'discount' => "",
+						'subtotal' => $subtotal_amount,
+						'paidamount' => "",
+					);
+					$json_fee_types = json_encode($fee_types);
+					// echo "<pre>";print_r($json_fee_types);die;
+					$invoice_data = array(
+						'classesID' => $this->input->post("classesID"),
+						'sectionID' =>$this->input->post("sectionID"),
+						'studentID' => $studentID,
+						'date' => date('d-m-Y'),
+						'statusID' => 0,
+						'payment_method' => 0,
+						'feetypeitems' => '['.$json_fee_types.']',
+						'totalsubtotal' => $subtotal_amount,
+						'totalpaidamount' => 0,
+						'editID' => 0,
+					);
+
+					$invoice_error = $this->saveinvoice($invoice_data);
+					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
+					
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 					redirect(base_url("student/index"));
 				}
@@ -1154,6 +1202,10 @@ class Student extends Admin_Controller
 				$this->data['set'] = $url;
 				if (customCompute($this->data['student'])) {
 					if ($_POST) {
+						if(!empty($this->input->post("village_name"))){
+							$village_name = $this->db->query('select villageName from villages where villageID='.$this->input->post("village_name"))->row()->villageName;
+						}
+						
 						$rules = $this->rules();
 						unset($rules[22]);
 						unset($rules[13]);
@@ -1183,8 +1235,8 @@ class Student extends Admin_Controller
 							//$array["username"] = $this->input->post("username");
 							$array["modify_date"] = date("Y-m-d H:i:s");
 							$array['photo'] = $this->upload_data['file']['file_name'];
-							$array["villageID"] = $this->input->post('villageID');
-							$array["village_name"] = $this->input->post('village_name');
+							$array["villageID"] = $this->input->post('village_name');
+							$array["village_name"] = $village_name;
 							$array["aadharCardNumber"] = $this->input->post('aadharCardNumber');
 
 							$array["ration_card"] = $this->input->post('ration_card');
@@ -2206,6 +2258,251 @@ public function study_certificate($sid=""){
 	$this->load->view('_layout_main', $this->data);
 
 
+}
+
+public function saveinvoice($inv_data)
+{
+	$_POST = $inv_data;
+	// echo "<pre>";print_r($_POST);die;
+	$maininvoiceID      = 0;
+	$retArray['status'] = FALSE;
+	if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('defaultschoolyearID') == 5)) {
+		 	if($_POST) {
+				//$rules = $this->rules($this->input->post('statusID'));
+				// $this->form_validation->set_rules($rules);
+				// if($this->form_validation->run() == FALSE) {
+				// 	$retArray['error']  = $this->form_validation->error_array();
+				// 	$retArray['status'] = FALSE;
+				// 	return json_encode($retArray);
+				// 	// exit;
+				// } else {
+					$invoiceMainArray     = [];
+					$globalPaymentArray   = [];
+					$invoiceArray         = [];
+					$paymentArray         = [];
+					$paymentHistoryArray  = [];
+					$studentArray         = [];
+					$globalPaymentIDArray = [];
+					$feetype              = pluck($this->feetypes_m->get_feetypes(), 'feetypes', 'feetypesID');
+					$feetypeitems         = json_decode($this->input->post('feetypeitems'));
+					// echo "<pre>";print_r($feetypeitems );die;
+					$schoolyearID         = $this->session->userdata('defaultschoolyearID');
+
+					$studentID = $this->input->post('studentID');
+					$classesID = $this->input->post('classesID');
+					$sectionID = $this->input->post('sectionID');
+					if(((int)$studentID || $studentID == 0) && (int)($classesID)) {
+						if($studentID == 0) {
+							$getstudents = $this->studentrelation_m->get_order_by_student([
+								"srclassesID"    => $classesID,
+								'srschoolyearID' => $schoolyearID,
+								"srsectionID" => $sectionID,
+							]);
+						  
+						} else {
+							$getstudents = $this->studentrelation_m->get_order_by_student([
+								"srclassesID"    => $classesID,
+								'srstudentID'    => $studentID,
+								'srschoolyearID' => $schoolyearID,
+								"srsectionID" => $sectionID,
+							]);
+						   
+						}
+
+						if(customCompute($getstudents)) {
+							$paymentStatus = 0;
+							if($this->input->post('statusID') !== '0') {
+								if((float)$this->input->post('totalsubtotal') == (float)0) {
+									$paymentStatus = 2;
+								} else {
+									if((float)$this->input->post('totalpaidamount') > (float)0) {
+										if((float)$this->input->post('totalsubtotal') == (float)$this->input->post('totalpaidamount')) {
+											$paymentStatus = 2;
+										} else {
+											$paymentStatus = 1;
+										}
+									}
+								}
+							}
+
+							$clearancetype = 'unpaid';
+							if($paymentStatus == 0) {
+								$clearancetype = 'unpaid';
+							} elseif($paymentStatus == 1) {
+								$clearancetype = 'partial';
+							} elseif($paymentStatus == 2) {
+								$clearancetype = 'paid';
+							}
+
+							foreach($getstudents as $key => $getstudent) {
+								$invoiceMainArray[] = [
+									'maininvoiceschoolyearID' => $schoolyearID,
+									'maininvoiceclassesID'    => $this->input->post('classesID'),
+									'maininvoicesectionID'    => $this->input->post('sectionID'),
+									'maininvoicestudentID'    => $getstudent->srstudentID,
+									'maininvoicestatus'       => (($this->input->post('statusID') !== '0') ? (((float)$this->input->post('totalsubtotal') == (float)0) ? 2 : (((float)$this->input->post('totalpaidamount') > (float)0) ? ((float)$this->input->post('totalsubtotal') == (float)$this->input->post('totalpaidamount') ? 2 : 1) : 0)) : 0),
+									'maininvoiceuserID'       => $this->session->userdata('loginuserID'),
+									'maininvoiceusertypeID'   => $this->session->userdata('usertypeID'),
+									'maininvoiceuname'        => $this->session->userdata('name'),
+									'maininvoicedate'         => date("Y-m-d", strtotime($this->input->post("date"))),
+									'maininvoicecreate_date'  => date('Y-m-d'),
+									'maininvoiceday'          => date('d'),
+									'maininvoicemonth'        => date('m'),
+									'maininvoiceyear'         => date('Y'),
+									'maininvoicedeleted_at'   => 1
+								];
+
+								$globalPaymentArray[] = [
+									'classesID'          => $getstudent->srclassesID,
+									'sectionID'          => $getstudent->srsectionID,
+									'studentID'          => $getstudent->srstudentID,
+									'clearancetype'      => $clearancetype,
+									'invoicename'        => $getstudent->srregisterNO . '-' . $getstudent->srname,
+									'invoicedescription' => '',
+									'paymentyear'        => date('Y'),
+									'schoolyearID'       => $schoolyearID,
+								];
+
+								$studentArray[] = $getstudent->srstudentID;
+							}
+
+							if(customCompute($invoiceMainArray)) {
+								$count   = customCompute($invoiceMainArray);
+								$firstID = $this->maininvoice_m->insert_batch_maininvoice($invoiceMainArray);
+
+								$lastID = $firstID + ($count - 1);
+
+								if($lastID >= $firstID) {
+									$j = 0;
+									for($i = $firstID; $i <= $lastID; $i++) {
+										if(customCompute($feetypeitems)) {
+											foreach($feetypeitems as $feetypeitem) {
+												$invoiceArray[] = [
+													'schoolyearID'  => $invoiceMainArray[$j]['maininvoiceschoolyearID'],
+													'classesID'     => $invoiceMainArray[$j]['maininvoiceclassesID'],
+													'studentID'     => $invoiceMainArray[$j]['maininvoicestudentID'],
+													'feetypeID'     => isset($feetypeitem->feetypeID) ? $feetypeitem->feetypeID : 0,
+													'feetype'       => isset($feetype[$feetypeitem->feetypeID]) ? $feetype[$feetypeitem->feetypeID] : '',
+													'amount'        => isset($feetypeitem->amount) ? $feetypeitem->amount : 0,
+													'discount'      => (isset($feetypeitem->discount) ? (($feetypeitem->discount == '') ? 0 : $feetypeitem->discount) : 0),
+													'paidstatus'    => ($this->input->post('statusID') !== '0') ? (((float)$feetypeitem->paidamount > (float)0) ? (((float)$feetypeitem->subtotal == (float)$feetypeitem->paidamount) ? 2 : 1) : 0) : 0,
+													'userID'        => $invoiceMainArray[$j]['maininvoiceuserID'],
+													'usertypeID'    => $invoiceMainArray[$j]['maininvoiceusertypeID'],
+													'uname'         => $invoiceMainArray[$j]['maininvoiceuname'],
+													'date'          => $invoiceMainArray[$j]['maininvoicedate'],
+													'create_date'   => $invoiceMainArray[$j]['maininvoicecreate_date'],
+													'day'           => $invoiceMainArray[$j]['maininvoiceday'],
+													'month'         => $invoiceMainArray[$j]['maininvoicemonth'],
+													'year'          => $invoiceMainArray[$j]['maininvoiceyear'],
+													'deleted_at'    => $invoiceMainArray[$j]['maininvoicedeleted_at'],
+													'maininvoiceID' => $i
+												];
+										
+												$paymentHistoryArray[] = [
+													'paymenttype'   => ucfirst($this->input->post('payment_method')),
+													'paymentamount' => $feetypeitem->paidamount
+												];
+											}
+										}
+										$j++;
+									}
+								}
+							}
+
+							$paymentInserStatus = 0;
+							if($this->input->post('statusID') == !'0') {
+								if($this->input->post('totalpaidamount') > 0) {
+									if((float)$this->input->post('totalsubtotal') == (float)$this->input->post('totalpaidamount')) {
+										$paymentInserStatus = 2;
+									} else {
+										$paymentInserStatus = 1;
+									}
+								} else {
+									$paymentInserStatus = 0;
+								}
+							}
+
+							$invoicefirstID = $this->invoice_m->insert_batch_invoice($invoiceArray);
+
+							$invoiceSubtotalStatus = 1;
+							if((float)$this->input->post('totalsubtotal') == (float)0) {
+								$invoiceSubtotalStatus = 0;
+							}
+
+							if($paymentInserStatus && $invoiceSubtotalStatus) {
+								if(customCompute($invoiceArray)) {
+									$invoicecount   = customCompute($invoiceArray);
+									$invoicefirstID = $invoicefirstID;
+									$invoicelastID  = $invoicefirstID + ($invoicecount - 1);
+
+									$globalcount   = customCompute($globalPaymentArray);
+									$globalfirstID = $this->globalpayment_m->insert_batch_globalpayment($globalPaymentArray);
+									$globallastID  = $globalfirstID + ($globalcount - 1);
+
+									if(customCompute($studentArray)) {
+										$studentcount = customCompute($getstudents);
+										for($n = 0; $n <= ($studentcount - 1); $n++) {
+											$globalPaymentIDArray[$studentArray[$n]] = $globalfirstID;
+											$globalfirstID++;
+										}
+									}
+
+									if($invoicelastID >= $invoicefirstID) {
+										$k = 0;
+										for($i = $invoicefirstID; $i <= $invoicelastID; $i++) {
+											$paymentArray[] = [
+												'schoolyearID'    => $invoiceArray[$k]['schoolyearID'],
+												'invoiceID'       => $i,
+												'studentID'       => $invoiceArray[$k]['studentID'],
+												'paymentamount'   => isset($paymentHistoryArray[$k]['paymentamount']) ? (($paymentHistoryArray[$k]['paymentamount'] == "") ? NULL : $paymentHistoryArray[$k]['paymentamount']) : 0,
+												'paymenttype'     => ucfirst($this->input->post('payment_method')),
+												'paymentdate'     => date('Y-m-d'),
+												'paymentday'      => date('d'),
+												'paymentmonth'    => date('m'),
+												'paymentyear'     => date('Y'),
+												'userID'          => $invoiceArray[$k]['userID'],
+												'usertypeID'      => $invoiceArray[$k]['usertypeID'],
+												'uname'           => $invoiceArray[$k]['uname'],
+												'transactionID'   => 'CASHANDCHEQUE' . random19(),
+												'globalpaymentID' => isset($globalPaymentIDArray[$invoiceArray[$k]['studentID']]) ? $globalPaymentIDArray[$invoiceArray[$k]['studentID']] : 0
+											];
+											$k++;
+										}
+									}
+
+									if(customCompute($paymentArray)) {
+										$this->payment_m->insert_batch_payment($paymentArray);
+									}
+								}
+							}
+
+							$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+							$retArray['status']  = TRUE;
+							$retArray['message'] = 'Success';
+							return json_encode($retArray);
+							// exit;
+						} else {
+							$retArray['error'] = ['student' => 'Student not found.'];
+							return json_encode($retArray);
+							// exit;
+						}
+					} else {
+						$retArray['error'] = ['classstudent' => 'Class and Student not found.'];
+						return json_encode($retArray);
+						// exit;
+					}
+				//}
+			} else {
+				$retArray['error'] = ['posttype' => 'Post type is required.'];
+				return json_encode($retArray);
+				
+			}
+		 
+	} else {
+		$retArray['error'] = ['permission' => 'Permission Denied.'];
+		echo json_encode($retArray);
+		exit;
+	}
 }
 
 }

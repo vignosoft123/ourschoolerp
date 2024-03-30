@@ -1,4 +1,6 @@
-<?php if (customCompute($profile)) { ?>
+<?php 
+	 $inv = $this->uri->segment(5);
+if (customCompute($profile)) { ?>
 	<div class="well top-panel-bg">
 		<div class="row">
 			<div class="col-sm-6">
@@ -1739,5 +1741,13 @@
 				axis: "x"
 			});
 		});
+
+		$(document).ready(function(){
+			var inv ="<?php echo $inv?$inv: '0' ?>";
+
+			if(inv == 'inv'){
+				$(".nav-tabs a:eq(5)").tab("show");
+			}
+		})
 	</script>
 <?php } ?>

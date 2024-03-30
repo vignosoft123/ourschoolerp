@@ -990,7 +990,15 @@ public function encryption_decryption($url=""){
         $query = $this->db->get('setting');
         $check_site = $query->num_rows();
 
-         $check_appi = $this->check_aapi($url);
+        $setting = $query->row(); 
+        if($setting->value != $encrypted_site_key){ 
+
+         $check_appi = $this->check_aapi($url);//check school exists or not
+
+         $site_key_active = $this->db->query("select value from setting where fieldoption= 'site_key_active' ")->row()->value;
+         if($check_appi > 0 && ($site_key_active == 0)){
+            $this->db->update('setting',array('value' => $encrypted_site_key), array('fieldoption' => 'site_key') );            
+         }
 
         if($check_site > 0 && $check_appi > 0){ 
             
@@ -1020,7 +1028,7 @@ public function encryption_decryption($url=""){
 
             // Create a new cURL resource
             // $ch = curl_init('https://college.ggsdarsi.org/Main1/save_track');
-            $ch = curl_init('https://ourschoolerp.com/Main1/save_track');
+            $ch = curl_init('https://school.ourschoolerp.com/Main1/save_track');
             
             // Setup request to send json via POST
             $data = array(
@@ -1051,6 +1059,7 @@ public function encryption_decryption($url=""){
                 $this->db->insert('setting',$insert);
             }
         }
+        }
 
         // if($response['status'] == 1){
 
@@ -1074,7 +1083,7 @@ public function encryption_decryption($url=""){
 
     private function check_aapi($url=""){
         // $ch = curl_init('https://college.ggsdarsi.org/Main1/check_school'); 
-        $ch = curl_init('https://ourschoolerp.com/Main1/check_school'); 
+        $ch = curl_init('https://school.ourschoolerp.com/Main1/check_school'); 
         
         $data = array(
             'url' => $url
@@ -1161,7 +1170,7 @@ public function encryption_decryption($url=""){
     public function get_migrations(){
          
         $domain = $_SERVER['HTTP_HOST'];
-        $ch = curl_init('https://ourschoolerp.com/General/get_migrations'); 
+        $ch = curl_init('https://school.ourschoolerp.com/General/get_migrations'); 
         
         $data = array(
             'domain' => $domain
@@ -1189,7 +1198,7 @@ public function encryption_decryption($url=""){
     public function save_migration_log($final_result){
          
         
-        $ch = curl_init('https://ourschoolerp.com/General/save_migration_log'); 
+        $ch = curl_init('https://school.ourschoolerp.com/General/save_migration_log'); 
         
         $data = array(
             'final_result' => $final_result

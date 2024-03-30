@@ -175,12 +175,14 @@
                         </span>
                     </div>
 
-                </form>
                     <div class="col-md-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_assignment")?>" >
                         </div>
                     </div>
+
+                </form>
+                    
 
 
             </div>
@@ -194,8 +196,8 @@ $(".select2" ).select2();
 $("#deadlinedate").datepicker({
     autoclose: true,
     format: 'dd-mm-yyyy',
-    startDate:'<?=$schoolyearobj->startingdate?>',
-    endDate:'<?=$schoolyearobj->endingdate?>',
+    //startDate:'<?=$schoolyearobj->startingdate?>',
+    //endDate:'<?=$schoolyearobj->endingdate?>',
 });
 
 $('#classesID').change(function(event) {

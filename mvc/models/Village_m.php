@@ -22,7 +22,7 @@ class Village_m extends MY_Model
 	function get_active_villages($array = NULL, $signal = FALSE)
 	{
 		$query = $this->db->query("SELECT * FROM villages WHERE status = 1");
-		return $query->result();
+		return $query->result_array();
 	}
 
 	function get_order_by_village($array = NULL)

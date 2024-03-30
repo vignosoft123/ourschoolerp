@@ -23,12 +23,15 @@ class Assignmentanswer_m extends MY_Model {
 		
 		if($studentID == NULL) {
 			$query = $this->db->get();
-			return $query->result();
+			//return $query->result();
 		} else {
 			$this->db->where('assignmentanswer.uploaderID', $studentID);
 			$query = $this->db->get();
-			return $query->result();
+			
+			//return $query->result();
 		}
+
+		echo $this->db->last_query();die;
 	}
 
 	public function get_assignmentanswer($array=NULL, $signal=FALSE) {

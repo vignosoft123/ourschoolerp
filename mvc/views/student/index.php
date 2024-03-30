@@ -81,6 +81,7 @@
                                                 <th>Class</th>
                                                 <th>Section</th>
                                                 <th>RFID</th>
+                                                <th>Invoice</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>
@@ -131,6 +132,12 @@
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
+                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
+                                                            <a href="<?php echo base_url('student/view/'). $student->srstudentID . '/' . $set.'/inv'?>"> invoice </a>
+                                                             
+
+                                                        </td>
+
                                                         <?php if (permissionChecker('student_edit')) { ?>
                                                             <td data-title="<?= $this->lang->line('student_status') ?>">
                                                                 <div class="onoffswitch-small" id="<?= $student->srstudentID ?>">

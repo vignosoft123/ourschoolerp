@@ -20,7 +20,16 @@
                             <i class="fa fa-plus"></i> 
                             <?=$this->lang->line('add_title')?>
                         </a>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a href="<?php echo base_url('feetypes/fee_setup') ?>">
+                            <i class="fa fa-plus"></i> 
+                           Fee Setup
+                        </a>
                     </h5>
+
+                    
+
+
                 <?php } ?>
 
                 <div id="hide-table">

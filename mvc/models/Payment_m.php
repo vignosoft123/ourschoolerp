@@ -104,7 +104,7 @@ class Payment_m extends MY_Model {
 		}
 		$invoiceID = implode(",",$invoice_ids);
 		
-		$query = $this->db->query("SELECT * FROM `payment` p WHERE p.`schoolyearID` = '1' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc")->result();
+		$query = $this->db->query("SELECT * FROM `payment` p WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc")->result();
 		// echo "<pre>";print_r($query);die;
 		return $query;
 	}

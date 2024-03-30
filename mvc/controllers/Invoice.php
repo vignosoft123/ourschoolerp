@@ -1416,7 +1416,7 @@ class Invoice extends Admin_Controller
 
     public function saveinvoice()
     {
-        //echo "<pre>";print_r($_POST);die;
+        // echo "<pre>";print_r($_POST);die;
         $maininvoiceID      = 0;
         $retArray['status'] = FALSE;
         if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('defaultschoolyearID') == 5)) {

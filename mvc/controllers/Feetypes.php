@@ -17,6 +17,7 @@ class Feetypes extends Admin_Controller {
 	function __construct() {
 		parent::__construct();
 		$this->load->model("feetypes_m");
+		$this->load->model("section_m");
 		$language = $this->session->userdata('lang');
 		$this->lang->load('feetypes', $language);	
 	}
@@ -165,4 +166,90 @@ class Feetypes extends Admin_Controller {
 			}
 		}	
 	}
+
+ 
+	public function fee_setup()
+	{
+	     
+    
+		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) {
+			$this->data['headerassets'] = array(
+				'css' => array(
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css'
+				),
+				'js' => array(
+					'assets/select2/select2.js'
+				)
+			);
+			 
+ 
+			$this->data['set_classes'] = 0;
+			$this->data['set_section'] = 0; 
+
+		 
+			$this->data['classes']  = $this->classes_m->get_order_by_classes(['classesID !=' => $graduateclass]);
+
+			if ($_POST) {
+				 
+			 
+				 	$classesID       = $this->input->post('classesID'); 
+					 
+					if ((int)$classesID) {
+						 $sql = "select s.* , sf.fee_amount,sf.id as sf_id from section s left join school_fees sf on sf.section_id=s.sectionID where s.classesID='".$classesID."' ";
+						  $this->data['sections'] = $this->db->query($sql)->result();// $this->section_m->get_order_by_section(array('classesID' => $classesID));
+        			} else { 
+        				$this->data['sections'] = [];
+        			}
+					
+				// print_r($this->data['sections']);die;
+					$this->data['set_classes'] = $classesID; 
+
+					$classes         = $this->classes_m->get_single_classes(array('classesID' => $classesID));
+					  
+				  
+					$this->data['sendClasses']  = $classes;
+					 
+					$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+				 
+
+					$this->data["subview"] = "feetypes/fee_setup";
+					$this->load->view('_layout_main', $this->data);
+				 
+					} 
+				else {
+				$this->data["subview"] = "feetypes/fee_setup";
+				$this->load->view('_layout_main', $this->data);
+			}
+		}  
+	}
+
+	public function update_school_fee(){ 
+		$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+
+		$vid = $_POST['vid'];
+		$fee_amount = $_POST['my_value'];
+		$section_id = $_POST['section_id'];
+		$class_id = $_POST['class_id'];
+		
+
+		if(!empty($vid)){
+			$data = array( 
+				'fee_amount' => $fee_amount, 
+			);
+			$this->db->where('id',$vid);
+			$this->db->update('school_fees',$data);
+		}else{
+			$data = array(
+				'section_id' => $section_id,
+				'class_id' => $class_id,
+				'fee_amount' => $fee_amount,
+				'year_id' => $schoolyearID
+			);
+			$this->db->insert('school_fees',$data);
+		}
+		
+		echo 1;
+	}
+
 }

@@ -160,7 +160,7 @@ class Studentrelation_m extends MY_Model {
 
 		 
 		$search = "'%".$s."%'";
-		$where = '(srname like '.$search.' or phone like '.$search.' or srclasses like '.$search.' or srroll like '.$search.' or srregisterNO like '.$search.' or srsection like '.$search.' or dob like '.$search.' or admission_date like '.$search.' or sex like '.$search.' or email like '.$search.' or address like '.$search.' or username like '.$search.' or aadharCardNumber like '.$search.' or ration_card like '.$search.' or ifsc_code like '.$search.')';
+		$where = '(village_name like '.$search. ' or srname like '.$search.' or phone like '.$search.' or srclasses like '.$search.' or srroll like '.$search.' or srregisterNO like '.$search.' or srsection like '.$search.' or dob like '.$search.' or admission_date like '.$search.' or sex like '.$search.' or email like '.$search.' or address like '.$search.' or username like '.$search.' or aadharCardNumber like '.$search.' or ration_card like '.$search.' or ifsc_code like '.$search.')';
 		$this->db->where($where);
 
         $this->db->order_by('srroll asc');
