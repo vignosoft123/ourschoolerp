@@ -62,12 +62,13 @@
                             <?php echo form_error('note'); ?>
                         </span>
                     </div>
-                </form>
-                <div class="col-sm-12">
+                    <div class="col-sm-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_exam")?>" >
                         </div>
                     </div>
+                    
+                </form>
             </div>    
         </div>
     </div>

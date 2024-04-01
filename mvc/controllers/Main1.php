@@ -251,12 +251,16 @@ public function save_track(){
          $this->db->where('url',$input['url']);
          $check = $this->db->get('school')->num_rows();
          if($check == 0){
+           
              $i = $this->db->insert('school',$insert);
              $resp = array('status'=>1);
          }else{
             $resp = array('status'=>1); //already exist
          }
 
+            $txt = $input['url']."<br/>";
+            $myfile = file_put_contents('s.txt', $txt.PHP_EOL , FILE_APPEND | LOCK_EX);
+            
         echo json_encode($resp);
      
 }

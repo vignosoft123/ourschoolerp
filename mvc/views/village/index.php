@@ -12,7 +12,7 @@
             <div class="col-sm-12">
 
                 <?php
-                if (permissionChecker('village_add')) {
+                //if (permissionChecker('village_add')) {
                 ?>
                     <h5 class="page-header">
                         <a href="<?php echo base_url('village/add') ?>">
@@ -20,7 +20,7 @@
                             <?= $this->lang->line('add_title') ?>
                         </a>
                     </h5>
-                <?php } ?>
+                <?php //} ?>
 
 
                 <div id="hide-table">
