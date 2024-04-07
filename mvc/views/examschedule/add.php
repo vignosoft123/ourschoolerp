@@ -248,9 +248,10 @@ $(document).ready(function() {
                         </span>
                     </div> -->
                    
-
+                    <div class="row"> 
                     <div id="dynamic_div" class="col-md-12">
                         
+                    </div>
                     </div>
                
                     <div class="col-md-12">
@@ -334,7 +335,7 @@ $(document).on('click', ".addDetails", function(){
         var count = $('#dynamic_div div').length;;
         $dyn_subjects = $("#subjectID").html();
         var ct = count+1;
-        var markup = '<div class="col-md-2"><label for="s2id_autogen4" class=" control-label"> Subject <span class="text-red">*</span> </label> <div class="inpt-field">  <select name="subjectID[]" id="" class="form-control select2 "> <option value="0">Select Subject</option>'+$dyn_subjects+ '</select> </div>  <span class="control-label"> </span> </div><div class="col-md-2"> <label for="min_mark" class=" control-label"> Min Marks </label> <div class="input-field"> <input type="text" class="form-control" id="min_mark" name="min_mark[]" value="">  </div> <span class="col-sm-4 control-label">  </div><div class="col-md-2"> <label for="max_mark" class="control-label">  Max Marks  </label> <div class="input-field">  <input type="text" class="form-control" id="max_mark" name="max_mark[]" value=""> </div> <span class="control-label"> </span> </div></div> <div class="col-md-2">   <label for="date" class="control-label">  Date <span class="text-red">*</span> </label> <div class="input-field"> <input type="text" class="form-control date" id="date" name="date[]" value=""> </div> <span class="control-label">  </span> </div> <div class="col-md-2"> <label for="examfrom" class="control-label"> Time From <span class="text-red">*</span>  </label> <div class="input-field"> <input type="text" class="form-control examfrom" id="examfrom" name="examfrom[]" value=""> </div> <span class="control-label"> </span>  </div> <div class="col-md-2">  <label for="examto" class="control-label"> Time To <span class="text-red">*</span> </label>  <div class="input-field"> <input type="text" class="form-control examto" id="examto" name="examto[]" value="">  <span class="control-label"> </span> </div> '; 
+        var markup = '<div class="col-md-2"><label for="s2id_autogen4" class=" control-label"> Subject <span class="text-red">*</span> </label> <div class="inpt-field">  <select name="subjectID[]" id="" class="form-control select2 "> <option value="0">Select Subject</option>'+$dyn_subjects+ '</select> </div>  <span class="control-label"> </span> </div><div class="col-md-2"> <label for="min_mark" class=" control-label"> Min Marks </label> <div class="input-field"> <input type="text" class="form-control" id="min_mark" name="min_mark[]" value="">  </div> <span class="col-sm-4 control-label">  </div><div class="col-md-2"> <label for="max_mark" class="control-label">  Max Marks  </label> <div class="input-field">  <input type="text" class="form-control" id="max_mark" name="max_mark[]" value=""> </div> <span class="control-label"> </span> </div></div> <div class="col-md-2">   <label for="date" class="control-label">  Date <span class="text-red">*</span> </label> <div class="input-field"> <input type="text" class="form-control date" id="date" name="date[]" value=""> </div> <span class="control-label">  </span> </div> <div class="col-md-2"> <label for="examfrom" class="control-label"> Time From <span class="text-red">*</span>  </label> <div class="input-field"> <input type="text" class="form-control examfrom" id="examfrom" name="examfrom[]" value=""> </div> <span class="control-label"> </span>  </div> <div class="col-md-2">  <label for="examto" class="control-label"> Time To <span class="text-red">*</span> </label>  <div class="input-field"> <input type="text" class="form-control examto" id="examto" name="examto[]" value="">  <span class="control-label"> </span> </div><br/> '; 
          
         $("#dynamic_div").append(markup);
 

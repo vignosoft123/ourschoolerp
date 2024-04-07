@@ -76,6 +76,7 @@
                         ?>
                         <label for="sectionID" class="  control-label">
                             <?= $this->lang->line("student_section") ?> <span class="text-red">*</span>
+                            <a title="Add Section" target="_blank" href="<?= base_url('section/add');?>"> <i class="fa fa-plus" ></i></a>
                         </label>
 
                             <?php
