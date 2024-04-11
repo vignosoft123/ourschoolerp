@@ -172,13 +172,13 @@
                         </span>
                     </div>
                    
-                </form>
                 
                 <div class="col-md-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("update_subject")?>" >
                         </div>
                     </div>
+                    </form>
 
             </div> <!-- col-sm-8 -->
         </div><!-- row -->

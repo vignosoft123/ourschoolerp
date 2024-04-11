@@ -130,13 +130,16 @@
                             <?php echo form_error('note'); ?>
                         </span>
                     </div>
-                </form>
 
-                <div class="col-md-12">
+                    <div class="col-md-12">
                     <div class="btn-center">
                         <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_section")?>" >
                     </div>
                 </div>
+                
+                </form>
+
+                
             </div>
             <div class="col-sm-12">
                 <?php if ($siteinfos->note==1) { ?>

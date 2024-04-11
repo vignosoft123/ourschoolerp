@@ -242,12 +242,12 @@
                     </div>
 
                     
-                </form>
                 <div class="col-md-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("update_routine")?>" >
                         </div>
                     </div>
+                    </form>
 
             </div>
         </div>

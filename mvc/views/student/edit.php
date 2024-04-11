@@ -694,12 +694,32 @@
                                 </span>
                                 </div>
 
-
+                                <div class="row"> 
+                                <?php
+                                    if (form_error('studentType'))
+                                        echo "<div class='col-md-4 has-error' >";
+                                    else
+                                        echo "<div class='col-md-4' >";
+                                    ?>
+                                    <label for="studentType" class="  control-label">
+                                        <?= $this->lang->line("studentType") ?></span>
+                                    </label>
+                                    <?php
+                                            $studentType = array(3 => "DAY SCHOLAR",1 => "TRANSPORT", 2 => "HOSTEL" );
+                                        ?> 
+                                        <?php
+                                            echo form_dropdown("studentType", $studentType, set_value("studentType"), "id='studentType' class='form-control select2'");
+                                        ?>
+                                    <span class="  control-label">
+                                        <?php echo form_error('studentType'); ?>
+                                    </span>
+                                </div> 
+                                </div>
 
                         </div>
                     </div><!-------- End student address details sec------>
 
-                    <div class="transport-details-sec">
+                    <div class="transport-details-sec" id="transport_div">
 
                         <h2 class="h2-title">Transport Details</h2>
                         <div class="row">
@@ -748,7 +768,7 @@
 
                         </div>
                     </div><!-------- End Transort details sec------>
-                    <div class="hostel-details-sec">
+                    <div class="hostel-details-sec" id="hostel_div">
                         <h2 class="h2-title">Hostel Details</h2>
                         <div class="row">
                                 <?php 
@@ -803,29 +823,29 @@
 
    
 
-                            <?php 
-                                if(form_error('categoryID')) 
-                                    echo "<div class='form-group has-error' >";
-                                else     
-                                    echo "<div class='form-group' >";
-                            ?>
-                                <label for="categoryID" class="col-sm-2 control-label hostel  <?= $this->input->post('studentType')=='2' || $student->studentType == '2' ? '' : 'hide'; ?>">
-                                    <?=$this->lang->line("hmember_class_type")?> <span class="text-red">*</span>
-                                </label>
-                                <div class="col-sm-6  <?= $this->input->post('studentType')=='2' || $student->studentType == '2' ? '' : 'hide'; ?> hostel">
-                                    <?php
-                                        $array = array(0 => $this->lang->line("hmember_select_class_type"));
-                                        if(customCompute($categorys)) {
-                                            foreach ($categorys as $key => $category) {
-                                                $array[$category->categoryID] = $category->class_type;
-                                            }
-                                        }
-                                        echo form_dropdown("categoryID", $array, set_value("categoryID", isset($studntHostelDetails->categoryID) ?$studntHostelDetails->categoryID : '' ), "id='categoryID' class='form-control select2'");
-                                    ?>
-                                </div>
-                                <span class="col-sm-4 control-label <?= $this->input->post('studentType')=='2' || $student->studentType == '2' ? '' : 'hide'; ?> hostel" >
-                                    <?php echo form_error('categoryID'); ?>
-                                </span>
+                    <?php 
+                if(form_error('categoryID')) 
+                    echo "<div class='col-md-4 has-error' >";
+                else     
+                    echo "<div class='col-md-4' >";
+            ?>
+                <label for="categoryID" class="control-label hostel  <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?>">
+                    <?=$this->lang->line("hmember_class_type")?> <span class="text-red">*</span>
+                </label>
+                <div class="coll-sm-6  <?= $this->input->post('studentType')=='2'  ? '' : 'show'; ?> hostel">
+                    <?php
+                        $array = array(0 => $this->lang->line("hmember_select_class_type"));
+                        if(customCompute($categorys)) {
+                            foreach ($categorys as $key => $category) {
+                                $array[$category->categoryID] = $category->class_type;
+                            }
+                        }
+                        echo form_dropdown("categoryID", $array, set_value("categoryID"), "id='categoryID' class='form-control select2'");
+                    ?>
+                </div>
+                <span class="control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel" >
+                    <?php echo form_error('categoryID'); ?>
+                </span>
                             </div>
 
 
@@ -962,20 +982,30 @@ $(function() {
         reader.readAsDataURL(file);
     });  
 });
-$('#studentType').change(function() {
+
+$("#transport_div").hide();
+    $("#hostel_div").hide();
+
+ $('#studentType').change(function() {
         var studentType = $('#studentType').val();
         if(studentType == 1)
         {   
-            $('.transport').removeClass('hide');
-            $('.hostel').addClass('hide');
+            // $('.transport').removeClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").show();
+            $("#hostel_div").hide();
         }
         else if(studentType==2){
-            $('.transport').addClass('hide');
-            $('.hostel').removeClass('hide');
+            // $('.transport').addClass('hide');
+            // $('.hostel').removeClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").show();
         }
         else{
-            $('.transport').addClass('hide');
-            $('.hostel').addClass('hide');
+            // $('.transport').addClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").hide();
         }
     });
 

@@ -247,12 +247,13 @@
                             <?php echo form_error('room'); ?>
                         </span>
                     </div>
-                </form>
                     <div class="col-md-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_routine")?>" >
                         </div>
                     </div>
+                    </form>
+
                     <div class="col-md-12">
                         <?php if ($siteinfos->note==1) { ?>
                             <div class="callout callout-danger">

@@ -265,7 +265,7 @@ class Examschedule extends Admin_Controller {
 						$this->db->where('classesID',$this->input->post("classesID"));
 						$this->db->where_in('sectionID',$nSection);
 						$this->db->where('subjectID',$subjectID[$i]);
-						$this->db->where('edate',date("Y-m-d", strtotime($edate[$i])));
+						// $this->db->where('edate',date("Y-m-d", strtotime($edate[$i])));
 						 $cnt = $this->db->get('examschedule')->num_rows();
 						// echo $this->db->last_query();die;
 						//die;
