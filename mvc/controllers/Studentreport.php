@@ -337,7 +337,7 @@ class Studentreport extends Admin_Controller {
 			$this->data['reportTitle'] = $post['blood'];
 		}
 
-		if(isset($post['reportfor']) && $post['reportfor'] == 'villages') {
+		if(isset($post['reportfor']) && $post['reportfor'] == 'villageID') {
 			$queryArray['villageID'] = $post['villageID'];
 			// $this->data['reportTitle'] = $this->data['allvillages'][$post['villageID']];
 		}

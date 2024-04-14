@@ -24,7 +24,7 @@
                              "transport" => $this->lang->line("studentreport_transport"),
                              "hostel" => $this->lang->line("studentreport_hostel"),
                              "birthday" => $this->lang->line("studentreport_birthday"),
-                             'villages' => 'villages'
+                             'villageID' => 'Villages'
                          );
                          echo form_dropdown("reportfor", $array, set_value("reportfor"), "id='reportfor' class='form-control select2'");
                      ?>
@@ -63,7 +63,7 @@
                      ?>
                 </div>
 
-                <div class="form-group col-sm-4" id="villagesDiv">
+                <div class="form-group col-sm-4" id="villageIDDiv">
                     <label>Villeges<span class="text-red"> * </span></label>
                     <select id='villageID' name='villageID' class='form-control select2'>
                         <option value=""> Select Villege</option>
@@ -186,7 +186,7 @@
         $("#sectionID").val(0);
         $("#bloodDiv").hide();
         $("#countryDiv").hide();
-        $("#villagesDiv").hide();
+        $("#villageIDDiv").hide();
         $("#transportDiv").hide();
         $("#hostelDiv").hide();
         $("#genderDiv").hide();
@@ -200,7 +200,7 @@
         if(reportfor == 0) {
             $("#bloodDiv").hide('slow');
             $("#countryDiv").hide('slow');
-            $("#villagesDiv").hide('slow');
+            $("#villageIDDiv").hide('slow');
             $("#genderDiv").hide('slow');
             $("#transportDiv").hide('slow');
             $("#hostelDiv").hide('slow');
@@ -212,7 +212,7 @@
             $("#blood").val('0');
             $("#bloodDiv").show("slow");
             $("#countryDiv").hide();
-            $("#villagesDiv").hide();
+            $("#villageIDDiv").hide();
             $("#genderDiv").hide();
             $("#transportDiv").hide();
             $("#hostelDiv").hide();
@@ -225,24 +225,24 @@
             $("#transportDiv").hide();
             $("#hostelDiv").hide();
             $("#countryDiv").show("slow");
-            $("#villagesDiv").hide();
+            $("#villageIDDiv").hide();
             $("#birthdaydateDiv").hide();
 
-        } else if(reportfor == 'villages') {
+        } else if(reportfor == 'villageID') {
             $("#country").val('0');
             $("#bloodDiv").hide();
             $("#genderDiv").hide();
             $("#transportDiv").hide();
             $("#hostelDiv").hide();
             $("#countryDiv").hide("slow");
-            $("#villagesDiv").show("slow");
+            $("#villageIDDiv").show("slow");
             $("#birthdaydateDiv").hide();
 
         }else if(reportfor == 'gender') {
             $("#gender").val('0');
             $("#bloodDiv").hide();
             $("#countryDiv").hide();
-            $("#villagesDiv").hide();
+            $("#villageIDDiv").hide();
             $("#transportDiv").hide();
             $("#hostelDiv").hide();
             $("#genderDiv").show("slow");
@@ -252,7 +252,7 @@
             $("#transport").val('0');
             $("#bloodDiv").hide();
             $("#countryDiv").hide();
-            $("#villagesDiv").hide();
+            $("#villageIDDiv").hide();
             $("#hostelDiv").hide();
             $("#genderDiv").hide();
             $("#transportDiv").show("slow");
@@ -262,7 +262,7 @@
             $("#hostel").val('0');
             $("#bloodDiv").hide();
             $("#countryDiv").hide();
-            $("#villagesDiv").hide();
+            $("#villageIDDiv").hide();
             $("#transportDiv").hide();
             $("#genderDiv").hide();
             $("#birthdaydateDiv").hide();
@@ -271,7 +271,7 @@
             $("#birthdaydateDiv").val('0');
             $("#bloodDiv").hide();
             $("#countryDiv").hide();
-            $("#villagesDiv").hide();
+            $("#villageIDDiv").hide();
             $("#transportDiv").hide();
             $("#genderDiv").hide();
             $("#hostelDiv").hide();
@@ -352,12 +352,12 @@
             }
         }
 
-        if (field['reportfor'] == 'villages') {
-            if (field['villages'] == 0) {
-                $('#villagesDiv').addClass('has-error');
+        if (field['reportfor'] == 'villageID') {
+            if (field['villageID'] == 0) {
+                $('#villageIDDiv').addClass('has-error');
                 error++;
             } else {
-                $('#villagesDiv').removeClass('has-error');
+                $('#villageIDDiv').removeClass('has-error');
             }
         }
 
