@@ -1110,18 +1110,73 @@ class Student extends Admin_Controller
 					$section_id = $this->input->post("sectionID");
 					$year_id = $this->session->userdata('defaultschoolyearID');
 
+
+					if($this->input->post('studentType') == 1){//transport
+						$pickup_id = $this->input->post("pickup_id");
+						$this->db->where('id',$pickup_id);
+						$p_res = $this->db->get('pickup_points')->row_array();
+						$p_amount = $p_res['fare'];
+					}else if($this->input->post('studentType') == 2){ //hostel
+						$hostelID = $this->input->post("hostelID");
+						$categoryID = $this->input->post("categoryID");
+						$this->db->where('categoryID',$categoryID);
+						$this->db->where('hostelID',$hostelID);
+						$p_res = $this->db->get('category')->row_array();
+						$h_amount = $p_res['hbalance'];
+					}
+
 					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' ")->row_array();
+					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
 
 					$amount = $this->db->query("SELECT fee_amount FROM `school_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
 
 					$subtotal_amount =$amount;
-					$fee_types = array(
-						'feetypeID' => $fee_type['feetypesID'],
-						'amount' => $amount['fee_amount'],
-						'discount' => "",
-						'subtotal' => $subtotal_amount,
-						'paidamount' => "",
-					);
+
+					if($this->input->post('studentType') == 3){ //dayscolar
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						)];
+						
+					}else if($this->input->post('studentType') == 1){ //trasport
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						),array(
+							'feetypeID' => $fee_type_trasport['feetypesID'],
+							'amount' => $p_amount,
+							'discount' => "",
+							'subtotal' => $p_amount,
+							'paidamount' => "",
+						)];
+						
+					}if($this->input->post('studentType') == 2){ //hostel
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						),array(
+							'feetypeID' => $fee_type_hostel['feetypesID'],
+							'amount' => $h_amount,
+							'discount' => "",
+							'subtotal' => $h_amount,
+							'paidamount' => "",
+						)];
+					}
+ 					
+					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
+					
+
+
 					$json_fee_types = json_encode($fee_types);
 					// echo "<pre>";print_r($json_fee_types);die;
 					$invoice_data = array(
@@ -1131,7 +1186,8 @@ class Student extends Admin_Controller
 						'date' => date('d-m-Y'),
 						'statusID' => 0,
 						'payment_method' => 0,
-						'feetypeitems' => '['.$json_fee_types.']',
+						// 'feetypeitems' => '['.$json_fee_types.']',
+						'feetypeitems' => $json_fee_types,
 						'totalsubtotal' => $subtotal_amount,
 						'totalpaidamount' => 0,
 						'editID' => 0,
@@ -2502,6 +2558,29 @@ public function saveinvoice($inv_data)
 		$retArray['error'] = ['permission' => 'Permission Denied.'];
 		echo json_encode($retArray);
 		exit;
+	}
+}
+public function get_pickup_points(){
+	$transport_id = $_POST['id'];
+	$this->db->where('route_id',$transport_id);
+	$p_res = $this->db->get('pickup_points')->result_array();
+	$html = "<option>Select Pikcup point</option>";
+	foreach($p_res as $p){
+		$html .= "<option value='".$p['id']."'> ".$p['pickupPoint']." </option>";
+	}
+	echo $html;
+}
+
+public function transport_fare() {
+	$pickup_id = $this->input->post('id');
+	if((int)$pickup_id) {
+		// $string = $this->transport_m->get_transport($transportID);
+		// $string = $this->db->query('SELECT *FROM `transport`WHERE `transportID` ='.$transportID)->row();
+		$string = $this->db->query('SELECT fare FROM `pickup_points`WHERE `id` ='.$pickup_id)->row();
+		// echo $this->db->last_query();die;
+		echo $string->fare;
+	} else {
+		echo '';
 	}
 }
 

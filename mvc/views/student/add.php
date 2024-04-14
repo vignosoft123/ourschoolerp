@@ -213,11 +213,11 @@
                         else
                             echo "<div class='col-md-4' >";
                         ?>
-                        <label for="first_name" class=" control-label">
+                        <label for="first_name" class=" control-label ">
                            First Name <span class="text-red">*</span>
                         </label>
                         
-                            <input type="text" class="form-control" id="first_name" name="first_name" value="<?= set_value('first_name') ?>">
+                            <input type="text" class="form-control id_card" id="first_name" name="first_name" value="<?= set_value('first_name') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('first_name'); ?>
@@ -234,7 +234,7 @@
                            Last Name <span class="text-red">*</span>
                         </label>
                         
-                            <input type="text" class="form-control" id="last_name" name="last_name" value="<?= set_value('last_name') ?>">
+                            <input type="text" class="form-control id_card" id="last_name" name="last_name" value="<?= set_value('last_name') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('last_name'); ?>
@@ -748,7 +748,7 @@
                 <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >
                     <?=$this->lang->line("tmember_route_name")?> <span class="text-red">*</span>
                 </label>
-                <div class="col1-sm-6 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >                    
+                <div class="col1-sm-4 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >                    
                     <?php
                         $array = array();
                         $array[0] = $this->lang->line("classes_select_route_name");
@@ -763,6 +763,22 @@
                 </span>
             </div><!-------- End transport id  ------>
 
+             <?php 
+                   
+                    echo "<div class='col-md-4' >";
+            ?>
+                <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >
+                    Pickup Point <span class="text-red">*</span>
+                </label>
+                <div class="col1-sm-4 " >                    
+                    <select id="pickup_id" name ="pickup_id" class='form-control select2'>
+                        <option>Select Pickup point</option>
+                         
+                    </select>
+                </div>
+                 
+            </div> 
+
             <?php 
                     if(form_error('tbalance')) 
                         echo "<div class='col-md-4 has-error'>";
@@ -772,13 +788,17 @@
                     <label for="tbalance" class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
                         <?=$this->lang->line("tmember_tfee")?> <span class="text-red">*</span>
                     </label>
-                    <div class="col1-sm-6 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
+                    <div class="col1-sm-4 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
                         <input type="text" class="form-control" id="tbalance" name="tbalance" value="<?=set_value('tbalance', "0.00")?>" readonly>
                     </div>
                     <span class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
                         <?php echo form_error('tbalance'); ?>
                     </span>
                 </div> <!-------- End transport fee  ------>
+
+
+               
+           
 
 
             </div>
@@ -1051,15 +1071,36 @@
         } else {
             $.ajax({
                 type: 'POST',
-                url: "<?=base_url('tmember/transport_fare')?>",
+                // url: "<?=base_url('tmember/transport_fare')?>",
+                url: "<?=base_url('Student/get_pickup_points')?>",
                 data: "id=" + transportID,
                 dataType: "html",
                 success: function(data) {
-                   $('#tbalance').val(data)
+                //    $('#tbalance').val(data)
+                   $('#pickup_id').html(data)
                 }
             });
         }
     });
+
+    $('#pickup_id').change(function() {
+        
+        var pickup_id = $(this).val();
+         if(pickup_id == 0 || pickup_id == "" || pickup_id == null) {
+             $('#tbalance').val("0.00");
+         } else {
+             $.ajax({
+                 type: 'POST',
+                 // url: "<?=base_url('tmember/transport_fare')?>",
+                 url: "<?=base_url('Student/transport_fare')?>",
+                 data: "id=" + pickup_id,
+                 dataType: "html",
+                 success: function(data) {
+                    $('#tbalance').val(data) 
+                 }
+             });
+         }
+     });
 
     $('#hostelID').change(function(event) {
         $('#categoryID').val(0).select2()
@@ -1078,4 +1119,12 @@
             });
         }
 });
+$(document).on("keyup",".id_card",function(){
+    var f_name= $("#first_name").val();
+    var l_name= $("#last_name").val();
+    var idcard = f_name + " " + l_name;
+    // alert (idcart);
+    $("#name_id").val(idcard);
+});
+
 </script>

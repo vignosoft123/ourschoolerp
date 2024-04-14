@@ -246,6 +246,7 @@ class Studentreport extends Admin_Controller {
 				$gender        = $this->input->post('gender');
 				$classesID     = $this->input->post('classesID');
 				$sectionID     = $this->input->post('sectionID');
+				$villageID     = $this->input->post('villageID');
 
 				$rules = $this->rules($reportfor);
 				$this->form_validation->set_rules($rules);
@@ -259,6 +260,7 @@ class Studentreport extends Admin_Controller {
 					$bloodArray = array_flip($this->_bloodArray);
 					$this->data['bloodID'] = isset($bloodArray[$blood]) ? $bloodArray[$blood] : '0';
 					$this->data['country'] = $country; 
+					$this->data['villageID'] = $villageID; 
 					$this->data['transport'] = $transport; 
 					$this->data['hostel'] = $hostel; 
 					$this->data['birthdaydate'] = $birthdaydate;
@@ -333,6 +335,11 @@ class Studentreport extends Admin_Controller {
 		if(isset($post['reportfor']) && $post['reportfor'] == 'blood') {
 			$queryArray['bloodgroup'] = $post['blood'];
 			$this->data['reportTitle'] = $post['blood'];
+		}
+
+		if(isset($post['reportfor']) && $post['reportfor'] == 'villageID') {
+			$queryArray['villageID'] = $post['villageID'];
+			// $this->data['reportTitle'] = $this->data['allvillages'][$post['villageID']];
 		}
 
 		if(isset($post['reportfor']) && $post['reportfor'] == 'country') {

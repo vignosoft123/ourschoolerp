@@ -1108,7 +1108,7 @@ if ( !defined('BASEPATH') ) {
 
         public function menu_search(){
             $li="";
-            $resp = file_get_contents("https://ourschoolerp.com/General/get_menu");
+            $resp = file_get_contents("https://school.ourschoolerp.com/General/get_menu");
             $response = json_decode($resp,1);
             $list = $response['data']; 
            
