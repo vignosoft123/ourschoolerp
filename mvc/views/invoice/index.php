@@ -37,12 +37,15 @@
             //    echo "<pre>";print_r($categories);die;
                 ?>
 
+                    <?php if($this->session->userdata('usertypeID') == 1){?>
                     <ul class="nav nav-tabs">
                             <li class="active"><a href="<?php echo base_url('invoice/index/0');?>" aria-expanded="true">All Classes</a></li>
                             <?php foreach ($all_classes as $key => $section) {
                                 echo '<li class=""><a href= "'.base_url("invoice/index/").$section->classesID.'"> '.$section->classes.' </a></li>';
                             } ?>
                         </ul>
+
+                        <?php }?>
                         
 
                 <div id="hide-table">

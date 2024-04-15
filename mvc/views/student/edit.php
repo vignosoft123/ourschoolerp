@@ -527,7 +527,7 @@
                                         <?php echo form_error('address'); ?>
                                     </span>
                                 </div>
-                                <?php 
+                                <!-- <?php 
                             if(form_error('student_village')) 
                                 echo "<div class='col-md-4 has-error' >";
                             else     
@@ -542,7 +542,29 @@
                             <span class="control-label">
                                 <?php echo form_error('student_village'); ?>
                             </span>
-                        </div>
+                        </div> -->
+
+                        <?php
+                if (form_error('student_village'))
+                    echo "<div class='col-md-4 has-error' >";
+                else
+                    echo "<div class='col-md-4' >";
+                ?>
+                <label for="student_village" class="  control-label">
+                    <?= $this->lang->line("student_village") ?> <span class="text-red">*</span>
+                </label>
+                
+                    <!-- <input type="text" class="form-control" id="village_name" name="village_name" value="<?= set_value('village_name') ?>"> -->
+                    <select id="village_name" name="village_name" class='form-control select2' >
+                        <?php foreach($villages as $v){?>
+                            <option value="<?= $v['villageID']?>"> <?= $v['villageName']?> </option>
+                       <?php  }?>
+                    </select>
+                
+                <span class="  control-label">
+                    <?php echo form_error('student_village'); ?>
+                </span>
+                </div><!-------- End village  ------>
 
                             <?php 
                                 if(form_error('state')) 

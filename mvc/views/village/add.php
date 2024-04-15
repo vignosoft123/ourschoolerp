@@ -40,7 +40,7 @@
                         </label>
                         <div class="col-sm-6">
                             <?php
-                                echo form_dropdown("status", array('' => $this->lang->line('village_select_status'), 1 => $this->lang->line('village_active_status'), 0 => $this->lang->line('village_in_active_status')), set_value("status", ''), "id='status' class='form-control select2'");
+                                echo form_dropdown("status", array(1 => $this->lang->line('village_active_status'), 0 => $this->lang->line('village_in_active_status')), set_value("status", ''), "id='status' class='form-control select2'");
                             ?>
                         </div>
                         <span class="col-sm-4 control-label">

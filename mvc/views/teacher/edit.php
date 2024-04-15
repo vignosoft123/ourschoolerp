@@ -238,12 +238,13 @@
                             <?php echo form_error('username'); ?>
                         </span>
                     </div> 
-                </form>
                 <div class="col-md-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("update_teacher")?>" >
                         </div>
                     </div>
+                    </form>
+
             </div><!-- col-sm-8 --> 
         </div>
     </div>

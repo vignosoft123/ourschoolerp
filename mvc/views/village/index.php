@@ -28,7 +28,8 @@
                         <thead>
                             <tr>
                                 <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
-                                <th class="col-sm-2"><?= $this->lang->line('villageName') ?></th>
+                                <th class="col-sm-2">Villege Name</th>
+                                <th class="col-sm-2">Database Id</th>
                                 <th class="col-sm-1"><?= $this->lang->line('village_status') ?></th>
                                 <?php if (permissionChecker('village_edit') || permissionChecker('village_delete')) { ?>
                                     <th class="col-sm-1"><?= $this->lang->line('action') ?></th>
@@ -46,6 +47,10 @@
 
                                         <td data-title="<?= $this->lang->line('village_name') ?>">
                                             <?php echo $village->villageName; ?>
+                                        </td>
+
+                                        <td data-title="<?= $this->lang->line('village_name') ?>">
+                                            <?php echo $village->villageID; ?>
                                         </td>
 
 

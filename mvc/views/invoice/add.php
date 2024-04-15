@@ -77,7 +77,7 @@
                         </label>
                         <?php
                         $statusArray = array(
-                            5 => $this->lang->line("invoice_select_paymentstatus"),
+                            // 5 => $this->lang->line("invoice_select_paymentstatus"),
                             0 => $this->lang->line("invoice_notpaid"),
                             1 => $this->lang->line("invoice_partially_paid"),
                             2 => $this->lang->line("invoice_fully_paid")

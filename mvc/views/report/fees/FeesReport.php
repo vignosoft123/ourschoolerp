@@ -56,7 +56,13 @@
                     </div>
                 <?php } ?>
                 <div class="col-sm-12">
-                    <?php if(customCompute($getFeesReports)) { ?>
+                    <?php 
+                        $cash_amount = 0;
+                        $cheque_amount = 0;
+                        $digital_amount = 0;
+                    if(customCompute($getFeesReports)) {
+                           
+                        ?>
                     <div id="hide-table">
                         <table class="table table-bordered">
                             <thead>
@@ -88,6 +94,15 @@
                                     $totalFine = 0;
                                     $i= 0;
                                     foreach($getFeesReports as $getFeesReport) { 
+
+                                        if($getFeesReport->paymenttype == 'Cash'){
+                                            $cash_amount += $getFeesReport->paymentamount;
+                                        }else if($getFeesReport->paymenttype == 'Cheque'){
+                                            $cheque_amount += $getFeesReport->paymentamount;
+                                        }else if($getFeesReport->paymenttype == 'Digital'){
+                                            $digital_amount += $getFeesReport->paymentamount;
+                                        }
+
                                         if(isset($weaverandfine[$getFeesReport->paymentID]) && (($weaverandfine[$getFeesReport->paymentID]->fine !='') || ($weaverandfine[$getFeesReport->paymentID]->weaver !='')) || $getFeesReport->paymentamount != '') { $i++; ?>
                                         <tr>
                                             <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
@@ -176,13 +191,35 @@
                                             $colspan = 8;
                                         }
                                     ?>
+                                   
+
+                                    <tr style="font-weight: bold"> 
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>Cash:</td>
+                                        <td align="right"  >
+                                        <?=number_format($cash_amount,2)?></td>
+                                        <td>Digital:</td>
+                                            <td align="right" colspan="">
+                                             <?=number_format($digital_amount,2)?></td>
+                                             <td>Cheque:</td>
+                                            <td align="right" colspan="">
+                                             <?=number_format($cheque_amount,2)?></td>
+ 
+                                    </tr>
+
                                     <tr style="font-weight: bold">
-                                        <td data-title="<?=$this->lang->line('feesreport_grand_total')?>" align="right" colspan="<?=$colspan?>">
+                                         <td data-title="<?=$this->lang->line('feesreport_grand_total')?>" align="right" colspan="<?=$colspan?>">
                                             <?=$this->lang->line('feesreport_grand_total')?> <?=isset($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?></td>
                                         <td data-title="<?=$this->lang->line('feesreport_total_paid')?>"><?=number_format($totalPaid,2)?></td>
                                         <td data-title="<?=$this->lang->line('feesreport_total_weaver')?>"><?=number_format($totalWeaver,2)?></td>
                                         <td data-title="<?=$this->lang->line('feesreport_total_fine')?>"><?=number_format($totalFine,2)?></td>
                                     </tr>
+
                             </tbody>
                         </table>
                     </div>
