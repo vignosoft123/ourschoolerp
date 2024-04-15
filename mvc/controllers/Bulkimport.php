@@ -441,7 +441,8 @@ class Bulkimport extends Admin_Controller
                     "Email",
                     "Phone",
                     "Address",
-                    "Village",
+                    // "Village",
+                    "villageID",
                     "Class",
                     "Section",
                     //"Roll",
@@ -548,7 +549,7 @@ class Bulkimport extends Admin_Controller
                                         'account_no'               => $row['account_no'],
                                         'ifsc_code'               => $row['ifsc_code'],
                                         'branch_name'               => $row['branch_name'],                                        
-                                        'village_name'              => $row['Village'],
+                                        'villageID'              => $row['villageID'],
                                         'registerNO'              => $row['admission_no'],
                                     ];
 
@@ -1058,7 +1059,7 @@ class Bulkimport extends Admin_Controller
     {
         $name            = $this->trim_required_string_maxlength_minlength_Check($array['name'], 60);
         $dob             = $this->trim_required_date_Check($array['dob']);
-        $admission_no             = $this->check_unique_admission_no($array['admission_no']);
+        // $admission_no             = $this->check_unique_admission_no($array['admission_no']);
         $gender          = $this->trim_required_string_maxlength_minlength_Check($array['gender'], 10);
         // $religion        = $this->trim_required_string_maxlength_minlength_Check($array['religion'], 25);
         // $email           = $this->trim_check_unique_email($array['email'], 40);
@@ -1081,13 +1082,13 @@ class Bulkimport extends Admin_Controller
 
         $retArray['status'] = FALSE;
         // if($name && $dob && $gender && $phone && $address && $class && $section && $roll && $registrationno && $checkStudent) {
-        if($name && $dob && $gender && $phone && $phone_exists && $address && $class && $section && $checkStudent && $admission_no) {
+        if($name && $dob && $gender && $phone && $phone_exists && $address && $class && $section && $checkStudent) {
             $retArray['status'] = TRUE;
         } else {
 
-            if(!$admission_no) {
-                $retArray['error']['admission_no'] = 'Admission no already exists';
-            }
+            // if(!$admission_no) {
+            //     $retArray['error']['admission_no'] = 'Admission no already exists';
+            // }
 
             if(!$name) {
                 $retArray['error']['name'] = 'Invalid Teacher Name';
