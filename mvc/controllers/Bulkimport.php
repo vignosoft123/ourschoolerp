@@ -441,8 +441,8 @@ class Bulkimport extends Admin_Controller
                     "Email",
                     "Phone",
                     "Address",
-                    // "Village",
-                    "villageID",
+                    "Village",
+                    // "villageID",
                     "Class",
                     "Section",
                     //"Roll",
@@ -458,7 +458,8 @@ class Bulkimport extends Admin_Controller
                     "branch_name",
                     "admission_no",
                 ];
-                if($csv_array = @$this->csvimport->get_array($file_path, $column_headers)) {
+                    //    echo "<pre>";print_r($this->csvimport->get_array($file_path, $column_headers));
+                if($csv_array = @$this->csvimport->get_array($file_path, $column_headers)) {//echo 'if';die;
                     if(customCompute($csv_array)) {
                         $msg     = "";
                         $i       = 1;
@@ -549,7 +550,7 @@ class Bulkimport extends Admin_Controller
                                         'account_no'               => $row['account_no'],
                                         'ifsc_code'               => $row['ifsc_code'],
                                         'branch_name'               => $row['branch_name'],                                        
-                                        'villageID'              => $row['villageID'],
+                                        'villageID'              => $row['village'],
                                         'registerNO'              => $row['admission_no'],
                                     ];
 
@@ -642,7 +643,7 @@ class Bulkimport extends Admin_Controller
                                     $msg .= ". <br/>";
                                 }
                             } else {
-                                $this->session->set_flashdata('error', "Wrong csv file!");
+                                $this->session->set_flashdata('error', "Wrong csv file!!");
                                 redirect(base_url("bulkimport/index"));
                             }
                             $i++;
@@ -656,8 +657,8 @@ class Bulkimport extends Admin_Controller
                         $this->session->set_flashdata('error', $this->lang->line('bulkimport_data_not_found'));
                         redirect(base_url("bulkimport/index"));
                     }
-                } else {
-                    $this->session->set_flashdata('error', "Wrong csv file!");
+                } else {//echo 'else';die;
+                    $this->session->set_flashdata('error', "Wrong csv file..!");
                     redirect(base_url("bulkimport/index"));
                 }
             }
