@@ -16,6 +16,11 @@
     </div><!-- /.box-header -->
     <div id="printablediv">
         <style type="text/css">
+
+            .text-yellow{
+                background: black;height: 30px;
+            color:#e4de22 !important
+            }
             .mainadmincardreport {
                 max-width:794px;
                 margin-left: auto;
@@ -61,13 +66,21 @@
             }
 
             .admitcardbody h3{
-                text-align: center;
+                /* text-align: center;
                 border-bottom: 1px solid #ddd;
                 padding-bottom: 6px;
                 color: #000;
                 font-weight: 500;
                 margin: 0px;
+                font-size: 14px; */
+
+                text-align: center;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 6px;
+                padding-top: 6px;
+                color: #e4e423; 
                 font-size: 14px;
+                font-weight: bold;
             }
 
             .subjectlist {
@@ -108,12 +121,14 @@
 
 
             .mainadmincardreport .admincardreport h2 {
-                color: #700CE8;
+                color: green;
                 margin-bottom: 0px;
+                font-weight: bold;
+                font-family: serif;
             }
 
             .mainadmincardreport .admincardreport h5 {
-                color: #DBA912;
+                /* color: #DBA912; */
             }
 
             .mainadmincardreport img {
@@ -154,22 +169,23 @@
                             <div class="admincardreport" style="height:480px">
                                 <table width="100%" style="text-align:center">
                                     <tr>
-                                        <td id="logo" style="width:20%">
+                                        <td id="logo" style="width:16%">
                                             <?php
                                                 if($siteinfos->photo) {
                                                     $array = array(
                                                         "src" => base_url('uploads/images/'.$siteinfos->photo),
-                                                        'width' => '100px',
-                                                        'height' => '100px',
-                                                        "style" => "margin-right:0px;"
+                                                        'width' => '50px',
+                                                        'height' => '50px',
+                                                        // "style" => "margin-right:0px;"
                                                     );
-                                                    echo img($array)."<br>";
+                                                    echo img($array);
                                                 }
                                             ?>
                                         </td>
                                         <td style="width:84%"> 
                                             <h2><?=$siteinfos->sname?></h2>
-                                            <h5><?=$siteinfos->address?></h5> 
+                                            <h5><?=$siteinfos->address?>, <?= $siteinfos->email?></h5> 
+                                            <h5><?=$siteinfos->phone?></h5> <br/>
                                         </td>
                                         <td style="width:8%">
                                             <img src="<?=imagelink($student->photo)?>" alt="">
@@ -178,7 +194,7 @@
                                     
                                 </table>
                                 <div class="admitcardbody">
-                                    <h3 class="text-green"><?=$examTitle?> <?= "Hall Ticket"//$this->lang->line('admitcardreport_exam_admit_card')?> - ( <?=$examYear?> )</h3>
+                                    <h3 class="text-yellow"><?=$examTitle?> <?= "Hall Ticket"//$this->lang->line('admitcardreport_exam_admit_card')?> - ( <?=$examYear?> )</h3>
                                     <div class="admitcardstudentinfo">
                                         <div class="studentinfo">
                                             <p><span class="text-red"><?=$this->lang->line('admitcardreport_name')?></span> : <?=$student->srname?> </p>
