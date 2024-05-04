@@ -250,13 +250,15 @@
                         </span>
                     </div>
 
-                </form>
-
                     <div class="col-md-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_user")?>" >
                         </div>
                     </div>
+
+                </form>
+
+                   
 
                     <?php if ($siteinfos->note==1) { ?>
                     <div class="col-md-12">

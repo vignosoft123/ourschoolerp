@@ -1121,8 +1121,12 @@
 });
 $(document).on("keyup",".id_card",function(){
     var f_name= $("#first_name").val();
-    var l_name= $("#last_name").val();
-    var idcard = f_name + " " + l_name;
+   
+    let letter = f_name.charAt(0).toUpperCase(); 
+
+    var string= $("#last_name").val();
+    var l_name = string.charAt(0).toUpperCase() + string.slice(1);
+    var idcard = letter + " " + l_name;
     // alert (idcart);
     $("#name_id").val(idcard);
 });
