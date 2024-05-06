@@ -377,6 +377,24 @@
                             <?php echo form_error('father_name'); ?>
                         </span>
                     </div> <!------ end Father Name  ----->
+
+                    <?php
+                        if (form_error('father_name'))
+                            echo "<div class='col-md-4 has-error' >";
+                        else
+                            echo "<div class='col-md-4' >";
+                        ?>
+                        <label for="father_aadhar" class=" control-label">
+                            Father Aadhar <span class="text-red">*</span>
+                        </label>
+                        
+                            <input type="text" class="form-control" id="father_aadhar" name="father_aadhar" value="<?= set_value('father_aadhar') ?>">
+                        
+                        <span class="  control-label">
+                            <?php echo form_error('father_aadhar'); ?>
+                        </span>
+                    </div> <!------ end Father Name  ----->
+
                     <?php
                     if (form_error('mother_name'))
                         echo "<div class='col-md-4 has-error' >";
@@ -393,6 +411,25 @@
                         <?php echo form_error('mother_name'); ?>
                     </span>
                 </div><!------ End Mother Name  ----->
+
+                
+                <?php
+                        if (form_error('mother_aadhar'))
+                            echo "<div class='col-md-4 has-error' >";
+                        else
+                            echo "<div class='col-md-4' >";
+                        ?>
+                        <label for="mother_aadhar" class=" control-label">
+                            Mother Aadhar <span class="text-red">*</span>
+                        </label>
+                        
+                            <input type="text" class="form-control" id="mother_aadhar" name="mother_aadhar" value="<?= set_value('mother_aadhar') ?>">
+                        
+                        <span class="  control-label">
+                            <?php echo form_error('mother_aadhar'); ?>
+                        </span>
+                    </div> <!------ end Father Name  ----->
+
                 <?php
                     if (form_error('phone'))
                         echo "<div class='col-md-4 has-error' >";

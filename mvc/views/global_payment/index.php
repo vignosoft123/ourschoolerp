@@ -12,6 +12,7 @@
         <div class="row">
 
             <div class="col-sm-12">
+                <?php if($this->uri->segment(3) == ""){?>
                 <div class="col-sm-12">
 
                     <form method="POST">
@@ -83,6 +84,7 @@
                         </div>
                     </form>
                 </div>
+                <?php }?>
 
                 <div class="col-sm-12" >
                     <?php if(customCompute($single_student)) { ?>

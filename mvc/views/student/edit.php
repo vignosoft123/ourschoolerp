@@ -375,7 +375,68 @@
                                     <?php echo form_error('name'); ?>
                                 </span>
                             </div>
-                           
+
+                            <?php 
+                                if(form_error('father_aadhar')) 
+                                    echo "<div class='col-md-4 has-error' >";
+                                else     
+                                    echo "<div class='col-md-4' >";
+
+                                    $this->db->where('parentsID',$student->parentID);
+                                    $father_aadhar = $this->db->get('parents')->row()->father_aadhar; 
+                            ?>
+                                <label for="father_aadhar" class="control-label">
+                                Father Aadhar <span class="text-red">*</span>
+                                </label>
+                               
+                                    <input type="text" class="form-control" id="father_aadhar" name="father_aadhar" value="<?= $father_aadhar?$father_aadhar:''?>" >
+                               
+                                <span class="control-label">
+                                    <?php echo form_error('father_aadhar'); ?>
+                                </span>
+                            </div>
+
+                            <?php 
+                                if(form_error('mothername')) 
+                                    echo "<div class='col-md-4 has-error' >";
+                                else     
+                                    echo "<div class='col-md-4' >";
+
+                                    $this->db->where('parentsID',$student->parentID);
+                                    $mother_name = $this->db->get('parents')->row()->mother_name;
+                            ?>
+                                <label for="name_id" class="control-label">
+                                Mother Name <span class="text-red">*</span>
+                                </label>
+                               
+                                    <input type="text" class="form-control" id="mother_name" name="mother_name" value="<?= $mother_name?$mother_name:''?>" >
+                               
+                                <span class="control-label">
+                                    <?php echo form_error('name'); ?>
+                                </span>
+                            </div>
+
+                            <?php 
+                                if(form_error('mother_aadhar')) 
+                                    echo "<div class='col-md-4 has-error' >";
+                                else     
+                                    echo "<div class='col-md-4' >";
+
+                                    $this->db->where('parentsID',$student->parentID);
+                                    $mother_aadhar = $this->db->get('parents')->row()->mother_aadhar; 
+                            ?>
+                                <label for="mother_aadhar" class="control-label">
+                                Mother Aadhar <span class="text-red">*</span>
+                                </label>
+                               
+                                    <input type="text" class="form-control" id="mother_aadhar" name="mother_aadhar" value="<?= $mother_aadhar?$mother_aadhar:''?>" >
+                               
+                                <span class="control-label">
+                                    <?php echo form_error('mother_aadhar'); ?>
+                                </span>
+                            </div>
+
+
                             
                             <?php 
                                 if(form_error('phone')) 

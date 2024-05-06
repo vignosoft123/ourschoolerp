@@ -218,6 +218,15 @@ if (customCompute($profile)) { ?>
 											<div class="para"><?= $profile->caste ?></div>
 										</div>										
 									</div>
+
+									
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Caste</label>
+											<div class="para"><?= $profile->sub_caste ?></div>
+										</div>										
+									</div>
+
 									<div class="profile-view-tab">
 										<div class="profile-details">
 											<label class="label-txt"><?= $this->lang->line("mole1") ?></label>
@@ -301,12 +310,29 @@ if (customCompute($profile)) { ?>
 												<div class="para"> <?= $parents->father_name ?></div>
 											</div>											
 										</div>
+
+										<div class="profile-view-tab">
+											<div class="profile-details">
+												<label class="label-txt">Father Aadhar</label>
+												<div class="para"> <?= $parents->father_aadhar ?></div>
+											</div>											
+										</div>
+
+
 										<div class="profile-view-tab">
 											<div class="profile-details">
 												<label class="label-txt"> <?= $this->lang->line("parent_mother_name") ?> </span> </label>
 												<div class="para">  <?= $parents->mother_name ?></div>
 											</div>											
 										</div>
+
+										<div class="profile-view-tab">
+											<div class="profile-details">
+												<label class="label-txt">Mother Aadhar</label>
+												<div class="para"> <?= $parents->mother_aadhar ?></div>
+											</div>											
+										</div>
+
 										<div class="profile-view-tab">
 											<div class="profile-details">
 												<label class="label-txt"> <?= $this->lang->line("parent_father_profession") ?></label>

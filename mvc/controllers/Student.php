@@ -986,6 +986,7 @@ class Student extends Admin_Controller
 					$array["alternative_phone1"] = $this->input->post('alternative_phone1');
 					$array["alternative_phone2"] = $this->input->post('alternative_phone2');
 					$array["caste"] = $this->input->post('cast');
+					$array["caste"] = $this->input->post('cast');
 
 					$array["mole1"] = $this->input->post('mole1');
 					$array["mole2"] = $this->input->post('mole2');
@@ -1044,6 +1045,8 @@ class Student extends Admin_Controller
 						$parent_array = array();
 						$parent_array['name'] = $this->input->post("father_name");
 						$parent_array['father_name'] = $this->input->post("father_name");
+						$parent_array['father_aadhar'] = $this->input->post("father_aadjar");
+						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar");
 						$parent_array['mother_name'] = $this->input->post("mother_name");
 						$parent_array["phone"] = $this->input->post("phone");
 						$parent_array['photo'] = "default.png";
@@ -1305,6 +1308,7 @@ class Student extends Admin_Controller
 							$array["alternative_phone1"] = $this->input->post('alternative_phone1');
 							$array["alternative_phone2"] = $this->input->post('alternative_phone2');
 							$array["caste"] = $this->input->post('cast');
+							$array["sub_caste"] = $this->input->post('sub_caste');
 
 							$array["mole1"] = $this->input->post('mole1');
 							$array["mole2"] = $this->input->post('mole2');
@@ -1474,6 +1478,9 @@ class Student extends Admin_Controller
 							$arrParentData =  array(
 								'phone' => $this->input->post("phone"),
 								'father_name' => $this->input->post("father_name"),
+								'mother_name' => $this->input->post("mother_name"),
+								'father_aadhar' => $this->input->post("father_aadhar"),
+								'mother_aadhar' => $this->input->post("mother_aadhar"),
 							);
 
 

@@ -56,7 +56,7 @@ class Global_payment extends Admin_Controller
         return $rules;
     }  
 
-    public function index() {
+    public function index($classesID=0,$studentID=0) {
         $this->data['headerassets'] = array(
             'css' => array(
                 'assets/datepicker/datepicker.css',
@@ -92,16 +92,16 @@ class Global_payment extends Admin_Controller
 
 
         $this->data['single_student'] = [];
-        if ($_POST) {
+        if ($_POST || (!empty($classesID) && !empty($studentID) ) ) {
             $rules = $this->rules();
             $this->form_validation->set_rules($rules);
-            if ($this->form_validation->run() == FALSE) {
-                $this->data["subview"]  = "global_payment/index";
-                $this->load->view('_layout_main', $this->data);
-            } else {
-                $classesID                      = $this->input->post('classesID');
+            // if ($this->form_validation->run() == FALSE) { 
+            //     $this->data["subview"]  = "global_payment/index";
+            //     $this->load->view('_layout_main', $this->data);
+            // } else {
+                $classesID                      = $this->input->post('classesID') ? $this->input->post('classesID') : $classesID;
                 $sectionID                      = $this->input->post('sectionID');
-                $studentID                      = $this->input->post('studentID');
+                $studentID                      = $this->input->post('studentID') ? $this->input->post('studentID') : $studentID;
 
                 $this->data['set_classesID']    = $classesID; 
                 $this->data['set_sectionID']    = $sectionID;
@@ -148,7 +148,7 @@ class Global_payment extends Admin_Controller
 
                 $this->data["subview"] = "global_payment/index";
                 $this->load->view('_layout_main', $this->data);
-            }
+            //}
         } else {
             $this->data["subview"] = "global_payment/index";
             $this->load->view('_layout_main', $this->data);

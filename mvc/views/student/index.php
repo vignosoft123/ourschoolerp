@@ -161,7 +161,13 @@
                                                                     echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
                                                                         echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
                                                                 }
+
+                                                                // print_r($student);die;
                                                                 ?>
+
+                                                                <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
+
+
                                                             </td>
                                                         <?php } ?>
                                                     </tr>
@@ -278,6 +284,21 @@
 
 <script type="text/javascript">
     $(".select2").select2();
+
+    $('.global_invoice').click(function() {
+        var classesID = $(this).attr("classId");
+        var studentId = $(this).attr("studentId");
+            $.ajax({
+                type: 'POST',
+                url: "<?= base_url('Global_payment/index') ?>",
+                data: {"classesID" : classesID, "studentID": studentId},
+                dataType: "html",
+                success: function(data) {
+                  //  window.location.href = data;
+                }
+            }); 
+    });
+
 
     $('#classesID').change(function() {
         var classesID = $(this).val();
