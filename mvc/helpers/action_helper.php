@@ -1355,6 +1355,40 @@
         return img($array);
     }
 
+    function signatureimage( $photoname, $srcpath = null )
+    {
+        if ( $srcpath == null ) {
+            if ( $photoname != null ) {
+                if ( file_exists(FCPATH . 'uploads/signatures/' . $photoname) ) {
+                    $src = base_url('uploads/signatures/' . $photoname);
+                } else {
+                    $src = base_url('uploads/images/default.png');
+                }
+            } else {
+                $src = base_url('uploads/images/default.png');
+            }
+        } else {
+            if ( $photoname != null ) {
+                if ( file_exists(FCPATH . $srcpath . '/' . $photoname) ) {
+                    $src = base_url($srcpath . '/' . $photoname);
+                } else {
+                    $src = base_url('uploads/images/default.png');
+                }
+            } else {
+                $src = base_url('uploads/images/default.png');
+            }
+        }
+
+        $array = [
+            "src"    => $src,
+            'width'  => '35px',
+            'height' => '35px',
+            'class'  => 'img-rounded'
+        ];
+        return img($array);
+    }
+
+
     function profileviewimage( $photoname, $srcpath = null )
     {
         if ( $srcpath == null ) {

@@ -28,7 +28,8 @@
                         <thead>
                             <tr>
                                 <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
-                                <th class="col-sm-1"><?=$this->lang->line('teacher_photo')?></th>
+                                <!-- <th class="col-sm-1"><?=$this->lang->line('teacher_photo')?></th> -->
+                                <th class="col-sm-1">Signature</th>
                                 <th class="col-sm-2"><?=$this->lang->line('teacher_name')?></th>
                                 <th class="col-sm-2"><?="Designation"?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('teacher_email')?></th>
@@ -48,8 +49,11 @@
                                         <?php echo $i; ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('teacher_photo')?>">
-                                        <?=profileimage($teacher->photo)?>
+                                        <?=profileimage($teacher->photo)?> 
                                     </td>
+                                    <!-- <td data-title="<?=$this->lang->line('teacher_photo')?>">
+                                          <?=signatureimage($teacher->signature)?>
+                                    </td> -->
                                     <td data-title="<?=$this->lang->line('teacher_name')?>">
                                         <?php echo $teacher->name; ?>
                                     </td>

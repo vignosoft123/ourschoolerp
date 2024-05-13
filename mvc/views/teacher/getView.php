@@ -33,6 +33,7 @@
 							<img class="profile-header-bg" src="./../../uploads/images/profile-bg-blue.jpg" alt="">
 						</div>
                         <div class="profile-body">
+                            Signature
                             <div class="profile-img">
                                  <?=profileviewimage($profile->photo)?>
                             </div>

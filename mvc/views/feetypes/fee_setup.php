@@ -66,7 +66,10 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if(customCompute($sections)) {$i = 1; foreach($sections as $sec) { ?>
+                            <?php if(customCompute($sections)) {
+                                 $schoolyearID       = $this->session->userdata('defaultschoolyearID');
+                                $i = 1;
+                                 foreach($sections as $sec) { ?>
                                 <tr>
                                     <td width="2%" data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
@@ -74,7 +77,19 @@
                                     <td  >
                                         <?php echo $sec->section; ?>
                                     </td>
-                                    <td><input vid="<?= $sec->sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $sec->fee_amount?>"></td>
+
+                                    <?php 
+                                    if(!empty($sec->classesID) && !empty($sec->section)){
+                                        $fee_amount = 0;
+                                   
+                                     echo $sql = 'select id,fee_amount  from school_fees where class_id='.$sec->classesID .' and section_id='.$sec->sectionID . ' and year_id=' . $schoolyearID;
+                                       $fee_res =  $this->db->query($sql)->row_array();
+                                       $fee_amount = $fee_res['fee_amount'];
+                                       $sf_id = $fee_res['id'];
+                                    }
+                                    ?>
+
+                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $fee_amount?>"></td>
                                 
                   
                                      

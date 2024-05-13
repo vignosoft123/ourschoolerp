@@ -50,7 +50,7 @@ class Msg91
         //$url = "https://smslogin.co/v3/api.php?username=Demoschool123&apikey=7687263fe67c116e34b6&senderid=VGNSSP&mobile=8500814626,9494022475&message=".$message; //sending static message
         $url = "https://smslogin.co/v3/api.php?username=".$this->username."&apikey=".$this->password."&senderid=".$this->senderID."&mobile=".$to."&message=".$message; //sendin dynamic message
 
-        // error_log($url);exit;
+        // echo ($url);exit;
         // init the resource
         $ch = curl_init();
         curl_setopt_array($ch, [

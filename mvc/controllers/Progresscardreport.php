@@ -915,10 +915,17 @@ class Progresscardreport extends Admin_Controller {
 
 					$subs = explode(',',$template1);
 					// echo "<pre>";print_r($subs);die;
+
+					if($subs[6]){
+				    	$a = explode('=',$subs[6]);
+			    		$seventh_sub = ",".substr($a[0],0,4) . "=" .$a[1] ;
+				}
+			
 					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
 				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
-					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
-					
+					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-').$seventh_sub;
+
+					 					
 					$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' . Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
 
 					//Dear parent, your children srinivas fa- 1 marks are telugu - 25/25,hindhi - 25/25 and english -25/25,maths - 25/25 and evs-25/25, social25/25 . Total: tptal -150/150, From Sri vidyaniketan school . VIDYNI

@@ -88,6 +88,11 @@ class Teacher extends Admin_Controller {
                 'label' => $this->lang->line("teacher_photo"),
                 'rules' => 'trim|max_length[200]|xss_clean|callback_photoupload'
             ],
+            // [
+            //     'field' => 'signature',
+            //     'label' => $this->lang->line("teacher_signature"),
+            //     'rules' => 'trim|max_length[200]|xss_clean|callback_signatureupload'
+            // ],
             [
                 'field' => 'username',
                 'label' => $this->lang->line("teacher_username"),
@@ -167,19 +172,66 @@ class Teacher extends Admin_Controller {
                 $config['max_height']    = '3000';
                 $this->load->library('upload', $config);
                 if ( !$this->upload->do_upload("photo") ) {
-                    $this->form_validation->set_message("photoupload", $this->upload->display_errors());
+                    $this->form_validation->set_message("signature", $this->upload->display_errors());
                     return false;
                 } else {
                     $this->upload_data['file'] = $this->upload->data();
                     return true;
                 }
             } else {
-                $this->form_validation->set_message("photoupload", "Invalid file");
+                $this->form_validation->set_message("signature", "Invalid file");
                 return false;
             }
         } else {
             if ( customCompute($user) ) {
                 $this->upload_data['file'] = [ 'file_name' => $user->photo ];
+                return true;
+            } else {
+                $this->upload_data['file'] = [ 'file_name' => $new_file ];
+                return true;
+            }
+        }
+    }
+
+    public function signatureupload()
+    {
+        $id   = htmlentities(escapeString($this->uri->segment(3)));
+        $user = [];
+        if ( (int) $id ) {
+            $user = $this->teacher_m->get_single_teacher([ 'teacherID' => $id ]);
+        }
+
+        $new_file = "default.png";
+        if ( $_FILES["signature"]['name'] != "" ) {
+            $file_name        = $_FILES["signature"]['name'];
+            $random           = random19();
+            $makeRandom       = hash('sha512',
+                $random . $this->input->post('name') . config_item("encryption_key"));
+            $file_name_rename = $makeRandom;
+            $explode          = explode('.', $file_name);
+            if ( customCompute($explode) >= 2 ) {
+                $new_file                = $file_name_rename . '.' . end($explode);
+                $config['upload_path']   = "./uploads/signatures";
+                $config['allowed_types'] = "gif|jpg|png";
+                $config['file_name']     = $new_file;
+                $config['max_size']      = '1024';
+                $config['max_width']     = '3000';
+                $config['max_height']    = '3000';
+                $this->load->library('upload', $config);
+                if ( !$this->upload->do_upload("signature") ) {
+                    $this->form_validation->set_message("signatureupload", $this->upload->display_errors());
+                    return false;
+                } else {
+                    $this->upload_data['file'] = $this->upload->data();
+                    return true;
+                }
+            } else {
+                $this->form_validation->set_message("signatureupload", "Invalid file");
+                return false;
+            }
+        } else {
+            if ( customCompute($user) ) {
+                $this->upload_data['file'] = [ 'file_name' => $user->signature ];
                 return true;
             } else {
                 $this->upload_data['file'] = [ 'file_name' => $new_file ];
@@ -252,7 +304,9 @@ class Teacher extends Admin_Controller {
                 $array["create_usertype"] = $this->session->userdata('usertype');
                 $array["active"]          = 1;
                 $array['photo']           = $this->upload_data['file']['file_name'];
+                // $array['signature']           = $this->upload_data['file']['file_name'];
 
+                // echo "<pre>";print_r($array);die;
                 $this->usercreatemail($this->input->post('email'), $this->input->post('username'),
                     $this->input->post('password'));
 
@@ -302,6 +356,7 @@ class Teacher extends Admin_Controller {
                         $array['username']    = $this->input->post('username');
                         $array["modify_date"] = date("Y-m-d h:i:s");
                         $array['photo']       = $this->upload_data['file']['file_name'];
+                        // $array['signature']       = $this->upload_data['file']['file_name'];
 
                         $this->teacher_m->update_teacher($array, $id);
                         $this->session->set_flashdata('success', $this->lang->line('menu_success'));

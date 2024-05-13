@@ -15,10 +15,11 @@
 
                 <?php if ((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
                     <div class="page-header">
-                        <div class="search-sec">
+
+
+                        <!-- <div class="search-sec">
                         <form name="g_search_form" action="<?php echo base_url('Student/global_student_search');?>" method="post">
-                                <!-- <input type="text" name="global_search" placeholder="Global Student Search..." value="">
-                                <input type="submit" class="btn btn-success" value="Search"> -->
+                                
                                 <div class="search">
                                     <input type="text" name="global_search" class="search__input" placeholder="Global student search...">
                                     <button class="search__button">
@@ -26,7 +27,9 @@
                                     </button>
                                 </div>                                
                             </form>                             
-                        </div>
+                        </div> -->
+
+                        
                         <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if (permissionChecker('student_add')) { ?>
                                 <a class="ose-btn create-btn" href="<?php echo base_url('student/add') ?>">

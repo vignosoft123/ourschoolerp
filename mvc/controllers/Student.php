@@ -63,6 +63,9 @@ class Student extends Admin_Controller
 		$this->lang->load('student', $language);
 		$this->lang->load('tmember', $language);
 		$this->lang->load('hmember', $language);
+
+		
+		$this->load->library('msg91');
 	}
 
 	public function send_mail_rules()
@@ -1106,7 +1109,7 @@ class Student extends Admin_Controller
 					$this->load->model("mailandsmstemplate_m");
 					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2);
 					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
-					//$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
 
 					//code for auto invoice generation 
 					$class_id = $this->input->post("classesID");

@@ -198,7 +198,8 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="photo" class="control-label">
-                            <?=$this->lang->line("teacher_photo")?>
+                            <?php //echo $this->lang->line("teacher_photo")?> <!-- replace photo with signature here-->
+                            Signature 
                         </label>
                         <div class="">
                             <div class="input-group image-preview">
@@ -222,6 +223,9 @@
                             <?php echo form_error('photo'); ?>
                         </span>
                     </div>
+
+                    
+
 
                     <?php
                         if(form_error('username'))
@@ -339,5 +343,38 @@ $(function() {
         }
         reader.readAsDataURL(file);
     });
+
+    //signature code
+    
+     // Clear event
+     $('.image-preview-clear-signature').click(function(){
+        $('.image-preview').attr("data-content","").popover('hide');
+        $('.image-preview-filename').val("");
+        $('.image-preview-clear-signature').hide();
+        $('.image-preview-input-signature input:file').val("");
+        $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
+    });
+    // Create the preview image
+    $(".image-preview-input-signature input:file").change(function (){
+        var img = $('<img/>', {
+            id: 'dynamic',
+            width:250,
+            height:200,
+            overflow:'hidden'
+        });
+        var file = this.files[0];
+        var reader = new FileReader();
+        // Set preview image into the popover data-content
+        reader.onload = function (e) {
+            $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
+            $(".image-preview-clear-signature").show();
+            $(".image-preview-filename").val(file.name);
+            img.attr('src', e.target.result);
+            $(".image-preview").attr("data-content",$(img)[0].outerHTML).popover("show");
+            $('.content').css('padding-bottom', '100px');
+        }
+        reader.readAsDataURL(file);
+    });
+    //signature code end
 });
 </script>

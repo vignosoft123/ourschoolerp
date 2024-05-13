@@ -14,7 +14,7 @@
         <div class="row">
             <!-- <div class="col-sm-10"> -->
         <div class="student-firm">
-            <h2 class="h2-title">Add Student Firm</h2>
+            <h2 class="h2-title">Add Student Form</h2>
             <div class="row">
                 <?php
                 if (form_error('registerNO'))

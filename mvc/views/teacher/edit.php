@@ -197,7 +197,7 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="photo" class="control-label">
-                            <?=$this->lang->line("teacher_photo")?>
+                            Signature
                         </label>
                         <div class="input-filed">
                             <div class="input-group image-preview">
@@ -221,6 +221,8 @@
                             <?php echo form_error('photo'); ?>
                         </span>
                     </div>
+
+                   
 
                     <?php 
                         if(form_error('username')) 

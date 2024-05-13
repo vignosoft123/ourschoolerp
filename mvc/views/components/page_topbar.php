@@ -10,6 +10,20 @@
                     <span class="icon-bar"></span>
                 </a>
                 <div class="navbar-right">
+
+                <div class="search-sec">
+                        <form name="g_search_form" action="<?php echo base_url('Student/global_student_search');?>" method="post">
+                                <!-- <input type="text" name="global_search" placeholder="Global Student Search..." value="">
+                                <input type="submit" class="btn btn-success" value="Search"> -->
+                                <div class="search">
+                                    <input type="text" name="global_search" class="search__input" placeholder="Global student search...">
+                                    <button class="search__button">
+                                    <i class="fa fa-search"></i>
+                                    </button>
+                                </div>                                
+                            </form>                             
+                        </div>
+                        
                     <ul class="nav navbar-nav top-navigation-icons">
                         <!-- <li class="dropdown notifications-menu">
                             <p style="margin-top: 13px;color: #fff;"><b>Office Timings :-</b> 10:00 A.M. to 7:00 P.M.</p>

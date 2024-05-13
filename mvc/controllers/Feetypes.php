@@ -194,9 +194,11 @@ class Feetypes extends Admin_Controller {
 				 
 			 
 				 	$classesID       = $this->input->post('classesID'); 
+					 $schoolyearID       = $this->session->userdata('defaultschoolyearID');
 					 
 					if ((int)$classesID) {
-						 $sql = "select s.* , sf.fee_amount,sf.id as sf_id from section s left join school_fees sf on sf.section_id=s.sectionID where s.classesID='".$classesID."' ";
+						//  $sql = "select s.* , sf.fee_amount,sf.id as sf_id from section s left join school_fees sf on sf.section_id=s.sectionID where s.classesID='".$classesID."' ";
+						$sql = "select s.*  from section s where s.classesID='".$classesID."' ";
 						  $this->data['sections'] = $this->db->query($sql)->result();// $this->section_m->get_order_by_section(array('classesID' => $classesID));
         			} else { 
         				$this->data['sections'] = [];
@@ -210,7 +212,7 @@ class Feetypes extends Admin_Controller {
 				  
 					$this->data['sendClasses']  = $classes;
 					 
-					$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+				
 				 
 
 					$this->data["subview"] = "feetypes/fee_setup";
