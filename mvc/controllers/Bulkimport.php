@@ -457,6 +457,14 @@ class Bulkimport extends Admin_Controller
                     "ifsc_code",
                     "branch_name",
                     "admission_no",
+                    "pen_number",
+                    "child_id",
+                    "father_aadhar",
+                    "mother_aadhar",
+                    "caste",
+                    "sub_caste",
+                    "mother_toungue"
+
                 ];
                     //    echo "<pre>";print_r($this->csvimport->get_array($file_path, $column_headers));
                 if($csv_array = @$this->csvimport->get_array($file_path, $column_headers)) {//echo 'if';die;
@@ -497,6 +505,8 @@ class Bulkimport extends Admin_Controller
                                         "create_username"   => $this->session->userdata('username'),
                                         "create_usertype"   => $this->session->userdata('usertype'),
                                         "active"            => 1,
+                                        "father_aadhar"            => $row['father_aadhar'],
+                                        "mother_aadhar"            =>$row['mother_aadhar'],
                                     ];
                                     // $parent_id = $this->parents_m->insert_parents($insert_data);
                                     $parent_id = $this->parents_m->insert_parents_with_id($insert_data);
@@ -552,6 +562,11 @@ class Bulkimport extends Admin_Controller
                                         'branch_name'               => $row['branch_name'],                                        
                                         'villageID'              => $row['village'],
                                         'registerNO'              => $row['admission_no'],
+                                        'pen_number'            => $row['pen_number'],
+                                        'child_id'              => $row['child_id'],
+                                        'caste'                 => $row['caste'],
+                                        'sub_caste'             => $row['sub_caste'],
+                                        'mother_toungue'        => $row['mother_toungue'],
                                     ];
 
                                     $this->usercreatemail($this->input->post('email'), $this->input->post('username'), $this->input->post('password'));

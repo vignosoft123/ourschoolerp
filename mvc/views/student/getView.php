@@ -58,6 +58,16 @@ if (customCompute($profile)) { ?>
 							<li class="list-group-item">
 								<span class="h5-title"><?= $this->lang->line('student_roll') ?></span> <span class="h6-title pull-right"><?= $profile->srroll ?></span>
 							</li>
+
+							<li class="list-group-item">
+								<span class="h5-title">PEN Number</span> <span class="h6-title pull-right"><?= $profile->pen_number ?></span>
+							</li>
+
+							<li class="list-group-item">
+								<span class="h5-title">Child ID</span> <span class="h6-title pull-right"><?= $profile->child_id ?></span>
+							</li>
+
+
 							<li class="list-group-item">
 								<span class="h5-title"><?= $this->lang->line('student_classes') ?></span> <span class="h6-title pull-right"><?= customCompute($class) ? $class->classes : '' ?></span>
 							</li>
@@ -97,7 +107,7 @@ if (customCompute($profile)) { ?>
 					<div class="tab-content">
 						<div class="active tab-pane" id="profile">
 							<div class="panel-body profile-view-dis student-view-info">
-							  <h2 class="h2-title">Add Student Firm</h2>
+							  <h2 class="h2-title">Add Student Form</h2>
 								<div class="st-detail-list">
 								<div class="profile-view-tab">
 									    <div class="profile-details">
@@ -222,7 +232,7 @@ if (customCompute($profile)) { ?>
 									
 									<div class="profile-view-tab">
 										<div class="profile-details">
-											<label class="label-txt">Caste</label>
+											<label class="label-txt">Sub Caste</label>
 											<div class="para"><?= $profile->sub_caste ?></div>
 										</div>										
 									</div>

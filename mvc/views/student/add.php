@@ -47,6 +47,42 @@
                         <?php echo form_error('admission_date'); ?>
                     </span>
                 </div> <!------ Admission date ----->
+
+                <?php
+                            if (form_error('pen_number'))
+                                echo "<div class='col-md-4 has-error' >";
+                            else
+                                echo "<div class='col-md-4' >";
+                            ?>
+                            <label for="pen_number" class=" control-label">
+                            PEN Number
+                            </label>
+                            
+                                <input type="text" class="form-control" id="pen_number" name="pen_number" value="<?= set_value('pen_number') ?>">
+                            
+                            <span class="  control-label">
+                                <?php echo form_error('pen_number'); ?>
+                            </span>
+                        </div>
+
+                        <?php
+                            if (form_error('child_id'))
+                                echo "<div class='col-md-4 has-error' >";
+                            else
+                                echo "<div class='col-md-4' >";
+                            ?>
+                            <label for="child_id" class=" control-label">
+                            Child ID
+                            </label>
+                            
+                                <input type="text" class="form-control" id="child_id" name="child_id" value="<?= set_value('child_id') ?>">
+                            
+                            <span class="  control-label">
+                                <?php echo form_error('child_id'); ?>
+                            </span>
+                        </div>
+
+
                 <?php
                     if (form_error('classesID'))
                         echo "<div class='col-md-4 has-error' >";
@@ -197,6 +233,30 @@
                     <span class="control-label">
                         <?php echo form_error('optionalSubjectID'); ?>
                     </span> <!------ end optional subject ----->
+
+                    <?php
+                        if (form_error('mother_toungue'))
+                            echo "<div class='col-md-4 has-error' >";
+                        else
+                            echo "<div class='col-md-4' >";
+                        ?>
+                        <label for="mother_toungue" class="  control-label">
+                            Mother Toungue
+                        </label>                        
+                            <!-- <input type="text" class="form-control" id="cast" name="cast" value="<?= set_value('cast') ?>"> -->
+                            <select class="form-control select2" id="mother_toungue" name="mother_toungue">
+                                <option value="">Select Mother Toungue</option>
+                                <option value="1">Telug</option>
+                                <option value="2">English</option>
+                                <option value="3">Hindi</option>
+                                <option value="4">Kannada</option>
+                                <option value="5">Malayalam</option> 
+                            </select>
+                        <span class="  control-label">
+                            <?php echo form_error('mother_toungue'); ?>
+                        </span>
+                    </div>
+
               
 
             </div> <!------ end row----->
@@ -361,6 +421,25 @@
                             <?php echo form_error('cast'); ?>
                         </span>
                     </div><!------ end Caste  ----->
+
+                    <?php
+                        if (form_error('sub_caste'))
+                            echo "<div class='col-md-4 has-error' >";
+                        else
+                            echo "<div class='col-md-4' >";
+                        ?>
+                        <label for="sub_caste" class=" control-label">
+                            Sub Caste<span class="text-red">*</span>
+                        </label>
+                        
+                            <input type="text" class="form-control" id="sub_caste" name="sub_caste" value="<?= set_value('sub_caste') ?>">
+                        
+                        <span class="  control-label">
+                            <?php echo form_error('father_name'); ?>
+                        </span>
+                    </div> 
+
+
                     <?php
                         if (form_error('father_name'))
                             echo "<div class='col-md-4 has-error' >";

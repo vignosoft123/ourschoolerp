@@ -32,6 +32,8 @@
                                 <?php echo form_error('registerNO'); ?>
                             </span>
                         </div>
+
+                      
                         <?php 
                         if(form_error('admission_date')) 
                             echo "<div class='col-md-4 has-error' >";
@@ -48,6 +50,42 @@
                                     <?php echo form_error('admission_date'); ?>
                                 </span>
                             </div>
+
+                            <?php
+                            if (form_error('pen_number'))
+                                echo "<div class='col-md-4 has-error' >";
+                            else
+                                echo "<div class='col-md-4' >";
+                            ?>
+                            <label for="pen_number" class=" control-label">
+                            PEN Number
+                            </label>
+                            
+                                <input type="text" class="form-control" id="pen_number" name="pen_number"  value="<?=set_value('pen_number', $student->pen_number)?>">
+                            
+                            <span class="  control-label">
+                                <?php echo form_error('pen_number'); ?>
+                            </span>
+                        </div>
+
+                        <?php
+                            if (form_error('child_id'))
+                                echo "<div class='col-md-4 has-error' >";
+                            else
+                                echo "<div class='col-md-4' >";
+                            ?>
+                            <label for="child_id" class=" control-label">
+                            Child ID
+                            </label>
+                            
+                                <input type="text" class="form-control" id="child_id" name="child_id"  value="<?=set_value('child_id', $student->child_id)?>">
+                            
+                            <span class="  control-label">
+                                <?php echo form_error('child_id'); ?>
+                            </span>
+                        </div>
+
+                        
                             <?php 
                             if(form_error('classesID')) 
                                 echo "<div class='col-md-4 has-error' >";
@@ -203,6 +241,30 @@
                                 <?php echo form_error('optionalSubjectID'); ?>
                             </span>
                         </div>
+
+                        <?php
+                        if (form_error('mother_toungue'))
+                            echo "<div class='col-md-4 has-error' >";
+                        else
+                            echo "<div class='col-md-4' >";
+                        ?>
+                        <label for="mother_toungue" class="  control-label">
+                            Mother Toungue
+                        </label>                        
+                            <!-- <input type="text" class="form-control" id="cast" name="cast" value="<?= set_value('cast') ?>"> -->
+                            <select class="form-control select2" id="mother_toungue" name="mother_toungue">
+                                <option value="">Select Mother Toungue</option>
+                                <option value="1" <?php if($student->mother_toungue == 1){echo "selected";}?> >Telugu</option>
+                                <option value="2" <?php if($student->mother_toungue == 2){echo "selected";}?>  >English</option>
+                                <option value="3" <?php if($student->mother_toungue == 3){echo "selected";}?> >Hindi</option>
+                                <option value="4" <?php if($student->mother_toungue == 4){echo "selected";}?> >Kannada</option>
+                                <option value="5" <?php if($student->mother_toungue == 5){echo "selected";}?> >Malayalam</option> 
+                            </select>
+                        <span class="  control-label">
+                            <?php echo form_error('mother_toungue'); ?>
+                        </span>
+                    </div>
+
 
                         <div class="col-md-4 <?=form_error('extraCurricularActivities') ? ' has-error' : ''  ?>">
                             <label for="extraCurricularActivities" class=" control-label">
