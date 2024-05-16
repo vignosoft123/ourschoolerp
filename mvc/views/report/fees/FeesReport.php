@@ -32,7 +32,7 @@
     <!-- form start -->
         <div class="box-body" style="margin-bottom: 50px;">
             <div class="row">
-                <div class="col-sm-12">
+                <div class="col-sm-12 row">
                     <?=reportheader($siteinfos, $schoolyearsessionobj)?>
                 </div>
                 <?php if($classesID >= 0 && $sectionID >= 0) { ?>
