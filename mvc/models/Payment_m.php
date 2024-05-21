@@ -97,7 +97,10 @@ class Payment_m extends MY_Model {
 	public function get_order_by_payment_new($schoolyearID="",$fee_type=""){
 
 		$invoice_ids =array();
-		$sql = "SELECT invoiceID FROM `invoice` i where i.feetypeID=".$fee_type;
+		$sql = "SELECT invoiceID FROM `invoice` i where 1 ";
+		if(!empty($fee_type)){
+			$sql .= " and i.feetypeID=".$fee_type;
+		}
 		$invoiceIDs = $this->db->query($sql)->result_array();
 		foreach($invoiceIDs as $inv){
 			array_push($invoice_ids,$inv['invoiceID']);

@@ -246,11 +246,12 @@
                             <!-- <input type="text" class="form-control" id="cast" name="cast" value="<?= set_value('cast') ?>"> -->
                             <select class="form-control select2" id="mother_toungue" name="mother_toungue">
                                 <option value="">Select Mother Toungue</option>
-                                <option value="1">Telug</option>
+                                <option value="1">Telugu</option>
                                 <option value="2">English</option>
                                 <option value="3">Hindi</option>
                                 <option value="4">Kannada</option>
                                 <option value="5">Malayalam</option> 
+                                <option value="6">Urdhu</option> 
                             </select>
                         <span class="  control-label">
                             <?php echo form_error('mother_toungue'); ?>
@@ -413,6 +414,8 @@
                                 <option value="OC">OC</option>
                                 <option value="BC - A">BC - A</option>
                                 <option value="BC - B">BC - B</option>
+                                <option value="BC - C">BC - C</option>
+                                <option value="BC - D">BC - D</option>
                                 <option value="SC">SC</option>
                                 <option value="ST">ST</option>
                                 <option value="Minority">Minority</option>

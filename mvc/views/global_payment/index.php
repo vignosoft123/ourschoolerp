@@ -348,6 +348,7 @@
                                                         <select class="form-control" id="payment_type">
                                                             <option value="cash"><?=$this->lang->line('global_cash')?></option>
                                                             <option value="chaque"><?=$this->lang->line('global_chaque')?></option>
+                                                            <option value="digita">Digital</option>
                                                         </select>
                                                     </td>
                                                     <td colspan="2"></td>
