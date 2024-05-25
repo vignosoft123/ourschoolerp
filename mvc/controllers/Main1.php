@@ -332,5 +332,33 @@ public function stop_site(){
 }
 
 
+public function start_site(){
+    
+             
+    $this->db->where('fieldoption','site_key_active');
+   $active_check = $this->db->get('setting');
+    if( ($active_check->num_rows()>0) ){
+       $this->db->where('fieldoption','site_key_active');
+        $this->db->update('setting',array('value'=>0));
+        echo "update as site_key_active =>0";
+    }else{
+        $this->db->insert('setting',array('fieldoption'=>'site_key_active','value'=>0));
+        echo "inserted as site_key_active =>0";
+    } 
+
+    //for changing the site key
+     
+    $url = $_SERVER['HTTP_HOST'];
+    $encrypted_site_key = $this->encryption($url); 
+     //  $value = 300;
+     $value = $encrypted;
+    $this->db->where('fieldoption','site_key');
+    $this->db->update('setting',array('value'=>$encrypted_site_key));
+    echo "<br/>site key chaged with - encryption of site  ";
+
+
+}
+
+
 
 }

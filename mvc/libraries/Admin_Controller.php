@@ -41,7 +41,27 @@ class Admin_Controller extends MY_Controller {
         $siteInfo          = $this->site_m->get_site();
         $frontendManager   = $this->_frontendManager($siteInfo);
         $permissionManager = $this->_permissionManager($module, $action);
-        $this->_my_settings();
+    //    echo "<pre>"; print_r($_SESSION);die;
+
+
+                                $url = $_SERVER['HTTP_HOST'];
+                                $encrypted_site_key = $this->encryption($url);
+                                
+                                $this->db->where('fieldoption','site_key');
+                                $query = $this->db->get('setting');
+                                $check_site = $query->num_rows();
+                                $setting = $query->row(); 
+
+                                // echo $url."<br/>";
+                                // echo $encrypted_site_key."<br/>";
+                                // echo $setting->value."<br/>";die;
+
+                                if($setting->value != $encrypted_site_key){ 
+
+                                        $this->_my_settings();
+                                }
+
+
         if ( !empty($frontendManager) ) {
             redirect($frontendManager);
         } elseif ( !empty($permissionManager) ) {
@@ -983,6 +1003,8 @@ public function encryption_decryption($url=""){
     // }
 
     private function _my_settings(){    //don't delete,if deleted site not worked properly
+        // echo '<script>alert(1);</script>';
+        // echo 'llll';
          $url = $_SERVER['HTTP_HOST'];
          $encrypted_site_key = $this->encryption($url);
         
