@@ -60,7 +60,7 @@
                                     <?php if(permissionChecker('feetypes_edit') || permissionChecker('feetypes_delete')) { ?>
                                         <td data-title="<?=$this->lang->line('action')?>">
                                             <?php echo btn_edit('feetypes/edit/'.$feetype->feetypesID, $this->lang->line('edit')) ?>
-                                            <?php //echo btn_delete('feetypes/delete/'.$feetype->feetypesID, $this->lang->line('delete')) ?>
+                                            <?php echo btn_delete('feetypes/delete/'.$feetype->feetypesID, $this->lang->line('delete')) ?>
                                         </td>
                                     <?php } ?>
                                 </tr>

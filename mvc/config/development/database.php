@@ -73,11 +73,24 @@ $active_record = TRUE;
 
 $db['default']['dsn']	   = ''; 
 
-
+//hostgator
  $db['default']['hostname'] = '119.18.54.141'; 
 $db['default']['username'] = 'mindw2ft_ourschoolerp';
-$db['default']['password'] = '7[oLxwM^gI#T';
 $db['default']['database'] = 'mindw2ft_ourschoolerp';
+$db['default']['password'] = '7[oLxwM^gI#T'; //ourschoolerp
+
+// $db['default']['username'] = 'mindw2ft_dummy';
+// $db['default']['database'] = 'mindw2ft_dummy';
+// $db['default']['password'] = '(ZQFQZ{,g!8?'; //dummy
+
+    //resale server
+    // $db['default']['hostname'] = '103.53.40.13'; 
+    // $db['default']['username'] = 'ggsdarsi_school';
+    // $db['default']['password'] = 'yVz[B;&{@c&e';
+    // $db['default']['database'] = 'ggsdarsi_school';
+
+ 
+
 
 // $db['default']['hostname'] = 'localhost'; 
 // $db['default']['username'] = 'root';

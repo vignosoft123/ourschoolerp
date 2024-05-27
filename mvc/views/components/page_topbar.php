@@ -9,6 +9,27 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </a>
+
+                <div class="navbar-left">
+                <ul class="nav navbar-nav top-navigation-icons">
+
+                        <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        </li>
+
+
+                         <li>
+                        <b> <a href="<?php echo base_url('dashboard/index'); ?>" class="logo" style="width:100% !important">
+                        <?php if(customCompute($siteinfos)) { 
+                                //echo namesorting($siteinfos->sname, 14); 
+                                echo $siteinfos->sname;
+                            } ?>
+                        </a></b>
+                        </li>
+                      
+                         </ul>
+                </div>
+
+
                 <div class="navbar-right">
 
                 <div class="search-sec">
@@ -16,9 +37,9 @@
                         </div>
 
                     <ul class="nav navbar-nav top-navigation-icons">
-                        <!-- <li class="dropdown notifications-menu">
-                            <p style="margin-top: 13px;color: #fff;"><b>Office Timings :-</b> 10:00 A.M. to 7:00 P.M.</p>
-                        </li> -->
+                         <!-- <li class="dropdown notifications-menu">
+                           
+                        </li>  -->
                         <!-- <li class="dropdown notifications-menu">
                             <p style="margin-top: 13px;color: #fff; margin-left: 10px;"><b>Support Number :- </b> <img src="<?=base_url('uploads/whatsapp.png')?>" style="width: 20px;height: 20px;color: #fff;"> +91 8639963641</p>
                         </li>
@@ -26,16 +47,14 @@
                             <p style="margin-top: 13px;color: #fff; margin-left: 10px;"><b>Mail Id :- </b> <img src="<?=base_url('uploads/mail.png')?>" style="width: 20px;height: 20px;color: #fff;"> <a href="mailto:ourschoolerp123@gmail.com">ourschoolerp123@gmail.com</a></p>
                         </li> -->
                         <li>
-                        <a href="<?php echo base_url('dashboard/index'); ?>" class="logo">
-                <?php if(customCompute($siteinfos)) { echo namesorting($siteinfos->sname, 14); } ?>
-            </a>
+                           
                         </li>
                         <li>
                             <form name="g_search_form" action="<?php echo base_url('Student/global_student_search');?>" method="post">
                                 <!-- <input type="text" name="global_search" placeholder="Global Student Search..." value="">
                                 <input type="submit" class="btn btn-success" value="Search"> -->
                                 <div class="search">
-                                    <!-- <input type="text" name="global_search" class="search__input form-control" placeholder="Global student search..."> -->
+                                    <input type="text" name="global_search" class="search__input form-control" placeholder="Global student search...">
                                     <button class="search__button">
                                     <i class="fa fa-search"></i>
                                     </button>
