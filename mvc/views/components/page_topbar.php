@@ -1,7 +1,7 @@
         <header class="header">
-            <a href="<?php echo base_url('dashboard/index'); ?>" class="logo">
+            <!-- <a href="<?php echo base_url('dashboard/index'); ?>" class="logo">
                 <?php if(customCompute($siteinfos)) { echo namesorting($siteinfos->sname, 14); } ?>
-            </a>
+            </a> -->
             <nav class="navbar navbar-static-top" role="navigation">
                 <a href="#" class="navbar-btn sidebar-toggle" data-toggle="offcanvas" role="button">
                     <span class="sr-only">Toggle navigation</span>
@@ -26,11 +26,16 @@
                             <p style="margin-top: 13px;color: #fff; margin-left: 10px;"><b>Mail Id :- </b> <img src="<?=base_url('uploads/mail.png')?>" style="width: 20px;height: 20px;color: #fff;"> <a href="mailto:ourschoolerp123@gmail.com">ourschoolerp123@gmail.com</a></p>
                         </li> -->
                         <li>
+                        <a href="<?php echo base_url('dashboard/index'); ?>" class="logo">
+                <?php if(customCompute($siteinfos)) { echo namesorting($siteinfos->sname, 14); } ?>
+            </a>
+                        </li>
+                        <li>
                             <form name="g_search_form" action="<?php echo base_url('Student/global_student_search');?>" method="post">
                                 <!-- <input type="text" name="global_search" placeholder="Global Student Search..." value="">
                                 <input type="submit" class="btn btn-success" value="Search"> -->
                                 <div class="search">
-                                    <input type="text" name="global_search" class="search__input form-control" placeholder="Global student search...">
+                                    <!-- <input type="text" name="global_search" class="search__input form-control" placeholder="Global student search..."> -->
                                     <button class="search__button">
                                     <i class="fa fa-search"></i>
                                     </button>

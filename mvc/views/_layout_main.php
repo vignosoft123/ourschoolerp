@@ -1,3 +1,6 @@
+<style>
+    .strong .fr{float: right important;}
+    </style>
 <?php $this->load->view("components/page_header"); ?>
 <?php $this->load->view("components/page_topbar"); ?>
 <?php $this->load->view("components/page_menu"); ?>
@@ -5,7 +8,7 @@
         <aside class="right-side">
             <section class="content">
                 <div class="row">
-                    <div class="col-xs-12">
+                    <div class="col-xs-12"> 
                         <?php $this->load->view($subview); ?>
                     </div>
                 </div>
@@ -15,7 +18,10 @@
           	<div class="pull-right hidden-xs">
             	<b>v</b> <?php echo "6.6.3";//config_item('ini_version');?>
           	</div>
-          	 <strong><?=$siteinfos->footer?>
+          	 <strong class="fr"><?=$siteinfos->footer?>
+             &nbsp;&nbsp;&nbsp; Office Timings:- 10.00 AM to 7.00 PM&nbsp;&nbsp; &nbsp; 
+
+             Support Number:- +91 8639963641 &nbsp;&nbsp; Mail Id:- ourschoolerp123@gmail.com
           	<!-- &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
           	<b></b>Download:-</b><a href="https://download.anydesk.com/AnyDesk.exe?_ga=2.19595825.802529734.1629965987-92454584.1629965987"><img src="<?=base_url('uploads/anydesk.png')?>"style="width: 113px;height: 20px;">
         

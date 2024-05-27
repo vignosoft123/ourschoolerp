@@ -369,24 +369,35 @@ nav h2 {
 
 .reportPage-header {
     width: 100%;
+	/* background: linear-gradient(45deg, #65aee88a, #4e95af); */
+    /* margin-top: -10px; */
 }
 
 .reportPage-header .header .bannerLogo{
-    text-align: center;
+    text-align: left;
 }
 
+
 .reportPage-header .header .bannerLogo img {
-    height: 50px;
-    width: 50px;
+    height: 170px;
+    width: 160px;
 }
 
 .reportPage-header .title {
-  font-size: 16px;
+  /* font-size: 16px;
   text-align: center;
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 0px;
-  margin-top: 0px;
+  margin-top: 0px; */
+  font-size: 40px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 0px;
+    margin-top: -145px;
+    font-weight: 800;
+    color: initial;
 }
 
 .reportPage-header .title-desc {
@@ -396,6 +407,7 @@ nav h2 {
   margin-right: auto;
   margin-bottom: 0px;
   margin-top: 0px;
+  color: black;
 }
 
 /*4.6 code start here*/
@@ -429,3 +441,5 @@ nav h2 {
 .navbar .navbar-right > .nav {
   margin-right: 0px !important;
 }
+
+.pt-45{padding-top: 45px;}

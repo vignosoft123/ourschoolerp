@@ -775,7 +775,7 @@
     </form>
 </div>
 
-<div class="box" style="margin-bottom: 40px">
+<div class="box d-none" style="margin-bottom: 40px">
     <div class="box-header">
         <h3 class="box-title"><i class="fa fa-th-large"></i> <?= $this->lang->line('backend_theme_setting') ?></h3>
 

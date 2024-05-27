@@ -1,3 +1,6 @@
+<style>
+    .pull-left{padding: top 45px!important;}
+</style>
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
@@ -32,14 +35,14 @@
     <!-- form start -->
         <div class="box-body" style="margin-bottom: 50px;">
             <div class="row">
-                <div class="col-sm-12 row">
+                <div class="col-sm-12">
                     <?=reportheader($siteinfos, $schoolyearsessionobj)?>
-                </div>
+                </div><hr>
                 <?php if($classesID >= 0 && $sectionID >= 0) { ?>
                     <div class="col-sm-12">
                         <div class="row">
                             <div class="col-sm-12">
-                                <h5 class="pull-left">
+                                     <h5 class="pull-left">
                                     <?php 
                                         echo $this->lang->line('feesreport_class')." : ";
                                         echo isset($classes[$classesID]) ? $classes[$classesID] : $this->lang->line('feesreport_all_class');

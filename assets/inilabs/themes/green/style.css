@@ -575,6 +575,7 @@ body > .header .logo {
   font-weight: 500;
   height: 50px;
   display: block;
+  margin-right: 200px;
 }
 body > .header .logo .icon {
   margin-right: 10px;
@@ -3711,8 +3712,9 @@ fieldset[disabled] .btn-vk.active {
   background-color: transparent;
   position: absolute;
     right: 8px;
-    top: 3px;
-    opacity: .2;
+    top: 17px;
+    opacity: 1.2;
+    font-size: 14px;
 }
 .search__button:hover {
   cursor: pointer;
