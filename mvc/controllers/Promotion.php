@@ -602,6 +602,37 @@ class Promotion extends Admin_Controller
                     }
 
                     if (!customCompute($studentReletion)) {
+
+                        $sql = "select srsection from studentrelation where srstudentID = $studentID and srclassesID = $previousClasseID and srschoolyearID = $previousYearID";
+                        $prev_res = $this->db->query($sql)->row_array();
+                        $prev_sec_name = $prev_res['srsection'];
+
+                        $new_sec_id_res = $this->db->query("select sectionID from section where section = '$prev_sec_name' and classesID= $setClassesID ")->row_array();
+                        if(count($new_sec_id_res) > 0){
+                            $new_sec_id = $new_sec_id_res['sectionID'];
+                        }else{  //create new section if not exists in new academic year
+
+                            $s_sql = "select * from section where section = '$prev_sec_name' ";
+                            $section_res = $this->db->query($s_sql)->row_array();
+
+                            $array = array(
+                                "section" => $prev_sec_name,
+                                "category" => $section_res['category'],
+                                "capacity" => $section_res['capacity'],
+                                "classesID" => $setClassesID,
+                                "teacherID" =>$section_res['teacherID'],
+                                "note" => $section_res['note'],
+                                "create_date" => date("Y-m-d h:i:s"),
+                                "modify_date" => date("Y-m-d h:i:s"),
+                                "create_userID" => $this->session->userdata('loginuserID'),
+                                "create_username" => $this->session->userdata('username'),
+                                "create_usertype" => $this->session->userdata('usertype')
+                            );
+            
+                            $this->section_m->insert_section($array);
+                            $new_sec_id = $last_section_id = $this->db->insert_id();
+                            
+                        }
                         $arrayStudentRelation = [
                             'srstudentID'         => $studentID,
                             'srname'              => $students[$studentID]->name,
@@ -609,8 +640,8 @@ class Promotion extends Admin_Controller
                             'srclasses'           => $setClasses,
                             'srroll'              => $roll,
                             'srregisterNO'        => $students[$studentID]->registerNO,
-                            'srsectionID'         => $setSectionID,
-                            'srsection'           => $setSection,
+                            'srsectionID'         => $new_sec_id, //$setSectionID,
+                            'srsection'           => $prev_sec_name, //$setSection,
                             'srstudentgroupID'    => $students[$studentID]->studentgroupID,
                             'sroptionalsubjectID' => 0,
                             'srschoolyearID'      => $promotionYearID,

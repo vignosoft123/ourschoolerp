@@ -311,6 +311,7 @@
             'reportfor' : $('#reportfor').val(),
             'blood'     : $('#blood').val(),
             'country'   : $('#country').val(),
+            'villageID'   : $('#villageID').val(),
             'transport' : $('#transport').val(),
             'hostel'    : $('#hostel').val(),
             'birthdaydate' : $('#birthdaydate').val(),

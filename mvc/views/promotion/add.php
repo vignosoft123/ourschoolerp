@@ -190,7 +190,7 @@
                 data: "studentIDs=" + result,
                 dataType: "html",
                 success: function(data) {
-                   window.location.replace($redirect);
+                   //window.location.replace($redirect);
                 }
             });
 

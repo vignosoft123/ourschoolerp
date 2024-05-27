@@ -3,7 +3,7 @@
     <div class="well">
         <div class="row">
             <div class="col-sm-6">
-                <!--<button class="btn-cs btn-sm-cs" onclick="javascript:printDiv('printablediv')"><span class="fa fa-print"></span> <?=$this->lang->line('print')?> </button>-->
+                <button class="btn-cs btn-sm-cs" onclick="javascript:printDiv('printablediv')"><span class="fa fa-print"></span> <?=$this->lang->line('print')?> </button>
                 <?php
                  echo btn_add_pdf('invoice/print_previewviewpayment/'.$globalpayment->globalpaymentID.'/'.$maininvoice->maininvoiceID.'/1', $this->lang->line('pdf_preview')); 
                  echo btn_add_pdf('invoice/print_previewviewpayment/'.$globalpayment->globalpaymentID.'/'.$maininvoice->maininvoiceID.'/0', 'PDF Preview Without Balance'); 

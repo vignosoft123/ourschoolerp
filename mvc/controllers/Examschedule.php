@@ -376,6 +376,91 @@ class Examschedule extends Admin_Controller {
 		}
 	}
 
+	public function copy() {
+		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
+			$this->data['headerassets'] = array(
+				'css' => array(
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css',
+					'assets/datepicker/datepicker.css',
+					'assets/timepicker/timepicker.css'
+				),
+				'js' => array(
+					'assets/select2/select2.js',
+					'assets/datepicker/datepicker.js',
+					'assets/timepicker/timepicker.js'
+				)
+			);
+
+			$id     = htmlentities(escapeString($this->uri->segment(3)));
+			$url    = htmlentities(escapeString($this->uri->segment(4)));
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			$this->data['get_all_holidays'] = $this->getHolidaysSession();
+			
+			if((int)$id && (int)$url) {
+				$this->data['classes'] = $this->classes_m->get_classes();
+				$fetchClass            = pluck($this->data['classes'], 'classesID', 'classesID');
+				if(isset($fetchClass[$url])) {
+					$this->data['examschedule'] = $this->examschedule_m->get_single_examschedule(array('examscheduleID' => $id, 'classesID' => $url, 'schoolyearID' => $schoolyearID));
+					if(customCompute($this->data['examschedule'])) {
+						$classID     = $this->data['examschedule']->classesID;
+						if($this->input->post('classesID')) {
+							$classID = $this->input->post("classesID");
+						}
+						$this->data['subjects'] = $this->subject_m->general_get_order_by_subject(array('classesID' => $classID));
+						$this->data['sections'] = $this->section_m->general_get_order_by_section(array("classesID" => $classID));
+						$this->data['exams']    = $this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classID);
+						$this->data['set']      = $url;
+
+						if($_POST) {
+							$rules = $this->rules_edit();
+							$this->form_validation->set_rules($rules);
+							if ($this->form_validation->run() == FALSE) {
+								$this->data["subview"] = "examschedule/edit";
+								$this->load->view('_layout_main', $this->data);			
+							} else {
+								$array = array(
+									"examID" => $this->input->post("examID"),
+									"classesID" => $this->input->post("classesID"),
+									"sectionID" => $this->input->post("sectionID"),
+									"subjectID" => $this->input->post("subjectID"),
+									"edate" => date("Y-m-d", strtotime($this->input->post("date"))),
+									"examfrom" => $this->input->post("examfrom"),
+									"examto" => $this->input->post("examto"),
+									"room" => $this->input->post("room"),
+									"min_mark" => $this->input->post("min_mark"),
+									"max_mark" => $this->input->post("max_mark"),									
+									"schoolyearID" => $this->session->userdata('defaultschoolyearID')
+								);
+
+								 
+								$this->examschedule_m->insert_examschedule($array);
+								// echo $this->db->last_query();die;
+								$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+								redirect(base_url("examschedule/index/$url"));
+							}
+						} else {
+							$this->data["subview"] = "examschedule/copy";
+							$this->load->view('_layout_main', $this->data);
+						}
+					} else {
+						$this->data["subview"] = "error";
+						$this->load->view('_layout_main', $this->data);
+					}
+				} else {
+					$this->data["subview"] = "error";
+					$this->load->view('_layout_main', $this->data);	
+				}
+			} else {
+				$this->data["subview"] = "error";
+				$this->load->view('_layout_main', $this->data);
+			}
+		} else {
+			$this->data["subview"] = "error";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
 	public function delete() {
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
 			$id = htmlentities(escapeString($this->uri->segment(3)));

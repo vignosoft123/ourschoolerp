@@ -259,6 +259,7 @@
                                 <option value="3" <?php if($student->mother_toungue == 3){echo "selected";}?> >Hindi</option>
                                 <option value="4" <?php if($student->mother_toungue == 4){echo "selected";}?> >Kannada</option>
                                 <option value="5" <?php if($student->mother_toungue == 5){echo "selected";}?> >Malayalam</option> 
+                                <option value="6" <?php if($student->mother_toungue == 6){echo "selected";}?> >Urdhu</option> 
                             </select>
                         <span class="  control-label">
                             <?php echo form_error('mother_toungue'); ?>

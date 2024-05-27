@@ -114,6 +114,9 @@
                                                         <td data-title="<?=$this->lang->line('action')?>">
                                                             <?php echo btn_edit('examschedule/edit/'.$examschedule->examscheduleID."/".$set, $this->lang->line('edit')) ?>
                                                             <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set, $this->lang->line('delete')) ?>
+
+                                                            <a href="<?php echo base_url('examschedule/copy/'.$examschedule->examscheduleID."/".$set ) ?>" >  Copy </a>
+
                                                         </td>
                                                         <?php } ?>
                                                     <?php } ?>
@@ -176,9 +179,15 @@
 
                                                             <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) { ?>
                                                                 <?php if(permissionChecker('examschedule_edit') || permissionChecker('examschedule_delete')) { ?>
+
                                                                     <td data-title="<?=$this->lang->line('action')?>">
                                                                         <?php echo btn_edit('examschedule/edit/'.$examschedule->examscheduleID."/".$set, $this->lang->line('edit')) ?>
+                                                                        
                                                                         <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set, $this->lang->line('delete')) ?>
+
+                                                                       <a href="<?php echo base_url('examschedule/copy/'.$examschedule->examscheduleID."/".$set ) ?>" >  Copy </a>
+
+
                                                                     </td>
                                                                 <?php } ?>
                                                             <?php } ?>
@@ -253,6 +262,9 @@
                                                     <td data-title="<?=$this->lang->line('action')?>">
                                                         <?php echo btn_edit('examschedule/edit/'.$examschedule->examscheduleID."/".$set, $this->lang->line('edit')) ?>
                                                         <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set, $this->lang->line('delete')) ?>
+
+                                                        <a href="<?php echo base_url('examschedule/copy/'.$examschedule->examscheduleID."/".$set ) ?>" >  Copy </a>
+
                                                     </td>
                                                     <?php } ?>
                                                 </tr>

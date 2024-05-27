@@ -270,6 +270,7 @@ class Studentreport extends Admin_Controller {
 
 					$queryArray = [];
 					$this->getArray($queryArray, $this->input->post());
+					// echo "<pre>";print_r($this->input->post());die;
                     if($gender=='0')
 					{
 					    unset($queryArray['sex']);
@@ -345,6 +346,11 @@ class Studentreport extends Admin_Controller {
 		if(isset($post['reportfor']) && $post['reportfor'] == 'country') {
 			$queryArray['country'] = $post['country'];
 			$this->data['reportTitle'] = $this->data['allcountry'][$post['country']];
+		}
+
+		if(isset($post['reportfor']) && $post['reportfor'] == 'villageID') {
+			$queryArray['villageID'] = $post['villageID'];
+			$this->data['reportTitle'] = $this->data['vill'][$post['villageID']];
 		}
 
 		if(isset($post['reportfor']) && $post['reportfor'] == 'gender') {
