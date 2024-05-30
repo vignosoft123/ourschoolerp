@@ -6,7 +6,7 @@
        
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
-            <li class="active"><?=$this->lang->line('menu_expensetypes')?></li>
+            <li class="active"><a href="<?=base_url("expense")?>"><i class="fa icon-expense"></i> Expenses </a></li>
         </ol>
     </div><!-- /.box-header -->
     <!-- form start -->

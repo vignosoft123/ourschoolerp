@@ -676,6 +676,7 @@
                 ?>
                 <label for="student_village" class="  control-label">
                     <?= $this->lang->line("student_village") ?> <span class="text-red">*</span>
+                    <a title="Add Villege" target="_blank" href="<?= base_url('Village');?>" taret="_blank"> <i class="fa fa-plus" ></i></a>
                 </label>
                 
                     <!-- <input type="text" class="form-control" id="village_name" name="village_name" value="<?= set_value('village_name') ?>"> -->

@@ -506,6 +506,24 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group <?= form_error('is_student_auto_invoice') ? 'has-error' : '' ?>">
+                            <div class="col-sm-12">
+                                <label for="is_student_auto_invoice">Is Generate Auto Invoice While Student Creation ?&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="right" title="If u required auto invoice generation admitting student please check this"></i>
+                                </label>
+                            </div>
+                            <div class="col-sm-2">
+                                <input type="checkbox" class="form-control" id="is_student_auto_invoice" name="is_student_auto_invoice" value="1" <?= (isset($setting->is_student_auto_invoice) ?  ($setting->is_student_auto_invoice == 1 ? 'checked' : '') : '') ?>>
+                                <span class="control-label">
+                                    <?php echo form_error('is_student_auto_invoice'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
             </fieldset>
 
 

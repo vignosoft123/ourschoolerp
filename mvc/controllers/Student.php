@@ -1112,6 +1112,9 @@ class Student extends Admin_Controller
 					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
 
 					//code for auto invoice generation 
+					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
+
+					if(!empty($is_auto_invoice) && $is_auto_invoice->value == 1 ){
 					$class_id = $this->input->post("classesID");
 					$section_id = $this->input->post("sectionID");
 					$year_id = $this->session->userdata('defaultschoolyearID');
@@ -1201,6 +1204,8 @@ class Student extends Admin_Controller
 
 					$invoice_error = $this->saveinvoice($invoice_data);
 					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
+
+				}
 					
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 					redirect(base_url("student/index"));

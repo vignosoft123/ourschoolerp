@@ -76,8 +76,8 @@
                 margin-bottom: 10px;
                 padding:55px;
                 min-height: 443px;
-                background:url("<?=base_url('uploads/default/admitcard-border.png')?>")!important;
-                background-size: 100% 100% !important;
+                /* background:url("<?=base_url('uploads/default/admitcard-border.png')?>")!important; */
+                /* background-size: 100% 100% !important; */
             }
 
             .progresscard-headers{
@@ -495,6 +495,7 @@
                                                  
                                                     <?php 
                                                     // print_r($months);
+                                                    $months = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May',);
                                                         for($m=6;$m<count($months)+6;$m++){  
 
                                                             if($m > 12)
