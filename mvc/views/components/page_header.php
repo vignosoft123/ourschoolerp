@@ -22,7 +22,7 @@
 
         <link href="<?php echo base_url('assets/bootstrap/bootstrap.min.css'); ?>" rel="stylesheet">
 
-        <link href="<?php echo base_url('assets/fonts/font-awesome.css'); ?>" rel="stylesheet">
+        <link href="<?php echo base_url('assets/fonts/font-awesome.css?1.0'); ?>" rel="stylesheet">
 
         <link href="<?php echo base_url('assets/fonts/icomoon.css'); ?>" rel="stylesheet">
 

@@ -74,6 +74,9 @@ if (customCompute($profile)) { ?>
 							<li class="list-group-item">
 								<span class="h5-title"><?= $this->lang->line('student_section') ?></span> <span class="h6-title pull-right"><?= customCompute($section) ? $section->section : '' ?></span>
 							</li>
+							<li class="list-group-item">
+								<span class="h5-title">RF ID</span> <span class="h6-title pull-right"><?= $profile->child_id?></span>
+							</li>
 							<!-- 
 							<li class="list-group-item" style="background-color: #FFF">
 								<b>Joined Class</b> <a class="pull-right"><?= customCompute($section) ? $section->section : '' ?></a>
@@ -143,24 +146,47 @@ if (customCompute($profile)) { ?>
 											<div class="para"><?= $profile->remarks ?></div>
 										</div>	
 									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Mother Toungue </label>
+											<div class="para"><?php 
+												$m_t = array(''=> '-','1'=> 'Telugu','2'=> 'Engish','3'=> 'Hindi','4'=> 'Kannada','5'=> 'Malayalam','6'=> 'Urdhu',);
+												echo $m_t[$profile->mother_toungue] ?></div>
+										</div>	
+									</div>
+
 								</div>
 
 
 								<h2 class="h2-title">Student Details</h2>
 
-								<div class="profile-view-tab">
+								 
+
+
+								<div class="st-detail-list">
+									<div class="profile-view-tab">
 										<div class="profile-details">
-											<label class="label-txt">First Name</label>
+										<label class="label-txt">First Name</label>
 											<div class="para"><?= $profile->first_name ?></div>
+										</div>										
+									</div>
+									<div class="profile-view-tab">
+										<div class="profile-details">
+										<label class="label-txt">Last Name</label>
+											<div class="para"><?= $profile->last_name ?></div>
 										</div>
 									</div>
 
 									<div class="profile-view-tab">
 										<div class="profile-details">
-											<label class="label-txt">Last Name</label>
-											<div class="para"><?= $profile->last_name ?></div>
-										</div>
+										<label class="label-txt">ID Card Name</label>
+											<div class="para"><?= $profile->name ?></div>
+										</div>										
 									</div>
+								</div>
+
+
 
 								<div class="st-detail-list">
 									<div class="profile-view-tab">

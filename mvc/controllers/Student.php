@@ -107,7 +107,10 @@ class Student extends Admin_Controller
 		$fetchClasses = pluck($this->classes_m->get_classes(), 'classesID', 'classesID');
 		if (isset($fetchClasses[$url])) {
 			if ((int)$id && (int)$url) {
-				$studentInfo = $this->studentrelation_m->get_single_student(array('srstudentID' => $id, 'srclassesID' => $url, 'srschoolyearID' => $schoolyearID), TRUE);
+
+				// $studentInfo = $this->studentrelation_m->get_single_student(array('srstudentID' => $id, 'srclassesID' => $url, 'srschoolyearID' => $schoolyearID), TRUE);
+
+				$studentInfo = $this->studentrelation_m->get_single_student(array('srstudentID' => $id, 'srschoolyearID' => $schoolyearID), TRUE);
 
 				$this->pluckInfo();
 				$this->basicInfo($studentInfo);
@@ -267,6 +270,7 @@ class Student extends Admin_Controller
 
 	private function basicInfo($studentInfo)
 	{
+		// echo "<pre>";print_r($studentInfo);die;
 		if (customCompute($studentInfo)) {
 			$this->data['profile'] = $studentInfo;
 			$this->data['usertype'] = $this->usertype_m->get_single_usertype(array('usertypeID' => 3));
@@ -989,7 +993,9 @@ class Student extends Admin_Controller
 					$array["alternative_phone1"] = $this->input->post('alternative_phone1');
 					$array["alternative_phone2"] = $this->input->post('alternative_phone2');
 					$array["caste"] = $this->input->post('cast');
-					$array["caste"] = $this->input->post('cast');
+					$array["sub_caste"] = $this->input->post('sub_caste');
+					$array["pen_number"] = $this->input->post('pen_number');
+					$array["child_id"] = $this->input->post('child_id');
 
 					$array["mole1"] = $this->input->post('mole1');
 					$array["mole2"] = $this->input->post('mole2');
@@ -1048,7 +1054,7 @@ class Student extends Admin_Controller
 						$parent_array = array();
 						$parent_array['name'] = $this->input->post("father_name");
 						$parent_array['father_name'] = $this->input->post("father_name");
-						$parent_array['father_aadhar'] = $this->input->post("father_aadjar");
+						$parent_array['father_aadhar'] = $this->input->post("father_aadhar");
 						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar");
 						$parent_array['mother_name'] = $this->input->post("mother_name");
 						$parent_array["phone"] = $this->input->post("phone");
@@ -1316,7 +1322,9 @@ class Student extends Admin_Controller
 							$array["alternative_phone1"] = $this->input->post('alternative_phone1');
 							$array["alternative_phone2"] = $this->input->post('alternative_phone2');
 							$array["caste"] = $this->input->post('cast');
-							$array["sub_caste"] = $this->input->post('sub_caste');
+							$array["sub_caste"] = $this->input->post('sub_caste'); 
+							$array["pen_number"] = $this->input->post('pen_number');
+							$array["child_id"] = $this->input->post('child_id');
 
 							$array["mole1"] = $this->input->post('mole1');
 							$array["mole2"] = $this->input->post('mole2');

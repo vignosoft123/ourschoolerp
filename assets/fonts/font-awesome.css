@@ -80,12 +80,12 @@
 /* Deprecated as of 4.4.0 */
 .pull-right {
   float: right;
-  padding-top: 45px;
+  /* padding-top: 45px; */
 
 }
 .pull-left {
   float: left;
-  padding-top: 45px;
+  /* padding-top: 45px; */
 }
 .fa.pull-left {
   margin-right: .3em;
