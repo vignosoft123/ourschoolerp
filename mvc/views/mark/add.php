@@ -254,8 +254,10 @@
                                                                $exam_absent = $all_marks->eattendance;
 
                                                                $readonly = "";
+                                                               $A = "";
                                                                if($exam_absent == 'Absent'){
                                                                 $readonly = "readonly";
+                                                                $A = "a";
                                                                }
 
 
@@ -270,11 +272,75 @@
 
                                                         echo "<td data-title='$data->markpercentagetype'>";
 
-                                                        echo "<input subj_id = '".$subject->subjectID."'  class='form-control mark input_mark' type='' style='width: 100px !important;' name='".$subject->subjectID."mark-" . $mark->markID . "' id='" . $data->markpercentageID . "' value='" . $mrk . "' min='0' max='" . $subject->max_mark . "' $readonly  />";
+                                                        echo "<i class='fa icon-eattendance pull-left' title='add exaxm attendance' data-toggle='modal' data-target='#attendance-modal_".$mark->markID."'></i>";
 
-                                                        echo "</td>";
+
+                                                        if($A == 'a'){
+                                                            echo "A";
+                                                        }else{
+                                                            
+                                                            echo "<input subj_id = '".$subject->subjectID."'  class='form-control mark input_mark' type='' style='width: 100px !important;' name='".$subject->subjectID."mark-" . $mark->markID . "' id='" . $data->markpercentageID . "' value='" . $mrk . "' min='0' max='" . $subject->max_mark . "' $readonly  />
+                                                            
+                                                            ";
                                                         
-                                                        $my_template .= $subject->subject."=".$mrk."/".$subject->max_mark.",";
+                                                        }
+
+
+                                                        echo "</td>";?>
+
+
+
+<!-- email modal starts here -->
+<form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAttendance');?>" method="post">
+    <div class="modal fade" id="attendance-modal_<?= $mark->markID?>">
+      <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Add Attendance</h4>
+            </div>
+            <div class="modal-body">
+            
+                <?php 
+                    if(form_error('to')) 
+                        echo "<div class='form-group has-error' >";
+                    else     
+                        echo "<div class='form-group' >";
+                ?>
+                    <label for="to" class="col-sm-2 control-label">
+                        Attendance</span>
+                    </label>
+                    <div class="col-sm-6">
+                        <select name="attendance" id="attendance" class="form-control">
+                            <option value="Present">Present</option>
+                            <option value="Absent">Absent</option>
+                        </select>
+                    </div>
+                    <input type="hidden" name="examID" value="<?= $set_exam?>" class="form-control">
+                    <input type="hidden" name="classesID" value="<?= $set_classes?>" class="form-control">
+                    <input type="hidden" name="subjectID" value="<?= $subject->subjectID?>" class="form-control">
+                    <input type="hidden" name="sectionID" value="<?= $set_section?>" class="form-control">
+                    <input type="hidden" name="studentID" value="<?= $student->studentID?>" class="form-control">
+                    <input type="hidden" name="markID" value="<?= $mark->markID?>" class="form-control">
+                    <span class="col-sm-4 control-label" id="to_error">
+                    </span>
+                </div>
+
+               
+
+            
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
+                <input type="submit" id="send_pdf" class="btn btn-success" value="Save" />
+            </div>
+        </div>
+      </div>
+    </div>
+</form>
+<!-- email end here -->
+                                                        
+                                                            <?php  $my_template .= $subject->subject."=".$mrk."/".$subject->max_mark.",";
                                                         }
                                                         }
                                                     }
