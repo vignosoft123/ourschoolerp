@@ -1206,7 +1206,7 @@ class Mark extends Admin_Controller
 		if( $_POST['attendance'] == 'Absent'){
 			$sql = "select * from markrelation where markID=$mark_id and mark is not null";
 			  $cnt = $this->db->query($sql)->num_rows();
-			if(count($cnt) > 0){
+			if(($cnt) > 0){
  				$this->session->set_flashdata('error', 'Already have marks, please remove the marks before adding attendance as absent!' );
 				$this->add($_POST);
 			}

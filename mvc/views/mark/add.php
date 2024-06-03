@@ -347,8 +347,9 @@
                                                 }
                                                 // echo '@@@@@@@@@'.$tot;
                                                     echo "<td>".$tot."<td/>";
+                                                //echo 'ddd='. $out_of;die;
+                                                    $out_of =  $out_of !=0 ?  $out_of : 1;
 
-                                                  
                                                     $percent_cal = ($tot / $out_of) * 100;
                                                     if($percent_cal >= 95 && $zero_mark == 0){
                                                         $grade = "A+";
