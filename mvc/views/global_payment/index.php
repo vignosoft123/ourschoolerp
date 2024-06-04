@@ -776,27 +776,59 @@
                             </style>
                             <div class="modal-body" >
                                 <div class="assign-fee-payment">
-                                    <span class="header"><p class="logo"><img src="<?=base_url("uploads/images/$siteinfos->photo")?>"></p></span>
-                                    <p class="title"><?=$siteinfos->sname?></p>
-                                    <p class="title-desc"><?=$siteinfos->address?></p>
+
+                                    <table width="100%" style="text-align:center">
+                                        <tr>
+                                            <td id="logo" style="width:16%">
+                                                <?php
+                                                    if($siteinfos->photo) {
+                                                        $array = array(
+                                                            "src" => base_url('uploads/images/'.$siteinfos->photo),
+                                                            'width' => '50px',
+                                                            'height' => '50px',
+                                                            // "style" => "margin-right:0px;"
+                                                        );
+                                                        echo img($array);
+                                                    }
+                                                ?>
+                                            </td>
+                                            <td style="width:84%"> 
+                                                <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=$siteinfos->sname?></h2>
+                                                <h5><?=$siteinfos->address?>, <?= $siteinfos->email?></h5> 
+                                                <h5><?=$siteinfos->phone?></h5> <br/>
+                                            </td>
+                                            <td style="width:8%">
+                                                <img src="<?=imagelink($student->photo)?>" alt="">
+                                            </td>
+                                        </tr>
+                                        
+                                    </table>
+ 
                                     <hr>
 
                                     <table class="table info">
                                         <tr>
-                                            <td><b><?=$this->lang->line('global_invoice_number')?>: </b>INV-G-<?=$globalpayment->globalpaymentID?></td>
-                                            <td><b><?=$this->lang->line('global_clearance')?>: </b><?=strtoupper($globalpayment->clearancetype)?></td>
-                                            <td><b><?=$this->lang->line('global_date')?>: </b><?=isset($paidpayments['paiddate'][$globalpayment->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment->globalpaymentID])) : '' ?></td>
+                                            <td><b class="text-red"><?=$this->lang->line('global_invoice_number')?>: </b>INV-G-<?=$globalpayment->globalpaymentID?></td>
+                                            <td><b class="text-red"><?=$this->lang->line('global_clearance')?>: </b><?=strtoupper($globalpayment->clearancetype)?></td>
+                                            <td><b class="text-red"><?=$this->lang->line('global_date')?>: </b><?=isset($paidpayments['paiddate'][$globalpayment->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment->globalpaymentID])) : '' ?></td>
                                         </tr>
                                         <tr>
-                                            <td><b><?=$this->lang->line('global_name')?>: </b><?=customCompute($single_student) ? $single_student->srname : ''?> </td>
-                                            <td><b><?=$this->lang->line('global_classes')?>: </b><?=customCompute($single_classes) ? $single_classes->classes : ''?>, <b><?=$this->lang->line('global_roll')?>: </b><?=customCompute($single_student) ? $single_student->srroll : ''?>, <b><?=$this->lang->line('global_section')?>: </b><?=customCompute($single_section) ? $single_section->section : ''?></td>
-                                            <td><b><?=$this->lang->line('global_group')?>: </b><?=customCompute($single_group) ? $single_group->group : ''?></td>
+                                            <td><b class="text-red"><?=$this->lang->line('global_name')?>: </b><?=customCompute($single_student) ? $single_student->srname : ''?> </td>
+                                            <td><b class="text-red"><?=$this->lang->line('global_classes')?>: </b><?=customCompute($single_classes) ? $single_classes->classes : ''?>, <b><?=$this->lang->line('global_roll')?>: </b><?=customCompute($single_student) ? $single_student->srroll : ''?>, <b><?=$this->lang->line('global_section')?>: </b><?=customCompute($single_section) ? $single_section->section : ''?></td>
+                                            <td><b class="text-red"><?=$this->lang->line('global_group')?>: </b><?=customCompute($single_group) ? $single_group->group : ''?></td>
+
                                         </tr>
+                                        <tr>
+
+                                        <td><b class="text-red">Father Name: </b><?=customCompute($single_student->father_name) ? $single_student->father_name : ''?></td>
+                                        </tr>
+
 
                                         <tr>
                                             <td colspan="3"><center><b><span><?=$this->lang->line('global_student_copy')?></span></b></center></td>
                                         </tr>
                                     </table>
+                                    
 
 
                                     <table class="table">
@@ -907,6 +939,180 @@
                                     </div>
 
                                 </div>
+
+                                <!-- office copy start -->
+
+                                <div class="assign-fee-payment">
+
+                                    <table width="100%" style="text-align:center">
+                                        <tr>
+                                            <td id="logo" style="width:16%">
+                                                <?php
+                                                    if($siteinfos->photo) {
+                                                        $array = array(
+                                                            "src" => base_url('uploads/images/'.$siteinfos->photo),
+                                                            'width' => '50px',
+                                                            'height' => '50px',
+                                                            // "style" => "margin-right:0px;"
+                                                        );
+                                                        echo img($array);
+                                                    }
+                                                ?>
+                                            </td>
+                                            <td style="width:84%"> 
+                                                <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=$siteinfos->sname?></h2>
+                                                <h5><?=$siteinfos->address?>, <?= $siteinfos->email?></h5> 
+                                                <h5><?=$siteinfos->phone?></h5> <br/>
+                                            </td>
+                                            <td style="width:8%">
+                                                <img src="<?=imagelink($student->photo)?>" alt="">
+                                            </td>
+                                        </tr>
+                                        
+                                    </table>
+    
+    
+    
+    
+    
+    
+     
+                                        <hr>
+    
+                                        <table class="table info">
+                                            <tr>
+                                                <td><b class="text-red"><?=$this->lang->line('global_invoice_number')?>: </b>INV-G-<?=$globalpayment->globalpaymentID?></td>
+                                                <td><b class="text-red"><?=$this->lang->line('global_clearance')?>: </b><?=strtoupper($globalpayment->clearancetype)?></td>
+                                                <td><b class="text-red"><?=$this->lang->line('global_date')?>: </b><?=isset($paidpayments['paiddate'][$globalpayment->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment->globalpaymentID])) : '' ?></td>
+                                            </tr>
+                                            <tr>
+                                                <td><b class="text-red"><?=$this->lang->line('global_name')?>: </b><?=customCompute($single_student) ? $single_student->srname : ''?> </td>
+                                                <td><b class="text-red"><?=$this->lang->line('global_classes')?>: </b><?=customCompute($single_classes) ? $single_classes->classes : ''?>, <b><?=$this->lang->line('global_roll')?>: </b><?=customCompute($single_student) ? $single_student->srroll : ''?>, <b><?=$this->lang->line('global_section')?>: </b><?=customCompute($single_section) ? $single_section->section : ''?></td>
+                                                <td><b class="text-red"><?=$this->lang->line('global_group')?>: </b><?=customCompute($single_group) ? $single_group->group : ''?></td>
+    
+                                            </tr>
+                                            <tr>
+    
+                                            <td><b class="text-red">Father Name: </b><?=customCompute($single_student->father_name) ? $single_student->father_name : ''?></td>
+                                            </tr>
+    
+    
+                                            <tr>
+                                                <td colspan="3"><center><b><span>Office Copy</span></b></center></td>
+                                            </tr>
+                                        </table>
+                                        
+    
+    
+                                        <table class="table">
+                                            <thead>
+                                                <?php if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                    <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                                        <?php if($paymented->paymentamount > 0) { ?>
+    
+                                                            <tr>
+                                                                <th><?=$this->lang->line('global_fees_name')?></th>
+                                                                <th class="textright"><?=$this->lang->line('global_amount')?></th>
+                                                            </tr>
+                                                        <?php break; } ?>
+                                                    <?php } ?>
+                                                <?php } } ?>
+                                            </thead>
+                                            <tbody>
+                                                <?php $paymentedPaidAmount = 0; $paymentedPaidStatus = FALSE; if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                    <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                                        <?php if($paymented->paymentamount > 0) { $paymentedPaidStatus = TRUE; ?>
+                                                            <?php $paymentedPaidAmount += $paymented->paymentamount; ?>
+                                                            <tr>
+                                                                <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
+                                                                <td class="textright"><?=$paymented->paymentamount?></td>
+                                                            </tr>
+                                                        <?php } ?>
+                                                    <?php } ?>
+                                                <?php } } ?>
+    
+                                                <?php if($paymentedPaidStatus) { ?>
+                                                    <tr>
+                                                        <td class="boldandred"><?=$this->lang->line('global_total')?></td>
+                                                        <td class="boldandred textright"><?=$paymentedPaidAmount?></td>
+                                                    </tr>
+                                                <?php } ?>
+    
+    
+                                                <?php if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                    <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                                        <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->fine > 0 ) { ?>
+                                                            <tr>
+                                                                <th colspan="2"><?=$this->lang->line('global_fine')?></th>
+                                                            </tr>
+                                                        <?php break; } ?>
+                                                    <?php } ?>
+                                                <?php } } } ?>
+    
+                                                <?php $paymentedFineAmount = 0; $paymentedFineStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                    <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                                        <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->fine > 0 ) { $paymentedFineStatus = TRUE; ?>
+                                                            <?php $paymentedFineAmount += isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->fine : 0; ?>
+                                                            
+                                                            <tr>
+                                                                <td><?=isset($feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]]) ? $feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]] : ''?></td>
+                                                                <td class="textright"><?=isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->fine : 0 ?></td>
+                                                            </tr>
+                                                        <?php } ?> 
+                                                    <?php } ?>
+                                                <?php } } } ?>
+    
+                                                <?php if($paymentedFineStatus) { ?>
+                                                    <tr>
+                                                        <td><?=$this->lang->line('global_total_fine')?></td>
+                                                        <td class="textright"><?=$paymentedFineAmount?></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="boldandred"><?=$this->lang->line('global_grand_total')?></td>
+                                                        <td class="boldandred textright"><?=$paymentedPaidAmount+$paymentedFineAmount?></td>
+                                                    </tr>
+                                                <?php } ?>
+    
+                                                <?php if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                    <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                                        <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->weaver > 0 ) { ?>
+                                                            <tr>
+                                                                <th colspan="2"><?=$this->lang->line('global_weaver')?></th>
+                                                            </tr>
+                                                        <?php break; } ?>
+                                                    <?php } ?>
+                                                <?php } } } ?>
+    
+                                                <?php $paymentedWeaverAmount = 0; $paymentedWeaverStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                    <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                                        <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->weaver > 0 ) { $paymentedWeaverStatus = TRUE; ?>
+                                                            <?php $paymentedWeaverAmount += isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->weaver : 0; ?>
+                                                            
+                                                            <tr>
+                                                                <td><?=isset($feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]]) ? $feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]] : ''?></td>
+                                                                <td class="textright"><?=isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->weaver : 0 ?></td>
+                                                            </tr>
+                                                        <?php } ?> 
+                                                    <?php } ?>
+                                                <?php } } } ?>
+    
+                                                <?php if($paymentedWeaverStatus) { ?>
+                                                    <tr>
+                                                        <td class="boldandred"><?=$this->lang->line('global_total_weaver')?></td>
+                                                        <td class="boldandred textright"><?=$paymentedWeaverAmount?></td>
+                                                    </tr>
+                                                <?php } ?>
+                                            </tbody>
+                                        </table>
+    
+                                        <hr>
+                                        <div class="footer">
+                                            <p class="logo"><img src="<?=base_url("uploads/images/$siteinfos->photo")?>"></p>
+                                            <p class="copyright"><?=$siteinfos->footer?> | <?=$this->lang->line('global_hotline')?> : <?=$siteinfos->phone?></p>
+                                        </div>
+    
+                                    </div>
+                                    <!-- office copy end -->
                             </div>
 
                         </div>

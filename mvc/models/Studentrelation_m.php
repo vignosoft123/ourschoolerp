@@ -176,10 +176,11 @@ class Studentrelation_m extends MY_Model {
 		}
 
 		$arrays = $this->prefixLoad($arrays);
-        $this->db->select('*');
+        $this->db->select('*,parents.father_name');
         $this->db->from('studentrelation');
         $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
 		$this->db->join('villages', 'student.villageID = villages.villageID', 'LEFT');
+		$this->db->join('parents', 'parents.parentsID = student.parentID', 'LEFT');
 
         if($studentExtend) {
         	$this->db->join('studentextend', 'studentextend.studentID = studentrelation.srstudentID', 'LEFT');

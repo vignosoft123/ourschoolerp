@@ -202,6 +202,9 @@
                                             <p><span class="text-red"><?=$this->lang->line('admitcardreport_class')?></span> : <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?> </p>
                                             <p><span class="text-red"><?=$this->lang->line('admitcardreport_section')?></span> : <?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?> </p>
                                             <p><span class="text-red"><?=$this->lang->line('admitcardreport_roll')?></span> : <?=$student->srroll?></p>
+
+                                            <p><span class="text-red">Father Name </span> : <?=$student->father_name?></p>
+
                                         </div>
                                     </div>
                                     
