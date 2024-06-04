@@ -794,7 +794,7 @@
                                             </td>
                                             <td style="width:84%"> 
                                                 <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=$siteinfos->sname?></h2>
-                                                <h5><?=$siteinfos->address?>, <?= $siteinfos->email?></h5> 
+                                                <h5><?=$siteinfos->address?> <?php //echo $siteinfos->email?></h5> 
                                                 <h5><?=$siteinfos->phone?></h5> <br/>
                                             </td>
                                             <td style="width:8%">
@@ -961,7 +961,8 @@
                                             </td>
                                             <td style="width:84%"> 
                                                 <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=$siteinfos->sname?></h2>
-                                                <!-- <h5><?=$siteinfos->address?>, <?= $siteinfos->email?></h5>  -->
+                                                <h5><?=$siteinfos->address?>
+                                                <?php //echo $siteinfos->email?></h5> 
                                                 <h5><?=$siteinfos->phone?></h5> <br/>
                                             </td>
                                             <td style="width:8%">
