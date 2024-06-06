@@ -61,7 +61,13 @@
                             <tr>
                                 <th width="2%" class="col-sm-2"><?=$this->lang->line('slno')?></th>
                                 <th class="col-sm-2">Section</th>
-                                <th class="col-sm-2">School Fee</th>
+                                <th class="col-sm-2">Term1 Fee</th>
+                                <th class="col-sm-2">Term1 Due Date</th>
+                                <th class="col-sm-2">Term2 Fee</th>
+                                <th class="col-sm-2">Term2 Due Date</th>
+                                <th class="col-sm-2">Term3 Fee</th>
+                                <th class="col-sm-2">Term3 Due Date</th>
+
                                  
                             </tr>
                         </thead>
@@ -82,14 +88,23 @@
                                     if(!empty($sec->classesID) && !empty($sec->section)){
                                         $fee_amount = 0;
                                    
-                                     $sql = 'select id,fee_amount  from school_fees where class_id='.$sec->classesID .' and section_id='.$sec->sectionID . ' and year_id=' . $schoolyearID;
+                                     $sql = 'select id,term1_fee,term2_fee,term3_fee,term1_due_date,term2_due_date,term3_due_date from term_fees where class_id='.$sec->classesID .' and section_id='.$sec->sectionID . ' and year_id=' . $schoolyearID;
                                        $fee_res =  $this->db->query($sql)->row_array();
-                                       $fee_amount = $fee_res['fee_amount'];
+                                       $term1_fee= $fee_res['term1_fee'];
+                                       $term2_fee= $fee_res['term2_fee'];
+                                       $term3_fee= $fee_res['term3_fee'];
                                        $sf_id = $fee_res['id'];
                                     }
                                     ?>
 
-                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $fee_amount?>"></td>
+                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term1_fee?>"></td>
+                                    <td><input type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term1_due_date?>"></td>
+
+                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term2_fee?>"></td>
+                                    <td><input type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term2_due_date?>"></td>
+
+                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term3_fee?>"></td>
+                                    <td><input type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term3_due_date?>"></td>
                                 
                   
                                      

@@ -23,8 +23,14 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         <a href="<?php echo base_url('feetypes/fee_setup') ?>">
                             <i class="fa fa-plus"></i> 
-                           Fee Setup
+                          School Fee Setup
                         </a>
+
+                        <a href="<?php echo base_url('feetypes/term_fee_setup') ?>">
+                            <i class="fa fa-plus"></i> 
+                           Term Fee Setup
+                        </a>
+
                     </h5>
 
                     
