@@ -995,6 +995,10 @@ class Invoice extends Admin_Controller
                             $this->data['maininvoice'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_maininvoiceID($maininvoiceID);
                             $this->data['grandtotalandpayment'] = $this->grandtotalandpaidsingle($this->data['maininvoice'], $schoolyearID, $globalpayment->studentID);
                           
+                            if($this->data['grandtotalandpayment']['totaldiscount'] > $this->data['grandtotalandpayment']['totalamount']){
+                                $this->data['grandtotalandpayment']['totaldiscount'] = 0;
+                            }
+                            
                             $this->data['remainingBalance'] = $this->data['grandtotalandpayment']['totalamount'] - $this->data['grandtotalandpayment']['totaldiscount'] -$this->data['grandtotalandpayment']['totalpayment']- $this->data['grandtotalandpayment']['totalweaver'];
                    
                             $this->data['studentrelation'] = $studentrelation;

@@ -92,7 +92,7 @@
                                             <?php echo $student->phone; ?>
                                         </td>
                                         <td data-title="<?=$this->lang->line('studentreport_phone')?>">
-                                            <?php echo $student->address; ?>
+                                            <?php echo $student->village_name; ?>
                                         </td>
                                    </tr>
                                 <?php $i++; } ?>

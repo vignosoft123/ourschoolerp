@@ -1247,6 +1247,7 @@ class Student extends Admin_Controller
 			if ((int)$studentID && (int)$url) {
 				$this->data['classes'] = $this->classes_m->get_classes();
 				$this->data['student'] = $objStudent = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+				// echo "<pre>";print_r($this->data['student']);die;
 				$this->data['parents']  = $this->parents_m->get_parents();
 				$this->data['studentgroups'] = $this->studentgroup_m->get_studentgroup();
 				$this->data['villages'] = $this->village_m->get_active_villages();

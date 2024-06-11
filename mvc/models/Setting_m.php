@@ -35,11 +35,12 @@
             return $compress;
         }
 
-        public function get_setting_where( $data )
+        public function get_setting_where($data)
         {
             $this->db->where('fieldoption', $data);
             $query = $this->db->get('setting');
-            return $query->row();
+            // echo $this->db->last_query();die;
+            return $query->row_array();
         }
 
         public function insertorupdate( $arrays )

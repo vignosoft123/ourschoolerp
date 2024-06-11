@@ -227,7 +227,16 @@
                             </table>
                         </div>
 
-                        <?php if(customCompute($invoices)) { ?>
+                        <?php if(customCompute($invoices)) { 
+                            
+                           $usertype = $this->session->userdata("usertype");
+                            if($usertype == 'Accountant'){
+                                $accountant = "d-none";
+                            }else{
+                                $accountant = "";
+                                
+                            }
+                            ?>
 
                             <div class="col-sm-12" style="padding-left: 0px; padding-right: 0px;">
                                 <div class="table-responsive" style="margin-top:10px !important">
@@ -239,8 +248,8 @@
                                                 <td><?=$this->lang->line('global_fees_amount')?></td>
                                                 <td><?=$this->lang->line('global_due')?></td>
                                                 <td><?=$this->lang->line('global_paid_amount')?></td>
-                                                <td><?=$this->lang->line('global_weaver')?></td>
-                                                <td><?=$this->lang->line('global_fine')?></td>
+                                                <td class="<?= $accountant?>"><?=$this->lang->line('global_weaver')?></td>
+                                                <td class="<?= $accountant?>"><?=$this->lang->line('global_fine')?></td>
                                             </tr>
                                         </thead>
 
@@ -294,7 +303,7 @@
                                                                     }
                                                                 ?>
                                                             </td>
-                                                            <td style="width:10%">
+                                                            <td style="width:10%" class="<?= $accountant?>">
                                                                 <?php
                                                                     if($due == 0 || $due < 0) {
                                                                         echo '';
@@ -304,7 +313,7 @@
                                                                     }
                                                                 ?>
                                                             </td>
-                                                            <td style="width:10%">
+                                                            <td style="width:10%" class="<?= $accountant?>">
                                                                 <?php
                                                                     if($due == 0 || $due < 0) {
                                                                         echo '';
@@ -321,8 +330,8 @@
                                                     <td><b><?=$this->lang->line('global_total')?></b></td>
                                                     <td><?=$total?></td>
                                                     <td><?=$totalDue?></td>
-                                                    <td id="set_paid_amount">0</td>
-                                                    <td id="set_weaver">0</td>
+                                                    <td id="set_paid_amount" class="<?= $accountant?>">0</td>
+                                                    <td id="set_weaver" class="<?= $accountant?>">0</td>
                                                     <td id="set_fine">0</td>
                                                 </tr>
 
@@ -411,8 +420,8 @@
                         }
 
                         .assign-fee-payment .logo {
-                          height: 50px;
-                          width: 50px;
+                          height: 80px;
+                          width: 80px;
                           text-align: center;
                           margin-left: auto;
                           margin-right: auto;
@@ -421,8 +430,8 @@
                         }
 
                         .assign-fee-payment .header .logo img {
-                            height: 50px;
-                            width: 50px;
+                            height: 80px;
+                            width: 80px;
                         }
 
                         .assign-fee-payment .title {
@@ -567,6 +576,12 @@
                                         <?php } ?>
                                     <?php } } } ?>
 
+                                    <tr>
+                                                    <td class="pull-right" colspan="4"><?= convert_number($paymentedPaidAmount+$paymentedFineAmount, 2). ' Ruppes Only'?>
+                                                    <!-- <span class="pull-right"><b><?=$this->lang->line('invoice_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?></b></span> -->
+                                                </td>
+                                                </tr>
+
                                     <?php $paymentedFineAmount = 0; $paymentedFineStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
                                         <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
                                             <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->fine > 0 ) { $paymentedFineStatus = TRUE; ?>
@@ -635,7 +650,12 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')"><?=$this->lang->line('global_print')?></button>
+                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Student Copy Print</button>
+
+                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Office Copy Print</button>
+
+                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Both</button>
+
                     <button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
                 </div>
 
@@ -688,8 +708,8 @@
                                 }
 
                                 .assign-fee-payment .logo {
-                                  height: 50px;
-                                  width: 50px;
+                                  height: 80px;
+                                  width: 80px;
                                   text-align: center;
                                   margin-left: auto;
                                   margin-right: auto;
@@ -698,8 +718,8 @@
                                 }
 
                                 .assign-fee-payment .header .logo img {
-                                    height: 50px;
-                                    width: 50px;
+                                    height: 80px;
+                                    width: 80px;
                                 }
 
                                 .assign-fee-payment .title {
@@ -774,7 +794,128 @@
                                   border-top: 1px solid #eee;
                                 }
                             </style>
-                            <div class="modal-body" >
+                            <div class="modal-body" id="printDiv-submit-student-<?=$globalpayment->globalpaymentID?>">
+
+                                <style type="text/css">
+                                    .assign-fee-payment .table {
+                                        width: 100%;
+                                        margin-bottom: 20px;
+                                    }
+                                    .assign-fee-payment table {
+                                        font-size: 12px;
+                                        max-width: 100%;
+                                        background-color: transparent;
+                                    }
+                                    .assign-fee-payment table {
+                                        border-collapse: collapse;
+                                        border-spacing: 0;
+                                    }
+    
+                                    .assign-fee-payment .table > thead > tr > th {
+                                        vertical-align: bottom;
+                                        border-bottom: 2px solid #ddd;
+                                    }
+    
+                                    .assign-fee-payment th {
+                                        text-align: left;
+                                    }
+    
+                                    .assign-fee-payment {
+                                      font-family: sans-serif;
+                                      background-color: #fff !important; 
+                                      border: 1px solid #ccc;
+                                      color: #000;
+                                      padding: 10px;
+                                    }
+    
+                                    .assign-fee-payment .logo {
+                                      height: 80px;
+                                      width: 80px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .header .logo img {
+                                        height: 80px;
+                                        width: 80px;
+                                    }
+    
+                                    .assign-fee-payment .title {
+                                      font-size: 16px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .title-desc {
+                                      font-size: 14px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .info td {
+                                      border-top: none !important;
+                                      font-size: 12px;
+                                      color: #000;
+                                     }
+    
+                                    .assign-fee-payment th, .assign-fee-payment td {
+                                      padding: 1px !important;
+                                    }
+    
+                                    .assign-fee-payment th {
+                                      background-color: #ccc !important;
+                                      padding: 1px !important;
+                                    }
+    
+                                    .assign-fee-payment .textright {
+                                      text-align: right;
+                                    }
+    
+                                    .assign-fee-payment .boldandred {
+                                      font-weight: bold;
+                                      color: red !important;
+                                    }
+    
+                                    .assign-fee-payment .footer .logo {
+                                      width: 20px;
+                                      height: 20px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .footer .logo img {
+                                        height: 20px;
+                                        width: 20px;
+                                    }
+    
+                                    .assign-fee-payment .copyright {
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                      font-size: 12px;
+                                    }
+    
+                                    .assign-fee-payment hr {
+                                      margin-top: 5px;
+                                      margin-bottom: 5px;
+                                      border-top: 1px solid #eee;
+                                    }
+                                </style>
+
                                 <div class="assign-fee-payment">
 
                                     <table width="100%" style="text-align:center">
@@ -784,8 +925,8 @@
                                                     if($siteinfos->photo) {
                                                         $array = array(
                                                             "src" => base_url('uploads/images/'.$siteinfos->photo),
-                                                            'width' => '50px',
-                                                            'height' => '50px',
+                                                            'width' => '100px;',
+                                                            'height' => '80px;',
                                                             // "style" => "margin-right:0px;"
                                                         );
                                                         echo img($array);
@@ -876,6 +1017,12 @@
                                                 <?php } ?>
                                             <?php } } } ?>
 
+                                            <tr>
+                                                    <td class="pull-right" colspan="4"><?= convert_number($paymentedPaidAmount+$paymentedFineAmount, 2). ' Ruppes Only'?>
+                                                    <!-- <span class="pull-right"><b><?=$this->lang->line('invoice_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?></b></span> -->
+                                                </td>
+                                            </tr>
+
                                             <?php $paymentedFineAmount = 0; $paymentedFineStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
                                                 <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
                                                     <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->fine > 0 ) { $paymentedFineStatus = TRUE; ?>
@@ -939,8 +1086,131 @@
                                     </div>
 
                                 </div>
+                            </div>
 
                                 <!-- office copy start -->
+
+                            <div class="modal-body" id="printDiv-submit-office-<?=$globalpayment->globalpaymentID?>">
+
+                                <style type="text/css">
+                                    .assign-fee-payment .table {
+                                        width: 100%;
+                                        margin-bottom: 20px;
+                                    }
+                                    .assign-fee-payment table {
+                                        font-size: 12px;
+                                        max-width: 100%;
+                                        background-color: transparent;
+                                    }
+                                    .assign-fee-payment table {
+                                        border-collapse: collapse;
+                                        border-spacing: 0;
+                                    }
+    
+                                    .assign-fee-payment .table > thead > tr > th {
+                                        vertical-align: bottom;
+                                        border-bottom: 2px solid #ddd;
+                                    }
+    
+                                    .assign-fee-payment th {
+                                        text-align: left;
+                                    }
+    
+                                    .assign-fee-payment {
+                                      font-family: sans-serif;
+                                      background-color: #fff !important; 
+                                      border: 1px solid #ccc;
+                                      color: #000;
+                                      padding: 10px;
+                                    }
+    
+                                    .assign-fee-payment .logo {
+                                      height: 80px;
+                                      width: 80px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .header .logo img {
+                                        height: 80px;
+                                        width: 80px;
+                                    }
+    
+                                    .assign-fee-payment .title {
+                                      font-size: 16px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .title-desc {
+                                      font-size: 14px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .info td {
+                                      border-top: none !important;
+                                      font-size: 12px;
+                                      color: #000;
+                                     }
+    
+                                    .assign-fee-payment th, .assign-fee-payment td {
+                                      padding: 1px !important;
+                                    }
+    
+                                    .assign-fee-payment th {
+                                      background-color: #ccc !important;
+                                      padding: 1px !important;
+                                    }
+    
+                                    .assign-fee-payment .textright {
+                                      text-align: right;
+                                    }
+    
+                                    .assign-fee-payment .boldandred {
+                                      font-weight: bold;
+                                      color: red !important;
+                                    }
+    
+                                    .assign-fee-payment .footer .logo {
+                                      width: 20px;
+                                      height: 20px;
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                    }
+    
+                                    .assign-fee-payment .footer .logo img {
+                                        height: 20px;
+                                        width: 20px;
+                                    }
+    
+                                    .assign-fee-payment .copyright {
+                                      text-align: center;
+                                      margin-left: auto;
+                                      margin-right: auto;
+                                      margin-bottom: 0px;
+                                      margin-top: 0px;
+                                      font-size: 12px;
+                                    }
+    
+                                    .assign-fee-payment hr {
+                                      margin-top: 5px;
+                                      margin-bottom: 5px;
+                                      border-top: 1px solid #eee;
+                                    }
+                                </style>
 
                                 <div class="assign-fee-payment">
 
@@ -951,8 +1221,8 @@
                                                     if($siteinfos->photo) {
                                                         $array = array(
                                                             "src" => base_url('uploads/images/'.$siteinfos->photo),
-                                                            'width' => '50px',
-                                                            'height' => '50px',
+                                                            'width' => '100px;',
+                                                            'height' => '80px;',
                                                             // "style" => "margin-right:0px;"
                                                         );
                                                         echo img($array);
@@ -971,12 +1241,6 @@
                                         </tr>
                                         
                                     </table>
-    
-    
-    
-    
-    
-    
      
                                         <hr>
     
@@ -1015,6 +1279,8 @@
                                                                 <th><?=$this->lang->line('global_fees_name')?></th>
                                                                 <th class="textright"><?=$this->lang->line('global_amount')?></th>
                                                             </tr>
+
+                                                            
                                                         <?php break; } ?>
                                                     <?php } ?>
                                                 <?php } } ?>
@@ -1049,6 +1315,12 @@
                                                         <?php break; } ?>
                                                     <?php } ?>
                                                 <?php } } } ?>
+
+                                                <tr>
+                                                    <td class="pull-right" colspan="4"><?= convert_number($paymentedPaidAmount+$paymentedFineAmount, 2). ' Ruppes Only'?>
+                                                    <!-- <span class="pull-right"><b><?=$this->lang->line('invoice_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?></b></span> -->
+                                                </td>
+                                                </tr>
     
                                                 <?php $paymentedFineAmount = 0; $paymentedFineStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
                                                     <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
@@ -1103,6 +1375,10 @@
                                                         <td class="boldandred textright"><?=$paymentedWeaverAmount?></td>
                                                     </tr>
                                                 <?php } ?>
+
+                                                <tr>
+                                                   
+                                                </tr>
                                             </tbody>
                                         </table>
     
@@ -1112,14 +1388,19 @@
                                             <p class="copyright"><?=$siteinfos->footer?> | <?=$this->lang->line('global_hotline')?> : <?=$siteinfos->phone?></p>
                                         </div>
     
-                                    </div>
-                                    <!-- office copy end -->
+                                </div>
+                                    
                             </div>
-
+                        <!-- office copy end -->
                         </div>
 
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-submit-<?=$globalpayment->globalpaymentID?>')"><?=$this->lang->line('global_print')?></button>
+                            <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-submit-student-<?=$globalpayment->globalpaymentID?>')">Student Copy</button>
+
+                            <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-submit-office-<?=$globalpayment->globalpaymentID?>')">Office Copy</button>
+
+                            <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-submit-<?=$globalpayment->globalpaymentID?>')">Both(student & office)</button>
+
                             <button type="button" class="btn btn-default flashClose" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
                         </div>
 
@@ -1145,11 +1426,12 @@ $('.select2').select2();
 
 function printDiv(divID) {
     var data = $('#'+divID).html();
+    console.log(data);
 
     var myWindow = window.open("", "_blank", "width=600,height=auto");
     myWindow.document.write(data);
     myWindow.print();
-    myWindow.close();
+    // myWindow.close();
 }
     
 $("#classesID").change(function() {
