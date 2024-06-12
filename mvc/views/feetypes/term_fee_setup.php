@@ -56,8 +56,11 @@
 
         <div id="hide-table">
             <input type="hidden" id="class_id" value="<?= $set_classes?>">
+            <div id="e_msg" class="color-green "> 
+                                    </div>
                     <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
                         <thead>
+                           
                             <tr>
                                 <th width="2%" class="col-sm-2"><?=$this->lang->line('slno')?></th>
                                 <th class="col-sm-2">Section</th>
@@ -93,18 +96,23 @@
                                        $term1_fee= $fee_res['term1_fee'];
                                        $term2_fee= $fee_res['term2_fee'];
                                        $term3_fee= $fee_res['term3_fee'];
+
+                                       $term1_due_date= $fee_res['term1_due_date'];
+                                       $term2_due_date= $fee_res['term2_due_date'];
+                                       $term3_due_date= $fee_res['term3_due_date'];
+
                                        $sf_id = $fee_res['id'];
                                     }
                                     ?>
 
-                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term1_fee?>"></td>
-                                    <td><input type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term1_due_date?>"></td>
+                                    <td><input fee_type="term1_fee" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term1_fee?>"></td>
+                                    <td><input fee_type="term1_due_date" type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term1_due_date?>"></td>
 
-                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term2_fee?>"></td>
-                                    <td><input type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term2_due_date?>"></td>
+                                    <td><input fee_type="term2_fee" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term2_fee?>"></td>
+                                    <td><input fee_type="term2_due_date" type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term2_due_date?>"></td>
 
-                                    <td><input vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term3_fee?>"></td>
-                                    <td><input type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term3_due_date?>"></td>
+                                    <td><input fee_type="term3_fee" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term3_fee?>"></td>
+                                    <td><input fee_type="term3_due_date" type="date" vid="<?= $sf_id?>" section_id="<?= $sec->sectionID?>" id="" class="school_fee" value="<?= $term3_due_date?>"></td>
                                 
                   
                                      
@@ -128,16 +136,22 @@
         var my_value = $(this).val();
         var class_id = $("#class_id").val();
 
+        var fee_type = $(this).attr('fee_type'); 
         
         $.ajax({
-        url : "<?php echo site_url('Feetypes/update_school_fee'); ?>",
+        url : "<?php echo site_url('Feetypes/update_term_fee'); ?>",
         type : "POST",
         cache:false,  
-        data: {vid:vid,section_id:section_id,class_id:class_id,my_value:my_value},
+        data: {vid:vid,section_id:section_id,class_id:class_id,my_value:my_value,fee_type:fee_type},
         dataType: "json", 
         success : function(resp) {
+
+            // $("#edit_id").val(resp);            
             location.reload();
             // var obj = JSON.parse(resp); 
+            $("#e_msg").fadeIn(500);
+            $("#e_msg").html("Updated Successfully");
+            $("#e_msg").fadeOut(5000);
             
         }  
         });

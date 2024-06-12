@@ -255,6 +255,43 @@ class Feetypes extends Admin_Controller {
 	}
 
 
+	public function update_term_fee(){ 
+		$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+
+		$vid = $_POST['vid'];
+		
+		$section_id = $_POST['section_id'];
+		$class_id = $_POST['class_id'];
+
+		$fee_type =$_POST['fee_type'];
+		
+		if($fee_type == 'term1_due_date' || $fee_type == 'term2_due_date' || $fee_type == 'term3_due_date'){
+			$fee_amount = date("Y-m-d",strtotime($_POST['my_value']));
+		}else{
+			$fee_amount = $_POST['my_value'];
+		}
+
+		if(!empty($vid)){
+			$data = array( 
+				$fee_type => $fee_amount, 
+			);
+			$this->db->where('id',$vid);
+			$this->db->update('term_fees',$data);
+			$sf_id = $vid;
+		}else{
+			$data = array(
+				'section_id' => $section_id,
+				'class_id' => $class_id,
+				$fee_type => $fee_amount,
+				'year_id' => $schoolyearID
+			);
+			$this->db->insert('term_fees',$data);
+			$sf_id = $this->db->insert_id();
+		}
+		//  echo $this->db->last_query();die;
+		echo $sf_id;
+	}
+
 
 	public function term_fee_setup()
 	{
