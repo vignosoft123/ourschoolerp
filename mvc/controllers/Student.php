@@ -1120,7 +1120,8 @@ class Student extends Admin_Controller
 					//code for auto invoice generation 
 					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
 
-					if(!empty($is_auto_invoice) && $is_auto_invoice->value == 1 ){
+					// echo $is_auto_invoice['value'] ; die;
+				if(!empty($is_auto_invoice) && $is_auto_invoice['value'] == 1 ){ //school fee invoice
 					$class_id = $this->input->post("classesID");
 					$section_id = $this->input->post("sectionID");
 					$year_id = $this->session->userdata('defaultschoolyearID');
@@ -1207,6 +1208,149 @@ class Student extends Admin_Controller
 						'totalpaidamount' => 0,
 						'editID' => 0,
 					);
+
+					$invoice_error = $this->saveinvoice($invoice_data);
+					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
+
+				}else if(!empty($is_auto_invoice) && $is_auto_invoice['value'] == 2 ){ //term fee invoice
+					$class_id = $this->input->post("classesID");
+					$section_id = $this->input->post("sectionID");
+					$year_id = $this->session->userdata('defaultschoolyearID');
+
+
+					if($this->input->post('studentType') == 1){//transport
+						$pickup_id = $this->input->post("pickup_id");
+						$this->db->where('id',$pickup_id);
+						$p_res = $this->db->get('pickup_points')->row_array();
+						$p_amount = $p_res['fare'];
+					}else if($this->input->post('studentType') == 2){ //hostel
+						$hostelID = $this->input->post("hostelID");
+						$categoryID = $this->input->post("categoryID");
+						$this->db->where('categoryID',$categoryID);
+						$this->db->where('hostelID',$hostelID);
+						$p_res = $this->db->get('category')->row_array();
+						$h_amount = $p_res['hbalance'];
+					}
+
+					$term1_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term1 Fee' ")->row_array();
+					$term2_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term2 Fee' ")->row_array();
+					$term3_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term3 Fee' ")->row_array();
+
+					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+
+					$term_res = $this->db->query("SELECT * FROM `term_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
+					
+					$term1 = $term_res['term1_fee'];
+					$term2 = $term_res['term2_fee'];
+					$term3 = $term_res['term3_fee'];
+
+					$subtotal_amount =$term1+$term2+$term3;
+
+					if($this->input->post('studentType') == 3){ //dayscolar
+						
+
+						$fee_types = [
+							array(	//term1
+							'feetypeID' => $term1_fee_type['feetypesID'],
+							'amount' => $term1,
+							'discount' => "",
+							'subtotal' => $term1,
+							'paidamount' => "",
+						),array(	//term2
+							'feetypeID' => $term2_fee_type['feetypesID'],
+							'amount' => $term2,
+							'discount' => "",
+							'subtotal' => $term2,
+							'paidamount' => "",
+						),array(	//term3
+							'feetypeID' => $term3_fee_type['feetypesID'],
+							'amount' => $term3,
+							'discount' => "",
+							'subtotal' => $term3,
+							'paidamount' => "",
+						)
+					];
+						
+					}else if($this->input->post('studentType') == 1){ //trasport
+						$fee_types = [
+							array(	//term1
+								'feetypeID' => $term1_fee_type['feetypesID'],
+								'amount' => $term1,
+								'discount' => "",
+								'subtotal' => $term1,
+								'paidamount' => "",
+							),array(	//term2
+								'feetypeID' => $term2_fee_type['feetypesID'],
+								'amount' => $term2,
+								'discount' => "",
+								'subtotal' => $term2,
+								'paidamount' => "",
+							),array(	//term3
+								'feetypeID' => $term3_fee_type['feetypesID'],
+								'amount' => $term3,
+								'discount' => "",
+								'subtotal' => $term3,
+								'paidamount' => "",
+							),array(	//transport
+							'feetypeID' => $fee_type_trasport['feetypesID'],
+							'amount' => $p_amount,
+							'discount' => "",
+							'subtotal' => $p_amount,
+							'paidamount' => "",
+						)
+					];
+						
+					}if($this->input->post('studentType') == 2){ //hostel
+						$fee_types = [
+							array(	//term1
+								'feetypeID' => $term1_fee_type['feetypesID'],
+								'amount' => $term1,
+								'discount' => "",
+								'subtotal' => $term1,
+								'paidamount' => "",
+							),array(	//term2
+								'feetypeID' => $term2_fee_type['feetypesID'],
+								'amount' => $term2,
+								'discount' => "",
+								'subtotal' => $term2,
+								'paidamount' => "",
+							),array(	//term3
+								'feetypeID' => $term3_fee_type['feetypesID'],
+								'amount' => $term3,
+								'discount' => "",
+								'subtotal' => $term3,
+								'paidamount' => "",
+							),array(	//hostel
+							'feetypeID' => $fee_type_hostel['feetypesID'],
+							'amount' => $h_amount,
+							'discount' => "",
+							'subtotal' => $h_amount,
+							'paidamount' => "",
+						)
+					];
+					}
+ 					
+					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
+					
+
+
+					$json_fee_types = json_encode($fee_types);
+					// echo "<pre>";print_r($json_fee_types);die;
+					$invoice_data = array(
+						'classesID' => $this->input->post("classesID"),
+						'sectionID' =>$this->input->post("sectionID"),
+						'studentID' => $studentID,
+						'date' => date('d-m-Y'),
+						'statusID' => 0,
+						'payment_method' => 0,
+						// 'feetypeitems' => '['.$json_fee_types.']',
+						'feetypeitems' => $json_fee_types,
+						'totalsubtotal' => $subtotal_amount,
+						'totalpaidamount' => 0,
+						'editID' => 0,
+					);
+					// echo "<pre>";print_r($invoice_data);die;
 
 					$invoice_error = $this->saveinvoice($invoice_data);
 					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));

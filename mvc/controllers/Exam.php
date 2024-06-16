@@ -31,7 +31,9 @@
 
         public function index()
         {
-            $this->data['exams']   = $this->exam_m->get_order_by_exam();
+            $this->db->query("UPDATE `exam` SET `academic_year` = 1 WHERE academic_year is NULL"); //for already existing data
+            $array["academic_year"] = $this->session->userdata('defaultschoolyearID');
+            $this->data['exams']   = $this->exam_m->get_order_by_exam($array);
             $this->data["subview"] = "exam/index";
             $this->load->view('_layout_main', $this->data);
         }
@@ -68,6 +70,7 @@
                     $array["exam"] = $this->input->post("exam");
                     $array["date"] = date("Y-m-d", strtotime($this->input->post("date")));
                     $array["note"] = $this->input->post("note");
+                    $array["academic_year"] = $this->session->userdata('defaultschoolyearID');
 
                     $this->exam_m->insert_exam($array);
                     $this->session->set_flashdata('success', $this->lang->line('menu_success'));

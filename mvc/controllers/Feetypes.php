@@ -23,6 +23,9 @@ class Feetypes extends Admin_Controller {
 	}
 
 	public function index() {
+
+		$this->auto_generate_term_fee_types();
+
 		$this->data['feetypes'] = $this->feetypes_m->get_feetypes();
 		$this->data["subview"] = "feetypes/index";
 		$this->load->view('_layout_main', $this->data);

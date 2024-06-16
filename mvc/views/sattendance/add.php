@@ -455,7 +455,12 @@
     });
     
 $(document).ready( function () {
-    $('#attendance_table').DataTable();
+    $('#attendance_table').DataTable(
+    {
+        "paging": false,       // Disable pagination
+        "pageLength": -1       // Show all records
+    }
+);
 } )
     
 

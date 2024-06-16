@@ -1355,4 +1355,29 @@ public function encryption_decryption($url=""){
     }
     //database migration end
 
+
+    
+    public function auto_generate_term_fee_types(){
+        // echo 'asdfsa';die;
+       $cnt = $this->db->query("select * from feetypes where feetypes like 'Term1 Fee' and note like 'Term1 Auto created - dont delete' ")->num_rows();
+       if($cnt == 0){
+            $fee_types = array(
+                array(
+                'feetypes' => 'Term1 Fee',
+                'note' => 'Term1 Auto created - dont delete'
+                ),
+                array(
+                    'feetypes' => 'Term2 Fee',
+                    'note' => 'Term2 Auto created - dont delete'
+                    ),
+                array(
+                    'feetypes' => 'Term3 Fee',
+                    'note' => 'Term3 Auto created - dont delete'
+                    ),
+            );
+            $this->db->insert_batch('feetypes', $fee_types); 
+       }
+       
+    }
+
 }
