@@ -599,6 +599,12 @@ class Global_payment extends Admin_Controller
                     }
                 }
 
+                // print_r($student);die;
+                $student->paidamount = $payment_array['paymentamount'];
+                $student->category = $invoice->feetype;
+                $student->phone = $student_info->phone;
+                $status = $this->userConfigSMS($student, $getway='msg91');
+
                 $this->session->set_flashdata('paymentGenerateStatus', TRUE);
                 $this->session->set_flashdata('paymentGenerateGlobalLastID', $globalLastID);
                 $this->session->set_flashdata('paymentGenerateLastStudentID', $studentID);
@@ -613,5 +619,65 @@ class Global_payment extends Admin_Controller
             exit;
         }
     }
+
+
+    
+    private function userConfigSMS($user, $getway='msg91') { 
+        // echo 'asdaa';die;
+        $this->load->model('mailandsmstemplate_m');
+		$this->load->model('mailandsmstemplatetag_m');
+        $cnt = $this->db->query("select * from setting where fieldoption ='is_fee_sms' and value='1' ")->num_rows();
+        // echo $cnt;die;
+        if($cnt > 0){
+	    $template_id = 0;
+        $template = $this->mailandsmstemplate_m->get_mailandsmstemplate(5);
+        $template_id = $template->templ_id;
+        $message = $template->template;
+		if($user) {
+			$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
+			$message = $this->tagConvertor($userTags, $user, $message, 'SMS');
+			if($user->phone) {
+				$send = $this->allgetway_send_message($getway, $user->phone, $message, $template_id);
+			} else {
+				// $send = array('check' => TRUE);
+				// return $send;
+			}
+		}
+    }
+	}
+	
+	private function tagConvertor($userTags, $user, $message, $sendType) { 
+		if(customCompute($userTags)) {
+		    $this->load->model('setting_m');
+		    $this->data['setting'] = $this->setting_m->get_setting();
+		    $school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
+			foreach ($userTags as $key => $userTag) {
+				if($userTag->tagname == '{{paid_amount}}') {
+					if($user->paidamount) {
+						$message = str_replace('{{paid_amount}}', $user->paidamount, $message);
+					} else {
+						$message = str_replace('{{paid_amount}}', ' ', $message);
+					}
+				} elseif($userTag->tagname == '{{category}}') {
+					if($user->category) {
+						$message = str_replace('{{category}}', $user->category, $message);
+					} else {
+						$message = str_replace('{{category}}', ' ', $message);
+					}
+				}
+				elseif($userTag->tagname == '{{school_name}}') {
+					$message = str_replace("{{school_name}}", $school_name, $message);
+				}
+			}
+		}
+		return $message;
+	}
+	
+	private function allgetway_send_message($getway, $to, $message, $template_id=0) {
+		$res = $this->msg91->send($to, $message, $template_id);
+	}
+
+
+
 }
 
