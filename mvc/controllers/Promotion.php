@@ -608,14 +608,14 @@ class Promotion extends Admin_Controller
                         $prev_sec_name = $prev_res['srsection'];
 
                         $new_sec_id_res = $this->db->query("select sectionID from section where section = '$prev_sec_name' and classesID= $setClassesID ")->row_array();
-                        if(count($new_sec_id_res) > 0){
+                        if(is_array($new_sec_id_res) && count($new_sec_id_res) > 0){
                             $new_sec_id = $new_sec_id_res['sectionID'];
                         }else{  //create new section if not exists in new academic year
 
                             $s_sql = "select * from section where section = '$prev_sec_name' ";
                             $section_res = $this->db->query($s_sql)->row_array();
 
-                            $array = array(
+                            $array1 = array(
                                 "section" => $prev_sec_name,
                                 "category" => $section_res['category'],
                                 "capacity" => $section_res['capacity'],
@@ -629,7 +629,7 @@ class Promotion extends Admin_Controller
                                 "create_usertype" => $this->session->userdata('usertype')
                             );
             
-                            $this->section_m->insert_section($array);
+                            $this->section_m->insert_section($array1);
                             $new_sec_id = $last_section_id = $this->db->insert_id();
                             
                         }

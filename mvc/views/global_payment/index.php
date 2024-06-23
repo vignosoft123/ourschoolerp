@@ -1078,6 +1078,9 @@
                                             <?php } ?>
                                         </tbody>
                                     </table>
+                                    <div class="pull-right"> <?= 'Balance Amount :'.$totalDue?></div>
+                                    <hr>
+                                    <div>Cashier Signature</div>
 
                                     <hr>
                                     <div class="footer">
@@ -1271,7 +1274,8 @@
     
                                         <table class="table">
                                             <thead>
-                                                <?php if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                <?php if(customCompute($paymenteds)) {
+                                                     foreach ($paymenteds as $paymented) { ?>
                                                     <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
                                                         <?php if($paymented->paymentamount > 0) { ?>
     
@@ -1286,7 +1290,8 @@
                                                 <?php } } ?>
                                             </thead>
                                             <tbody>
-                                                <?php $paymentedPaidAmount = 0; $paymentedPaidStatus = FALSE; if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                                <?php $paymentedPaidAmount = 0; $paymentedPaidStatus = FALSE; if(customCompute($paymenteds)) { 
+                                                    foreach ($paymenteds as $paymented) { ?>
                                                     <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
                                                         <?php if($paymented->paymentamount > 0) { $paymentedPaidStatus = TRUE; ?>
                                                             <?php $paymentedPaidAmount += $paymented->paymentamount; ?>
@@ -1377,11 +1382,14 @@
                                                 <?php } ?>
 
                                                 <tr>
-                                                   
                                                 </tr>
                                             </tbody>
                                         </table>
-    
+                                        <div class="pull-right"> <?= 'Balance Amount :'.$totalDue?></div>
+                                        <hr>
+                                        <div>Cashier Signature</div>
+
+
                                         <hr>
                                         <div class="footer">
                                             <p class="logo"><img src="<?=base_url("uploads/images/$siteinfos->photo")?>"></p>

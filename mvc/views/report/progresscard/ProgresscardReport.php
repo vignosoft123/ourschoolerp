@@ -238,7 +238,7 @@
                             </div>
 
                             <div class="school-address">
-                                <!-- <h4><b><?php //echo $siteinfos->sname?></b></h4> -->
+                               
                                 <p> <span class="text-green"><?=$siteinfos->address?></span></p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_phone')?></span> : <?=$siteinfos->phone?></p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_email')?></span> : <?=$siteinfos->email?></p>
