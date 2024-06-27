@@ -244,6 +244,7 @@ class Mailandsms extends Admin_Controller {
 	}
 
 	public function errors() {
+		$this->db->order_by('id','desc');
 		$this->data['errors'] = $this->db->get('sms_error_logs')->result(); 
 		$this->data["subview"] = "mailandsms/errors";
 		$this->load->view('_layout_main', $this->data);

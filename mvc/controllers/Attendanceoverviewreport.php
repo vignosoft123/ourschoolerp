@@ -16,6 +16,8 @@ class Attendanceoverviewreport extends Admin_Controller {
 		$this->load->model("uattendance_m");
 		$language = $this->session->userdata('lang');
 		$this->lang->load('attendanceoverviewreport', $language);
+
+		$this->load->database();
 	}
 
 	public function rules($usertype) {
@@ -1051,5 +1053,40 @@ class Attendanceoverviewreport extends Admin_Controller {
 		}
 		return $retArray;
 	}
+
+public function get_biomatric_report(){
+	$sql = "select t.teacherID,t.name,t.designation,t.phone,b.rfid, date, min(time) min, nullif(max(time), min(time)) max from biometric b left join teacher t on t.rfid=b.rfid where 1";
+
+	if(!empty($_POST['teacher_id'])){
+		$sql .= " and t.teacherID =".$_POST['teacher_id'];
+	}
+	if(!empty($_POST['fromdate']) && !empty($_POST['todate'])){
+		$fdate = date("Y-m-d",strtotime($_POST['fromdate']));
+		$tdate = date("Y-m-d",strtotime($_POST['todate']));
+		$sql .= " and date >='".$fdate."' and date <='".$tdate."'";
+	}else if(!empty($_POST['fromdate']) && empty($_POST['todate'])){
+		$fdate = date("Y-m-d",strtotime($_POST['fromdate']));
+		//$tdate = date("Y-m-d",strtotime($_POST['todate']));
+		$sql .= " and date ='".$fdate."' ";
+	}else if(empty($_POST['fromdate']) && !empty($_POST['todate'])){
+		$fdate = date("Y-m-d",strtotime($_POST['todate']));
+		//$tdate = date("Y-m-d",strtotime($_POST['todate']));
+		$sql .= " and date ='".$fdate."' ";
+	}
+	$sql .= " group by b.rfid, date ";
+		//echo $sql;die;
+	//$result = $this->db->query($sql);
+
+// if ($result !== false) { 
+//     $result_array = $result->result_array();
+//     print_r($result_array);
+// } else {
+//     print_r($this->db->error());  // Output the database error for debugging
+// }
+
+	$data['result'] = $this->db->query($sql)->result_array();
+	$html = $this->load->view('report/biomatric_report',$data,true);
+	echo $html;
+}
 
 }

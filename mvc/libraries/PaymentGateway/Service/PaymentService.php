@@ -253,6 +253,7 @@ class PaymentService
 		if($user) {
 			$userTags = $this->ci->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
 			$message = $this->tagConvertor($userTags, $user, $message, 'SMS');
+            // 			echo $message;die;
 			if($user->phone) {
 				$send = $this->allgetway_send_message($getway, $user->phone, $message, $template_id);
 			} else {
@@ -264,6 +265,7 @@ class PaymentService
 	}
 	
 	private function tagConvertor($userTags, $user, $message, $sendType) {
+	   // echo "<pre>";print_r($user);die;
 		if(customCompute($userTags)) {
 		    $this->ci->load->model('setting_m');
 		    $this->data['setting'] = $this->ci->setting_m->get_setting();
@@ -284,6 +286,9 @@ class PaymentService
 				}
 				elseif($userTag->tagname == '{{school_name}}') {
 					$message = str_replace("{{school_name}}", $school_name, $message);
+				}
+				elseif($userTag->tagname == '{{student_name}}') {
+					$message = str_replace("{{student_name}}",$user->srname, $message);
 				}
 			}
 		}

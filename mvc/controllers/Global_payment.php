@@ -31,6 +31,7 @@ class Global_payment extends Admin_Controller
         $this->load->model('studentrelation_m');
         $language = $this->session->userdata('lang');
         $this->lang->load('global_payment', $language);
+        $this->load->library("msg91");
     }
 
     protected function rules()
@@ -499,10 +500,13 @@ class Global_payment extends Admin_Controller
 
                     $insertPaymentIDS = [];
                     if(customCompute($payments)) {
+                        $entered_payment  = 0;
                         foreach($payments as $payment) {
                             $this->payment_m->insert_payment($payment);
                             $paymentID = $this->db->insert_id();
                             $insertPaymentIDS[$payment['invoiceID']] = $paymentID;
+
+                            $entered_payment += $payment['paymentamount'];
                         }
                         $retArray['status'] = TRUE;
                     }
@@ -599,17 +603,18 @@ class Global_payment extends Admin_Controller
                     }
                 }
 
-                // print_r($student);die;
-                $student->paidamount = $payment_array['paymentamount'];
+                // print_r($entered_payment);die;
+                $student->paidamount = $entered_payment;
                 $student->category = $invoice->feetype;
-                $student->phone = $student_info->phone;
-                $status = $this->userConfigSMS($student, $getway='msg91');
+                // $student->phone = $student_info->phone;
+                $sms_status = $this->userConfigSMS($student, $getway='msg91');
 
                 $this->session->set_flashdata('paymentGenerateStatus', TRUE);
                 $this->session->set_flashdata('paymentGenerateGlobalLastID', $globalLastID);
                 $this->session->set_flashdata('paymentGenerateLastStudentID', $studentID);
                 $this->session->set_flashdata('success', $this->lang->line('menu_success'));
 
+                $retArray['sms_resp'] = $sms_status;
                 echo json_encode($retArray);
                 exit;
             }
@@ -633,6 +638,7 @@ class Global_payment extends Admin_Controller
         $template = $this->mailandsmstemplate_m->get_mailandsmstemplate(5);
         $template_id = $template->templ_id;
         $message = $template->template;
+        // print_r($user);die;
 		if($user) {
 			$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
 			$message = $this->tagConvertor($userTags, $user, $message, 'SMS');
@@ -643,6 +649,7 @@ class Global_payment extends Admin_Controller
 				// return $send;
 			}
 		}
+        return $send;
     }
 	}
 	
@@ -668,13 +675,17 @@ class Global_payment extends Admin_Controller
 				elseif($userTag->tagname == '{{school_name}}') {
 					$message = str_replace("{{school_name}}", $school_name, $message);
 				}
+                elseif($userTag->tagname == '{{student_name}}') {
+					$message = str_replace("{{student_name}}",$user->srname, $message);
+				}
 			}
 		}
 		return $message;
 	}
 	
-	private function allgetway_send_message($getway, $to, $message, $template_id=0) {
+	private function allgetway_send_message($getway, $to, $message, $template_id=0) { 
 		$res = $this->msg91->send($to, $message, $template_id);
+        return $res;
 	}
 
 

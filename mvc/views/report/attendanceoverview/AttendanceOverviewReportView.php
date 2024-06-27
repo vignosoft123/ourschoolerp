@@ -10,7 +10,11 @@
     <div class="box-body">
         <div class="row">
 
-            <div class="col-sm-12">
+        <div class="col-sm-12">
+            <button id="at_rpt"> Attendance Report</button>              
+            <button id="bio_rpt">Biomatric Report</button> 
+        </div>
+            <div class="col-sm-12" id="attendance_report">
                 <div class="form-group col-sm-4" id="usertypeDiv">
                     <label><?=$this->lang->line("attendanceoverviewreport_reportfor")?><span class="text-red"> * </span></label>
                     <?php
@@ -69,6 +73,37 @@
 
             </div>
 
+            <div class="col-sm-12" id="biomatric_report">
+                <div class="form-group col-sm-4" id="usertypeDiv">
+                    <label>Teacher</label>
+                    <?php
+                       $teachers = $this->db->get('teacher')->result_array();
+                         
+                     ?>
+                     <select name="teacher_id" id="teacher_id" class='form-control select2'>
+                        <option value="">Select</option>
+                        <?php foreach($teachers as $t){?>
+                            <option value="<?= $t['teacherID']?>"><?= $t['name']?></option>
+                         <?php }?>   
+                    </select>
+                </div>
+
+                <div class="form-group col-sm-4" id="fromdateDiv">
+                    <label for="fromdate" >From</label>
+                    <input type="text" name="fromdate" class="form-control" id="fromdate">
+                </div>
+                
+                <div class="form-group col-sm-4" id="todateDiv">
+                    <label>To</label>
+                    <input type="text" name="todate" class="form-control" id="todate">
+                </div>
+
+                <div class="col-sm-4">
+                    <button id="get_biomatric" class="btn btn-success" style="margin-top:23px;"> Get Biomatric Report</button>
+                </div>
+
+            </div>
+
         </div><!-- row -->
     </div><!-- Body -->
 </div><!-- /.box -->
@@ -121,7 +156,27 @@
         $("#monthDiv").hide("slow");
         $("#userDiv").hide("slow");
         $("#subjectDiv").hide("slow");
+
+        $("#biomatric_report").hide();
+        $("#attendance_report").hide();
+
+        
+    $("#at_rpt").click(function(){
+         
+        $("#biomatric_report").hide();
+        $("#attendance_report").show();
+    })
+
+    $("#bio_rpt").click(function(){
+         
+        $("#biomatric_report").show();
+        $("#attendance_report").hide();
+    })
+
     });
+
+
+
 
     $(document).on('change','#usertype', function() {
         $('#load_attendanceoverview_report').html('');
@@ -318,6 +373,8 @@
         });
     }
 
+  
+
     function renderLoder(response, passData) {
         if(response.status) {
             $('#load_attendanceoverview_report').html(response.render);
@@ -340,5 +397,45 @@
             }
         }
     }
+
+
+    $(document).bind('click', '#fromdate, #todate', function() {
+        
+        $('#fromdate').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+
+        $('#todate').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+    });
     
+
+    $(document).on("click","#get_biomatric",function(){
+        var field = {
+            'teacher_id'  : $('#teacher_id').val(),
+            'fromdate' : $('#fromdate').val(),
+            'todate' : $('#todate').val(), 
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('attendanceoverviewreport/get_biomatric_report')?>",
+            data: field,
+            dataType: "html",
+            success: function(data) {
+
+                $("#load_attendanceoverview_report").html(data);
+                // var response = JSON.parse(data);
+                // renderLoder(response, passData);
+            }
+        });
+    });
+
 </script>
