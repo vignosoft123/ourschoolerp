@@ -333,7 +333,7 @@
                                                         if(isset($markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID])) {
                                                             $mark = $markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID];
                                                         }
-                                                           $sql = "select eattendance from eattendance where studentID = $student->srstudentID and examID = $examID and sectionID = $student->srsectionID and subjectID = $mandatorySubject->subjectID"; 
+                                                           $sql = "select eattendance from mark where studentID = $student->srstudentID and examID = $examID and subjectID = $mandatorySubject->subjectID"; 
                                                           $exam_status = $this->db->query($sql)->row()->eattendance;
 
                                                         if($exam_status == 'Absent'){
@@ -341,8 +341,7 @@
                                                             echo '<span class="text-red">Absent</span>';
                                                         }else{
                                                             echo ($mark) ? $mark : 0;
-                                                        }
-
+                                                        } 
                                                         
                                                         $totalSubjectMark     += $mark;
                                                         $examTotalSubjectMark += $mark;

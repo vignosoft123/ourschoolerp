@@ -340,7 +340,9 @@
 </form>
 <!-- email end here -->
                                                         
-                                                            <?php  $my_template .= $subject->subject."=".$mrk."/".$subject->max_mark.",";
+                                                            <?php 
+                                                            $absent_or_mark = $mrk ? ($mrk."/".$subject->max_mark) : 'Ab';
+                                                            $my_template .= $subject->subject."=".$absent_or_mark.",";
                                                         }
                                                         }
                                                     }

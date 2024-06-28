@@ -12,7 +12,14 @@ class Exam_m extends MY_Model {
 	}
 
 	public function get_exam($array=NULL, $signal=FALSE) {
-		$query = parent::get($array, $signal);
+		$query = parent::get($array, $signal); 
+		return $query;
+	}
+
+	public function get_exam_academic($array=NULL) {
+ 
+		// $query = parent::get($array, $signal);
+		$query = parent::get_order_by($array);
 		return $query;
 	}
 

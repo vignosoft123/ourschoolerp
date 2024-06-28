@@ -82,13 +82,13 @@
                     <label><?=$this->lang->line("marksetting_mark_type")?>&nbsp; <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="bottom" title="Please select mark type"></i>
                     </label>
                     <?php
-                        $marktypeArray[0] = $this->lang->line('marksetting_global');
-                        $marktypeArray[1] = $this->lang->line('marksetting_class_wise');
+                        // $marktypeArray[0] = $this->lang->line('marksetting_global');
+                        // $marktypeArray[1] = $this->lang->line('marksetting_class_wise');
                         $marktypeArray[2] = $this->lang->line('marksetting_exam_wise');
-                        $marktypeArray[3] = $this->lang->line('marksetting_exam_wise_individual');
-                        $marktypeArray[4] = $this->lang->line('marksetting_subject_wise');
-                        $marktypeArray[5] = $this->lang->line('marksetting_class_exam_wise');
-                        $marktypeArray[6] = $this->lang->line('marksetting_class_exam_subject_wise');
+                        // $marktypeArray[3] = $this->lang->line('marksetting_exam_wise_individual');
+                        // $marktypeArray[4] = $this->lang->line('marksetting_subject_wise');
+                        // $marktypeArray[5] = $this->lang->line('marksetting_class_exam_wise');
+                        // $marktypeArray[6] = $this->lang->line('marksetting_class_exam_subject_wise');
                         echo form_dropdown("marktypeID", $marktypeArray, set_value("marktypeID", $siteinfos->marktypeID), "id='marktypeID' class='form-control select2'");
                     ?>
                     <span class="control-label">

@@ -67,6 +67,9 @@ class Marksetting_m extends MY_Model {
 	}
 
 	public function get_exam($marktypeID= '', $classesID=0) {
+
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
 		if($marktypeID == 4) {
 			return $this->exam_m->get_exam();
 		} elseif(($marktypeID == 5) || ($marktypeID == 6)) {
@@ -76,6 +79,8 @@ class Marksetting_m extends MY_Model {
 				$this->db->join('exam', 'marksetting.examID=exam.examID');
 				$this->db->where('marksetting.marktypeID', $marktypeID);
 				$this->db->where('marksetting.classesID', $classesID);
+				$this->db->where('exam.academic_year', $schoolyearID);
+
 				$query = $this->db->get();
 				return $query->result();
 			} 
@@ -85,6 +90,8 @@ class Marksetting_m extends MY_Model {
 			$this->db->from('marksetting');
 			$this->db->join('exam', 'marksetting.examID=exam.examID');
 			$this->db->where('marksetting.marktypeID', $marktypeID);
+			$this->db->where('exam.academic_year', $schoolyearID);
+
 			$query = $this->db->get();
 			return $query->result();
 		}
@@ -92,6 +99,8 @@ class Marksetting_m extends MY_Model {
 
     public function get_exam_with_class( $classesID = 0 )
     {
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
         $exams      = [];
         $marktypeID = $this->data['siteinfos']->marktypeID;
         if ( $marktypeID == 4 ) {
@@ -103,6 +112,8 @@ class Marksetting_m extends MY_Model {
                 $this->db->join('exam', 'marksetting.examID=exam.examID');
                 $this->db->where('marksetting.marktypeID', $marktypeID);
                 $this->db->where('marksetting.classesID', $classesID);
+				$this->db->where('exam.academic_year', $schoolyearID);
+
                 $query = $this->db->get();
                 $exams =  $query->result();
             }
@@ -111,6 +122,8 @@ class Marksetting_m extends MY_Model {
             $this->db->from('marksetting');
             $this->db->join('exam', 'marksetting.examID=exam.examID');
             $this->db->where('marksetting.marktypeID', $marktypeID);
+			$this->db->where('exam.academic_year', $schoolyearID);
+
             $query = $this->db->get();
             $exams = $query->result();
         }

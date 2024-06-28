@@ -64,9 +64,11 @@ class Marksetting extends Admin_Controller {
 			)
 		);
 		
+
 		$ex_class                      = $this->data['siteinfos']->ex_class;
 		$this->data['classes']         = $this->classes_m->general_get_order_by_classes(['classesID !='=> $ex_class]);
-		$this->data['exams']           = $this->exam_m->get_exam();
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$this->data['exams']           = $this->exam_m->get_exam_academic(['academic_year' => $schoolyearID]);
 		$this->data['subjects']        = pluck_multi_array($this->subject_m->general_get_subject(), 'obj', 'classesID');
 		$this->data['markpercentages'] = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
 
