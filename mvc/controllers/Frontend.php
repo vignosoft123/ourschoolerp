@@ -242,4 +242,41 @@
                 $this->session->set_flashdata('error', 'oops! Email not send!');
             }
         }
+
+        public function school_json(){
+        
+            
+            // Read the contents of the file
+             $filename = 's.txt';
+             $fileContents = file_get_contents($filename);
+             
+             if ($fileContents === false) {
+                 die("Failed to read the file.");
+             }
+             
+             // Assuming the file content is a plain text that needs to be converted to JSON
+             // For example, if the file contains a CSV or some structured data
+             
+             // Example: if the content is CSV formatted
+             $lines = explode(PHP_EOL, $fileContents);
+             $data = [];
+             
+             foreach ($lines as $line) {
+                 $data[] = str_getcsv($line);
+             }
+             echo "<pre>";print_r($data);
+             // Convert to JSON
+             $json = json_encode($data);
+             
+             if ($json === false) {
+                 die("Failed to encode JSON.");
+             }
+             
+             // Output the JSON
+             echo $json;
+ 
+        }
+ 
+
+         
     }

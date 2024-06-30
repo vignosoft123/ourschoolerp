@@ -1953,19 +1953,23 @@ $('#add_payment').on('click',function(e){
         return { fineFieldID: this.name , value: this.value };
     }).get();
 
-    if(globalPaid == 0 && globalFine == 0 && globalWeaver == 0) {
-        $('input[name^=paid]').addClass('errorClass');
-        $('input[name^=weaver]').addClass('errorClass');
-        $('input[name^=fine]').addClass('errorClass');
-        error++;
-    } else {
-        $('input[name^=paid]').removeClass('errorClass');
-        $('input[name^=weaver]').removeClass('errorClass');
-        $('input[name^=fine]').removeClass('errorClass');        
-    }
+
+    var error = 0; //override error here for remove required validation
+
+    // if(globalPaid == 0 && globalFine == 0 && globalWeaver == 0) {
+    //     $('input[name^=paid]').addClass('errorClass');
+    //     $('input[name^=weaver]').addClass('errorClass');
+    //     $('input[name^=fine]').addClass('errorClass');
+    //     error++;
+    // } else {
+    //     $('input[name^=paid]').removeClass('errorClass');
+    //     $('input[name^=weaver]').removeClass('errorClass');
+    //     $('input[name^=fine]').removeClass('errorClass');        
+    // }
+
 
     if(error == 0) {
-        $(this).attr("disabled", "disabled");
+        // $(this).attr("disabled", "disabled");
         $.ajax({
             type: 'POST',
             url: "<?=base_url('global_payment/paymentSend')?>",

@@ -785,10 +785,10 @@
             dataType: "json",
             success: function(data) {
 
-                if (data.studntTransportDetails != null) {
-                    var appendData = productItemDesign(2, "Bus Fees", data.studntTransportDetails.tbalance);
-                    $('#feetypeList').append(appendData);
-                }
+               // if (data.studntTransportDetails != null) {
+                 //   var appendData = productItemDesign(2, "Bus Fees", data.studntTransportDetails.tbalance);
+                  //  $('#feetypeList').append(appendData);
+              //  }
 
                 if (data.studntHostelDetails != null) {
                     var appendData = productItemDesign(3, "Hostel Fee", data.studntHostelDetails.hbalance);

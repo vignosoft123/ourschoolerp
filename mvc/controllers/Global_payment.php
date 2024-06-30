@@ -397,7 +397,7 @@ class Global_payment extends Admin_Controller
     public function paymentSend() {
         $retArray['status'] = FALSE;
         $retArray['message'] = '';
-
+        //echo "<pre>";print_r($_POST);die;
         if($_POST) {
             $rules = $this->paymentRules();
             $this->form_validation->set_rules($rules);
