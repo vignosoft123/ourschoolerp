@@ -13,7 +13,7 @@
         </aside>
         <footer class="main-footer">
           	<div class="pull-right hidden-xs">
-            	<b>v</b> <?php echo "6.6.3";//config_item('ini_version');?>
+            	<b>v</b> <?php echo "6.6.4";//config_item('ini_version');?>
           	</div>
           	 <strong><?=$siteinfos->footer?>
 

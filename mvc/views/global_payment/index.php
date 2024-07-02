@@ -656,7 +656,7 @@
 
                     <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Both</button>
 
-                    <button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
+                    <button onclick="javascript:location.reload()" type="button" class="btn btn-default" style="margin-bottom:0px;"  ><?=$this->lang->line('close')?></button>
                 </div>
 
             </div>
@@ -1409,7 +1409,7 @@
 
                             <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-submit-<?=$globalpayment->globalpaymentID?>')">Both(student & office)</button>
 
-                            <button type="button" class="btn btn-default flashClose" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
+                            <button onclick="javascript:location.reload()"  type="button" class="btn btn-default flashClose" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
                         </div>
 
                     </div>

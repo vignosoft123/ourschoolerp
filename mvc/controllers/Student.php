@@ -1889,7 +1889,7 @@ class Student extends Admin_Controller
 				$arr = explode("-", $date);
 				$dd = $arr[0];
 				$mm = $arr[1];
-				$yyyy = $arr[2];
+				$yyyy = (int)$arr[2];
 				if (checkdate($mm, $dd, $yyyy)) {
 					return TRUE;
 				} else {
