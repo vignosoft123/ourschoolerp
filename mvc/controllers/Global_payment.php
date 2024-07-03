@@ -308,11 +308,11 @@ class Global_payment extends Admin_Controller
                 'label' => $this->lang->line("global_payment_type"),
                 'rules' => 'trim|required|xss_clean|max_length[6]'
             ),
-            array(
-                'field' => 'paid',
-                'label' => $this->lang->line("global_paid"),
-                'rules' => 'trim|xss_clean|max_length[10]|callback_unique_paidweaverfine'
-            )
+            // array(
+            //     'field' => 'paid',
+            //     'label' => $this->lang->line("global_paid"),
+            //     'rules' => 'trim|xss_clean|max_length[10]|callback_unique_paidweaverfine'
+            // )
         );
         return $rules;
     }
