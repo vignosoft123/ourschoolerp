@@ -410,7 +410,12 @@ class Mark
                     }
                 }
 
-                $gpaAveragePoint = $averagePoint / $totalSubject;
+                 if(!empty($totalSubject)){
+                    $gpaAveragePoint = $averagePoint / $totalSubject;
+                }else{
+                    $gpaAveragePoint = 0;
+                }
+                
                 
                 if($k < customCompute($marksettings)) {
                 	$retStr .= '&nbsp; - &nbsp;'.$CI->lang->line('mark_gpa').' : '. ini_round($gpaAveragePoint).' , ';
