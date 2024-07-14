@@ -1113,7 +1113,7 @@ class Student extends Admin_Controller
 
 
 					$this->load->model("mailandsmstemplate_m");
-					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2);
+					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
 					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
 					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
 
@@ -1392,6 +1392,12 @@ class Student extends Admin_Controller
 				$this->data['classes'] = $this->classes_m->get_classes();
 				$this->data['student'] = $objStudent = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
 				// echo "<pre>";print_r($this->data['student']);die;
+
+				// echo "<pre>@@@@@@@@";print_r($objStudent);
+				 
+				$this->db->where('route_id',$objStudent->villageID);
+				$this->data['pickup_points'] = $this->db->get('pickup_points')->result_array();
+
 				$this->data['parents']  = $this->parents_m->get_parents();
 				$this->data['studentgroups'] = $this->studentgroup_m->get_studentgroup();
 				$this->data['villages'] = $this->village_m->get_active_villages();
@@ -1653,6 +1659,7 @@ class Student extends Admin_Controller
 							$this->student_m->update_student($array, $studentID);
 							$this->student_m->update_parent($arrParentData, $objStudent->parentID);
 
+							
 
 
 							$this->session->set_flashdata('success', $this->lang->line('menu_success'));
@@ -2123,11 +2130,11 @@ class Student extends Admin_Controller
 
 	private function userConfigSMS($message, $user, $usertypeID, $getway)
 	{
-		// $user.'====';echo $usertypeID;die;
+		// print_r($user).'====';echo $usertypeID;
 		$this->load->model('mailandsmstemplate_m');
 		$this->load->model('mailandsmstemplatetag_m');
 		$template_id = 0;
-		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
+		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); //login details
 		$template_id = $template->templ_id;
 		if ($user && $usertypeID) {
 			$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => $usertypeID));
@@ -2142,7 +2149,7 @@ class Student extends Admin_Controller
 				$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 1));
 			}
 			// echo $userTags;
-			$message = $this->tagConvertor($userTags, $user, $message, 'SMS');
+			 $message = $this->tagConvertor($userTags, $user, $message, 'SMS');
 			// echo "phone==".$user->phone;
 			// echo "message==".$message;
 			// echo "template_id==".$template_id;
@@ -2228,6 +2235,11 @@ class Student extends Admin_Controller
 
 	private function tagConvertor($userTags, $user, $message, $sendType)
 	{
+		 
+		$this->data['setting'] = $this->Setting_m->get_setting();
+		$school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
+		$website = (isset($this->data['setting']->website)) ? $this->data['setting']->website : "";
+		
 		if (customCompute($userTags)) {
 			foreach ($userTags as $key => $userTag) {
 				if ($userTag->tagname == '[name]') {
@@ -2384,9 +2396,9 @@ class Student extends Admin_Controller
 				} elseif ($userTag->tagname == '{{absent_date}}') {
 					$message = str_replace("{{absent_date}}", date("Y-m-d"), $message);
 				} elseif ($userTag->tagname == '{{school_name}}') {
-					$message = str_replace("{{school_name}}", "SATYA", $message);
+					$message = str_replace("{{school_name}}", $school_name, $message);
 				} elseif ($userTag->tagname == '{{url}}') {
-					$message = str_replace("{{url}}", "http://satya.collegehour.in", $message);
+					$message = str_replace("{{url}}", $website, $message);
 				} elseif ($userTag->tagname == '{{username}}') {
 					if ($user->username) {
 						$message = str_replace("{{username}}", $user->username, $message);

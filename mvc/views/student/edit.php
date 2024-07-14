@@ -855,7 +855,7 @@
                                             $studentType = array(3 => "DAY SCHOLAR",1 => "TRANSPORT", 2 => "HOSTEL" );
                                         ?> 
                                         <?php
-                                            echo form_dropdown("studentType", $studentType, set_value("studentType"), "id='studentType' class='form-control select2'");
+                                            echo form_dropdown("studentType", $studentType, set_value("studentType",$student->studentType), "id='studentType' class='form-control select2'");
                                         ?>
                                     <span class="  control-label">
                                         <?php echo form_error('studentType'); ?>
@@ -905,7 +905,10 @@
                <div class="col1-sm-4 " >                    
                    <select id="pickup_id" name ="pickup_id" class='form-control select2'>
                        <option>Select Pickup point</option>
+                       <?php foreach($pickup_points as $p){?>
+                       <option value="<?= $p['id']?>" ><?php echo $p['pickupPoint'];?></option>
                         
+                        <?php }?>
                    </select>
                </div>
                 
@@ -1005,7 +1008,7 @@
                                 $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR");
                             ?>
                             <?php
-                                echo form_dropdown("studentType", $studentType, set_value("studentType",$student->studentType ), "id='studentType' class='form-control select2'");
+                                echo form_dropdown("studentType", $studentType, set_value("studentType",$student->studentType ), "id='studentType' class='form-control select2'"); 
                             ?>
                         </div>
                         <span class="col-sm-4 control-label">
@@ -1151,8 +1154,28 @@ $(function() {
     });  
 });
 
-$("#transport_div").hide();
-    $("#hostel_div").hide();
+
+    var studentType = '<?= $student->studentType?>';
+        if(studentType == 1)
+        {   
+            // $('.transport').removeClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").show();
+            $("#hostel_div").hide();
+        }
+        else if(studentType==2){
+            // $('.transport').addClass('hide');
+            // $('.hostel').removeClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").show();
+        }
+        else{
+            // $('.transport').addClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").hide();
+        }
+
 
  $('#studentType').change(function() {
         var studentType = $('#studentType').val();

@@ -39,6 +39,7 @@ class Mailandsms extends Admin_Controller {
 		$this->load->library("twilio");
 		$this->load->library("bulk");
 		$this->load->library("msg91");
+		$this->load->model("setting_m");
 		$this->load->library("inilabs",$this->data);
 		
 		$language = $this->session->userdata('lang');
@@ -1528,6 +1529,12 @@ class Mailandsms extends Admin_Controller {
 	}
 
 	private function tagConvertor($userTags, $user, $message, $sendType, $schoolyearID) {
+
+		$this->data['setting'] = $this->Setting_m->get_setting();
+		$school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
+		$website = (isset($this->data['setting']->website)) ? $this->data['setting']->website : "";
+		
+
 		if(customCompute($userTags)) {
 			foreach ($userTags as $key => $userTag) {
 				if($userTag->tagname == '[name]') {
@@ -1744,7 +1751,7 @@ class Mailandsms extends Admin_Controller {
 					$message = str_replace("{{school_name}}", " ", $message);
 				}
 				elseif($userTag->tagname == '{{url}}') {
-						$message = str_replace("{{url}}", "http://satya.collegehour.in", $message);
+						$message = str_replace("{{url}}", $website, $message);
 				}
 				elseif($userTag->tagname == '{{username}}') {
 					if($user->username) {
