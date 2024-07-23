@@ -2438,7 +2438,7 @@ class Student extends Admin_Controller
 	}
 
 	public function get_auto_roll_no(){
-	    // $this->db->where('schoolyearID',$this->session->userdata('defaultschoolyearID'));
+	    $this->db->where('schoolyearID',$this->session->userdata('defaultschoolyearID'));
 		$this->db->where('classesID',$_POST['classesID']);
 		$this->db->where('sectionID',$_POST['sectionID']);
 		 $cnt = $this->db->get('student')->num_rows();
@@ -2762,6 +2762,41 @@ public function transport_fare() {
 	} else {
 		echo '';
 	}
+}
+
+public function checkRoll(){
+	$html = "";
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+	$classesID  = $_POST['classesID'];
+	$sectionID  = $_POST['sectionID'];
+	$rollNo  = $_POST['rollNo'];
+	if(!empty($classesID) && !empty($sectionID)  ){
+		$this->db->where('sectionID',$sectionID);
+		$this->db->where('classesID',$classesID);
+		$this->db->where('roll',$rollNo);
+		$this->db->where('schoolyearID',$schoolyearID);
+		$res = $this->db->get('student')->result_array();
+		
+		if(!empty($res)){
+			$html .= "<b style='color:red' >Roll Number already allocated to ";
+			foreach($res as $r){				
+				$html .= $r['name']. ', ';
+			}
+			$html .= "</b>";
+		}else{
+
+			$this->db->where('sectionID',$sectionID);
+			$this->db->where('classesID',$classesID); 
+			$this->db->where('schoolyearID',$schoolyearID);
+			$res = $this->db->get('student')->num_rows();
+
+			$roll = $res + 1;
+			$html .= "<b style='color:green'>Suggested Roll No : ".$roll . "</b>";
+		}
+
+	}
+	echo $html;
 }
 
 }

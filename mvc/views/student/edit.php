@@ -1,4 +1,6 @@
-
+<style>
+    .err{color: red; font-weight:bold;}
+</style>
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-student"></i> <?=$this->lang->line('panel_title')?></h3>
@@ -159,9 +161,9 @@
                                     <?=$this->lang->line("student_roll")?> <span class="text-red">*</span>
                                 </label>
                                 
-                                    <input type="text" class="form-control" id="roll" name="roll" value="<?=set_value('roll', $student->srroll)?>" readonly>
+                                    <input type="text" class="form-control" id="roll" name="roll" value="<?=set_value('roll', $student->srroll)?>" >
                                
-                                <span class="control-label">
+                                <span class="err control-label">
                                     <?php echo form_error('roll'); ?>
                                 </span>
                             </div>
@@ -1064,6 +1066,21 @@ $('#username').keyup(function() {
     $(this).val($(this).val().replace(/\s/g, ''));
 });
 
+$(document).on("focusout","#roll",function(){
+    var classesID = $("#classesID").val();
+    var sectionID = $("#sectionID").val();
+    var rollNo = $("#roll").val();
+
+    $.ajax({
+            type: 'POST',
+            url: "<?=base_url('student/checkRoll')?>",
+            data: {"classesID":classesID,"sectionID":sectionID,"rollNo":rollNo},
+            dataType: "html",
+            success: function(data) {
+              $('.err').html(data);
+            }
+        });
+})
 $('#classesID').change(function(event) {
     var classesID = $(this).val();
     if(classesID === '0') {

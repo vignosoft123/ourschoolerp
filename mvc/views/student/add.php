@@ -162,7 +162,7 @@
                                 <?= $this->lang->line("student_roll") ?> <span class="text-red">*</span>
                             </label>
                                 <input type="text" class="form-control" id="roll" name="roll" value="<?= set_value('roll') ?>">
-                            <span class="  control-label">
+                            <span class=" err control-label">
                                 <?php echo form_error('roll'); ?>
                             </span>
                         </div><!------End roll ----->
@@ -1250,5 +1250,23 @@ $(document).on("keyup",".id_card",function(){
     // alert (idcart);
     $("#name_id").val(idcard);
 });
+
+
+
+$(document).on("focusout","#roll",function(){
+    var classesID = $("#classesID").val();
+    var sectionID = $("#sectionID").val();
+    var rollNo = $("#roll").val();
+
+    $.ajax({
+            type: 'POST',
+            url: "<?=base_url('student/checkRoll')?>",
+            data: {"classesID":classesID,"sectionID":sectionID,"rollNo":rollNo},
+            dataType: "html",
+            success: function(data) {
+              $('.err').html(data);
+            }
+        });
+})
 
 </script>
