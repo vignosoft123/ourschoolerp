@@ -143,6 +143,10 @@ class Invoice extends Admin_Controller
         if($usertypeID == 3) {
             $username = $this->session->userdata("username");
             $student  = $this->student_m->get_single_student(["username" => $username]);
+
+
+            // echo "<pre>";print_r($student);die;
+
             if(customCompute($student)) {
                 $this->data['maininvoices']         = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_studentID($student->studentID, $schoolyearID);
                 $this->data['grandtotalandpayment'] = $this->grandtotalandpaid($this->data['maininvoices'], $schoolyearID);
@@ -169,6 +173,7 @@ class Invoice extends Admin_Controller
                 'parentID'       => $parentID,
                 'srschoolyearID' => $schoolyearID
             ]);
+          
             if(customCompute($students)) {
                 $studentArray                       = pluck($students, 'srstudentID');
                 $this->data['maininvoices']         = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_multi_studentID($studentArray, $schoolyearID);
@@ -190,7 +195,7 @@ class Invoice extends Admin_Controller
             $this->load->view('_layout_main', $this->data);
         }
 
-        // echo "<pre>";print_r($this->data['maininvoices']);die;
+        // echo "<pre>";print_r($this->data);die;
     }
 
     public function add()
@@ -246,6 +251,11 @@ class Invoice extends Admin_Controller
                         $this->data['sections'] =  $this->section_m->general_get_order_by_section(array('classesID' => $this->data['maininvoice']->maininvoiceclassesID));
                         $this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(), 'obj', 'feetypesID');
                         $this->data['students'] = $this->studentrelation_m->get_order_by_studentrelation([
+                            'srclassesID'    => $this->data['maininvoice']->maininvoiceclassesID,
+                            'srschoolyearID' => $schoolyearID
+                        ]);
+
+                        $this->data['students'] = $this->studentrelation_m->get_order_by_studentrelation_parent_join([
                             'srclassesID'    => $this->data['maininvoice']->maininvoiceclassesID,
                             'srschoolyearID' => $schoolyearID
                         ]);

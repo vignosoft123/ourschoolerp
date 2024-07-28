@@ -484,6 +484,9 @@
                                 </tbody>
                             </table>
 
+                            <?php 
+                                // echo $is_display_attendance; die; 
+                                if($is_display_attendance > 0){?>
                                                 <!-- code for attendance -->
                                                 <br/>
                                                 <h5 class="text-blue"><b>Attendance</b></h5>
@@ -541,6 +544,8 @@
                                                 </tr>
                                                 </tbody>
                                             </table>
+
+                                            <?php }?>
 
 
                             <div class="admitcardfooter" style="margin-top:100px !important">

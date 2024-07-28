@@ -53,7 +53,7 @@
                                 $studentArray = array('0' => $this->lang->line("invoice_select_student"));
                                 if(customCompute($students)) {
                                     foreach ($students as $student) {
-                                        $studentArray[$student->srstudentID] = $student->srname." - ".$this->lang->line('invoice_roll')." - ".$student->srroll;
+                                        $studentArray[$student->srstudentID] = $student->srname." - ".$this->lang->line('invoice_roll')." - ".$student->srroll . " (Father : " .  $student->parent_name . ")" ;
                                     }
                                 }
                                 echo form_dropdown("studentID", $studentArray, set_value("studentID", $maininvoice->maininvoicestudentID), "id='studentID' class='form-control select2' disabled");

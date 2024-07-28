@@ -517,9 +517,14 @@
                             <div class="col-sm-12">
                                 <!-- <input type="checkbox" class="form-control" id="is_student_auto_invoice" name="is_student_auto_invoice" value="1" <?= (isset($setting->is_student_auto_invoice) ?  ($setting->is_student_auto_invoice == 1 ? 'checked' : '') : '') ?>> -->
 
-                                <div class="col-sm-3">
+                            <div class="col-sm-3">
+                                <label for="is_student_auto_invoice"> No <input type="radio" class="form-control" id="is_student_auto_invoice" name="is_student_auto_invoice" value="0" <?= (isset($setting->is_student_auto_invoice) ?  ($setting->is_student_auto_invoice == 0 ? 'checked' : '') : '') ?>>
+                                <label>
+                            </div>
+                            <div class="col-sm-3">
                             <label for="is_student_auto_invoice"> School Fee: <input type="radio" class="form-control" id="is_student_auto_invoice" name="is_student_auto_invoice" value="1" <?= (isset($setting->is_student_auto_invoice) ?  ($setting->is_student_auto_invoice == 1 ? 'checked' : '') : '') ?>>
                             <label>
+
                             </div>
                             <div class="col-sm-3">
                             <label for="is_student_auto_invoice1"> Term Fee: <input type="radio" class="form-control" id="is_student_auto_invoice1" name="is_student_auto_invoice" value="2" <?= (isset($setting->is_student_auto_invoice) ?  ($setting->is_student_auto_invoice == 2 ? 'checked' : '') : '') ?>>
@@ -784,6 +789,21 @@
  
                                 <span class="control-label">
                                     <?php echo form_error('is_fee_sms'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group <?= form_error('is_display_attendance_on_progresscard') ? 'has-error' : '' ?>">
+                            <div class="col-sm-12">
+                                <label for="is_display_attendance_on_progresscard">Is Display Attendance on Progress Card &nbsp;
+                                </label>
+                                <label for="html">Yes</label> <input type="radio" id="yes" name="is_display_attendance_on_progresscard" value="1" <?php if($setting->is_display_attendance_on_progresscard == 1){echo "checked";}?>>
+                                <label for="html">No</label><input type="radio" id="no" name="is_display_attendance_on_progresscard" value="0" <?php if($setting->is_display_attendance_on_progresscard == 0){echo "checked";}?>>
+ 
+                                <span class="control-label">
+                                    <?php echo form_error('is_display_attendance_on_progresscard'); ?>
                                 </span>
                             </div>
                         </div>

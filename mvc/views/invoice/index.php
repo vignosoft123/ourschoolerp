@@ -70,13 +70,17 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if(customCompute($maininvoices)) {$i = 1; foreach($maininvoices as $maininvoice) { ?>
+                            <?php
+                        //    echo "<pre>"; print_r($maininvoices);die;
+                             if(customCompute($maininvoices)) {$i = 1; foreach($maininvoices as $maininvoice) { ?>
                                 <tr>
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('invoice_student')?>">
-                                        <?php echo $maininvoice->srname; ?>
+                                        <?php echo $maininvoice->srname; ?><br/>
+                                        
+                                        <?php echo "Father: " .$maininvoice->parent_name; ?>
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_classesID')?>">

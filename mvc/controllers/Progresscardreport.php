@@ -228,6 +228,10 @@ class Progresscardreport extends Admin_Controller {
 									}
 
 
+									 $is_display_attendance_res = $this->setting_m->get_setting_where('is_display_attendance_on_progresscard');
+									 $this->data['is_display_attendance'] =$is_display_attendance = $is_display_attendance_res['value'];
+
+									if($is_display_attendance > 0){
 									//code for student attendance in progress report
 
 									$this->data['months'] = $months_array = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May',);
@@ -257,26 +261,47 @@ class Progresscardreport extends Admin_Controller {
 									$absent = 0;
 									$present = 0;
 									
-									// echo "<pre>";print_r($this->session->userdata());die;
+									// echo "<pre>";print_r($attendace);
 									// dd($attendace);
 									if(!empty($attendace)){
-										// echo count($attendace);die;
+										
 									for($j=0;$j<count($attendace);$j++){
+
+										// echo "<pre>";print_r($attendace[$j]);
+										
+										if(!empty($attendace[$j])){
 									foreach($attendace[$j] as $k => $v){
-										// echo $k."<br/>";
+									
 										for ($i=1; $i <= 31; $i++) { 
 											 $acolumnname = 'a'.$i;
 											if($k == $acolumnname){
-												if(!empty($v[$k])){
-													if($v[$k] == 'P'){
+
+												// echo $v[$k]."aaaaaa<br/>"; 
+												// echo $k;
+												// print_r($v);
+
+												// if(!empty($v[$k])){
+													if($v[$k] == 'P'){ 
 														 $present += 1;
-													}else if($v[$k] == 'A' ){
-														 $absent += 1;
+													}else{ 
+														$present += 0;
 													}
-												}
+													
+													if($v[$k] == 'A' ){ 
+														 $absent += 1;
+													}else{ 
+														$absent += 0;
+													}
+												// }
+
+										 
+
 											} 
 										}
 									}
+
+									}
+
 								}
 								}
 									$temp = array(
@@ -286,7 +311,10 @@ class Progresscardreport extends Admin_Controller {
 									 $this->data['attendance'][$mkey][$student->srstudentID] =$temp;
 									}
 									//end code for attendance
-									//  echo "<pre>";print_r($this->data['attendance']);
+									//  echo "<pre>";print_r($this->data['attendance']);die;
+
+								}
+
 								}
 							}
 						}
@@ -774,20 +802,36 @@ class Progresscardreport extends Admin_Controller {
 								
 								
 								for($j=0;$j<count($attendace);$j++){
+									if(!empty($attendace[$j])){
 								foreach($attendace[$j] as $k => $v){
 									for ($d=1; $d <= 31; $d++) { 
 										$acolumnname = 'a'.$d;
 										if($k == $acolumnname){
-											 if(!empty($v[$k])){
-												if($v[$k] == 'P'){
-													$present += 1;
-												}else if($v[$k] == 'A'){
-													$absent += 1;
-												}
-											 }
+											//  if(!empty($v[$k])){
+											// 	if($v[$k] == 'P'){
+											// 		$present += 1;
+											// 	}else if($v[$k] == 'A'){
+											// 		$absent += 1;
+											// 	}
+											//  }
+
+											if($v[$k] == 'P'){ 
+												$present += 1;
+										   }else{ 
+											   $present += 0;
+										   }
+										   
+										   if($v[$k] == 'A' ){ 
+												$absent += 1;
+										   }else{ 
+											   $absent += 0;
+										   }
+										   
 										}
 									}
-								}}
+								}
+							}
+							}
 								$temp = array(
 									'absent' => $absent,
 									'present' => $present

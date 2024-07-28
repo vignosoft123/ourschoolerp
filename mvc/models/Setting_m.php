@@ -40,7 +40,17 @@
             $this->db->where('fieldoption', $data);
             $query = $this->db->get('setting');
             // echo $this->db->last_query();die;
-            return $query->row_array();
+            $res = $query->row_array();
+            // echo "<pre>";print_r($res);die;
+            return $res;
+        }
+
+        public function get_setting_where_return_cnt($data)
+        {
+            $this->db->where('fieldoption', $data);
+            $cnt = $this->db->get('setting')->num_rows();
+            // echo $this->db->last_query();die;
+            return $cnt;
         }
 
         public function insertorupdate( $arrays )

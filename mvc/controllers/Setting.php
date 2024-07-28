@@ -314,6 +314,7 @@ Class Setting extends Admin_Controller {
                     $array['school_telugu']  =  $this->input->post('school_telugu');
                     $array['teacher_present_time']  =  $this->input->post('teacher_present_time');
                     $array['is_biometric']  =  $this->input->post('is_biometric');
+                    $array['is_display_attendance_on_progresscard']  =  $this->input->post('is_display_attendance_on_progresscard');
                     $array['is_fee_sms']  =  $this->input->post('is_fee_sms');
                     $this->setting_m->insertorupdate($array);
                     $this->session->set_flashdata('success', $this->lang->line('menu_success'));

@@ -77,6 +77,7 @@
                         <?= $this->lang->line("invoice_roll") . " : " . $maininvoice->srroll ?><br>
                         <?= $this->lang->line("invoice_classesID") . " : " . $maininvoice->srclasses ?><br>
                         <?= $this->lang->line("student_registerNO") . " : " . $maininvoice->srregisterNO ?><br>
+                        <?=  "Father Name". " : " . $maininvoice->parent_name ?><br>
                         <?php if (customCompute($student)) {
                             echo $this->lang->line("invoice_email") . " : " . $student->email;
                         } ?><br>

@@ -378,6 +378,30 @@ class Studentrelation_m extends MY_Model {
 		return $query;
 	}
 
+	public function get_order_by_studentrelation_parent_join($array=NULL) {
+		// Select columns from both the student and parent tables
+		$this->db->select('studentrelation.*, parents.name as parent_name');
+		
+		// From the students table
+		$this->db->from('studentrelation');
+		$this->db->join('student', 'student.studentID = studentrelation.srstudentID AND student.schoolyearID = studentrelation.srschoolyearID', 'LEFT');
+
+		// Join the parents table
+		$this->db->join('parents', 'student.parentID = parents.parentsID');
+		
+		// Apply any conditions passed in the $array
+		if ($array !== NULL) {
+			$this->db->where($array);
+		}
+		
+		// Order by the specified column(s) if provided
+		$query = $this->db->get();
+		// echo $this->db->last_query();die;
+		// Return the result
+		return $query->result();
+	}
+	
+
 	public function get_single_studentrelation($array=NULL) {
 		$query = parent::get_single($array);
 		return $query;
