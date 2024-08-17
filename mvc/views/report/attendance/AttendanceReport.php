@@ -65,7 +65,7 @@
                                         <th><?=$this->lang->line('attendancereport_section')?></th>
                                     <?php } ?>
                                     <th><?=$this->lang->line('attendancereport_roll')?></th>
-                                    <th><?=$this->lang->line('attendancereport_email')?></th>
+                                    <!-- <th><?=$this->lang->line('attendancereport_email')?></th> -->
                                     <th><?=$this->lang->line('attendancereport_phone')?></th>
                                 </tr>
                             </thead>
@@ -125,9 +125,9 @@
                                         <td data-title="<?=$this->lang->line('attendancereport_roll')?>">
                                             <?=$student->srroll; ?>
                                         </td>
-                                        <td data-title="<?=$this->lang->line('attendancereport_email')?>">
+                                        <!-- <td data-title="<?=$this->lang->line('attendancereport_email')?>">
                                             <?=$student->email; ?>
-                                        </td>
+                                        </td> -->
                                         <td data-title="<?=$this->lang->line('attendancereport_phone')?>">
                                             <?=$student->phone; ?>
                                         </td>

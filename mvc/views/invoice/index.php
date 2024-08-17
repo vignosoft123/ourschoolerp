@@ -60,7 +60,7 @@
                                 <th><?=$this->lang->line('invoice_total')?></th>
                                 <th><?=$this->lang->line('invoice_discount')?></th>
                                 <th><?=$this->lang->line('invoice_paid')?></th>
-                                <th><?=$this->lang->line('invoice_weaver')?></th>
+                                <!-- <th><?=$this->lang->line('invoice_weaver')?></th> -->
                                 <th><?=$this->lang->line('invoice_balance')?></th>
                                 <th><?=$this->lang->line('invoice_onlystatus')?></th>
                                 <th><?=$this->lang->line('invoice_date')?></th>
@@ -103,16 +103,29 @@
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_discount')?>">
-                                        <?php if(isset($grandtotalandpayment['totaldiscount'][$maininvoice->maininvoiceID])) { echo number_format($grandtotalandpayment['totaldiscount'][$maininvoice->maininvoiceID], 2); } else { echo '0.00'; } ?>
+                                        <?php if(isset($grandtotalandpayment['totaldiscount'][$maininvoice->maininvoiceID])) {
+                                             
+                                             $discount_plus_weaver = $grandtotalandpayment['totaldiscount'][$maininvoice->maininvoiceID] + $grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID] ;
+                                             echo number_format($discount_plus_weaver, 2); 
+                                             
+
+                                            //  echo number_format($grandtotalandpayment['totaldiscount'][$maininvoice->maininvoiceID], 2); 
+
+                                            } else { echo '0.00';
+                                             
+                                             } ?>
+
+                                         
+
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_paid')?>">
                                         <?php if(isset($grandtotalandpayment['totalpayment'][$maininvoice->maininvoiceID])) { echo number_format($grandtotalandpayment['totalpayment'][$maininvoice->maininvoiceID], 2); } else { echo '0.00'; } ?>
                                     </td>
 
-                                    <td data-title="<?=$this->lang->line('invoice_weaver')?>">
+                                    <!-- <td data-title="<?=$this->lang->line('invoice_weaver')?>">
                                         <?php if(isset($grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID])) { echo number_format($grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID], 2); } else { echo '0.00'; } ?>
-                                    </td>
+                                    </td> -->
 
                                     <td data-title="<?=$this->lang->line('invoice_balance')?>">
                                         <?php 

@@ -1530,7 +1530,7 @@ class Mailandsms extends Admin_Controller {
 
 	private function tagConvertor($userTags, $user, $message, $sendType, $schoolyearID) {
 
-		$this->data['setting'] = $this->Setting_m->get_setting();
+		$this->data['setting'] = $this->setting_m->get_setting();
 		$school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
 		$website = (isset($this->data['setting']->website)) ? $this->data['setting']->website : "";
 		

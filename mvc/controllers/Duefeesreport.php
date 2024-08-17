@@ -196,7 +196,10 @@ class Duefeesreport extends Admin_Controller{
 					}
 					$studnetArray['srschoolyearID'] = $schoolyearID;
 
-					$this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+					// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+
+					$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
 					$this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(),'feetypes','feetypesID');
 					
 					$this->data['classes']  = pluck($this->classes_m->general_get_classes(),'classes','classesID');
@@ -291,7 +294,10 @@ class Duefeesreport extends Admin_Controller{
 				}
 				$studnetArray['srschoolyearID'] = $schoolyearID;
 
-				$this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+				// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+
+				$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
 				$this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(),'feetypes','feetypesID');
 				
 				$this->data['getFeesReports'] = $this->totalPayment($this->payment_m->get_all_payment_for_report($postArray), $schoolyearID);
@@ -381,7 +387,10 @@ class Duefeesreport extends Admin_Controller{
 				}
 				$studnetArray['srschoolyearID'] = $schoolyearID;
 
-				$this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+				// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+
+				$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
 				$this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(),'feetypes','feetypesID');
 				$this->data['getFeesReports'] = $this->totalPayment($this->payment_m->get_all_payment_for_report($postArray), $schoolyearID);
 				$this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report($postArray);
@@ -764,7 +773,10 @@ class Duefeesreport extends Admin_Controller{
 					$subject = $this->input->post('subject'); 
 					$message = $this->input->post('message'); 
 
-					$this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+					// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
+
+					$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
 					$this->data['classes']  = pluck($this->classes_m->general_get_classes(),'classes','classesID');
 					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
 					$this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(),'feetypes','feetypesID');

@@ -136,7 +136,7 @@ class Studentrelation_m extends MY_Model {
             $this->db->where($arrays);
         }
         $this->db->where('student.studentID !=', NULL);
-        $this->db->order_by('srroll asc');
+        $this->db->order_by('srclassesID asc'); 
         $query = $this->db->get();
 		// echo $this->db->last_query();die;
         return $query->result();
@@ -335,6 +335,32 @@ class Studentrelation_m extends MY_Model {
         if(customCompute($arrays)) {
             $this->db->where($arrays);
         }
+        $this->db->order_by('srroll asc');
+        $query = $this->db->get();
+
+        if($single) {
+            return $query->row();
+        } else {
+            return $query->result();
+        }
+    }
+
+	public function get_studentrelation_join_no_student_deletion_data($arrays = [], $single = FALSE) { //code for no data of deleteing or inactive students
+        $arrays = $this->prefixLoad($arrays);
+        // $this->db->select('*');
+        // $this->db->from('studentrelation');
+        // $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+
+		$this->db->select('*');
+        $this->db->from('student');
+        $this->db->join('studentrelation', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+		
+		//echo $this->db->last_query();die;
+
+        if(customCompute($arrays)) {
+            $this->db->where($arrays);
+        }
+		$this->db->where('active',1);
         $this->db->order_by('srroll asc');
         $query = $this->db->get();
 

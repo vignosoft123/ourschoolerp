@@ -1131,7 +1131,7 @@ if (customCompute($profile)) { ?>
 
 										echo '<div class="box-footer st-attendance-info">';
 										echo '<div class="footer-item">' . $this->lang->line('student_total_marks') . ' : <span class="text-red text-bold">' . ini_round($totalFinalMark) . '</span>' . ',' . '</div>';
-										echo '<div class="footer-item">' . $this->lang->line('student_total_obtained_marks') . ' : <span class="text-red text-bold">' . ini_round($totalMark) . '</span>' . ',' . '</div>';
+										echo '<div class="footer-item">' . $this->lang->line('student_total_obtained_marks') . ' : <span class="text-red text-bold">' . ini_round($totalMark) . '</span>' . ',' . '</div>'; 
 										// $totalAverageMark = $totalMark / $totalSubject;
 										// echo '<div class="footer-item">' . $this->lang->line('student_total_average_marks') . ' : <span class="text-red text-bold">' . ini_round($totalAverageMark) . '</span>' . ',' . '</div>';
 

@@ -93,9 +93,12 @@ class Invoice_m extends MY_Model {
 	}	
 
 	public function get_all_duefees_for_report($queryArray) {
-		$this->db->select('*');
+		$this->db->select('invoice.*');
 		$this->db->from('invoice');
 		$this->db->where('invoice.schoolyearID',$queryArray['schoolyearID']);
+        $this->db->join('student', 'student.studentID = invoice.studentID', 'LEFT');
+		$this->db->where('student.active', 1);
+
 
 		if((isset($queryArray['classesID']) && $queryArray['classesID'] != 0) || (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) || (isset($queryArray['studentID']) && $queryArray['studentID'] != 0)) {
 			

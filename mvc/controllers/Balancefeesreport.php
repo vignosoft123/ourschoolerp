@@ -166,7 +166,9 @@ class Balancefeesreport extends Admin_Controller{
 					$this->db->order_by('srclassesID','ASC');
 					// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studentArray),'obj','srstudentID');
 
-					$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_student($studentArray),'obj','srstudentID');
+					// $this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_student($studentArray),'obj','srstudentID');
+
+					$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
 
 					$this->data['classes'] = pluck($this->classes_m->general_get_classes(),'classes','classesID');
 					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
@@ -315,7 +317,9 @@ class Balancefeesreport extends Admin_Controller{
 				$this->db->order_by('srclassesID','ASC');
 				// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studentArray),'obj','srstudentID');
 
-				$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_student($studentArray),'obj','srstudentID');
+				// $this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_student($studentArray),'obj','srstudentID');
+
+				$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
 
 
 				$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report($postArray));
@@ -398,7 +402,10 @@ class Balancefeesreport extends Admin_Controller{
 				$studentArray['srschoolyearID'] = $schoolyearID;
 
 				$this->db->order_by('srclassesID','ASC');
-				$this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studentArray),'obj','srstudentID');
+				// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studentArray),'obj','srstudentID');
+
+				$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
 
 				$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report($postArray));
 				$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment(array('schoolyearID' => $schoolyearID)));
@@ -768,7 +775,9 @@ class Balancefeesreport extends Admin_Controller{
 					$studentArray['srschoolyearID'] = $schoolyearID;
 
 					$this->db->order_by('srclassesID','ASC');
-					$this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studentArray),'obj','srstudentID');
+					// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studentArray),'obj','srstudentID');
+
+					$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
 
 					$this->data['classes']  = pluck($this->classes_m->general_get_classes(),'classes','classesID');
 					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');

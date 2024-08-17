@@ -120,6 +120,12 @@
                                                 <?php if(customCompute($single_group)) { echo $single_group->group; } ?>
                                             </td>
                                         </tr>
+
+                                        <tr>
+                                            <td>Father Name</td>
+                                            <td><?=$single_student->father_name?></td>
+                                        </tr>
+
                                     </tbody>
                                 </table>
                             </div>
@@ -132,8 +138,8 @@
                                         <thead>
                                             <tr>
                                                 <th><?=$this->lang->line('global_invoice_number')?></th>
-                                                <th><?=$this->lang->line('global_total_pay')?></th>
-                                                <th><?=$this->lang->line('global_weaver')?></th>
+                                                <th><?=$this->lang->line('global_total_pay')?></th> 
+                                                <th>Discount</th>
                                                 <th><?=$this->lang->line('global_fine')?></th>
                                                 <th><?=$this->lang->line('global_total_collection')?></th>
                                                 <th><?=$this->lang->line('global_clearance')?></th>
@@ -248,7 +254,7 @@
                                                 <td><?=$this->lang->line('global_fees_amount')?></td>
                                                 <td><?=$this->lang->line('global_due')?></td>
                                                 <td><?=$this->lang->line('global_paid_amount')?></td>
-                                                <td class="<?= $accountant?>"><?=$this->lang->line('global_weaver')?></td>
+                                                <td class="<?= $accountant?>">Discount</td>
                                                 <td class="<?= $accountant?>"><?=$this->lang->line('global_fine')?></td>
                                             </tr>
                                         </thead>
@@ -610,7 +616,7 @@
                                         <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
                                             <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->weaver > 0 ) { ?>
                                                 <tr>
-                                                    <th colspan="2"><?=$this->lang->line('global_weaver')?></th>
+                                                    <th colspan="2">Discount</th>
                                                 </tr>
                                             <?php break; } ?>
                                         <?php } ?>
@@ -1051,7 +1057,7 @@
                                                 <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
                                                     <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->weaver > 0 ) { ?>
                                                         <tr>
-                                                            <th colspan="2"><?=$this->lang->line('global_weaver')?></th>
+                                                            <th colspan="2">Discount</th>
                                                         </tr>
                                                     <?php break; } ?>
                                                 <?php } ?>
@@ -1355,7 +1361,7 @@
                                                     <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
                                                         <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->weaver > 0 ) { ?>
                                                             <tr>
-                                                                <th colspan="2"><?=$this->lang->line('global_weaver')?></th>
+                                                                <th colspan="2">Discount</th>
                                                             </tr>
                                                         <?php break; } ?>
                                                     <?php } ?>

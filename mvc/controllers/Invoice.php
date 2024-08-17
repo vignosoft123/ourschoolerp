@@ -1986,12 +1986,14 @@ class Invoice extends Admin_Controller
                 $weaverandfineitems = [];
             }
 
+            // echo "<pre>";print_r($invoiceitems[$maininvoice->maininvoiceID]);die;
             if(isset($invoiceitems[$maininvoice->maininvoiceID])) {
                 if(customCompute($invoiceitems[$maininvoice->maininvoiceID])) {
                     foreach($invoiceitems[$maininvoice->maininvoiceID] as $invoiceitem) {
                         $amount = $invoiceitem->amount;
                         if($invoiceitem->discount > 0) {
-                            $amount = ($invoiceitem->amount - (($invoiceitem->amount / 100) * $invoiceitem->discount));
+                            // $amount = ($invoiceitem->amount - (($invoiceitem->amount / 100) * $invoiceitem->discount));
+                            $amount = ($invoiceitem->amount - $invoiceitem->discount);
                         }
 
                         if(isset($retArray['grandtotal'])) {
@@ -2007,9 +2009,12 @@ class Invoice extends Admin_Controller
                         }
 
                         if(isset($retArray['totaldiscount'])) {
-                            $retArray['totaldiscount'] = ($retArray['totaldiscount'] + (($invoiceitem->amount / 100) * $invoiceitem->discount));
+                            // $retArray['totaldiscount'] = ($retArray['totaldiscount'] + (($invoiceitem->amount / 100) * $invoiceitem->discount));
+
+                            $retArray['totaldiscount'] = ($retArray['totaldiscount'] + $invoiceitem->discount);
                         } else {
-                            $retArray['totaldiscount'] = (($invoiceitem->amount / 100) * $invoiceitem->discount);
+                            // $retArray['totaldiscount'] = (($invoiceitem->amount / 100) * $invoiceitem->discount);
+                            $retArray['totaldiscount'] = ( $invoiceitem->discount);
                         }
 
                         if(isset($paymentitems[$invoiceitem->invoiceID])) {
