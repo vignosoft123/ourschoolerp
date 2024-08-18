@@ -7,6 +7,66 @@
     .row_background {background-color:#dce1ee;}
     .row_absent{    background-color: #f8e3e3;}
     .row_head{background-color:#ea893b;}
+
+
+  
+
+
+    .admincardreport {
+                border: 1px solid #ddd;
+                overflow: hidden;
+                padding: 20px 50px;
+                margin-bottom: 10px;
+                min-height: 443px;
+                <?php if($backgroundID == 1) { ?>
+                background:url("<?=base_url('uploads/default/admitcard-border.png')?>")!important;
+                background-size: 100% 100% !important;
+                <?php } ?>
+            }
+
+            .studentinfo { 
+                width: 100%;
+            }
+
+            .studentinfo p {
+                width: 50%;
+                float: left;
+                margin-bottom: 1px;
+                padding: 0 0px;
+                font-size: 12px;
+                line-height:25px;
+            }
+
+            .studentinfo p span {
+                font-weight: bold;
+            }
+
+            .admitcardbody {
+                float: left;
+                width: 100%;
+                color: #000;
+                padding: 0px 0px;
+            }
+
+            .admitcardbody h3{
+                /* text-align: center;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 6px;
+                color: #000;
+                font-weight: 500;
+                margin: 0px;
+                font-size: 14px; */
+
+                text-align: center;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 6px;
+                padding-top: 6px;
+                color: #e4e423; 
+                font-size: 14px;
+                font-weight: bold;
+            }
+
+            
 </style>
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
@@ -219,25 +279,76 @@
                     <input type="hidden" name="st_names[]" value="<?=$student->name?>">
                     <input type="hidden" name="mobile_no[]" value="<?=$student->phone?>">
                     <div class="mainprogresscardreport">
-                        <div class="progresscard-headers">
+                        <!-- <div class="progresscard-headers">
                             <div class="progresscard-logo">
                                 <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="">
                             </div>
                             <div class="school-name">
                                 <h2><?=$siteinfos->sname?></h2>
                             </div>
-                        </div>
+                        </div> -->
+
+                        <table width="100%" style="text-align:center">
+                                    <tr>
+                                        <td id="logo" style="width:16%">
+                                            <?php
+                                                if($siteinfos->photo) {
+                                                    $array = array(
+                                                        "src" => base_url('uploads/images/'.$siteinfos->photo),
+                                                        'width' => '50px',
+                                                        'height' => '50px',
+                                                        // "style" => "margin-right:0px;"
+                                                    );
+                                                    // echo img($array);?>
+
+                                                    <img src="<?php echo base_url('uploads/images/'.$siteinfos->photo);?>" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+
+                                              <?php   }
+                                            ?>
+                                        </td>
+                                        <td style="width:76%"> 
+                                            <h2><?=$siteinfos->sname?></h2>
+                                            <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> <?= $siteinfos->email?></span></h5> 
+                                            <h5 style="color:#0000ff;"><?=$siteinfos->phone?></h5> 
+                                        </td>
+                                        <td style="width:8%">
+                                            <img src="<?=imagelink($student->photo)?>" alt="">
+                                        </td>
+                                    </tr> 
+                                </table>
+                                <hr>
+                                
+                                <div class="admitcardbody">
+                                   
+                                   <div class="admitcardstudentinfo">
+                                       <div class="studentinfo">
+                                           <p><span class="text-red">Name</span> : <?=$student->srname?> </p>
+                                           <p><span class="text-red"><?=$this->lang->line('progresscardreport_reg_no')?></span> : <?=$student->srregisterNO?> </p>
+                                           <p><span class="text-red"><?=$this->lang->line('progresscardreport_class')?></span> : <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?> </p>
+                                           <p><span class="text-red"><?=$this->lang->line('progresscardreport_section')?></span> : <?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?> </p>
+                                           <p><span class="text-red"><?=$this->lang->line('progresscardreport_roll_no')?></span> : <?=$student->srroll?></p>
+
+                                           <p><span class="text-red">Father Name </span> : <?=$student->father_name?></p>
+ 
+                                       </div> 
+                                     
+                                    </div> 
+
+                                </div>
+
                         <div class="progresscard-infos">
                             
-                            <div class="student-profile">
+                            <!-- <div class="student-profile">
                                 <p> <span class="text-red">Name</span> &nbsp;&nbsp;&nbsp;:  <b><?=$student->srname?></b> </p>
+
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_academic_year')?></span> : <b><?=$schoolyearsessionobj->schoolyear;?></b>
+
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_reg_no')?></span> : <b><?=$student->srregisterNO?></b>,<br/> <span class="text-red"> <?=$this->lang->line('progresscardreport_class')?></span> : <b><?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?></b></p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_section')?></span> : <b><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></b>, <span class="text-red"> <?=$this->lang->line('progresscardreport_roll_no')?> </span>: <b><?=$student->srroll?></b></p>  
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_group')?></span> : <b><?=isset($groups[$student->srstudentgroupID]) ? $groups[$student->srstudentgroupID] : ''?></b></p> 
-                            </div>
+                            </div> -->
 
-                            <div class="school-address">
+                            <!-- <div class="school-address">
                                
                                 <p> <span class="text-green"><?=$siteinfos->address?></span></p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_phone')?></span> : <?=$siteinfos->phone?></p>
@@ -245,9 +356,9 @@
                                 <p> <span class="text-red">Website</span> : <?=$siteinfos->website?></p>
                             </div>
 
-                            <div class="student-profile-img">
+                             <div class="student-profile-img">
                                 <img src="<?=imagelink($student->photo)?>" alt="">
-                            </div>
+                            </div>  -->
                         </div>
                         <div class="progresscard-contents progresscardreporttable">
 
@@ -548,7 +659,17 @@
                                             <?php }?>
 
 
-                            <div class="admitcardfooter" style="margin-top:100px !important">
+                            <!-- <div class="admitcardfooter" style="padding-top:100px !important">
+
+                            <span class="signature-container" style="width:100px;height:50px;">
+                                <img src="<?php echo base_url('uploads/images/'.$siteinfos->photo);?>" alt="Signature" class="signature-image">
+                                                        </span>
+
+                                <span class="" style="margin-left:25%">Teacher Signature</span>
+                                <span class="headmaster_signature" style="margin-left:25%">Principal Signature</span>
+                            </div> -->
+
+                            <div class="admitcardfooter" style="padding-top:100px !important">
                                 <span class="">Parent Signature </span>
                                 <span class="" style="margin-left:25%">Teacher Signature</span>
                                 <span class="headmaster_signature" style="margin-left:25%">Principal Signature</span>

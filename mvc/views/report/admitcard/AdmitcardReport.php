@@ -178,23 +178,35 @@
                                                         'height' => '50px',
                                                         // "style" => "margin-right:0px;"
                                                     );
-                                                    echo img($array);
-                                                }
+                                                    // echo img($array);?>
+
+                                                    <img src="<?php echo base_url('uploads/images/'.$siteinfos->photo);?>" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+
+                                              <?php   }
                                             ?>
                                         </td>
-                                        <td style="width:84%"> 
+                                        <td style="width:76%"> 
                                             <h2><?=$siteinfos->sname?></h2>
-                                            <h5><?=$siteinfos->address?>, <?= $siteinfos->email?></h5> 
-                                            <h5><?=$siteinfos->phone?></h5> <br/>
+                                            <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> <?= $siteinfos->email?></span></h5> 
+                                            <h5 style="color:#0000ff;"><?=$siteinfos->phone?></h5> 
                                         </td>
                                         <td style="width:8%">
                                             <img src="<?=imagelink($student->photo)?>" alt="">
                                         </td>
                                     </tr>
-                                    
+                                    <tr>
+                                        <td colspan="3" style="font-size:20px; !important;">
+
+                                        <!-- <h3 class="text-yellow"> -->
+                                            <?=$examTitle?> <?= "Hall Ticket"?> - ( <?=$examYear?> )
+                                        <!-- </h3> -->
+
+                                        </td>
+                                    </tr>
                                 </table>
+                                <hr>
                                 <div class="admitcardbody">
-                                    <h3 class="text-yellow"><?=$examTitle?> <?= "Hall Ticket"//$this->lang->line('admitcardreport_exam_admit_card')?> - ( <?=$examYear?> )</h3>
+                                   
                                     <div class="admitcardstudentinfo">
                                         <div class="studentinfo">
                                             <p><span class="text-red"><?=$this->lang->line('admitcardreport_name')?></span> : <?=$student->srname?> </p>
