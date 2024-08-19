@@ -659,23 +659,44 @@
                                             <?php }?>
 
 
+                        
+
                             <!-- <div class="admitcardfooter" style="padding-top:100px !important">
-
-                            <span class="signature-container" style="width:100px;height:50px;">
-                                <img src="<?php echo base_url('uploads/images/'.$siteinfos->photo);?>" alt="Signature" class="signature-image">
-                                                        </span>
-
+                                <span class="">Parent Signature </span>
                                 <span class="" style="margin-left:25%">Teacher Signature</span>
                                 <span class="headmaster_signature" style="margin-left:25%">Principal Signature</span>
                             </div> -->
 
-                            <div class="admitcardfooter" style="padding-top:100px !important">
-                                <span class="">Parent Signature </span>
-                                <span class="" style="margin-left:25%">Teacher Signature</span>
-                                <span class="headmaster_signature" style="margin-left:25%">Principal Signature</span>
-                            </div>
+
+                           
+
+
                             <input type="hidden" name="marks_template[]" value="<?php echo $marks_template;?>">
                         </div>
+
+                        <br/>
+                        <div class="signatures" >
+                                                <div class="row">
+                                                    <div class="col-sm-4" >-
+                                                    </div>
+                                                    <div class="col-sm-4" >-
+                                                    </div>
+                                                    <div class="col-sm-4" >
+                                                    <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-sm-4" >Parent Signature
+                                                    </div>
+                                                    <div class="col-sm-4" >Teacher Signature
+                                                    </div>
+                                                    <div class="col-sm-4" >Principal Signature
+                                                    </div>
+                                                </div>
+
+                                            </div>
+
                     </div>
                     <p style="page-break-after: always;">&nbsp;</p>
                 <?php } } else { ?>

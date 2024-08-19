@@ -292,8 +292,82 @@ Class Setting extends Admin_Controller {
                     $array['attendance_voice_notification'] = $this->input->post('attendance_voice_notification');
                     $array['attendance_voice_notification_template'] = $this->input->post('attendance_voice_notification_template');
                   
-                   
+               
                     $array['photo']            = $this->upload_data['file']['file_name'];
+
+
+                    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['image']) && !empty($_FILES['image']['name']) ) {
+
+                    $targetDir = "uploads/signatures/";
+
+                    // Extract the original file extension
+                    $imageFileType = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+
+                    // Create a unique name by appending a timestamp to the original file name
+                    $newFileName = pathinfo($_FILES["image"]["name"], PATHINFO_FILENAME) . "_" . time() . "." . $imageFileType;
+
+                    // Set the target file path with the new name
+                    $targetFile = $targetDir . $newFileName;
+
+
+                    // $targetFile = $targetDir . basename($_FILES["image"]["name"]);
+                    $uploadOk = 1;
+                
+                    // Get the image file type
+                    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+                
+                    // Check if the uploaded file is an actual image or a fake image
+                    $check = getimagesize($_FILES["image"]["tmp_name"]);
+                    if ($check !== false) {
+                        $width = $check[0];
+                        $height = $check[1];
+                       // echo "File is an image - " . $check["mime"] . ".<br>";
+                
+                        // Check if the image dimensions are within the allowed range
+                        if ($width >= 300 && $width <= 500 && $height >= 100 && $height <= 150) {
+                            $uploadOk = 1;
+                        } else {
+                            echo "Invalid image dimensions. Please upload a signature with dimensions between 300x100 and 500x150 pixels.<br>";
+                            $uploadOk = 0;
+                        }
+                    } else {
+                        echo "File is not an image.<br>";
+                        $uploadOk = 0;
+                    }
+                  
+                    // Check if the file is too large (2MB limit for signature)
+                    if ($_FILES["image"]["size"] > 2000000) {  // 2MB limit
+                        echo "Sorry, your file is too large.";
+                        $uploadOk = 0;
+                    }
+                
+                    // Allow certain file formats (JPEG, PNG, JPG, and GIF)
+                    if ($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
+                        echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+                        $uploadOk = 0;
+                    }
+                
+                    // Check if $uploadOk is set to 0 due to an error
+                    if ($uploadOk == 0) {
+                        echo "Sorry, your file was not uploaded.";
+                    } else {
+                        // Try to upload the file
+                        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
+                            // echo "The file ". basename($_FILES["image"]["name"]). " has been uploaded.";
+                            $array['correspondent_signature']            = $newFileName;
+                        } else {
+                            // echo "Sorry, there was an error uploading your file.";
+                            $array['correspondent_signature']            = "";
+                        }
+                    }
+                } else {
+                      $array['correspondent_signature'] = $_POST['correspondent_signature'];
+                }
+
+                
+
+                   
+                    
 
                     if ( isset($array['language']) ) {
                         $this->session->set_userdata('lang', $array['language']);

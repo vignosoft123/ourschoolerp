@@ -166,7 +166,7 @@
                     <div class="mainadmincardreport">
                         <?php if(customCompute($students)) { foreach($students as $student) { ?>
                         <?php if($typeID == 1) { ?>
-                            <div class="admincardreport" style="height:480px">
+                            <div class="admincardreport" style="height:auto">
                                 <table width="100%" style="text-align:center">
                                     <tr>
                                         <td id="logo" style="width:16%">
@@ -187,8 +187,8 @@
                                         </td>
                                         <td style="width:76%"> 
                                             <h2><?=$siteinfos->sname?></h2>
-                                            <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> <?= $siteinfos->email?></span></h5> 
-                                            <h5 style="color:#0000ff;"><?=$siteinfos->phone?></h5> 
+                                            <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> </span></h5> 
+                                            <h5 style="color:#0000ff;"><?= $siteinfos->email?>, Ph: <?=$siteinfos->phone?></h5> 
                                         </td>
                                         <td style="width:8%">
                                             <img src="<?=imagelink($student->photo)?>" alt="">
@@ -265,14 +265,36 @@
                                                 </tr>
                                             <?php } ?>
                                         </table>
+                                        
+                                        <br/>
+                                            <div class="signatures" >
+                                                <div class="row">
+                                                    <div class="col-sm-4" >-
+                                                    </div>
+                                                    <div class="col-sm-4" >-
+                                                    </div>
+                                                    <div class="col-sm-4" >
+                                                    <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
+                                                    </div>
+                                                </div>
+
+                                                <div class="row">
+                                                    <div class="col-sm-4" >Parent Signature
+                                                    </div>
+                                                    <div class="col-sm-4" >Teacher Signature
+                                                    </div>
+                                                    <div class="col-sm-4" >Principal Signature
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                
                                     </div>
+                                    
+                                  
+                                
                                 </div>
-                                <div class="admitcardfooter" style="">
-                                    <span class="">Parent Signature </span>
-                                    <span class="" style="margin-left:25%">Teacher Signature</span>
-                                    <span class="account_signature"></span>
-                                    <span class="headmaster_signature">Principal Signature</span>
-                                </div>
+                                
                             </div>
                         <?php } elseif($typeID == 2) { ?>
                             <div class="admitcardreportbackend" style="height:480px">

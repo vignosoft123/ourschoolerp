@@ -450,6 +450,9 @@
                     </div>
 
 
+                  
+
+
                     <div class="col-sm-4">
                         <div class="form-group <?= form_error('schoolCode') ? 'has-error' : '' ?>">
                             <div class="col-sm-12">
@@ -813,6 +816,40 @@
                 </div>
             </fieldset>
 
+            <fieldset class="setting-fieldset">
+                <legend class="setting-legend">Correspondance Signature</legend>
+                <div class="col-sm-4">
+                    <div class="form-group <?php if (form_error('signature')) {
+                                                echo 'has-error';
+                                            } ?>">
+                        <div class="col-sm-12">
+                            <!-- <label>Correspondance Signature
+                            </label> -->
+                            <span><b style="color:red" >Note : </b> Size should between 300X500 and 100X150 and lessthan 2MB. </span>
+                            <div class="btn btn-success image-preview-input1"> 
+                                            
+                                            <!-- <input type="file" accept="image/png, image/jpeg, image/gif" name="correspondent_signature" /> -->
+                                             <input type="hidden" name="correspondent_signature" value="<?= $setting->correspondent_signature?>">
+                                            <input type="file" name="image" accept="image/*" >
+
+                                        </div>
+                                      
+                                        <span>
+                                            <img src="<?php echo base_url('/uploads/signatures/').$setting->correspondent_signature ?>" style="width:150px;height:50px;" >
+                                        </span>
+                            <span class="control-label">
+                                <?php echo form_error('signature'); ?>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+
+                 
+
+               
+            </fieldset>
+
 
 
             <div class="form-group">
@@ -1118,6 +1155,57 @@
         });
     });
 
+   
+   /* $(function() {
+        // Create the close button
+        var closebtn = $('<button/>', {
+            type: "button",
+            text: 'x',
+            id: 'close-preview',
+            style: 'font-size: initial;',
+        });
+        closebtn.attr("class", "close pull-right");
+        // Set the popover default content
+        $('.image-preview1').popover({
+            trigger: 'manual',
+            html: true,
+            title: "<strong>Preview</strong>" + $(closebtn)[0].outerHTML,
+            content: "There's no image",
+            placement: 'bottom'
+        });
+        // Clear event
+        $('.image-preview-clear1').click(function() {
+            $('.image-preview1').attr("data-content", "").popover('hide');
+            $('.image-preview-filename1').val("");
+            $('.image-preview-clear1').hide();
+            $('.image-preview-input1 input:file').val("");
+            $(".image-preview-input-title1").text("<?= $this->lang->line('setting_file_browse') ?>");
+        });
+        // Create the preview image
+        $(".image-preview-input1 input:file").change(function() {
+            var img = $('<img/>', {
+                id: 'dynamic',
+                width: 250,
+                height: 200,
+                overflow: 'hidden'
+            });
+            var file = this.files[0];
+            var reader = new FileReader();
+            // Set preview image into the popover data-content
+            reader.onload = function(e) {
+                $(".image-preview-input-title1").text("<?= $this->lang->line('setting_clear') ?>");
+                $(".image-preview-clear1").show();
+                $(".image-preview-filename1").val(file.name);
+                img.attr('src', e.target.result);
+                $(".image-preview1").attr("data-content", $(img)[0].outerHTML).popover("show");
+                $('.content1').css('padding-bottom', '120px');
+            }
+            reader.readAsDataURL(file);
+        });
+    });*/
+
+   
+   
     $(".select2").select2({
         placeholder: "",
         maximumSelectionSize: 6
