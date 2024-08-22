@@ -70,7 +70,9 @@
                         <div class="tab-content">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table" class="responsive">
+                                   
                                     <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
+                                    <h3 class='err' style="margin-left:25%;color:green;"> </h3>
                                         <thead>
                                             <tr>
                                                 <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
@@ -111,12 +113,9 @@
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
                                                             <?php echo $student->srname; ?>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_roll') ?>">
-                                                            <?php echo $student->srroll; ?>
-                                                        </td>
-                                                        <td data-title="<?= $this->lang->line('student_phone') ?>">
-                                                            <?php echo $student->phone; ?>
-                                                        </td>
+                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
+                                                        
+                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->village_name; ?>
                                                         </td>
@@ -383,4 +382,47 @@
             });
         }
     });
+
+$(document).on("focusout","#rollNo",function(){
+    var classesID = $(this).attr('classId');
+    var sectionID = $(this).attr('sectionId');
+    var studentID = $(this).attr('studentID');
+    var rollNo = $(this).text(); 
+    $.ajax({
+            type: 'POST',
+            url: "<?=base_url('student/checkRoll_update')?>",
+            data: {"classesID":classesID,"sectionID":sectionID,"rollNo":rollNo,"studentID":studentID},
+            dataType: "html",
+            success: function(data) {
+              $('.err').html(data);
+            // alert(data);
+            }
+        });
+})
+
+
+$(document).on("focusout","#phone_update",function(){
+  
+    var studentID = $(this).attr('studentID');
+    var phone = $(this).text(); 
+
+    const editableDiv = document.getElementById('phone_update');
+  
+    if (phone.length > 10) {
+      phone = phone.substring(0, 10);
+    }
+
+    $.ajax({
+            type: 'POST',
+            url: "<?=base_url('student/phone_update')?>",
+            data: {"phone":phone,"studentID":studentID},
+            dataType: "html",
+            success: function(data) {
+              $('.err').html(data);
+            // alert(data);
+            }
+        });
+})
+
+
 </script>

@@ -17,6 +17,36 @@
     <div id="printablediv">
         <style type="text/css">
 
+@media print {
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .col-sm-4 {
+        width: 30%; /* Ensure proper width for printing */
+        margin-bottom: 20px; /* Add space between the signature blocks */
+    }
+
+    /* Adjust image size for print */
+    img {
+        width: 120px;
+        height: 40px;
+    }
+
+    /* If you want to hide elements */
+    .no-print {
+        display: none;
+    }
+}
+
+@page {
+    size: A4; /* or 'letter' for US letter size */
+    margin: 10mm; /* Reduce margins for more content space */
+}
+
+
             .text-yellow{
                 background: black;height: 30px;
             color:#e4de22 !important
@@ -197,14 +227,13 @@
                                     <tr>
                                         <td colspan="3" style="font-size:20px; !important;">
 
-                                        <!-- <h3 class="text-yellow"> -->
+                                        <span style="border-radius: 5px; border: 1px solid #333; padding: 2px;">
                                             <?=$examTitle?> <?= "Hall Ticket"?> - ( <?=$examYear?> )
-                                        <!-- </h3> -->
+                                        </span>
 
                                         </td>
                                     </tr>
-                                </table>
-                                <hr>
+                                </table> 
                                 <div class="admitcardbody">
                                    
                                     <div class="admitcardstudentinfo">
@@ -267,18 +296,18 @@
                                         </table>
                                         
                                         <br/>
-                                            <div class="signatures" >
-                                                <div class="row">
-                                                    <div class="col-sm-4" >-
+                                            <div class="signatures  " >
+                                                <div class="row ">
+                                                    <!-- <div class="col-sm-4" ><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
+                                                   
                                                     </div>
-                                                    <div class="col-sm-4" >-
+                                                    <div class="col-sm-4" ><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
+                                                   
                                                     </div>
                                                     <div class="col-sm-4" >
                                                     <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
-                                                    </div>
-                                                </div>
-
-                                                <div class="row">
+                                                    </div> -->
+                                                 
                                                     <div class="col-sm-4" >Parent Signature
                                                     </div>
                                                     <div class="col-sm-4" >Teacher Signature
@@ -286,6 +315,20 @@
                                                     <div class="col-sm-4" >Principal Signature
                                                     </div>
                                                 </div>
+
+                                <!-- <div class="admitcardfooter" style="">
+                                    <span class="">Parent Signature </span>
+                                    <span class="" style="margin-left:25%">Teacher Signature</span>
+                                    <span class="account_signature"></span>
+                                    <span class="headmaster_signature">Principal Signature</span>
+                                </div>
+
+                                <div class="admitcardfooter" style="">
+                                    <span class="">Parent Signature </span>
+                                    <span class="" style="margin-left:25%">Teacher Signature</span>
+                                    <span class="account_signature"></span>
+                                    <span class="headmaster_signature">Principal Signature</span>
+                                </div> -->
 
                                             </div>
                                 

@@ -2799,4 +2799,75 @@ public function checkRoll(){
 	echo $html;
 }
 
+public function checkRoll_update(){
+	$html = "";
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+	$classesID  = $_POST['classesID'];
+	$sectionID  = $_POST['sectionID'];
+	$rollNo  = $_POST['rollNo'];
+	$studentID  = $_POST['studentID'];
+	/*if(!empty($classesID) && !empty($sectionID)  ){
+		$this->db->where('sectionID',$sectionID);
+		$this->db->where('classesID',$classesID);
+		$this->db->where('roll',$rollNo);
+		$this->db->where('schoolyearID',$schoolyearID);
+		$res = $this->db->get('student')->result_array();
+		
+		if(!empty($res)){
+			$html .= "<b style='color:red' >Roll Number already allocated to ";
+			foreach($res as $r){				
+				$html .= $r['name']. ', ';
+			}
+			$html .= "</b>";
+		}else{
+
+			$this->db->where('sectionID',$sectionID);
+			$this->db->where('classesID',$classesID); 
+			$this->db->where('schoolyearID',$schoolyearID);
+			$res = $this->db->get('student')->num_rows();
+
+			$roll = $res + 1;
+			$html .= "<b style='color:green'> enter Roll No : ".$roll . "</b>";
+		}*/
+
+		$data = array('roll'=>$rollNo);
+		$data1 = array('srroll'=>$rollNo);
+
+		$this->db->where('studentID',$studentID);
+		$this->db->update('student',$data);
+
+		$this->db->where('srstudentID',$studentID);
+		$this->db->update('studentrelation',$data1);
+
+	// }
+
+	$update = "<b style='color:green'>Roll No updated successfully </b>";
+	if(!empty($html)){
+		$final = $update.'but system suggests '.$html;
+	}
+	echo $update = "Roll Number updated successfully!";
+	// echo $final;
+}
+
+
+public function phone_update(){
+	$html = "";
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+ 
+	$phone  = $_POST['phone'];
+	$studentID  = $_POST['studentID'];
+	 
+		$data = array('phone'=>$phone); 
+
+		$this->db->where('studentID',$studentID);
+		$this->db->update('student',$data);  
+
+	echo $update = "Phone Number updated successfully!";
+	// echo $final;
+}
+
+
+
 }
