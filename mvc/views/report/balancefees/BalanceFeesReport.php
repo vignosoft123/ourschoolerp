@@ -75,9 +75,9 @@
                                         <?php } ?>
                                         <th>Phone</th>
                                         <th><?=$this->lang->line('balancefeesreport_fees_amount')?></th>
-                                        <th><?=$this->lang->line('balancefeesreport_discount')?> </th>
+                                        <th>Discount/Weaver </th>
                                         <th><?=$this->lang->line('balancefeesreport_paid')?> </th>
-                                        <th><?=$this->lang->line('balancefeesreport_weaver')?> </th>
+                                        <!-- <th><?=$this->lang->line('balancefeesreport_weaver')?> </th> -->
                                         <th><?=$this->lang->line('balancefeesreport_balance') ?></th>
                                     </tr>
                                 </thead>
@@ -118,14 +118,27 @@
                                                     <?=isset($totalAmountAndDiscount[$student->srstudentID]['amount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['amount'],2) : number_format(0, 2)?>
                                                 </td>
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_discount')?>">
-                                                    <?=isset($totalAmountAndDiscount[$student->srstudentID]['discount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['discount'],2) : number_format(0, 2)?>
+
+
+                                                   <?php 
+                                                    $discount_plus_waver = $totalAmountAndDiscount[$student->srstudentID]['discount'] + $totalweavar[$student->srstudentID]['weaver'];
+                                                    ?>
+                                                    <?php 
+                                                        //echo isset($totalAmountAndDiscount[$student->srstudentID]['discount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['discount'],2) : number_format(0, 2)
+                                                        echo isset($discount_plus_waver) ? number_format($discount_plus_waver,2) : number_format(0, 2)
+                                                    ?>
+
                                                 </td>
+
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_paid')?>">
                                                     <?=isset($totalPayment[$student->srstudentID]['payment']) ? number_format($totalPayment[$student->srstudentID]['payment'],2) : number_format(0, 2)?>
                                                 </td>
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_weaver')?>">
+
+                                                <!-- <td data-title="<?=$this->lang->line('balancefeesreport_weaver')?>">
                                                     <?=isset($totalweavar[$student->srstudentID]['weaver']) ? number_format($totalweavar[$student->srstudentID]['weaver'],2) : number_format(0, 2)?>
-                                                </td>
+                                                </td> -->
+
+
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_balance')?>">
                                                     <?php 
                                                         $Amount = 0;
@@ -167,17 +180,17 @@
                                     ?>       
                                     <tr>
                                         <?php 
-                                            $colspan = 4;
+                                            $colspan = 3;
                                             if($classesID == 0) {
-                                                $colspan = 5;
+                                                $colspan = 4;
                                             }
 
                                             if($sectionID == 0) {
-                                                $colspan = 5;
+                                                $colspan = 4;
                                             }
 
                                             if($classesID == 0 && $sectionID == 0) {
-                                                $colspan = 6;
+                                                $colspan = 5;
                                             }
                                         ?>
                                         <td data-title="<?=$this->lang->line('balancefeesreport_grand_total')?>" class="text-right text-bold" colspan="<?=$colspan?>"><?=$this->lang->line('balancefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?> </td>

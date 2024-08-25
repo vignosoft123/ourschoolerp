@@ -151,6 +151,7 @@
                                             <?php $invoice_total = 0; $invoice_weaver = 0; $invoice_fine = 0; $invoice_paid_fine = 0; if(customCompute($globalpayments)) { foreach ($globalpayments as $globalpayment) { ?>
 
                                                 <?php
+                                                // echo '<pre>';print_r($paidpayments);die;
                                                     $tpaid = 0;
                                                     $tfine = 0;
                                                     if(isset($paidpayments['paid'][$globalpayment->globalpaymentID])) {
@@ -178,8 +179,12 @@
                                                 ?>
                                                 <tr>
                                                     <td><?='INV-G-'.$globalpayment->globalpaymentID?></td>
+
+
                                                     <td><?=isset($paidpayments['paid'][$globalpayment->globalpaymentID]) ? $paidpayments['paid'][$globalpayment->globalpaymentID] : 0 ?></td>
+
                                                     <td><?=isset($paidpayments['weaver'][$globalpayment->globalpaymentID]) ? $paidpayments['weaver'][$globalpayment->globalpaymentID] : 0 ?></td>
+
                                                     <td><?=isset($paidpayments['fine'][$globalpayment->globalpaymentID]) ? $paidpayments['fine'][$globalpayment->globalpaymentID] : 0 ?></td>
                                                     <td><?=$tpaidandfine?></td>
                                                     <td><?=ucfirst($globalpayment->clearancetype)?></td>
@@ -261,7 +266,10 @@
 
                                         <tbody>
                                             <?php 
-                                                $total = 0;
+                                            // echo "<pre>";print_r($invoices);
+
+                                            // echo "<pre>";print_r($payments);die;
+                                            $total = 0;
                                                 $totalDue = 0;
                                                 if(customCompute($invoices)) { 
                                                     $i=1; 
@@ -269,7 +277,10 @@
                                                         $total += number_format($invoice->amount, 2, '.', '');
 
                                                         if($invoice->discount > 0) {
-                                                            $total = number_format(($total - (($invoice->amount/100)*$invoice->discount)), 2, '.', '');
+                                                            // $total = number_format(($total - (($invoice->amount/100)*$invoice->discount)), 2, '.', '');
+
+                                                            $total = number_format(($total - ( $invoice->discount )), 2, '.', '');
+
                                                         }
 
                                                         $payment = 0;
@@ -279,8 +290,12 @@
 
                                                         $due = number_format(($invoice->amount - $payment), 2, '.', '');
 
+                                                        // if($invoice->discount > 0) {
+                                                        //     $due = number_format(($due - (($invoice->amount/100)*$invoice->discount)), 2, '.', '');
+                                                        // }
+
                                                         if($invoice->discount > 0) {
-                                                            $due = number_format(($due - (($invoice->amount/100)*$invoice->discount)), 2, '.', '');
+                                                            $due = number_format(( $due -  $invoice->discount ), 2, '.', '');
                                                         }
 
                                                         if(isset($weavers[$invoice->invoiceID])) {
@@ -294,8 +309,20 @@
                                                         <tr>
                                                             <td style="width:10%"><?=$i?></td>
                                                             <td style="width:10%"><?php if(isset($feetypes[$invoice->feetypeID])) { echo $feetypes[$invoice->feetypeID]; } ?></td>
-                                                            <td style="width:10%"><?php if($invoice->discount > 0) { echo ($invoice->amount - (($invoice->amount/100)*$invoice->discount)); } else { echo $invoice->amount;  }  ?></td>
+
+                                                            <td style="width:10%">
+
+                                                                <?php if($invoice->discount > 0) { 
+                                                                    // echo ($invoice->amount - (($invoice->amount/100)*$invoice->discount)); 
+
+                                                                    echo ($invoice->amount - ( $invoice->discount ));
+
+                                                                } else {
+                                                                     echo $invoice->amount;  
+                                                                }  ?></td>
+
                                                             <td id="_due_<?=$i-1?>" style="width:10%"><?=$due?></td>
+
                                                             <td style="width:10%">
                                                                 <?php
                                                                     if($due == 0) {
@@ -522,8 +549,11 @@
                             <table class="table info">
                                 <tr>
                                     <td><b><?=$this->lang->line('global_invoice_number')?>: </b>INV-G-<?=$globalpayment->globalpaymentID?></td>
+
                                     <td><b><?=$this->lang->line('global_clearance')?>: </b><?=strtoupper($globalpayment->clearancetype)?></td>
+
                                     <td><b><?=$this->lang->line('global_date')?>: </b><?=isset($paidpayments['paiddate'][$globalpayment->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment->globalpaymentID])) : '' ?></td>
+
                                 </tr>
                                 <tr>
                                     <td><b><?=$this->lang->line('global_name')?>: </b><?=customCompute($single_student) ? $single_student->srname : ''?> </td>

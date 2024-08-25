@@ -215,10 +215,15 @@ class Balancefeesreport extends Admin_Controller{
 				$totalAmountAndDiscount[$array->studentID]['type'][] = $array->feetype.':'.$array->amount;
 
 				if(isset($totalAmountAndDiscount[$array->studentID]['discount'])) {
-					$discount = (($array->amount / 100) * $array->discount);
+
+					// $discount = (($array->amount / 100) * $array->discount);
+					$discount = $array->discount; 
+
 					$totalAmountAndDiscount[$array->studentID]['discount'] += $discount;
 				} else {
-					$discount = (($array->amount / 100) * $array->discount);
+					// $discount = (($array->amount / 100) * $array->discount);
+					$discount = $array->discount;
+					
 					$totalAmountAndDiscount[$array->studentID]['discount'] = $discount;
 				}
 			}
