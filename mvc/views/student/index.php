@@ -188,12 +188,14 @@
                                         <table class="table table-bordered table-hover dataTable no-footer">
                                             <thead>
                                                 <tr>
-                                                    <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
-                                                    <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('student_roll') ?></th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
+                                                <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
+                                                <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
+                                                <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
+                                                <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
+                                                <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
+                                                <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
+                                                <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
+                                                <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                     <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
                                                         <th class="col-sm-3"><?= $this->lang->line('action') ?></th>
                                                     <?php } ?>
@@ -205,25 +207,30 @@
                                                     foreach ($allsection[$section->sectionID] as $student) {
                                                         if ($section->sectionID === $student->srsectionID) { ?>
                                                             <tr>
-                                                                <td data-title="<?= $this->lang->line('slno') ?>">
-                                                                    <?php echo $i; ?>
-                                                                </td>
-
-                                                                <td data-title="<?= $this->lang->line('student_photo') ?>">
-                                                                    <?= profileimage($student->photo) ?>
-                                                                </td>
-                                                                <td data-title="<?= $this->lang->line('student_name') ?>">
-                                                                    <?php echo $student->srname; ?>
-                                                                </td>
-                                                                <td data-title="<?= $this->lang->line('student_roll') ?>">
-                                                                    <?php echo $student->srroll; ?>
-                                                                </td>
-                                                                <td data-title="<?= $this->lang->line('student_phone') ?>">
-                                                                    <?php echo $student->phone; ?>
-                                                                </td>
-                                                                <td data-title="<?= $this->lang->line('student_village') ?>">
-                                                                    <?php echo $student->village_name; ?>
-                                                                </td>
+                                                            <td data-title="<?= $this->lang->line('slno') ?>">
+                                                            <?php echo $i; ?>
+                                                        </td>
+                                                        <td data-title="<?= $this->lang->line('student_photo') ?>">
+                                                            <?= profileimage($student->photo); ?>
+                                                        </td>
+                                                        <td data-title="<?= $this->lang->line('student_registerNO') ?>">
+                                                            <?php echo $student->registerNO; ?>
+                                                        </td>
+                                                        <td data-title="<?= $this->lang->line('student_name') ?>">
+                                                            <?php echo $student->srname; ?>
+                                                        </td>
+                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
+                                                        
+                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
+                                                            <?php echo $student->village_name; ?>
+                                                        </td>
+                                                        <?php 
+                                                            $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR", 0 =>'')
+                                                        ?>
+                                                        <td data-title="<?= $this->lang->line('studentType') ?>">
+                                                            <?php echo  ($studentType[$student->studentType]) ?  $studentType[$student->studentType] : 'DAY SCHOLAR'; ?>
+                                                        </td>
                                                                 <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
                                                                     <td class="action-btns" data-title="<?= $this->lang->line('action') ?>">
                                                                         <?php
@@ -259,12 +266,14 @@
                                     <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
                                         <thead>
                                             <tr>
-                                                <th class="col-sm-2"><?= $this->lang->line('slno') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_photo') ?></th>
+                                            <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
+                                                <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
+                                                <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_roll') ?></th>
+                                                <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
+                                                <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>

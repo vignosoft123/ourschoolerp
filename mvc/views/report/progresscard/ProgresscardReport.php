@@ -72,7 +72,9 @@
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
             $pdf_preview_uri = base_url('progresscardreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID);
+
             echo btn_printReport('progresscardreport', $this->lang->line('report_print'), 'printablediv');
+            
             // echo btn_pdfPreviewReport('progresscardreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
             // echo btn_sentToMailReport('progresscardreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
@@ -80,8 +82,7 @@
 
         <button class="btn btn-default sendWhatsapp_btn"></span> Send Whatsapp</button>
     </div>
-    
-
+     
     <div class="form-group col-sm-12" id="students_div">
                     <label><?=$this->lang->line("progresscardreport_student")?></label>
 
@@ -122,6 +123,48 @@
     </div><!-- /.box-header -->
     <div id="printablediv">
         <style type="text/css">
+
+@media print {
+    .studentinfo {
+        font-size: 14px; /* Adjust font size for print */
+        line-height: 1.5; /* Adjust line height for better readability */
+        color: black; /* Ensure all text is black unless styled otherwise */
+        margin: 20px; /* Adjust margins for print */
+    }
+
+    .studentinfo p {
+        margin: 10px 0;
+    }
+
+    .md-2 {
+        width: 20%; /* Adjust as per requirement */
+    }
+ 
+    .md-4 {
+        width: 80%; /* Adjust as per requirement */
+    }
+
+
+    .text-red {
+        color: red;
+    }
+
+    /* Hide elements that are unnecessary for printing */
+    .no-print {
+        display: none !important;
+    }
+
+    /* Ensure no page break inside the student info section */
+    .studentinfo {
+        page-break-inside: avoid;
+    }
+
+    /* Force page break after the section if needed */
+    .studentinfo-break {
+        page-break-after: always;
+    }
+}
+
         * {
             -webkit-print-color-adjust: exact !important;   /* Chrome, Safari 6 – 15.3, Edge */
             color-adjust: exact !important;                 /* Firefox 48 – 96 */
@@ -267,6 +310,23 @@
                     font-size: 12px;
                 }
             }
+
+            .mainprogresscardreport{
+                    border:0px solid #ddd;
+                    padding: 0px 20px;
+                    padding:55px;
+                    min-height: 443px;
+                    background:url("uploads/default/admitcard-border.png") !important;
+                    background-size: 100% 100% !important;
+                }
+
+                .student-profile-img img {
+                    margin-right: 5px !important;
+                }
+
+                .progresscard-contents table td,.progresscard-contents table th {
+                    font-size: 12px;
+                }
         </style>
         <div class="box-body" style="margin-bottom: 50px;">
             <div class="row">
@@ -322,7 +382,7 @@
                                    
                                    <div class="admitcardstudentinfo">
                                        <div class="studentinfo">
-                                           <p><span class="text-red">Name</span> : <?=$student->srname?> </p>
+                                           <p><span class="text-red md-2">Name</span> :<span class="md-4"> <?=$student->srname?> </span></p>
                                            <p><span class="text-red"><?=$this->lang->line('progresscardreport_reg_no')?></span> : <?=$student->srregisterNO?> </p>
                                            <p><span class="text-red"><?=$this->lang->line('progresscardreport_class')?></span> : <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?> </p>
                                            <p><span class="text-red"><?=$this->lang->line('progresscardreport_section')?></span> : <?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?> </p>
@@ -661,11 +721,11 @@
 
                         
 
-                            <!-- <div class="admitcardfooter" style="padding-top:100px !important">
+                            <div class="admitcardfooter" style="padding-top:100px !important">
                                 <span class="">Parent Signature </span>
                                 <span class="" style="margin-left:25%">Teacher Signature</span>
                                 <span class="headmaster_signature" style="margin-left:25%">Principal Signature</span>
-                            </div> -->
+                            </div>
 
 
                            
@@ -676,7 +736,7 @@
 
                         <br/>
                         <div class="signatures" >
-                                                <div class="row">
+                                                <!-- <div class="row">
                                                     <div class="col-sm-4" >-
                                                     </div>
                                                     <div class="col-sm-4" >-
@@ -684,8 +744,8 @@
                                                     <div class="col-sm-4" >
                                                     <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
                                                     </div>
-                                                </div>
-
+                                                </div> -->
+                                            <!-- 
                                                 <div class="row">
                                                     <div class="col-sm-4" >Parent Signature
                                                     </div>
@@ -695,7 +755,7 @@
                                                     </div>
                                                 </div>
 
-                                            </div>
+                                            </div> -->
 
                     </div>
                     <p style="page-break-after: always;">&nbsp;</p>
@@ -709,6 +769,12 @@
             </div><!-- row -->
         </div><!-- Body -->
     </div>
+
+
+
+  
+
+
 </div>
 
 
@@ -782,6 +848,8 @@
 </form>
 <!-- email end here -->
 
+
+ 
 <script type="text/javascript">
 
 $("#students_div").hide();

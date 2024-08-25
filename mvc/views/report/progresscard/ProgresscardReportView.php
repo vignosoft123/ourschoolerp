@@ -63,7 +63,7 @@
         document.body.innerHTML = "<html><head><title></title></head><body>" + divElements + "</body>";
         window.print();
         document.body.innerHTML = oldPage;
-        window.location.reload();
+       // window.location.reload();
     }
 
 

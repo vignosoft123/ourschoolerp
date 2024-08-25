@@ -118,8 +118,8 @@ class Invoice_m extends MY_Model {
 		if((isset($queryArray['fromdate']) && $queryArray['fromdate'] != 0) && (isset($queryArray['todate']) && $queryArray['todate'] != 0)) {
 			$fromdate = date('Y-m-d', strtotime($queryArray['fromdate']));
 			$todate = date('Y-m-d', strtotime($queryArray['todate']));
-			$this->db->where('create_date >=', $fromdate);
-			$this->db->where('create_date <=', $todate);
+			$this->db->where('invoice.create_date >=', $fromdate);
+			$this->db->where('invoice.create_date <=', $todate);
 		}
 
 		$this->db->where('invoice.paidstatus !=', 2);
@@ -135,7 +135,7 @@ class Invoice_m extends MY_Model {
 		$this->db->from('invoice');
 		$this->db->where('invoice.schoolyearID',$queryArray['schoolyearID']);
 
-		if((isset($queryArray['classesID']) && $queryArray['classesID'] != 0) || (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) || (isset($queryArray['studentID']) && $queryArray['studentID'] != 0)) {
+		if((isset($queryArray['classesID']) && $queryArray['classesID'] != 0) || (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) || (isset($queryArray['studentID']) && $queryArray['studentID'] != 0) || (isset($queryArray['feetypeID']) && $queryArray['feetypeID'] != 0) ) {
 			
 			if(isset($queryArray['classesID']) && $queryArray['classesID'] != 0) {
 				$this->db->where('invoice.classesID', $queryArray['classesID']);
@@ -148,6 +148,7 @@ class Invoice_m extends MY_Model {
 			if(isset($queryArray['feetypeID']) && $queryArray['feetypeID'] != 0) {
 				$this->db->where('invoice.feetypeID', $queryArray['feetypeID']);
 			}
+
 		}
 		$this->db->where('invoice.deleted_at', 1);
 

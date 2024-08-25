@@ -204,7 +204,7 @@ class Tmember extends Admin_Controller {
 						$studentID = $student->srstudentID;
 						$is_auto_invoice = $this->setting_m->get_setting_where('is_student_auto_invoice');
 
-					if(!empty($is_auto_invoice) && ($is_auto_invoice['value'] == 1 || $is_auto_invoice['value'] == 2 ) ){
+					// if(!empty($is_auto_invoice) && ($is_auto_invoice['value'] == 1 || $is_auto_invoice['value'] == 2 ) ){
 						$class_id = $student->classesID;
 						$section_id = $student->sectionID;
 						$year_id = $this->session->userdata('defaultschoolyearID');
@@ -252,7 +252,7 @@ class Tmember extends Admin_Controller {
 						$invoice_error = $this->saveinvoice($invoice_data);
 						$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
 
-					}
+					// }
 				
 								
 								$this->session->set_flashdata('success', $this->lang->line('menu_success'));
