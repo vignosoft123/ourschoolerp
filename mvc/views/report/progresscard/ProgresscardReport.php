@@ -327,6 +327,44 @@
                 .progresscard-contents table td,.progresscard-contents table th {
                     font-size: 12px;
                 }
+
+
+                .table-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            border-collapse: collapse;
+            background-color: #fff;
+        }
+        .table-container td, .table-container th {
+            padding: 15px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        .table-container th {
+            background-color: #f4f4f4;
+            color: #333;
+            font-weight: bold;
+        }
+        .text-red {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .text-green {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .full-width {
+            width: 100%;
+        }
+
+        
         </style>
         <div class="box-body" style="margin-bottom: 50px;">
             <div class="row">
@@ -377,8 +415,30 @@
                                     </tr> 
                                 </table>
                                 <hr>
-                                
-                                <div class="admitcardbody">
+                               
+
+                                <table class="table-container full-width">
+                                <!-- <table width="100%" style="text-align:center"> -->
+        <tr>
+            <th class="text-red">Name :</th>
+            <td class="text-green"><?= $student->srname ?></td>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_reg_no') ?> :</th>
+            <td class="text-green"><?= $student->srregisterNO ?></td>
+        </tr>
+        <tr>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_class') ?> :</th>
+            <td class="text-green"><?= isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : '' ?></td>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_section') ?> :</th>
+            <td class="text-green"><?= isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : '' ?></td>
+        </tr>
+        <tr>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_roll_no') ?> :</th>
+            <td class="text-green"><?= $student->srroll ?></td>
+            <th class="text-red">Father Name :</th>
+            <td class="text-green"><?= $student->father_name ?></td>
+        </tr>
+    </table>
+                                <!-- <div class="admitcardbody">
                                    
                                    <div class="admitcardstudentinfo">
                                        <div class="studentinfo">
@@ -394,7 +454,7 @@
                                      
                                     </div> 
 
-                                </div>
+                                </div> -->
 
                         <div class="progresscard-infos">
                             
