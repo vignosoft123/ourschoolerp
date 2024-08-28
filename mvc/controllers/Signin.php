@@ -76,6 +76,26 @@ class Signin extends Admin_Controller {
 	}
 
 	public function index() {
+
+        $this->load->dbforge(); // Load the Database Forge class
+
+        // Check if the column 'status' exists
+        if (!$this->db->field_exists('message', 'sms_error_logs')) {
+            // Define the column to add
+            $fields = array(
+                'message' => array(
+                    'type' => 'text', // or any other data type you need
+                    'constraint' => '', // constraint length
+                    'null' => TRUE, // whether the column can be null
+                    'default' => NULL // default value
+                ),
+            );
+
+            // Add the column to the 'sms_error_logs' table
+            $this->dbforge->add_column('sms_error_logs', $fields);
+        }
+
+
         if ( $this->data['siteinfos']->captcha_status == 0 ) {
             $this->load->library('recaptcha');
             $this->data['recaptcha'] = [

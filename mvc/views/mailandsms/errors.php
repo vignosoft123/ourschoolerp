@@ -30,39 +30,33 @@
                 <?php } ?>
 
                 <div id="hide-table">
-                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
-                        <thead>
-                            <tr>
-                                <th class="col-lg-1"><?=$this->lang->line('slno')?></th>
-                                <th class="col-lg-3">Response</th>
-                                <th class="col-lg-3">Type</th>
-                                <th class="col-lg-3">Created On</th>
-                                <th class="col-lg-6">Request</th>
+                <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+    <thead>
+        <tr>
+            <th style="width: 5%;"><?=$this->lang->line('slno')?></th>
+            <th style="width: 15%;">Response</th>
+            <th style="width: 15%;">Type</th>
+            <th style="width: 15%;">Message</th>
+            <th style="width: 5%;">Created On</th>
+            <th style="width: 25%;">Request</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if(customCompute($errors)) {$i = 1; foreach($errors as $error) { ?>
+            <tr>
+                <td data-title="<?=$this->lang->line('slno')?>">
+                    <?php echo $i; ?>
+                </td>
+                <td><?= $error->api_response?></td>
+                <td><?= $error->type?></td>
+                <td style="width: 15%;"><?= $error->message?></td>
+                <td><?= $error->created_on?></td>
+                <td><?= $error->request_url?></td>
+            </tr>
+        <?php $i++; }} ?>
+    </tbody>
+</table>
 
-                               
-                                
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if(customCompute($errors)) {$i = 1; foreach($errors as $error) { ?>
-                                <tr>
-                                    <td data-title="<?=$this->lang->line('slno')?>">
-                                        <?php echo $i; ?>
-                                    </td>
-                                    <td ><?= $error->api_response?>
-                                         </td>
-                                         <td ><?= $error->type?>
-                                         </td>
-                                         <td >
-                                        <?= $error->created_on?> </td>
-                                        <td >
-                                        <?=  $error->request_url?> </td>
-                                       
-  
-                                </tr>
-                            <?php $i++; }} ?>
-                        </tbody>
-                    </table>
                 </div>
    
 

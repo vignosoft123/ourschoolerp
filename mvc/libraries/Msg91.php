@@ -30,6 +30,7 @@ class Msg91
        
     
         //Your message to send, Add URL encoding here.
+        $msg = $message;
         $message = urlencode($message);
 
         //Define route
@@ -82,6 +83,7 @@ class Msg91
             'api_response' => $output,
             'created_on' => date("Y-m-d H:i:s"),
             'type' => "SMS",
+            'message'=>$msg
         ); 
         if (strpos($output, 'campid') == false) { 
             $this->ci->db->insert('sms_error_logs',$data);
