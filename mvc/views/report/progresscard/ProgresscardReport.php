@@ -782,9 +782,17 @@
                         
 
                             <div class="admitcardfooter" style="padding-top:100px !important">
-                                <span class="">Parent Signature </span>
+                                <span class=""> <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" > </span>
+                                <span class="" style="margin-left:25%"></span>
+                                <span class="headmaster_signature" style="margin-left:25%">
+                                    
+                                </span>
+
+                                <div></div>
+                                <span class="">Principal Signature </span>
                                 <span class="" style="margin-left:25%">Teacher Signature</span>
-                                <span class="headmaster_signature" style="margin-left:25%">Principal Signature</span>
+                                <span class="headmaster_signature" style="margin-left:25%">Parent Signature</span>
+
                             </div>
 
 

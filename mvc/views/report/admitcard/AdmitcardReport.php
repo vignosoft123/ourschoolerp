@@ -296,6 +296,22 @@
                                         </table>
                                         
                                         <br/>
+                                        <table style="margin-top:25px; border-collapse: collapse; border: none;">
+    <tr>
+        <td style="border: none;"><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:30px;border:none;"></td>
+        <td style="border: none;"></td>
+        <td style="border: none;"></td> 
+    </tr>
+    <tr>
+        <td style="border: none; padding: 0; margin: 0;">Principal Signature</td>
+        <td style="border: none; padding: 0; margin: 0;">Teacher Signature</td> 
+        <td style="border: none; padding: 0; margin: 0;">Parent Signature</td>
+    </tr>
+</table>
+
+
+
+
                                             <div class="signatures  " >
                                                 <div class="row ">
                                                     <!-- <div class="col-sm-4" ><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
@@ -308,12 +324,12 @@
                                                     <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
                                                     </div> -->
                                                  
-                                                    <div class="col-sm-4" >Parent Signature
+                                                    <!-- <div class="col-sm-4" >Parent Signature
                                                     </div>
                                                     <div class="col-sm-4" >Teacher Signature
                                                     </div>
                                                     <div class="col-sm-4" >Principal Signature
-                                                    </div>
+                                                    </div> -->
                                                 </div>
 
                                 <!-- <div class="admitcardfooter" style="">
