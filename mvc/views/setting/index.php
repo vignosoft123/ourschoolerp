@@ -1009,7 +1009,7 @@
                     data: "id=" + id,
                     dataType: "html",
                     success: function(data) {
-                        $('#headStyleCSSLink').attr('href', "<?= base_url('assets/inilabs/themes/') ?>" + data + "/style.css");
+                        $('#headStyleCSSLink').attr('href', "<?= base_url('assets/inilabs/themes/') ?>" + data + "/style.css?v=1.0");
                         $('#headInilabsCSSLink').attr('href', "<?= base_url('assets/inilabs/themes/') ?>" + data + "/inilabs.css");
 
                         $html = '<center class="backendThemeBodyMargin"><button type="button" class="btn btn-danger"><i  class="fa fa-check-circle"></i></button></center>';
