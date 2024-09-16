@@ -167,7 +167,7 @@ class Attendanceoverviewreport extends Admin_Controller {
 			if($usertype == 1) {
 				$students = $this->studentrelation_m->general_get_order_by_student(array('srclassesID' => $classesID,'srsectionID'=>$sectionID,'srschoolyearID' => $schoolyearID));
 				foreach ($students as $student) {
-					echo "<option value=\"$student->srstudentID\">".$student->srname."</option>";
+					echo "<option value=\"$student->srstudentID\">".$student->srname.' (Roll No: ' . $student->roll. ")</option>";
 				}
 			}
 		}

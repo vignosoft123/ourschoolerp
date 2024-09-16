@@ -369,7 +369,7 @@ class Tabulationsheetreport extends Admin_Controller {
 			echo "<option value='0'>". $this->lang->line("tabulationsheetreport_please_select") . "</option>";
 			if(customCompute($students)) {
 				foreach ($students as $student) {
-					echo "<option value='".$student->srstudentID."'>".$student->srname."</option>";
+					echo "<option value='".$student->srstudentID."'>".$student->srname.' (Roll No: ' . $student->roll. ")</option>";
 				}
 			}
 		}

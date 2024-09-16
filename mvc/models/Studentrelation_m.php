@@ -127,6 +127,7 @@ class Studentrelation_m extends MY_Model {
         $this->db->select('*,(select father_name from parents where parentsID=student.parentID) as father_name');
         $this->db->from('studentrelation');
         $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+		$this->db->order_by('student.roll','asc');
 
         if($studentExtend) {
         	$this->db->join('studentextend', 'studentextend.studentID = studentrelation.srstudentID', 'LEFT');

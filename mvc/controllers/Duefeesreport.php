@@ -144,9 +144,10 @@ class Duefeesreport extends Admin_Controller{
 		echo "<option value='0'>", $this->lang->line("duefeesreport_please_select"),"</option>";
 		if((int)$classesID && (int)$sectionID && (int)$schoolyearID) {
 			$students = $this->studentrelation_m->get_order_by_studentrelation(array('srclassesID' => $classesID,'srsectionID' => $sectionID, 'srschoolyearID' => $schoolyearID));
+			// echo "<pre>";print_r($students);die;
 			if(customCompute($students)) {
 				foreach($students  as $student) {
-					echo "<option value=\"$student->srstudentID\">",$student->srname,"</option>";
+					echo "<option value=\"$student->srstudentID\">",$student->srname.' (Roll No: ' . $student->srroll. ")</option>";
 				}
 			}
 		}

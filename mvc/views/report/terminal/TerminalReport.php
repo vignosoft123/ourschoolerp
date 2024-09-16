@@ -291,6 +291,7 @@
                                                    $tot = $studentPosition[$student->srstudentID]['totalSubjectMark'];
                                                   $zero_mark = 0;
                                                 //  echo 'outof'.  $out_of;
+                                                $out_of = $out_of ? $out_of : 1;
                                                   $percent_cal = ($tot / $out_of) * 100;
                                                   if($percent_cal >= 95 && $zero_mark == 0){
                                                       $grade = "A+";

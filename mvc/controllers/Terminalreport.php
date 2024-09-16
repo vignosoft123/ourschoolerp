@@ -946,7 +946,7 @@ class Terminalreport extends Admin_Controller {
 			if(customCompute($students)) {
 				echo "<option value='0'>". $this->lang->line("terminalreport_please_select") ."</option>";
 				foreach($students as $student) {
-					echo "<option value=\"$student->srstudentID\">".$student->srname."</option>";
+					echo "<option value=\"$student->srstudentID\">".$student->srname.' (Roll No: ' . $student->roll. ")</option>";
 				}
 			}
 		}

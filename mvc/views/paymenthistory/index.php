@@ -20,6 +20,7 @@
                                 <th><?=$this->lang->line('invoice_invoice_number')?></th>
                                 <th><?=$this->lang->line('paymenthistory_student')?></th>
                                 <th><?=$this->lang->line('paymenthistory_classes')?></th>
+                                <th>Section</th>
                                 <th><?=$this->lang->line('paymenthistory_feetype')?></th>
                                 <th><?=$this->lang->line('paymenthistory_method')?></th>
                                 <th><?=$this->lang->line('paymenthistory_amount')?></th>
@@ -33,7 +34,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if(customCompute($payments)) {$i = 1; foreach($payments as $payment) { if($payment->paymentamount != '') { ?>
+                            <?php 
+                            // echo "<pre>";print_r($payments);die;
+                            if(customCompute($payments)) {$i = 1; foreach($payments as $payment) { if($payment->paymentamount != '') { ?>
                                 <tr>
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
@@ -46,6 +49,9 @@
                                     </td>
                                     <td data-title="<?=$this->lang->line('paymenthistory_classes')?>">
                                         <?php echo $payment->srclasses; ?>
+                                    </td>
+                                    <td data-title="<?=$this->lang->line('paymenthistory_classes')?>">
+                                        <?php echo $payment->srsection; ?>
                                     </td>
                                    
                                     <td data-title="<?=$this->lang->line('paymenthistory_feetype')?>">
