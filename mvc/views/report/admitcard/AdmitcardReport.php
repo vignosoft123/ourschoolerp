@@ -199,7 +199,7 @@
                             <div class="admincardreport" style="height:auto">
                                 <table width="100%" style="text-align:center">
                                     <tr>
-                                        <td id="logo" style="width:16%">
+                                        <td id="logo" style="width:15%">
                                             <?php
                                                 if($siteinfos->photo) {
                                                     $array = array(
@@ -215,13 +215,13 @@
                                               <?php   }
                                             ?>
                                         </td>
-                                        <td style="width:76%"> 
+                                        <td style="width:70%"> 
                                             <h2><?=$siteinfos->sname?></h2>
                                             <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> </span></h5> 
                                             <h5 style="color:#0000ff;"><?= $siteinfos->email?>, Ph: <?=$siteinfos->phone?></h5> 
                                         </td>
-                                        <td style="width:8%">
-                                            <img src="<?=imagelink($student->photo)?>" alt="">
+                                        <td style="width:15%">
+                                            <img src="<?=imagelink($student->photo)?>" alt="" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                                         </td>
                                     </tr>
                                     <tr>

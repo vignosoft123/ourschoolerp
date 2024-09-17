@@ -277,6 +277,42 @@ if (customCompute($profile)) { ?>
 										</div>										
 									</div>
 
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Ration Card</label>
+											<div class="para"> <?= $profile->ration_card ?></div>
+										</div>										
+									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Account Number</label>
+											<div class="para"> <?= $profile->account_no ?></div>
+										</div>										
+									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Bank Name</label>
+											<div class="para"> <?= $profile->bank_name ?></div>
+										</div>										
+									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">IFSC CODE</label>
+											<div class="para"> <?= $profile->ifsc_code ?></div>
+										</div>										
+									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Branch Nme</label>
+											<div class="para"> <?= $profile->branch_name ?></div>
+										</div>										
+									</div> 
+
 								</div>
 
 

@@ -172,7 +172,7 @@ margin-bottom:20px;
                   <?php if(config_item('demo')) { ?>                           
                   <?php } ?>  
                   <div class="pull-right hidden-xs">
-                    <b>version</b> <?php echo "6.6.8";//config_item('ini_version');?>
+                    <b>version</b> <?php echo VERSION;//config_item('ini_version');?>
                   </div>                                 
                 </form>            
             </div><!-- End -->

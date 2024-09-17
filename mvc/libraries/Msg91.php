@@ -49,7 +49,7 @@ class Msg91
         // $url = "http://api.msg91.com/api/sendhttp.php";
         // $url = "http://182.18.170.201/api.php?username=".$this->username."&password=".$this->password."&to=".$to."&from=".$this->senderID."&message=".$message."&PEID=".$this->PEID."&templateid=".$template_id;
         //$url = "https://smslogin.co/v3/api.php?username=Demoschool123&apikey=7687263fe67c116e34b6&senderid=VGNSSP&mobile=8500814626,9494022475&message=".$message; //sending static message
-         $url = "https://smslogin.co/v3/api.php?username=".$this->username."&apikey=".$this->password."&senderid=".$this->senderID."&mobile=".$to."&message=".$message; //sendin dynamic message
+        $url = "https://smslogin.co/v3/api.php?username=".$this->username."&apikey=".$this->password."&senderid=".$this->senderID."&mobile=".$to."&message=".$message; //sendin dynamic message
 
         // echo ($url);exit;
         // init the resource

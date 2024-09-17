@@ -104,7 +104,7 @@
                                                         <td data-title="<?= $this->lang->line('slno') ?>">
                                                             <?php echo $i; ?>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_photo') ?>">
+                                                        <td onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
                                                             <?= profileimage($student->photo); ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_registerNO') ?>">
@@ -243,6 +243,8 @@
                                                                     </td>
                                                                 <?php } ?>
                                                             </tr>
+
+
                                                 <?php $i++;
                                                         }
                                                     }
@@ -292,6 +294,36 @@
         </div><!-- row -->
     </div><!-- Body -->
 </div><!-- /.box -->
+
+
+<!-- photo  Modal  start Structure -->
+<div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileUploadModalLabel">Upload File</h5>
+                    <!-- <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button> -->
+                </div>
+                <div class="modal-body">
+                    <!-- Form for File Upload -->
+                    <form id="fileUploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="formFile" class="form-label">Choose a file to upload</label>
+                            <input class="form-control" type="file" id="formFile" name="file">
+                            <input class="form-control" type="hidden" id="student_id" name="studentID" value="">
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> 
+<!-- photo upload modal end -->
+
+
+
 
 <script type="text/javascript">
     $(".select2").select2();
@@ -434,4 +466,38 @@ $(document).on("focusout","#phone_update",function(){
 })
 
 
+</script>
+
+
+
+
+<script>
+function getStudentID(studentID){
+    // alert(studentID);
+    $("#student_id").val(studentID);
+}
+
+document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    
+    var formData = new FormData(this);
+    
+    // Example: send form data to server via AJAX (you can adapt this to your own server-side code)
+    fetch('<?php echo base_url('Student/uploadPhoto')?>', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        alert('Photo uploaded successfully!');
+        // Close modal after successful upload
+        // var modal = bootstrap.Modal.getInstance(document.getElementById('fileUploadModal'));
+        // modal.hide();
+        location.reload();
+    })
+    .catch(error => {
+        // alert('Error uploading file');
+        console.error('Error:', error);
+    });
+});
 </script>

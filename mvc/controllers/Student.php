@@ -2868,6 +2868,36 @@ public function phone_update(){
 	// echo $final;
 }
 
+public function uploadPhoto(){
+	// print_r($_POST);die;
+	$id = $_POST['studentID'];
+	if (isset($_FILES['file'])) {
+        $file = $_FILES['file'];
+        
+        // Directory where the file will be uploaded
+        $uploadDir = 'uploads/images/';
+        
+        // Get the original file name and its extension
+        $originalFileName = pathinfo($file['name'], PATHINFO_FILENAME); // File name without extension
+        $fileExtension = pathinfo($file['name'], PATHINFO_EXTENSION);   // File extension
+        
+        // Create a new file name using a timestamp and original extension
+        $timestamp = time();
+        $newFileName = $originalFileName . '_' . $timestamp . '.' . $fileExtension;
+        $uploadFile = $uploadDir . $newFileName;
+
+        // Move the uploaded file to the destination folder with the new name
+        if (move_uploaded_file($file['tmp_name'], $uploadFile)) {
+            echo "File successfully uploaded as: " . $newFileName;
+
+			$this->db->where('studentID',$id);
+			$this->db->update('student',array('photo'=>$newFileName) );
+        } else {
+            echo "Failed to upload file.";
+        }
+    }
+}
+
 
 
 }

@@ -963,7 +963,7 @@ class Progresscardreport extends Admin_Controller {
 					if($subs[6]){
 				    	$a = explode('=',$subs[6]);
 			    		$seventh_sub = ",".substr($a[0],0,4) . "=" .$a[1] ;
-				}
+					}
 			
 					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
 				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
@@ -983,7 +983,7 @@ class Progresscardreport extends Admin_Controller {
 				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' . Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
 
 					//$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and'.$var3.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' '.$senderid;
 

@@ -388,7 +388,7 @@
 
                         <table width="100%" style="text-align:center">
                                     <tr>
-                                        <td id="logo" style="width:16%">
+                                        <td id="logo" style="width:15%">
                                             <?php
                                                 if($siteinfos->photo) {
                                                     $array = array(
@@ -404,13 +404,13 @@
                                               <?php   }
                                             ?>
                                         </td>
-                                        <td style="width:76%"> 
+                                        <td style="width:70%"> 
                                             <h2><?=$siteinfos->sname?></h2>
                                             <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> <?= $siteinfos->email?></span></h5> 
                                             <h5 style="color:#0000ff;"><?=$siteinfos->phone?></h5> 
                                         </td>
-                                        <td style="width:8%">
-                                            <img src="<?=imagelink($student->photo)?>" alt="">
+                                        <td style="width:15%">
+                                            <img src="<?=imagelink($student->photo)?>" alt="" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
                                         </td>
                                     </tr> 
                                 </table>
@@ -671,10 +671,32 @@
                                                     $totalAllSubject = $tSubject * customCompute($settingExam);
                                                     echo ini_round($totalAllSubjectMark / $totalAllSubject);
                                                 ?>
-                                            </b>
+                                            </b> 
+ 
                                     </td>
                                         
                                     </tr>
+
+
+                                    <tr>
+                                        <td class="text-blue"><b>Percentage</b> </td>
+                                       <td> 
+                                        <b>
+                                                <?php
+                                                    $tSubject     = $totalSubject;
+                                                    if($student->sroptionalsubjectID > 0) {
+                                                        $tSubject = $tSubject + 1;
+                                                    }
+                                                    $totalAllSubject = $tSubject * customCompute($settingExam);
+                                                    echo ini_round(($totalAllSubjectMark / $totalExMarks) * 100). "%";
+                                                ?>
+                                            </b> 
+ 
+                                    </td>
+                                        
+                                    </tr>
+
+
                                     <!-- <tr>
                                         <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_gpa')?></td>
                                         <td colspan="<?=$totalColumn-$leftColumn?>">
@@ -728,7 +750,7 @@
                                                  
                                                     <?php 
                                                     // print_r($months);
-                                                    $months = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May',);
+                                                    $months = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr',);
                                                         for($m=6;$m<count($months)+6;$m++){  
 
                                                             if($m > 12)

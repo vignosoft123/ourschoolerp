@@ -13,11 +13,11 @@
         </aside>
         <footer class="main-footer">
           	<div class="pull-right hidden-xs">
-            	<b>v</b> <?php echo "6.6.9";//config_item('ini_version');?>
+            	<b>v</b> <?php echo VERSION;//config_item('ini_version');?>
           	</div>
           	 <strong><?=$siteinfos->footer?>
 
-               Office Timings:- 10.00 AM to 7.00 PM&nbsp;&nbsp; &nbsp; 
+               Office Timings:- 10.00 AM to 6.00 PM&nbsp;&nbsp; &nbsp; 
 
                 Support Number:- +91 8639963641 &nbsp;&nbsp; Mail Id:- ourschoolerp123@gmail.com
 

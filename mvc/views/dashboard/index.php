@@ -252,7 +252,7 @@
                 ?>
             <div class="col-lg-2 col-xs-4">
                 <div class="small-box bluebird-clr">
-                    <a class="small-box-footer" href="#">
+                    <a class="small-box-footer" href="<?= base_url('mailandsms');?>">
                         <div class="icon icon-bg dark-bluebird-clr">
                             <img src="../uploads/images/whatsapp-count.svg" alt="Whatsapp Count"/>
                         </div>
@@ -269,7 +269,7 @@
             </div>
             <div class="col-lg-2 col-xs-4">
                 <div class="small-box light-green-clr">
-                    <a class="small-box-footer" href="#">
+                    <a class="small-box-footer" href="<?= base_url('mailandsms');?>">
                         <div class="icon icon-bg dark-green-clr">
                         <img src="../uploads/images/sms-count.svg" alt="SMS Count"/> 
                         </div>
@@ -286,7 +286,7 @@
             </div>
             <div class="col-lg-2 col-xs-4">
                 <div class="small-box light-blue-clr">
-                    <a class="small-box-footer" href="#">
+                    <a class="small-box-footer" href="<?= base_url('mailandsms');?>">
                         <div class="icon icon-bg dark-blue-clr">
                         <img src="../uploads/images/voice-count.svg" alt="Voice Count"/> 
                         </div>
