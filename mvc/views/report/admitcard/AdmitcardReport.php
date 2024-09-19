@@ -294,7 +294,7 @@
                                                 </tr>
                                             <?php } ?>
                                         </table>
-                                        
+<!--                                         
                                         <br/>
                                         <table style="margin-top:25px; border-collapse: collapse; border: none;">
     <tr>
@@ -307,7 +307,85 @@
         <td style="border: none; padding: 0; margin: 0;">Teacher Signature</td> 
         <td style="border: none; padding: 0; margin: 0;">Parent Signature</td>
     </tr>
-</table>
+</table> -->
+
+
+<style>
+                                           @media print {
+    .admitcardfooter1, .signature-section {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .headmaster_signature {
+        margin-left: 0; /* Resets margins for print */
+    }
+
+    img {
+        max-width: 100%; /* Ensure images scale properly */
+        height: auto; /* Maintain aspect ratio */
+    }
+}
+
+
+
+
+@media print {
+    .admincardreport {
+        page-break-inside: avoid; /* Prevent breaking inside cards */
+        page-break-after: always; /* Ensure each card starts on a new page */
+    }
+
+    .admincardreport:last-child {
+        page-break-after: auto; /* Remove page break after the last card */
+    }
+}
+
+/*  this is also working and auto adjust per page
+@media print {
+    .progress-cards-container {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .admincardreport {
+        page-break-inside: avoid;  
+        margin-bottom: 20px;  
+    }
+
+    .admincardreport:nth-child(2n) {
+        page-break-after: always;  
+    }
+
+    .admincardreport:last-child {
+        page-break-after: auto;  
+    }
+} */
+
+
+
+</style>
+
+<div class="admitcardfooter1" style="padding-top:35px !important; display: flex; justify-content: space-between;">
+    <span class="" style="visibility:hidden;">
+        <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
+    </span>
+
+    <span class="" style="visibility:hidden;">
+        <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
+    </span>
+
+    <span class="headmaster_signature">
+        <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
+    </span>
+</div>
+
+<div class="signature-section" style="display: flex; justify-content: space-between; padding-top: 20px;">
+    <span class="headmaster_signature">Parent Signature</span>                               
+    <span class="">Teacher Signature</span>
+    <span class="">Principal Signature</span>
+</div>
+
 
 
 

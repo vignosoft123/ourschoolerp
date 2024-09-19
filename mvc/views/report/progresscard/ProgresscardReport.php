@@ -535,9 +535,13 @@
                                     $marks_template = '';
                                     $totalExMarks = 0;
                                     // echo "<pre>";print_r($mandatorySubjects);die;
-                                    if(customCompute($mandatorySubjects)) { foreach($mandatorySubjects  as $mandatorySubject) {
+                                    if(customCompute($mandatorySubjects)) {
+                                         foreach($mandatorySubjects  as $mandatorySubject) {
                                         $totalExMarks += $subjTotal;
-                                        $totalSubjectMark = 0; $totalGradeSubjectMark=0 ?>
+                                        $totalSubjectMark = 0; $totalGradeSubjectMark=0 
+                                        
+                                        $total_max_marks += $mandatorySubject->max_mark;
+                                        ?>
                                         <tr>
                                             <td class="text-blue"><?=$mandatorySubject->subject?>  ( <?=$mandatorySubject->max_mark?> ) </td>
                                             <?php 
@@ -683,12 +687,13 @@
                                        <td> 
                                         <b>
                                                 <?php
-                                                    $tSubject     = $totalSubject;
-                                                    if($student->sroptionalsubjectID > 0) {
-                                                        $tSubject = $tSubject + 1;
-                                                    }
-                                                    $totalAllSubject = $tSubject * customCompute($settingExam);
-                                                    echo ini_round(($totalAllSubjectMark / $totalExMarks) * 100). "%";
+                                                // echo '==='.$totalExMarks;die;
+                                                    // $tSubject     = $totalSubject;
+                                                    // if($student->sroptionalsubjectID > 0) {
+                                                    //     $tSubject = $tSubject + 1;
+                                                    // }
+                                                    // $totalAllSubject = $tSubject * customCompute($settingExam);
+                                                    echo ini_round(($totalAllSubjectMark * 100) / $total_max_marks). "%";
                                                 ?>
                                             </b> 
  
@@ -801,21 +806,73 @@
                                             <?php }?>
 
 
+                                            <style>
+                                           @media print {
+    .admitcardfooter, .signature-section {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .headmaster_signature {
+        margin-left: 0; /* Resets margins for print */
+    }
+
+    img {
+        max-width: 100%; /* Ensure images scale properly */
+        height: auto; /* Maintain aspect ratio */
+    }
+}
+
+
+
+
+
+                                            </style>
+
                         
 
-                            <div class="admitcardfooter" style="padding-top:100px !important">
-                                <span class=""> <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" > </span>
-                                <span class="" style="margin-left:25%"></span>
-                                <span class="headmaster_signature" style="margin-left:25%">
-                                    
+                            <!-- <div class="admitcardfooter" style="padding-top:100px !important">
+                                <span class="" style="visibility:hidden;">
+                                     <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" > 
                                 </span>
 
-                                <div></div>
-                                <span class="">Principal Signature </span>
-                                <span class="" style="margin-left:25%">Teacher Signature</span>
-                                <span class="headmaster_signature" style="margin-left:25%">Parent Signature</span>
+                                <span class="" style="padding-left:18%;visibility:hidden;"> 
+                                    <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
+                                 </span>
+
+                                <span class="headmaster_signature" style="margin-left:12%">
+                                    <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;" >
+                                </span>
 
                             </div>
+                            <div>
+                                <span class="headmaster_signature" >Parent Signature</span>                               
+                                <span class="" style="margin-left:30%">Teacher Signature</span>
+                                <span class="" style="margin-left:24%">Principal Signature </span>
+                                
+
+                            </div> -->
+
+
+                            <div class="admitcardfooter" style="padding-top:100px !important; display: flex; justify-content: space-between;">
+    <span class="" style="visibility:hidden;">
+        <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
+    </span>
+
+    <span class="" style="visibility:hidden;">
+        <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
+    </span>
+
+    <span class="headmaster_signature">
+        <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
+    </span>
+</div>
+
+<div class="signature-section" style="display: flex; justify-content: space-between; padding-top: 20px;">
+    <span class="headmaster_signature">Parent Signature</span>                               
+    <span class="">Teacher Signature</span>
+    <span class="">Principal Signature</span>
+</div>
 
 
                            
