@@ -18,6 +18,12 @@
                                     <i class="fa fa-plus"></i> 
                                     <?=$this->lang->line('add_title')?>
                                 </a>
+
+                                <a class="ose-btn create-btn" href="<?php echo base_url('marksetting/index') ?>">
+                                    Mark Setting
+                                </a>
+
+
                             <?php } ?>
                         <?php } ?>
 

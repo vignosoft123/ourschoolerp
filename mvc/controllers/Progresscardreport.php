@@ -272,15 +272,17 @@ class Progresscardreport extends Admin_Controller {
 										if(!empty($attendace[$j])){
 									foreach($attendace[$j] as $k => $v){
 									
+										
 										for ($i=1; $i <= 31; $i++) { 
 											 $acolumnname = 'a'.$i;
 											if($k == $acolumnname){
 
 												// echo $v[$k]."aaaaaa<br/>"; 
-												// echo $k;
-												// print_r($v);
+												// echo $k;die;
+												// print_r($v);die;
 
 												// if(!empty($v[$k])){
+													// if (is_array($v)) {
 													if($v[$k] == 'P'){ 
 														 $present += 1;
 													}else{ 
@@ -292,6 +294,7 @@ class Progresscardreport extends Admin_Controller {
 													}else{ 
 														$absent += 0;
 													}
+												// }
 												// }
 
 										 
