@@ -538,7 +538,7 @@
                                     if(customCompute($mandatorySubjects)) {
                                          foreach($mandatorySubjects  as $mandatorySubject) {
                                         $totalExMarks += $subjTotal;
-                                        $totalSubjectMark = 0; $totalGradeSubjectMark=0 
+                                        $totalSubjectMark = 0; $totalGradeSubjectMark=0;
                                         
                                         $total_max_marks += $mandatorySubject->max_mark;
                                         ?>
@@ -854,7 +854,7 @@
                             </div> -->
 
 
-                            <div class="admitcardfooter" style="padding-top:100px !important; display: flex; justify-content: space-between;">
+<div class="admitcardfooter" style="padding-top:30px !important; display: flex; justify-content: space-between;">
     <span class="" style="visibility:hidden;">
         <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
     </span>

@@ -203,10 +203,22 @@
                                     <td></td>
                                     <td></td>
                                     <td></td>
+                                    <td></td>
                                     <td>Cash:</td>
                                         <td align="right"  >
                                         <?=number_format($cash_amount,2)?></td>
-                                        <td>Digital:</td>
+                                       
+                                    </tr>
+                                    <tr style="font-weight: bold">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+
+                                    <td>Digital:</td>
                                             <td align="right" colspan="">
                                              <?=number_format($digital_amount,2)?></td>
                                              <td>Cheque:</td>
@@ -216,6 +228,9 @@
                                     </tr>
 
                                     <tr style="font-weight: bold">
+                                    <td></td>
+                                    <td></td>
+
                                          <td data-title="<?=$this->lang->line('feesreport_grand_total')?>" align="right" colspan="<?=$colspan?>">
                                             <?=$this->lang->line('feesreport_grand_total')?> <?=isset($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?></td>
                                         <td data-title="<?=$this->lang->line('feesreport_total_paid')?>"><?=number_format($totalPaid,2)?></td>

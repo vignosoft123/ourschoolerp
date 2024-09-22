@@ -210,9 +210,12 @@
                                                             <td data-title="<?= $this->lang->line('slno') ?>">
                                                             <?php echo $i; ?>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_photo') ?>">
+                                                       
+
+                                                        <td onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
                                                             <?= profileimage($student->photo); ?>
                                                         </td>
+
                                                         <td data-title="<?= $this->lang->line('student_registerNO') ?>">
                                                             <?php echo $student->registerNO; ?>
                                                         </td>
@@ -301,8 +304,8 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="fileUploadModalLabel">Upload File</h5>
-                    <!-- <button type="button" class="btn-close" data-dismiss="modal" aria-label="Close"></button> -->
+                    <h5 class="modal-title" id="fileUploadModalLabel">Upload Photo</h5>
+                    <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
                 </div>
                 <div class="modal-body">
                     <!-- Form for File Upload -->

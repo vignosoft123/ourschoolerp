@@ -288,6 +288,7 @@
             var appendData = productItemDesign(feetypeID, feetypeText);
             $('#feetypeList').append(appendData);
         }
+        
     });
 
     function toFixedVal(x) {

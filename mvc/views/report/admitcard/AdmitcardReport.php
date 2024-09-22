@@ -311,10 +311,14 @@
 
 
 <style>
-                                           @media print {
+    .signature-section {
+        margin-bottom: -20px !important;
+    }
+@media print {
     .admitcardfooter1, .signature-section {
         display: flex;
         justify-content: space-between;
+        margin-bottom: -20px !important;
     }
 
     .headmaster_signature {
@@ -330,16 +334,16 @@
 
 
 
-@media print {
+/* @media print {
     .admincardreport {
-        page-break-inside: avoid; /* Prevent breaking inside cards */
-        page-break-after: always; /* Ensure each card starts on a new page */
+        page-break-inside: avoid; 
+        page-break-after: always;  
     }
 
     .admincardreport:last-child {
-        page-break-after: auto; /* Remove page break after the last card */
+        page-break-after: auto; 
     }
-}
+} */
 
 /*  this is also working and auto adjust per page
 @media print {
