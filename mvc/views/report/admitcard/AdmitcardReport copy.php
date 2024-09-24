@@ -251,7 +251,7 @@
                                     
                                     <div class="subjectlist">
                                         <!-- <h3><?=$this->lang->line('admitcardreport_subject_appear')?></h3> -->
-                                        <!-- <table style="margin-top:25px;">
+                                        <table style="margin-top:25px;">
                                             <tr>
                                                 <td><?=$this->lang->line('admitcardreport_slno')?></td>
                                                 <td>Exam Date</td>
@@ -279,7 +279,8 @@
                                                     <td><?=$i?></td>
                                                     <td><?=$exam_date?></td>
                                                     <td><?=$exam_from . " TO ". $exam_to?></td>
-                                                    <td><?=$subject->subject?></td> 
+                                                    <td><?=$subject->subject?></td>
+                                                    <!-- <td><?php //echo $subject->finalmark?></td> -->
                                                     <td><?=$subject->max_mark?></td>
                                                     <td></td>
                                                 </tr>
@@ -292,116 +293,21 @@
                                                     <td><?=$opsubject->finalmark?></td>
                                                 </tr>
                                             <?php } ?>
-                                        </table> -->
-
-                                        <!-- vertical view start -->
-                                        <table style="margin-top:25px;">
+                                        </table>
+<!--                                         
+                                        <br/>
+                                        <table style="margin-top:25px; border-collapse: collapse; border: none;">
     <tr>
-         
-        <?php 
-        $i= 0; if(customCompute($subjects)) { 
-            foreach($subjects as $subject) { 
-                if($subject->type == 1) { 
-                    $i++;
-                ?>
-                <!-- <th>Subject <?=$i?></th> -->
-        <?php 
-                }
-            } 
-        } 
-        ?>
+        <td style="border: none;"><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:30px;border:none;"></td>
+        <td style="border: none;"></td>
+        <td style="border: none;"></td> 
     </tr>
     <tr>
-        <td><?=$this->lang->line('admitcardreport_slno')?></td>
-        <?php 
-        $i= 0; if(customCompute($subjects)) { 
-            foreach($subjects as $subject) { 
-                if($subject->type == 1) { 
-                    $i++;
-                    ?>
-                    <td><?=$i?></td>
-        <?php 
-                }
-            } 
-        } 
-        ?>
+        <td style="border: none; padding: 0; margin: 0;">Principal Signature</td>
+        <td style="border: none; padding: 0; margin: 0;">Teacher Signature</td> 
+        <td style="border: none; padding: 0; margin: 0;">Parent Signature</td>
     </tr>
-    <tr>
-        <td>Exam Date</td>
-        <?php 
-        $i= 0; if(customCompute($subjects)) { 
-            foreach($subjects as $subject) { 
-                if($subject->type == 1) { 
-                    $exam_date = '';
-                    foreach($examScheduleReports as $key => $examInfo)
-                    {
-                        if($examInfo->subjectID==$subject->subjectID)
-                        {
-                            $exam_date = $examInfo->edate;
-                        }
-                    }
-                    ?>
-                    <td><?=$exam_date?></td>
-        <?php 
-                }
-            } 
-        } 
-        ?>
-    </tr>
-    <tr>
-        <td>Exam Time</td>
-        <?php 
-        $i= 0; if(customCompute($subjects)) { 
-            foreach($subjects as $subject) { 
-                if($subject->type == 1) { 
-                    $exam_from = $exam_to = '';
-                    foreach($examScheduleReports as $key => $examInfo)
-                    {
-                        if($examInfo->subjectID==$subject->subjectID)
-                        {
-                            $exam_from = $examInfo->examfrom;
-                            $exam_to = $examInfo->examto;
-                        }
-                    }
-                    ?>
-                    <td><?=$exam_from . "-". $exam_to?></td>
-        <?php 
-                }
-            } 
-        } 
-        ?>
-    </tr>
-    <tr>
-        <td><?=$this->lang->line('admitcardreport_subject_name')?></td>
-        <?php 
-        $i= 0; if(customCompute($subjects)) { 
-            foreach($subjects as $subject) { 
-                if($subject->type == 1) { 
-                    ?>
-                    <td><?=$subject->subject?></td>
-        <?php 
-                }
-            } 
-        } 
-        ?>
-    </tr>
-    <tr>
-        <td><?=$this->lang->line('admitcardreport_subject_mark')?></td>
-        <?php 
-        $i= 0; if(customCompute($subjects)) { 
-            foreach($subjects as $subject) { 
-                if($subject->type == 1) { 
-                    ?>
-                    <td><?=$subject->max_mark?></td>
-        <?php 
-                }
-            } 
-        } 
-        ?>
-    </tr>
-</table>
-<!-- vertical view end -->
- 
+</table> -->
 
 
 <style>
@@ -464,7 +370,7 @@
 
 </style>
 
-<div class="admitcardfooter1" style="padding-top:10px !important; display: flex; justify-content: space-between;">
+<div class="admitcardfooter1" style="padding-top:35px !important; display: flex; justify-content: space-between;">
     <span class="" style="visibility:hidden;">
         <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;">
     </span>

@@ -137,7 +137,7 @@ class Studentrelation_m extends MY_Model {
             $this->db->where($arrays);
         }
         $this->db->where('student.studentID !=', NULL);
-        $this->db->order_by('srclassesID asc'); 
+        // $this->db->order_by('srclassesID asc'); 
         $query = $this->db->get();
 		// echo $this->db->last_query();die;
         return $query->result();

@@ -86,7 +86,7 @@
                                             </td>
                                         <?php } ?>
                                         <td data-title="<?=$this->lang->line('studentreport_roll')?>">
-                                            <?php echo $student->srroll; ?>
+                                            <?php echo $student->roll; ?>
                                         </td>
                                         <td data-title="<?=$this->lang->line('studentreport_phone')?>">
                                             <?php echo $student->phone; ?>
