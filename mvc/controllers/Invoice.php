@@ -2543,4 +2543,15 @@ class Invoice extends Admin_Controller
        
     }
 
+    public function change_discount(){
+        // print_r($_POST);die;
+        $this->db->where('invoiceID',$_POST['invoice_id']);
+        $this->db->where('studentID',$_POST['srstudentID']);
+        $this->db->update('weaverandfine',array('weaver'=>$_POST['disc_amount']));
+        // echo $this->db->last_query();die;
+
+        
+        $this->session->set_flashdata('success', $this->lang->line('menu_success'));
+        redirect(base_url('invoice/index'));
+    }
 }

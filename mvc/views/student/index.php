@@ -115,7 +115,7 @@
                                                         </td>
                                                         <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
-                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" class="phone_update" studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->village_name; ?>
                                                         </td>
@@ -445,15 +445,27 @@ $(document).on("focusout","#rollNo",function(){
 })
 
 
-$(document).on("focusout","#phone_update",function(){
+$(document).on("focusout",".phone_update",function(){
   
     var studentID = $(this).attr('studentID');
     var phone = $(this).text(); 
 
     const editableDiv = document.getElementById('phone_update');
   
-    if (phone.length > 10) {
+    // Place the caret at the end
+    // placeCaretAtEnd($(this)[0]);
+
+    if (/\D/.test(phone)) {
+        alert('Phone number should not contain characters'); 
+        $(this).text('');
+      return false;
+    }
+   
+    if (phone.length > 10 || phone.length < 10) {
+        alert('Phone number should be 10 characters');
+        $(this).text('');
       phone = phone.substring(0, 10);
+      return false;
     }
 
     $.ajax({
@@ -466,6 +478,9 @@ $(document).on("focusout","#phone_update",function(){
             // alert(data);
             }
         });
+
+ 
+
 })
 
 

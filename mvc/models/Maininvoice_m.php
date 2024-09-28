@@ -30,6 +30,7 @@ class Maininvoice_m extends MY_Model {
 		}
 		$this->db->order_by('maininvoice.maininvoiceID', 'desc');
 		$query = $this->db->get();
+		// echo $this->db->last_query();die;
 		return $query->result();
 	}
 

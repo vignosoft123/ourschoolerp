@@ -71,7 +71,7 @@
                         </thead>
                         <tbody>
                             <?php
-                        //    echo "<pre>"; print_r($maininvoices);die;
+                        //    echo "<pre>"; print_r($maininvoices);
                              if(customCompute($maininvoices)) {$i = 1; foreach($maininvoices as $maininvoice) { ?>
                                 <tr>
                                     <td data-title="<?=$this->lang->line('slno')?>">
@@ -115,7 +115,7 @@
                                              
                                              } ?>
 
-                                         
+                                          <a  data-toggle="modal" data-target="#change_discount<?= $maininvoice->maininvoiceID?>" > <i title="Change discount amount" class="fa fa-edit"></i>  </a>
 
                                     </td>
 
@@ -212,6 +212,41 @@
                                         ?>
 
                                     </td>
+
+
+
+                                    
+<!-- change discount   Modal  start Structure -->
+<div class="modal fade" id="change_discount<?= $maininvoice->maininvoiceID?>" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileUploadModalLabel">Change Amount</h5>
+                    <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form for File Upload -->
+                    <form id="" enctype="multipart/form-data" method="post" action="<?php echo base_url('Invoice/change_discount')?>">
+                        <div class="mb-3">
+                            <label for="formFile" class="form-label">Discount Amount</label>
+                            <input  class="form-control" type="hidden" id="invoice_id" name="invoice_id" value="<?= $maininvoice->maininvoiceID?>">
+                            <input  class="form-control" type="hidden" id="srstudentID" name="srstudentID" value="<?= $maininvoice->srstudentID?>">
+
+                            <input class="form-control" type="" id="disc_amount" name="disc_amount" value="">
+                        </div>
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div> 
+<!-- change discount modal end -->
+
+
+
+
                                     <?php } ?>
                                 </tr>
                             <?php $i++; }} ?>
@@ -257,6 +292,9 @@
         </div>
     </div>
 </div>
+
+
+
 
 <script type="text/javascript">
     $('.getpaymentinfobtn').click(function() {

@@ -1464,7 +1464,7 @@ class Bulkimport extends Admin_Controller
             $array  = [];
             $i      = 0;
             // foreach($tables as $table) {
-                $user = $this->student_m->get_username($table="student", ["phone" => $data, "name" => $name]);
+                $user = $this->student_m->get_username($table="student", ["phone" => $data, "name" => $name, "schoolyearID" => $this->session->userdata('defaultschoolyearID')]);
                 if(customCompute($user)) {
                     $array['permition'][$i] = 'no';
                 } else {

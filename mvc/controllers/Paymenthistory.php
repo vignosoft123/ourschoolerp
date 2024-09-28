@@ -280,16 +280,16 @@ class Paymenthistory extends Admin_Controller {
 	}
 
 	public function valid_number() {
-		if($this->input->post('amount') != 0) {
+		// if($this->input->post('amount') != 0) {
 			if($this->input->post('amount') && $this->input->post('amount') < 0) {
 				$this->form_validation->set_message("valid_number", "%s is invalid number");
 				return FALSE;
 			}
 			return TRUE;
-		} else {
-			$this->form_validation->set_message("valid_number", "Give me valid amount not zero");
-			return FALSE;
-		}
+		// } else {
+		// 	$this->form_validation->set_message("valid_number", "Give me valid amount not zero");
+		// 	return FALSE;
+		// }
 		return TRUE;
 	}
 

@@ -522,11 +522,11 @@
                         <?= $this->lang->line("student_phone") ?> <span class="text-red">*</span>
                     </label>
                     
-                        <input type="text" class="form-control" id="phone" name="phone" value="<?= set_value('phone') ?>">
+                        <input type="text" class="form-control" id="phone" name="phone" maxlength="10"  value="<?= set_value('phone') ?>">
                     
-                    <span class="  control-label">
-                        <?php echo form_error('phone'); ?>
-                    </span>
+                        <span id="error-message" class="control-label" style="color:red;">
+                                    <?php echo form_error('phone'); ?>
+                                </span>
                     </div><!------ End Phone Number  ----->
 
                     <?php
@@ -1268,5 +1268,36 @@ $(document).on("focusout","#roll",function(){
             }
         });
 })
+
+
+
+$(document).ready(function(){
+    // Allow only numbers
+    $('#phone').on('keypress', function (e) {
+        var charCode = e.which ? e.which : e.keyCode;
+        if (charCode < 48 || charCode > 57) {
+            e.preventDefault();
+        }
+    });
+
+    // Limit to max 10 characters
+    $('#phone').on('input', function () {
+        var maxLength = 10;
+        if ($(this).val().length > maxLength) {
+            $(this).val($(this).val().slice(0, maxLength));
+        }
+    });
+
+    // Validate when the user leaves the input field
+    $('#phone').on('blur', function () {
+        var phoneNumber = $(this).val();
+        if (phoneNumber.length < 10) {
+            $('#error-message').text('Phone number must be exactly 10 digits.');
+        } else {
+            $('#error-message').text(''); // Clear error message if valid
+        }
+    });
+});
+
 
 </script>
