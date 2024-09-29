@@ -273,6 +273,10 @@
                                 <?php $i=0; if(customCompute($studentPosition['studentClassPositionArray'])) {
                                     $possition_array = array();
                                     $same_position = 0;
+
+                                    $rank = 1;
+                                    $previousMarks = null;  
+                                    
                                      foreach($studentPosition['studentClassPositionArray'] as $studentID => $student) {
                                     if(isset($studentLists[$studentID])) { $i++;
                                 ?>
@@ -288,15 +292,23 @@
                                                 if(isset($studentPosition['studentClassPositionArray'][$studentID])) {
                                                    
                                                     
-                                                    if(in_array($student,$possition_array)){
-                                                        // echo addOrdinalNumberSuffix((int)array_search($studentID, array_keys($studentPosition['studentClassPositionArray'])) );
-                                                        echo $same_position;
-                                                    }else{
-                                                        echo addOrdinalNumberSuffix((int)array_search($studentID, array_keys($studentPosition['studentClassPositionArray'])) + 1);
-                                                        $same_position = addOrdinalNumberSuffix((int)array_search($studentID, array_keys($studentPosition['studentClassPositionArray'])) + 1);
-                                                    }
-                                                    array_push($possition_array,$student);
+                                                    // if(in_array($student,$possition_array)){
+                                                    //     // echo addOrdinalNumberSuffix((int)array_search($studentID, array_keys($studentPosition['studentClassPositionArray'])) );
+                                                    //     echo $same_position;
+                                                    // }else{
+                                                    //     echo addOrdinalNumberSuffix((int)array_search($studentID, array_keys($studentPosition['studentClassPositionArray'])) + 1);
+                                                    //     $same_position = addOrdinalNumberSuffix((int)array_search($studentID, array_keys($studentPosition['studentClassPositionArray'])) + 1);
+                                                    // }
+                                                    // array_push($possition_array,$student);
                                                     // print_r($possition_array);
+
+                                                    $distinctArray = array_unique($possition_array);
+                                                    if ($previousMarks === null || $studentPosition[$studentID]['classPositionMark'] != $previousMarks) {
+                                                        $rank = count($distinctArray) + 1; // New rank for different marks
+                                                    }
+                                                    $previousMarks =$studentPosition[$studentID]['classPositionMark'];
+                                                    array_push($possition_array,$rank);
+                                                    echo $rank;
                                                 }
                                             ?>
                                         </td>

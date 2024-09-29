@@ -534,6 +534,7 @@
                                     $total_gpa_point = 0;
                                     $marks_template = '';
                                     $totalExMarks = 0;
+                                    $total_max_marks = 0;
                                     // echo "<pre>";print_r($mandatorySubjects);die;
                                     if(customCompute($mandatorySubjects)) {
                                          foreach($mandatorySubjects  as $mandatorySubject) {

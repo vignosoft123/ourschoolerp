@@ -2545,10 +2545,53 @@ class Invoice extends Admin_Controller
 
     public function change_discount(){
         // print_r($_POST);die;
-        $this->db->where('invoiceID',$_POST['invoice_id']);
-        $this->db->where('studentID',$_POST['srstudentID']);
-        $this->db->update('weaverandfine',array('weaver'=>$_POST['disc_amount']));
-        // echo $this->db->last_query();die;
+        $main_invoice_id = $_POST['invoice_id'];
+        $res = $this->db->query('select invoiceID from invoice where maininvoiceID='.$main_invoice_id)->row_array();
+        if(!empty($res['invoiceID'])){
+            $invoice_id = $res['invoiceID'];
+
+            $this->db->where('invoiceID',$invoice_id);
+            $this->db->where('studentID',$_POST['srstudentID']);
+           $cnt = $this->db->get('weaverandfine')->num_rows();
+           if($cnt == 0){   //insert in payment table and weaverandfine table
+                $payment_data = array(
+                    'schoolyearID' => $this->session->userdata('defaultschoolyearID'),
+                    'invoiceID' => $invoice_id,
+                    'studentID' => $_POST['srstudentID'],
+                    'paymentdate' => date("Y-m-d"),
+                    'paymentday' => date("d"),
+                    'paymentmonth' => date("m"),
+                    'paymentyear' =>  date("Y"),
+                    'userID' => $this->session->userdata("loginuserID"),
+                    'usertypeID' => $this->session->userdata("usertypeID"),
+                    'uname' => $this->session->userdata('name'),
+                    'transactionID' =>'DISCOUNT' . random19(),
+                    'comment' => "Discount Added from Invoice",  
+                );
+                // print_r($payment_data);die;
+                $this->db->insert('payment',$payment_data);
+                $payment_id = $this->db->insert_id();
+
+                $weaver_data = array(
+                    'invoiceID' => $invoice_id,
+                    'paymentID' => $payment_id,
+                    'studentID' => $_POST['srstudentID'],
+                    'schoolyearID' => $this->session->userdata('defaultschoolyearID'),
+                    'weaver' => $_POST['disc_amount']
+
+                );
+                $this->db->insert('weaverandfine',$weaver_data);
+
+
+           }else{ //update
+            $this->db->where('invoiceID',$invoice_id);
+            $this->db->where('studentID',$_POST['srstudentID']);
+            $this->db->update('weaverandfine',array('weaver'=>$_POST['disc_amount']));
+            // echo $this->db->last_query();die;
+           }
+
+            
+        }
 
         
         $this->session->set_flashdata('success', $this->lang->line('menu_success'));
