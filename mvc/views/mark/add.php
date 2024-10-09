@@ -1,3 +1,76 @@
+<style>
+        /* Print specific styles */
+        @media print {
+            input {
+                display: none; /* Hide input fields when printing */
+            }
+            .input_mark {
+                display: none !important; /* Hide input fields when printing */
+            }
+            .callout {
+                display: none !important; /* Hide input fields when printing */
+            }
+            .box-header {
+                display: none !important; /* Hide input fields when printing */
+            }
+             #add_mark {
+                display: none !important; /* Hide input fields when printing */
+            }
+
+            button {
+                display: none !important; /* Hide input fields when printing */
+            }
+
+            .icon-eattendance {
+                display: none !important; /* Hide input fields when printing */
+            }
+
+            .hide-in-print {
+                display: none !important; /* Hide input fields when printing */
+            }
+
+            .box-layout-fame{
+                padding-top:0px !important;
+            }
+
+            img {
+                display: block; /* Ensure images are visible */
+            }
+
+             /* Hide the last 3 columns in the table */
+             table tr th:nth-last-child(-n+3), /* Hides headers for last 3 columns */
+            table tr td:nth-last-child(-n+3) /* Hides data for last 3 columns */ {
+                display: none;
+            }
+            
+            /* Optional: Make table look better for printing */
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            table, th, td {
+                border: 1px solid black;
+            }
+
+            th, td {
+                padding: 10px;
+                text-align: left;
+            }
+        }
+    </style>
+
+<script>
+        $(document).ready(function() {
+            $('#printBtn').on('click', function() {
+                window.print(); // Trigger the print dialog
+            });
+        });
+    </script>
+
+
+
+
 <?php if ($siteinfos->note == 1) { ?>
     <div class="callout callout-danger">
         <p><b>Note:</b> Create exam, class, section & subject before add mark</p>
@@ -18,7 +91,7 @@
             <div class="col-sm-12">
 
                 <form method="POST">
-                    <div class="row">
+                    <div class="row hide-in-print">
                         <div class="col-md-10">
                             <div class="row">
 
@@ -149,10 +222,12 @@
                         // echo '<h5><center>' . $this->lang->line('mark_subject') . ' : ' . $sendSubject->subject . '</center></h5>';
                         ?>
                     </div>
-                <?php } ?>
-
+                <?php } ?> 
 
             </div>
+
+            <button style="margin-left:20px;" id="printBtn">Print Sheet</button>
+            
             <div class="col-sm-12">
                 <?php if (customCompute($students)) { ?>
                     <div id="hide-table">
