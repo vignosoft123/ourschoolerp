@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
 </head>
+<style>
+       
+    </style>
 <body>
 <?php 
                 // echo "<pre>";print_r($students);die;
@@ -11,26 +14,79 @@
                     <input type="hidden" name="st_names[]" value="<?=$student->name?>">
                     <input type="hidden" name="mobile_no[]" value="<?=$student->phone?>">
                     <div class="mainprogresscardreport">
-                        <div class="progresscard-headers">
+                        <!-- <div class="progresscard-headers">
                             <div class="progresscard-logo">
                                 <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="">
                             </div>
                             <div class="school-name">
                                 <h2><?=$siteinfos->sname?></h2>
                             </div>
-                        </div>
+                        </div> -->
+
+                        <table width="100%" style="text-align:center">
+                                    <tr>
+                                        <td id="logo" style="width:15%">
+                                            <?php
+                                                if($siteinfos->photo) {
+                                                    $array = array(
+                                                        "src" => base_url('uploads/images/'.$siteinfos->photo),
+                                                        'width' => '50px',
+                                                        'height' => '50px',
+                                                        // "style" => "margin-right:0px;"
+                                                    );
+                                                    // echo img($array);?>
+
+                                                    <img src="<?php echo base_url('uploads/images/'.$siteinfos->photo);?>" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+
+                                              <?php   }
+                                            ?>
+                                        </td>
+                                        <td style="width:70%"> 
+                                            <h2><?=$siteinfos->sname?></h2>
+                                            <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> <?= $siteinfos->email?></span></h5> 
+                                            <h5 style="color:#0000ff;"><?=$siteinfos->phone?></h5> 
+                                        </td>
+                                        <td style="width:15%">
+                                            <img src="<?=imagelink($student->photo)?>" alt="" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                                        </td>
+                                    </tr> 
+                                </table>
+
+
                         <div class="progresscard-infos">
                             
-                            <div class="student-profile">
+                            <!-- <div class="student-profile">
                                 <p> <span class="text-red">Name</span> &nbsp;&nbsp;&nbsp;:  <b><?=$student->srname?></b> </p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_academic_year')?></span> : <b><?=$schoolyearsessionobj->schoolyear;?></b>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_reg_no')?></span> : <b><?=$student->srregisterNO?></b>,<br/> <span class="text-red"> <?=$this->lang->line('progresscardreport_class')?></span> : <b><?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?></b></p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_section')?></span> : <b><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></b>, <span class="text-red"> <?=$this->lang->line('progresscardreport_roll_no')?> </span>: <b><?=$student->srroll?></b></p>  
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_group')?></span> : <b><?=isset($groups[$student->srstudentgroupID]) ? $groups[$student->srstudentgroupID] : ''?></b></p> 
-                            </div>
+                            </div> -->
 
-                            <div class="school-address">
-                                <!-- <h4><b><?php //echo $siteinfos->sname?></b></h4> -->
+                            <table class="table-container full-width">
+                                <!-- <table width="100%" style="text-align:center"> -->
+        <tr>
+            <th class="text-red">Name :</th>
+            <td class="text-green"><?= $student->srname ?></td>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_reg_no') ?> :</th>
+            <td class="text-green"><?= $student->srregisterNO ?></td>
+        </tr>
+        <tr>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_class') ?> :</th>
+            <td class="text-green"><?= isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : '' ?></td>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_section') ?> :</th>
+            <td class="text-green"><?= isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : '' ?></td>
+        </tr>
+        <tr>
+            <th class="text-red"><?= $this->lang->line('progresscardreport_roll_no') ?> :</th>
+            <td class="text-green"><?= $student->srroll ?></td>
+            <th class="text-red">Father Name :</th>
+            <td class="text-green"><?= $student->father_name ?></td>
+        </tr>
+    </table>
+
+                            <!-- <div class="school-address">
+                               
                                 <p> <span class="text-green"><?=$siteinfos->address?></span></p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_phone')?></span> : <?=$siteinfos->phone?></p>
                                 <p> <span class="text-red"><?=$this->lang->line('progresscardreport_email')?></span> : <?=$siteinfos->email?></p>
@@ -41,7 +97,7 @@
 
                             <div class="student-profile-img">
                                 <img src="<?=imagelink($student->photo)?>" alt="">
-                            </div>
+                            </div> -->
                         </div>
                         <div class="progresscard-contents progresscardreporttable">
 
@@ -97,10 +153,13 @@
                                     $total_gpa_point = 0;
                                     $marks_template = '';
                                     $totalExMarks = 0;
+                                    $total_max_marks = 0;
                                     // echo "<pre>";print_r($mandatorySubjects);die;
                                     if(customCompute($mandatorySubjects)) { foreach($mandatorySubjects  as $mandatorySubject) {
                                         $totalExMarks += $subjTotal;
-                                        $totalSubjectMark = 0; $totalGradeSubjectMark=0 ?>
+                                        $totalSubjectMark = 0; $totalGradeSubjectMark=0 ;
+                                        $total_max_marks += $mandatorySubject->max_mark;?>
+
                                         <tr>
                                             <td><?=$mandatorySubject->subject?>  ( <?=$mandatorySubject->max_mark?> ) </td>
                                             <?php 
@@ -239,6 +298,20 @@
                                     </td>
                                         
                                     </tr>
+
+                                    <tr>
+                                        <td class="text-blue"><b>Percentage</b> </td>
+                                       <td> 
+                                        <b>
+                                                <?php
+                                                 echo ini_round(($totalAllSubjectMark * 100) / $total_max_marks). "%";
+                                                ?>
+                                            </b> 
+ 
+                                    </td>
+                                        
+                                    </tr>
+
                                     <!-- <tr>
                                         <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_gpa')?></td>
                                         <td colspan="<?=$totalColumn-$leftColumn?>">
@@ -337,11 +410,37 @@
                                             </table>
 
                                             
-                            <div class="admitcardfooter" style="margin-top:500px !important">
+                            <!-- <div class="admitcardfooter" style="margin-top:500px !important">
                                 <span class="">Parent Signature </span>
                                 <span class="" style="margin-left:40%">Teacher Signature</span>
                                 <span class="headmaster_signature" style="margin-left:80%">Principal Signature</span>
-                            </div>
+                            </div> -->
+ 
+
+<table style="width: 100%; padding-top: 30px; border: none; border-collapse: collapse;">
+    <tr>
+        <td style="width: 33%; visibility: hidden; text-align: left; border: none;">
+            <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width: 150px; height: 50px;">
+        </td>
+        <td style="width: 33%; visibility: hidden; text-align: center; border: none;">
+            <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width: 150px; height: 50px;">
+        </td>
+        <td style="width: 33%; text-align: right; border: none;">
+            <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width: 150px; height: 50px;">
+        </td>
+    </tr>
+
+    <tr>
+        <td style="width: 33%; text-align: left; border: none; padding-top: 20px;">Parent Signature</td>
+        <td style="width: 33%; text-align: center; border: none; padding-top: 20px;">Teacher Signature</td>
+        <td style="width: 33%; text-align: right; border: none; padding-top: 20px;">Principal Signature</td>
+    </tr>
+</table>
+
+
+ 
+
+
                             <input type="hidden" name="marks_template[]" value="<?php echo $marks_template;?>">
                         </div>
                     </div>

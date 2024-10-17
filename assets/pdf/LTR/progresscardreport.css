@@ -168,3 +168,62 @@ p {
 .prins_sig{
     margin-left:80% !important;
 }
+
+
+.table-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background-color: #fff;
+}
+.table-container td, .table-container th {
+    padding: 15px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+.table-container th {
+    background-color: #f4f4f4;
+    color: #333;
+    font-weight: bold;
+}
+.text-red {
+    color: #e74c3c;
+    font-weight: bold;
+}
+.text-green {
+    color: #2ecc71;
+    font-weight: bold;
+}
+.table-container tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+.table-container tr:hover {
+    background-color: #f1f1f1;
+}
+.full-width {
+    width: 100%;
+}
+
+
+.admitcardfooter, .signature-section {
+    display: flex;
+    justify-content: space-between;
+}
+
+.headmaster_signature {
+    margin-left: 0; /* Resets margins for print */
+}
+
+img {
+    max-width: 100%; /* Ensure images scale properly */
+    height: auto; /* Maintain aspect ratio */
+}
+
+.teach_sign{
+    margin-left:40% !important;
+}
+
+.princ_sign{
+    margin-left:60% !important;
+}

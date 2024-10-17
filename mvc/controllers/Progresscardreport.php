@@ -871,8 +871,17 @@ class Progresscardreport extends Admin_Controller {
 					
 					$params = array('whatsapp_number'=> $students[0]->phone,'media_path'=>$media_path,'whatsapp_msg'=>'Progress Report');
 					$api_response = $this->send_whatsapp_attachment($params);
-
-
+ 					 
+					if (file_exists($attachment)) {
+						if (unlink($attachment)) {
+							$retArray[$students[0]->phone]['unlink']  = "File deleted successfully.";
+						} else {
+							$retArray[$students[0]->phone]['unlink']  =  "Error deleting the file.";
+						}
+					} else {
+						$retArray[$students[0]->phone]['unlink']  =  "File does not exist.";
+					}
+					$retArray[$students[0]->phone]['attachment']  = $attachment;
 					$retArray[$students[0]->phone]['status'] = TRUE;
 					$retArray[$students[0]->phone]['api_response'] = $api_response;
 					echo json_encode($retArray);
@@ -957,27 +966,29 @@ class Progresscardreport extends Admin_Controller {
 		        	$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$template1.'. Total: '.$total_marks[$key].', From '.$school_name.'. VGNSSP';
 
 					 // Dear parent, your children vasu FA - 1 marks are TELUGU=11/100,HINDI=16/50,ENGLISH=17/60,MATH=18/60,EVS=0/100,computer=0/100. Total: 62/470, From OURSCHOOL ERP. VGNSSP
-				}else if($senderid=='VIDYNI'){
-					$template1 = substr($marks_template[$key],0,-1);
+				}
+				// else if($senderid=='VIDYNI'){
+				// 	$template1 = substr($marks_template[$key],0,-1);
 
-					$subs = explode(',',$template1);
-					// echo "<pre>";print_r($subs);die;
+				// 	$subs = explode(',',$template1);
+				// 	// echo "<pre>";print_r($subs);die;
 
-					if($subs[6]){
-				    	$a = explode('=',$subs[6]);
-			    		$seventh_sub = ",".substr($a[0],0,4) . "=" .$a[1] ;
-					}
+				// 	if($subs[6]){
+				//     	$a = explode('=',$subs[6]);
+			    // 		$seventh_sub = ",".substr($a[0],0,4) . "=" .$a[1] ;
+				// 	}
 			
-					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
-				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
-					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-').$seventh_sub;
+				// 	$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
+				//     $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
+				// 	$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-').$seventh_sub;
 
 					 					
-					$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' . Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+				// 	$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' . Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
 
-					//Dear parent, your children srinivas fa- 1 marks are telugu - 25/25,hindhi - 25/25 and english -25/25,maths - 25/25 and evs-25/25, social25/25 . Total: tptal -150/150, From Sri vidyaniketan school . VIDYNI
+				// 	//Dear parent, your children srinivas fa- 1 marks are telugu - 25/25,hindhi - 25/25 and english -25/25,maths - 25/25 and evs-25/25, social25/25 . Total: tptal -150/150, From Sri vidyaniketan school . VIDYNI
 
-				}else{
+				// }
+				else{
 		        	$template1 = substr($marks_template[$key],0,-1);
 
 					$subs = explode(',',$template1);
@@ -985,8 +996,11 @@ class Progresscardreport extends Admin_Controller {
 					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
 				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
+					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' . Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+
+					
 
 					//$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and'.$var3.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' '.$senderid;
 

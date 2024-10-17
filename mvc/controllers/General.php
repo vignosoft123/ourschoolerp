@@ -84,9 +84,9 @@ if ( !defined('BASEPATH') ) {
             $data = json_decode($json,1);
             $domain = $data['domain'];
             //  $this->db->like('status', 'fail', 'both'); 
-        //   $result = $this->db->get('sql_queries')->result_array();
-//           $sql ="SELECT s.* FROM `sql_queries` s left join domain_migration_errors d on d.migration_no = s.id WHERE (d.status like '%fail%' or d.error is NULL) and d.domain='".$domain."';
-// ";
+            //   $result = $this->db->get('sql_queries')->result_array();
+            //           $sql ="SELECT s.* FROM `sql_queries` s left join domain_migration_errors d on d.migration_no = s.id WHERE (d.status like '%fail%' or d.error is NULL) and d.domain='".$domain."';
+            // ";
             $sql ="SELECT s.* FROM `sql_data_queries` s join domains d  where s.status=0 and d.status=0 and d.domain='".$domain."'"; 
 
            $result = $this->db->query($sql)->result_array();
@@ -132,6 +132,23 @@ if ( !defined('BASEPATH') ) {
            }
            
            
+          }
+
+          public function create_signature_folder(){
+                // Define the path to the assets folder
+                $folderPath = './uploads/signatures';
+
+                // Check if the folder already exists
+                if (!file_exists($folderPath)) {
+                    // Attempt to create the folder
+                    if (mkdir($folderPath, 0777, true)) {
+                        echo "Folder 'signature' created successfully in the assets directory.";
+                    } else {
+                        echo "Failed to create the folder.";
+                    }
+                } else {
+                    echo "Folder 'signature' already exists in the assets directory.";
+                }
           }
         
     }
