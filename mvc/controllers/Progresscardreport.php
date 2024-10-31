@@ -988,6 +988,20 @@ class Progresscardreport extends Admin_Controller {
 				// 	//Dear parent, your children srinivas fa- 1 marks are telugu - 25/25,hindhi - 25/25 and english -25/25,maths - 25/25 and evs-25/25, social25/25 . Total: tptal -150/150, From Sri vidyaniketan school . VIDYNI
 
 				// }
+				else if($senderid=='GGSDRS'){ //ggs darshi
+					$template1 = substr($marks_template[$key],0,-1);
+
+					$subs = explode(',',$template1);
+					// echo "<pre>";print_r($subs);die;
+					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
+				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
+					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
+					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
+					
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+
+					
+					}
 				else{
 		        	$template1 = substr($marks_template[$key],0,-1);
 

@@ -2490,7 +2490,8 @@ public function study_certificate($sid=""){
 		)
 	);
 	$schoolyearID = $this->session->userdata('defaultschoolyearID');
-	$this->data["subview"] = "student/study_certificate";
+	// $this->data["subview"] = "student/study_certificate";
+	$this->data["subview"] = "studycertificate_new";
 	$this->load->view('_layout_main', $this->data);
 
 
@@ -2858,11 +2859,15 @@ public function phone_update(){
  
 	$phone  = $_POST['phone'];
 	$studentID  = $_POST['studentID'];
+	$parentID  = $_POST['parentID'];
 	 
 		$data = array('phone'=>$phone); 
 
 		$this->db->where('studentID',$studentID);
-		$this->db->update('student',$data);  
+		$this->db->update('student',$data); 
+		
+		$this->db->where('parentsID',$parentID);
+		$this->db->update('parents',$data); 
 
 	echo $update = "Phone Number updated successfully!";
 	// echo $final;

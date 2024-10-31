@@ -115,7 +115,8 @@
                                                         </td>
                                                         <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
-                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" class="phone_update" studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->village_name; ?>
                                                         </td>
@@ -224,7 +225,8 @@
                                                         </td>
                                                         <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
-                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->village_name; ?>
                                                         </td>
@@ -451,6 +453,7 @@ $(document).on("focusout",".phone_update",function(){
     var phone = $(this).text(); 
 
     const editableDiv = document.getElementById('phone_update');
+    const parentID = $(this).attr('parentID');
   
     // Place the caret at the end
     // placeCaretAtEnd($(this)[0]);
@@ -471,7 +474,7 @@ $(document).on("focusout",".phone_update",function(){
     $.ajax({
             type: 'POST',
             url: "<?=base_url('student/phone_update')?>",
-            data: {"phone":phone,"studentID":studentID},
+            data: {"phone":phone,"studentID":studentID,"parentID":parentID},
             dataType: "html",
             success: function(data) {
               $('.err').html(data);

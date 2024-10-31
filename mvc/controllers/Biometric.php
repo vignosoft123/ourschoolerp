@@ -94,7 +94,7 @@ class Biometric extends CI_Controller {
            {
 
             $sql1 = "select teacherID from teacher where rfid=".$RFID;
-            $num_rows = $this->db->query($sql1)->num_row();
+            $num_rows = $this->db->query($sql1)->num_rows();
             if($num_rows > 0){
                 $teacherID = $this->db->query($sql1)->row()->teacherID;
             }

@@ -39,6 +39,12 @@
     .no-print {
         display: none;
     }
+
+    .namebold{
+                font-weight: bold !important;
+                color : black !important;
+                 
+            }
 }
 
 @page {
@@ -112,6 +118,7 @@
                 font-size: 14px;
                 font-weight: bold;
             }
+
 
             .subjectlist {
                 width:100%;
@@ -238,13 +245,14 @@
                                    
                                     <div class="admitcardstudentinfo">
                                         <div class="studentinfo">
-                                            <p><span class="text-red"><?=$this->lang->line('admitcardreport_name')?></span> : <?=$student->srname?> </p>
-                                            <p><span class="text-red"><?=$this->lang->line('admitcardreport_registerNO')?></span> : <?=$student->srregisterNO?> </p>
-                                            <p><span class="text-red"><?=$this->lang->line('admitcardreport_class')?></span> : <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?> </p>
-                                            <p><span class="text-red"><?=$this->lang->line('admitcardreport_section')?></span> : <?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?> </p>
-                                            <p><span class="text-red"><?=$this->lang->line('admitcardreport_roll')?></span> : <?=$student->srroll?></p>
+                                            <p><b class="text-red namebold"><?=$this->lang->line('admitcardreport_name')?></b> : <?=$student->srname?> </p>
 
-                                            <p><span class="text-red">Father Name </span> : <?=$student->father_name?></p>
+                                            <p><span class="text-red namebold"><?=$this->lang->line('admitcardreport_registerNO')?></span> : <?=$student->srregisterNO?> </p>
+                                            <p><span class="text-red namebold"><?=$this->lang->line('admitcardreport_class')?></span> : <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?> </p>
+                                            <p><span class="text-red namebold"><?=$this->lang->line('admitcardreport_section')?></span> : <?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?> </p>
+                                            <p><span class="text-red namebold"><?=$this->lang->line('admitcardreport_roll')?></span> : <?=$student->srroll?></p>
+
+                                            <p><span class="text-red namebold">Father Name </span> : <?=$student->father_name?></p>
 
                                         </div>
                                     </div>
@@ -341,7 +349,7 @@
                         }
                     }
                     ?>
-                    <td><?=$exam_date?></td>
+                    <td><?php echo date("d-m-Y",strtotime($exam_date));?></td>
         <?php 
                 }
             } 
@@ -481,7 +489,7 @@
 <div class="signature-section" style="display: flex; justify-content: space-between; padding-top: 20px;">
     <span class="headmaster_signature">Parent Signature</span>                               
     <span class="">Teacher Signature</span>
-    <span class="">Principal Signature</span>
+    <span class="" style="margin-right:25px;">Principal Signature</span>
 </div>
 
 
