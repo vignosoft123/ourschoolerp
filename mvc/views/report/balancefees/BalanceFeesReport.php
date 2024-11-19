@@ -90,7 +90,11 @@
                                         $totalBalance = 0;
                                         $i=0;
                                         // dd($students);
-                                        foreach($students as $student) { $i++; ?>
+                                        foreach($students as $student) { 
+                                        
+                                        if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])){
+                                            $i++; 
+                                        ?>
                                             <tr>
                                                 <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_name')?>">
@@ -178,6 +182,7 @@
                                                 </td>
                                             </tr>
                                             <?php
+                                        }
                                         }
                                     ?>       
                                     <tr>
