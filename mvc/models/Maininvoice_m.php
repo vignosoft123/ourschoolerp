@@ -13,7 +13,7 @@ class Maininvoice_m extends MY_Model {
 	}
 
 	public function get_maininvoice_with_studentrelation($schoolyearID = NULL,$maininvoiceclassesID="") {
-		$this->db->select('studentrelation.*,maininvoice.*,parents.name as parent_name');
+		$this->db->select('studentrelation.*,maininvoice.*,parents.father_name as parent_name');
 		$this->db->from($this->_table_name);
 		$this->db->join('studentrelation', 'studentrelation.srstudentID = maininvoice.maininvoicestudentID AND studentrelation.srschoolyearID = maininvoice.maininvoiceschoolyearID', 'LEFT');
 		$this->db->join('student', 'student.studentID = maininvoice.maininvoicestudentID AND student.schoolyearID = maininvoice.maininvoiceschoolyearID', 'LEFT');
@@ -72,7 +72,7 @@ class Maininvoice_m extends MY_Model {
 	}
 
 	public function get_maininvoice_with_studentrelation_by_maininvoiceID($invoiceID, $schoolyearID = NULL) {
-		$this->db->select('studentrelation.*,maininvoice.*,parents.name as parent_name');
+		$this->db->select('studentrelation.*,maininvoice.*,parents.father_name as parent_name');
 		$this->db->from($this->_table_name);
 		$this->db->join('studentrelation', 'studentrelation.srstudentID = maininvoice.maininvoicestudentID AND studentrelation.srschoolyearID = maininvoice.maininvoiceschoolyearID', 'LEFT');
 		$this->db->join('student', 'student.studentID = maininvoice.maininvoicestudentID AND student.schoolyearID = maininvoice.maininvoiceschoolyearID', 'LEFT');

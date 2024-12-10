@@ -1,51 +1,3 @@
-<style>
-    @page {
-        size: A4;
-        margin: 0; /* No margin to maximize content space */
-    }
-
-    body {
-        font-family: Arial, sans-serif;
-        font-size: 10pt; /* Slightly smaller font to reduce content size */
-        margin: 0;
-        padding: 0;
-    }
-
-    .content {
-        margin: 0;
-        padding: 5mm; /* Less padding to fit content */
-    }
-
-    .copy {
-        margin-bottom: 5mm; /* Tighten space between copies */
-    }
-
-    .copy-label {
-        text-align: center;
-        font-size: 14pt;
-        font-weight: bold;
-        margin-bottom: 5mm; /* Reduced space between label and content */
-    }
-
-    .footer {
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-        text-align: center;
-        font-size: 8pt;
-    }
-
-    .copy {
-        page-break-after: always; /* Ensure copies are separated, but on the same page */
-    }
-
-    .copy:last-child {
-        page-break-after: auto; /* No break after last copy */
-    }
-</style>
-
-
-
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa fa-balance-scale"></i> <?=$this->lang->line('panel_title')?></h3>
@@ -461,315 +413,291 @@
 
 <?php $paymented_status = TRUE; $paymented_invoice_total = 0; $paymented_invoice_weaver = 0; $paymented_invoice_fine = 0; if(customCompute($globalpayments)) { foreach ($globalpayments as $globalpayment) { ?>
     <div class="modal fade" id="invoice-view-<?=$globalpayment->globalpaymentID?>">
-        <div class="modal-dialog modal-lg"> <!-- Increased modal size -->
+        <div class="modal-dialog">
             <div class="modal-content">
-                <!-- Modal Header -->
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h5 class="modal-title"><?=$this->lang->line('global_view_invoice')?></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <?=$this->lang->line('global_view_invoice')?>
                 </div>
-    
-                <!-- Modal Body -->
-                <div id="printDiv-<?=$globalpayment->globalpaymentID?>" class="modal-body">
-                    <style>
-                        .assign-fee-payment .header-content {
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            margin-bottom: 10px;
+                <div id="printDiv-<?=$globalpayment->globalpaymentID?>">
+                    <style type="text/css">
+                        .assign-fee-payment .table {
+                            width: 100%;
+                            margin-bottom: 20px;
                         }
-    
+                        .assign-fee-payment table {
+                            font-size: 12px;
+                            max-width: 100%;
+                            background-color: transparent;
+                        }
+                        .assign-fee-payment table {
+                            border-collapse: collapse;
+                            border-spacing: 0;
+                        }
+
+                        .assign-fee-payment .table > thead > tr > th {
+                            vertical-align: bottom;
+                            border-bottom: 2px solid #ddd;
+                        }
+
+                        .assign-fee-payment th {
+                            text-align: left;
+                        }
+
+                        .assign-fee-payment {
+                          font-family: sans-serif;
+                          background-color: #fff !important; 
+                          border: 1px solid #ccc;
+                          color: #000;
+                          padding: 10px;
+                        }
+
                         .assign-fee-payment .logo {
-                            flex: 0 0 auto;
+                          height: 80px;
+                          width: 80px;
+                          text-align: center;
+                          margin-left: auto;
+                          margin-right: auto;
+                          margin-bottom: 0px;
+                          margin-top: 0px;
+                        }
+
+                        .assign-fee-payment .header .logo img {
                             height: 80px;
                             width: 80px;
-                            text-align: center;
                         }
-    
-                        .assign-fee-payment .logo img {
-                            height: 100%;
-                            width: 100%;
-                            object-fit: contain;
-                        }
-    
-                        .assign-fee-payment .title-content {
-                            flex: 1;
-                            text-align: left;
-                            padding-left: 15px;
-                        }
-    
+
                         .assign-fee-payment .title {
-                            font-size: 18px;
-                            font-weight: bold;
-                            margin: 0;
+                          font-size: 16px;
+                          text-align: center;
+                          margin-left: auto;
+                          margin-right: auto;
+                          margin-bottom: 0px;
+                          margin-top: 0px;
                         }
-    
+
                         .assign-fee-payment .title-desc {
-                            font-size: 14px;
-                            margin: 0;
-                            color: #555;
+                          font-size: 14px;
+                          text-align: center;
+                          margin-left: auto;
+                          margin-right: auto;
+                          margin-bottom: 0px;
+                          margin-top: 0px;
                         }
-    
-                        .info-section {
-                            display: flex;
-                            flex-wrap: wrap;
-                            justify-content: space-between;
-                            margin-bottom: 20px;
-                            font-size: 12px;
-                            font-family: sans-serif;
+
+                        .assign-fee-payment .info td {
+                          border-top: none !important;
+                          font-size: 12px;
+                          color: #000;
+                         }
+
+                        .assign-fee-payment th, .assign-fee-payment td {
+                          padding: 1px !important;
                         }
-    
-                        .info-left, .info-right {
-                            width: 48%;
-                            padding: 10px;
-                            box-sizing: border-box;
+
+                        .assign-fee-payment th {
+                          background-color: #ccc !important;
+                          padding: 1px !important;
                         }
-    
-                        .info-center {
-                            width: 100%;
-                            text-align: center;
-                            margin-top: 10px;
+
+                        .assign-fee-payment .textright {
+                          text-align: right;
                         }
-    
-                        .info-section p {
-                            margin: 5px 0;
-                            line-height: 1.5;
+
+                        .assign-fee-payment .boldandred {
+                          font-weight: bold;
+                          color: red !important;
                         }
-    
-                        .fee-details table {
-                            width: 100%;
-                            border-collapse: collapse;
-                            margin-top: 10px;
+
+                        .assign-fee-payment .footer .logo {
+                          width: 20px;
+                          height: 20px;
+                          text-align: center;
+                          margin-left: auto;
+                          margin-right: auto;
+                          margin-bottom: 0px;
+                          margin-top: 0px;
                         }
-    
-                        .fee-details table th,
-                        .fee-details table td {
-                            border: 1px solid #ddd;
-                            padding: 8px;
-                            text-align: left;
+
+                        .assign-fee-payment .footer .logo img {
+                            height: 20px;
+                            width: 20px;
                         }
-    
-                        .fee-details table th {
-                            background-color: #f7f7f7;
-                            font-weight: bold;
+
+                        .assign-fee-payment .copyright {
+                          text-align: center;
+                          margin-left: auto;
+                          margin-right: auto;
+                          margin-bottom: 0px;
+                          margin-top: 0px;
+                          font-size: 12px;
                         }
-    
-                        .fee-details .particulars-header {
-                            background-color: #f1f1f1;
-                            text-align: center;
-                            font-size: 16px;
-                            font-weight: bold;
-                            padding: 10px 0;
-                            border-radius: 5px;
+
+                        .assign-fee-payment hr {
+                          margin-top: 5px;
+                          margin-bottom: 5px;
+                          border-top: 1px solid #eee;
                         }
                     </style>
-    
-                    <!-- Header Section -->
-                    <div class="assign-fee-payment">
-                        <div class="header">
-                            <div class="header-content">
-                                <div class="logo">
-                                    <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="Logo">
-                                </div>
-                                <div class="title-content">
-                                    <h3 class=" text-2xl font-bold text-center text-gray-800 my-6"><?=$siteinfos->sname?></h3>
-                                    <p class="title-desc text-center"><?=$siteinfos->address?></p>
-                                    <p class="title-desc text-center"> Phone : <?=$siteinfos->phone?></p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        
-    
-                        <!-- Receipt Title -->
-                        <h2 class="text-2xl font-bold text-center text-gray-800 my-6">Fee Receipt</h2>
-                    </div>
-    
-                    <!-- Info Section -->
-                    <div class="info-section">
-                        <div class="info-left">
-                            <?php //echo "<pre>";print_r($globalpayment)?>
-                            <p><b>Admission No:</b> <?=$single_student->srregisterNO?></p>
-                            <p><b><?=$this->lang->line('global_name')?>:</b> <?=customCompute($single_student) ? $single_student->srname : ''?></p>
-                            <p><b>Father Name No:</b> <?=$single_student->father_name?></p>
-                            <p><b>Phone No:</b> <?=$single_student->phone?></p>
-                            
-                           
-                        </div>
-                        <div class="info-right">
-                            <p><b><?=$this->lang->line('global_invoice_number')?>:</b> INV-G-<?=$globalpayment->globalpaymentID?></p>
-                            <p><b>Date:</b> <?=isset($paidpayments['paiddate'][$globalpayment->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment->globalpaymentID])) : '' ?></p>
-                            <p>
-                                <b><?=$this->lang->line('global_classes')?>:</b> <?=customCompute($single_classes) ? $single_classes->classes : ''?></p>
-                            <p>
-                                <b><?=$this->lang->line('global_section')?>:</b> <?=customCompute($single_section) ? $single_section->section : ''?></p>
-                             
-                        </div>
-                    </div>
-    
-                    <!-- Particulars Section -->
-                    <div class="fee-details">
-                        <div class="particulars-header">Particulars</div>
-                        <table>
-                            <thead>
+                    <div class="modal-body" >
+                        <div class="assign-fee-payment">
+                            <span class="header"><p class="logo"><img src="<?=base_url("uploads/images/$siteinfos->photo")?>"></p></span>
+                            <p class="title"><?=$siteinfos->sname?></p>
+                            <p class="title-desc"><?=$siteinfos->address?></p>
+                            <hr>
+
+                            <table class="table info">
                                 <tr>
-                                    <th><?=$this->lang->line('global_fees_name')?></th>
-                                    <th><?=$this->lang->line('global_amount')?></th>
+                                    <td><b><?=$this->lang->line('global_invoice_number')?>: </b>INV-G-<?=$globalpayment->globalpaymentID?></td>
+
+                                    <td><b><?=$this->lang->line('global_clearance')?>: </b><?=strtoupper($globalpayment->clearancetype)?></td>
+
+                                    <td><b><?=$this->lang->line('global_date')?>: </b><?=isset($paidpayments['paiddate'][$globalpayment->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment->globalpaymentID])) : '' ?></td>
+
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php $paymentedPaidAmount = 0; ?>
-                                <?php foreach ($paymenteds as $paymented) {
-                                    if ($globalpayment->globalpaymentID == $paymented->globalpaymentID && $paymented->paymentamount > 0) {
-                                        $paymentedPaidAmount += $paymented->paymentamount; ?>
+                                <tr>
+                                    <td><b><?=$this->lang->line('global_name')?>: </b><?=customCompute($single_student) ? $single_student->srname : ''?> </td>
+                                    <td><b><?=$this->lang->line('global_classes')?>: </b><?=customCompute($single_classes) ? $single_classes->classes : ''?>, <b><?=$this->lang->line('global_roll')?>: </b><?=customCompute($single_student) ? $single_student->srroll : ''?>, <b><?=$this->lang->line('global_section')?>: </b><?=customCompute($single_section) ? $single_section->section : ''?></td>
+                                    <td><b><?=$this->lang->line('global_group')?>: </b><?=customCompute($single_group) ? $single_group->group : ''?></td>
+                                </tr>
+
+                                <tr>
+                                    <td colspan="3" ><center><b><span><?=$this->lang->line('global_student_copy')?></span></b></center></td>
+                                </tr>
+                            </table>
+
+
+                            <table class="table">
+                                <thead>
+                                    <?php if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                        <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                            <?php if($paymented->paymentamount > 0) { ?>
+
+                                                <tr>
+                                                    <th><?=$this->lang->line('global_fees_name')?></th>
+                                                    <th class="textright"><?=$this->lang->line('global_amount')?></th>
+                                                </tr>
+                                            <?php break; } ?>
+                                        <?php } ?>
+                                    <?php } } ?>
+                                </thead>
+                                <tbody>
+                                    <?php $paymentedPaidAmount = 0; $paymentedPaidStatus = FALSE; if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                        <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                            <?php if($paymented->paymentamount > 0) { $paymentedPaidStatus = TRUE; ?>
+                                                <?php $paymentedPaidAmount += $paymented->paymentamount; ?>
+                                                <tr>
+                                                    <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
+                                                    <td class="textright"><?=$paymented->paymentamount?></td>
+                                                </tr>
+                                            <?php } ?>
+                                        <?php } ?>
+                                    <?php } } ?>
+
+                                    <?php if($paymentedPaidStatus) { ?>
                                         <tr>
-                                            <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
-                                            <td class="textright"><?=$paymented->paymentamount?></td>
+                                            <td class="boldandred"><?=$this->lang->line('global_total')?></td>
+                                            <td class="boldandred textright"><?=$paymentedPaidAmount?></td>
                                         </tr>
-                                    <?php }
-                                } ?>
-                                <tr>
-                                    <td class="boldandred">Total </td>
-                                    <td class="boldandred textright"><?=$paymentedPaidAmount?></td>
-                                </tr>
+                                    <?php } ?>
 
-                               
-                                
-                            </tbody>
-                        </table><br/>
+
+                                    <?php if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                        <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                            <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->fine > 0 ) { ?>
+                                                <tr>
+                                                    <th colspan="2"><?=$this->lang->line('global_fine')?></th>
+                                                </tr>
+                                            <?php break; } ?>
+                                        <?php } ?>
+                                    <?php } } } ?>
+
+                                    <tr>
+                                                    <td class="pull-right" colspan="4"><?= convert_number($paymentedPaidAmount+$paymentedFineAmount, 2). ' Ruppes Only'?>
+                                                    <!-- <span class="pull-right"><b><?=$this->lang->line('invoice_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?></b></span> -->
+                                                </td>
+                                                </tr>
+
+                                    <?php $paymentedFineAmount = 0; $paymentedFineStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                        <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                            <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->fine > 0 ) { $paymentedFineStatus = TRUE; ?>
+                                                <?php $paymentedFineAmount += isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->fine : 0; ?>
+                                                
+                                                <tr>
+                                                    <td><?=isset($feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]]) ? $feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]] : ''?></td>
+                                                    <td class="textright"><?=isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->fine : 0 ?></td>
+                                                </tr>
+                                            <?php } ?> 
+                                        <?php } ?>
+                                    <?php } } } ?>
+
+                                    <?php if($paymentedFineStatus) { ?>
+                                        <tr>
+                                            <td><?=$this->lang->line('global_total_fine')?></td>
+                                            <td class="textright"><?=$paymentedFineAmount?></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="boldandred"><?=$this->lang->line('global_grand_total')?></td>
+                                            <td class="boldandred textright"><?=$paymentedPaidAmount+$paymentedFineAmount?></td>
+                                        </tr>
+                                    <?php } ?>
+
+                                    <?php if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                        <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                            <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->weaver > 0 ) { ?>
+                                                <tr>
+                                                    <th colspan="2">Discount</th>
+                                                </tr>
+                                            <?php break; } ?>
+                                        <?php } ?>
+                                    <?php } } } ?>
+
+                                    <?php $paymentedWeaverAmount = 0; $paymentedWeaverStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
+                                        <?php if($globalpayment->globalpaymentID == $paymented->globalpaymentID) { ?>
+                                            <?php if(isset($weaverandfines[$paymented->paymentID]) && $weaverandfines[$paymented->paymentID]->weaver > 0 ) { $paymentedWeaverStatus = TRUE; ?>
+                                                <?php $paymentedWeaverAmount += isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->weaver : 0; ?>
+                                                
+                                                <tr>
+                                                    <td><?=isset($feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]]) ? $feetypes[$invoicefeetype[$weaverandfines[$paymented->paymentID]->invoiceID]] : ''?></td>
+                                                    <td class="textright"><?=isset($weaverandfines[$paymented->paymentID]) ? $weaverandfines[$paymented->paymentID]->weaver : 0 ?></td>
+                                                </tr>
+                                            <?php } ?> 
+                                        <?php } ?>
+                                    <?php } } } ?>
+
+                                    <?php if($paymentedWeaverStatus) { ?>
+                                        <tr>
+                                            <td class="boldandred"><?=$this->lang->line('global_total_weaver')?></td>
+                                            <td class="boldandred textright"><?=$paymentedWeaverAmount?></td>
+                                        </tr>
+                                    <?php } ?>
+                                </tbody>
+                            </table>
+
+                            <hr>
+                            <div class="footer">
+                                <p class="logo"><img src="<?=base_url("uploads/images/$siteinfos->photo")?>"></p>
+                                <p class="copyright"><?=$siteinfos->footer?> | <?=$this->lang->line('global_hotline')?> : <?=$siteinfos->phone?></p>
+                            </div>
+
+                        </div>
                     </div>
-               
-    
-                <div class="payment-summary" style="margin-top: 20px; font-family: Arial, sans-serif; font-size: 14px;">
-                    <!-- First Row: Payment Amount -->
-                    <div style="text-align: left; margin-bottom: 10px; margin-left :28px;">
-                        <?= convert_number($paymentedPaidAmount + $paymentedFineAmount, 2) ?> Rupees Only
-                    </div>
-                
-                    <!-- Second Row: Other Details -->
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <!-- Payment Mode -->
-                        <span style="text-align: center; flex: 1;">
-                            Payment Mode: Cash
-                        </span>
-                
-                        <!-- Due Amount -->
-                        <span style="text-align: center; flex: 1;">
-                            Due Amount: <?= $totalDue ?>
-                        </span>
-                
-                        <!-- Authorized Signature -->
-                        <span style="text-align: right; flex: 1;margin-right: 23px;">
-                            Authorized Signature
-                        </span>
-                    </div>
+
                 </div>
-                
-                 </div>
-
-                <!-- Modal Footer -->
-                <!-- <div class="modal-footer">
-                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Student Copy Print</button>
-                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Office Copy Print</button>
-                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Both</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->lang->line('close')?></button>
-                </div> -->
 
                 <div class="modal-footer">
-                    <!-- Student Copy Print Button -->
-                    <button 
-                        type="button" 
-                        class="btn btn-success print-btn" 
-                        onclick="printCopy('student')"
-                    >
-                        Student Copy Print
-                    </button>
-                
-                    <!-- Office Copy Print Button -->
-                    <button 
-                        type="button" 
-                        class="btn btn-success print-btn" 
-                        onclick="printCopy('office')"
-                    >
-                        Office Copy Print
-                    </button>
-                
-                    <!-- Print Both Copies Button -->
-                    <button 
-                        type="button" 
-                        class="btn btn-success print-btn" 
-                        onclick="printCopy('both')"
-                    >
-                        Both
-                    </button>
-                
-                    <button  
-                        type="button" 
-                        class="btn btn-default" 
-                        style="margin-bottom:0px;"  
-                    >
-                        <?=$this->lang->line('close')?>
-                    </button>
+                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Student Copy Print</button>
+
+                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Office Copy Print</button>
+
+                    <button type="button" class="btn btn-success" onclick="javascript:printDiv('printDiv-<?=$globalpayment->globalpaymentID?>')">Both</button>
+
+                    <button  type="button" class="btn btn-default" style="margin-bottom:0px;"  ><?=$this->lang->line('close')?></button>
                 </div>
-                
-                
-                <!-- Styles for the buttons -->
-                <style>
-                    .modal-footer {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: 15px;
-                        border-top: 1px solid #ddd;
-                    }
-                
-                    .btn {
-                        font-size: 16px;
-                        padding: 10px 20px;
-                        border-radius: 5px;
-                        cursor: pointer;
-                        transition: background-color 0.3s ease, transform 0.2s ease;
-                    }
-                
-                    .btn-success {
-                        background-color: #28a745;
-                        color: #fff;
-                        border: none;
-                    }
-                
-                    .btn-success:hover {
-                        background-color: #218838;
-                        transform: scale(1.05);
-                    }
-                
-                    .btn-default {
-                        background-color: #f8f9fa;
-                        color: #495057;
-                        border: 1px solid #ccc;
-                    }
-                
-                    .btn-default:hover {
-                        background-color: #e2e6ea;
-                        transform: scale(1.05);
-                    }
-                
-                    .print-btn {
-                        width: 150px; /* Set fixed width for print buttons */
-                        margin-right: 10px;
-                    }
-                
-                    .print-btn:last-child {
-                        margin-right: 0; /* Remove right margin on the last button */
-                    }
-                </style>
-
-
 
             </div>
         </div>
     </div>
-    
 <?php } } ?>
 
 <?php $paymentGenerateStatus = $this->session->flashdata('paymentGenerateStatus'); if($paymentGenerateStatus) { ?>
@@ -1129,7 +1057,6 @@
                                                     <td class="pull-right" colspan="4"><?= convert_number($paymentedPaidAmount+$paymentedFineAmount, 2). ' Ruppes Only'?>
                                                     <!-- <span class="pull-right"><b><?=$this->lang->line('invoice_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?></b></span> -->
                                                 </td>
-                                                
                                             </tr>
 
                                             <?php $paymentedFineAmount = 0; $paymentedFineStatus = FALSE; if(customCompute($weaverandfines)) { if(customCompute($paymenteds)) { foreach ($paymenteds as $paymented) { ?>
@@ -2142,135 +2069,5 @@ $('#add_payment').on('click',function(e){
         });  
     }
 });
- 
-function printCopy(type) {
-    var studentCopy = document.getElementById('printDiv-<?=$globalpayment->globalpaymentID?>').innerHTML;
-    var officeCopy = studentCopy; // Assuming both copies are the same initially
-
-    // Create a temporary div to hold the printed content
-    var printWindow = window.open('', '', 'height=800,width=1200');
-    
-    // Add CSS for A4 page layout
-    var css = `
-        <style>
-            @page {
-                size: A4;
-                margin: 0;
-            }
-            body {
-                font-family: Arial, sans-serif;
-                font-size: 10pt;
-                margin: 0;
-                padding: 0;
-            }
-            .content {
-                margin: 0;
-                padding: 5mm;
-            }
-            .copy {
-                margin-bottom: 5mm;
-            }
-            .copy-label {
-                text-align: center;
-                font-size: 14pt;
-                font-weight: bold;
-                margin-bottom: 5mm;
-            }
-            .footer {
-                position: fixed;
-                bottom: 0;
-                width: 100%;
-                text-align: center;
-                font-size: 8pt;
-            }
-            .divider {
-                border-top: 1px solid #000;
-                margin: 10mm 0;
-            }
-
-            /* Fee Receipt Title Styling */
-            .fee-receipt-title {
-                text-align: center;
-                background-color: #f1f1f1; /* Light gray background */
-                padding: 10px;
-                font-size: 20px;
-                font-weight: bold;
-                margin-bottom: 20px;
-                border-radius: 5px;
-            }
-
-            /* Centering Institution Name and Address */
-            .institution-info {
-                text-align: center;
-                margin-bottom: 15px;
-            }
-
-            .institution-info h1 {
-                font-size: 20px;
-                font-weight: bold;
-                margin: 0;
-            }
-
-            .institution-info p {
-                font-size: 12px;
-                color: #555;
-                margin: 0;
-            }
-        </style>
-    `;
-
-    // Handle printing for specific copies
-    if (type === 'student') {
-        studentCopy = studentCopy.replace('<center><b><span><?=$this->lang->line('global_student_copy')?></span></b></center>', 
-            '<center><b><span>Student Copy</span></b></center>');
-        printWindow.document.write(css + '<div class="content">' + studentCopy + '</div>');
-    } 
-    else if (type === 'office') {
-        officeCopy = officeCopy.replace('<center><b><span><?=$this->lang->line('global_student_copy')?></span></b></center>', 
-            '<center><b><span>Office Copy</span></b></center>');
-        printWindow.document.write(css + '<div class="content">' + officeCopy + '</div>');
-    } 
-    else if (type === 'both') {
-        studentCopy = studentCopy.replace('<center><b><span><?=$this->lang->line('global_student_copy')?></span></b></center>', 
-            '<center><b><span>Student Copy</span></b></center>');
-        officeCopy = officeCopy.replace('<center><b><span><?=$this->lang->line('global_student_copy')?></span></b></center>', 
-            '<center><b><span>Office Copy</span></b></center>');
-
-        // Add fee receipt title and divider between the copies
-        studentCopy = studentCopy.replace('<h2 class="text-2xl font-bold text-center text-gray-800 my-6">Fee Receipt</h2>', 
-            '<div class="fee-receipt-title">Fee Receipt</div>');
-        
-        officeCopy = officeCopy.replace('<h2 class="text-2xl font-bold text-center text-gray-800 my-6">Fee Receipt</h2>', 
-            '<div class="fee-receipt-title">Fee Receipt</div>');
-
-        // Add institution info with text-center styling
-        studentCopy = studentCopy.replace('<div class="text-center flex-1">', 
-            '<div class="institution-info"><h1><?=$siteinfos->sname?></h1><p><?=$siteinfos->address?></p></div>');
-        
-        officeCopy = officeCopy.replace('<div class="text-center flex-1">', 
-            '<div class="institution-info"><h1><?=$siteinfos->sname?></h1><p><?=$siteinfos->address?></p></div>');
-
-        // Print Both on One A4 page one after the other with a line divider
-        printWindow.document.write(css + `
-            <div class="content">
-                <div class="copy">
-                    <div class="copy-label">Student Copy</div>
-                    ${studentCopy}
-                </div>
-                <div class="divider"></div>
-                <div class="copy">
-                    <div class="copy-label">Office Copy</div>
-                    ${officeCopy}
-                </div>
-            </div>
-        `);
-    }
-
-    printWindow.document.close(); // Close the document
-    printWindow.print(); // Trigger the print dialog
-}
-
-
 
 </script>
-

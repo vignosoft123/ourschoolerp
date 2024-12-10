@@ -41,7 +41,7 @@
                     <th rowspan="2"><?=$this->lang->line('tabulationsheetreport_name')?></th>
                     <th rowspan="2"><?=$this->lang->line('tabulationsheetreport_roll')?></th>
                     <?php if(customCompute($mandatorysubjects)) { foreach ($mandatorysubjects as $mandatorysubject) { 
-                        $out_of += $mandatorysubject->max_mark;
+                       // $out_of += $mandatorysubject->max_mark;
                         ?>
                         <th colspan="<?=(customCompute($markpercentages) +1)?>"><?=$mandatorysubject->subject?></th>
                     <?php } } ?>
@@ -285,7 +285,9 @@
                                         </td>
                                            
                                         </tr>
-                                    <?php  $totl = 0;$out_of=0; } } ?>
+                                    <?php  $totl = 0;
+                                   // $out_of=0; 
+                                } } ?>
                                 </tbody>
 
                                 
