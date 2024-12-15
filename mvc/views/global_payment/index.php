@@ -238,11 +238,13 @@
                                                     <td><?=ucfirst($globalpayment->clearancetype)?></td>
                                                     <td><?=isset($paidpayments['paiddate'][$globalpayment->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment->globalpaymentID])) : '' ?></td>
                                                     <td>
-                                                        <span data-toggle="modal" data-target="#invoice-view-<?=$globalpayment->globalpaymentID?>">
+                                                        <!-- <span data-toggle="modal" data-target="#invoice-view-<?=$globalpayment->globalpaymentID?>"> -->
+                                                        <a href="<?php echo base_url('Global_payment/print_reciept/'.$set_studentID.'/'.$globalpayment->globalpaymentID);?>" target="_blank"><span>
                                                             <button class="btn btn-success btn-xs mrg" data-placement="top" data-toggle="tooltip" data-original-title="<?=$this->lang->line('view')?>">
                                                                 <i class='fa fa-check-square-o'></i>
                                                             </button>
                                                         </span>
+                                                </a>
                                                     </td>
                                                 </tr>
 
@@ -459,10 +461,19 @@
 </div>
 
 
-<?php $paymented_status = TRUE; $paymented_invoice_total = 0; $paymented_invoice_weaver = 0; $paymented_invoice_fine = 0; if(customCompute($globalpayments)) { foreach ($globalpayments as $globalpayment) { ?>
-    <div class="modal fade" id="invoice-view-<?=$globalpayment->globalpaymentID?>">
+<?php $paymented_status = TRUE; $paymented_invoice_total = 0; $paymented_invoice_weaver = 0; $paymented_invoice_fine = 0; 
+if(customCompute($globalpayments)) {
+     foreach ($globalpayments as $globalpayment) { ?>
+
+ 
+
+    <div class="modal fade bd-example-modal-lg" id="invoice-view-<?=$globalpayment->globalpaymentID?>">
         <div class="modal-dialog modal-lg"> <!-- Increased modal size -->
             <div class="modal-content">
+
+            
+            
+
                 <!-- Modal Header -->
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -472,8 +483,8 @@
                 </div>
     
                 <!-- Modal Body -->
-                <div id="printDiv-<?=$globalpayment->globalpaymentID?>" class="modal-body">
-                    <style>
+                <!-- <div id="printDiv-<?=$globalpayment->globalpaymentID?>" class="modal-body"> -->
+                    <!-- <style>
                         .assign-fee-payment .header-content {
                             display: flex;
                             align-items: center;
@@ -564,10 +575,10 @@
                             padding: 10px 0;
                             border-radius: 5px;
                         }
-                    </style>
+                    </style> -->
     
                     <!-- Header Section -->
-                    <div class="assign-fee-payment">
+                    <!-- <div class="assign-fee-payment">
                         <div class="header">
                             <div class="header-content">
                                 <div class="logo">
@@ -580,15 +591,12 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        
-    
-                        <!-- Receipt Title -->
+                         
                         <h2 class="text-2xl font-bold text-center text-gray-800 my-6">Fee Receipt</h2>
-                    </div>
+                    </div> -->
     
                     <!-- Info Section -->
-                    <div class="info-section">
+                    <!-- <div class="info-section">
                         <div class="info-left">
                             <?php //echo "<pre>";print_r($globalpayment)?>
                             <p><b>Admission No:</b> <?=$single_student->srregisterNO?></p>
@@ -607,10 +615,10 @@
                                 <b><?=$this->lang->line('global_section')?>:</b> <?=customCompute($single_section) ? $single_section->section : ''?></p>
                              
                         </div>
-                    </div>
+                    </div> -->
     
                     <!-- Particulars Section -->
-                    <div class="fee-details">
+                    <!-- <div class="fee-details">
                         <div class="particulars-header">Particulars</div>
                         <table>
                             <thead>
@@ -639,35 +647,35 @@
                                 
                             </tbody>
                         </table><br/>
-                    </div>
+                    </div> -->
                
     
-                <div class="payment-summary" style="margin-top: 20px; font-family: Arial, sans-serif; font-size: 14px;">
-                    <!-- First Row: Payment Amount -->
+                <!-- <div class="payment-summary" style="margin-top: 20px; font-family: Arial, sans-serif; font-size: 14px;">
+                
                     <div style="text-align: left; margin-bottom: 10px; margin-left :28px;">
                         <?= convert_number($paymentedPaidAmount + $paymentedFineAmount, 2) ?> Rupees Only
                     </div>
                 
-                    <!-- Second Row: Other Details -->
+                     
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <!-- Payment Mode -->
+                       
                         <span style="text-align: center; flex: 1;">
                             Payment Mode: Cash
                         </span>
                 
-                        <!-- Due Amount -->
+                        
                         <span style="text-align: center; flex: 1;">
                             Due Amount: <?= $totalDue ?>
                         </span>
                 
-                        <!-- Authorized Signature -->
+                        
                         <span style="text-align: right; flex: 1;margin-right: 23px;">
                             Authorized Signature
                         </span>
                     </div>
-                </div>
+                </div> -->
                 
-                 </div>
+                 <!-- </div> -->
 
                 <!-- Modal Footer -->
                 <!-- <div class="modal-footer">
@@ -677,8 +685,8 @@
                     <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->lang->line('close')?></button>
                 </div> -->
 
-                <div class="modal-footer">
-                    <!-- Student Copy Print Button -->
+                <!-- <div class="modal-footer">
+                    
                     <button 
                         type="button" 
                         class="btn btn-success print-btn" 
@@ -686,8 +694,7 @@
                     >
                         Student Copy Print
                     </button>
-                
-                    <!-- Office Copy Print Button -->
+                 
                     <button 
                         type="button" 
                         class="btn btn-success print-btn" 
@@ -696,7 +703,7 @@
                         Office Copy Print
                     </button>
                 
-                    <!-- Print Both Copies Button -->
+                   
                     <button 
                         type="button" 
                         class="btn btn-success print-btn" 
@@ -712,7 +719,7 @@
                     >
                         <?=$this->lang->line('close')?>
                     </button>
-                </div>
+                </div> -->
                 
                 
                 <!-- Styles for the buttons -->

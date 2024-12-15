@@ -28,6 +28,7 @@ class Globalpayment_m extends MY_Model {
 
     function get_order_by_globalpayment($array=NULL) {
         $query = parent::get_order_by($array);
+        // echo $this->db->last_query();die;
         return $query;
     }
 

@@ -688,7 +688,69 @@ class Global_payment extends Admin_Controller
         return $res;
 	}
 
+    public function print_reciept($studentID,$globalpaymentID) {
+        $this->data['headerassets'] = array(
+            'css' => array(
+                'assets/datepicker/datepicker.css',
+                'assets/select2/css/select2.css',
+                'assets/select2/css/select2-bootstrap.css'
+            ),
+            'js' => array(
+                'assets/datepicker/datepicker.js',
+                'assets/select2/select2.js'
+            )
+        );
 
+        $schoolyearID   = $this->session->userdata('defaultschoolyearID'); 
+        $this->data['single_student'] = [];
+        $this->data['single_student'] = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
+
+        
+        $this->payment_m->order_payment('paymentID asc');
+        $allPaymentList = $this->payment_m->get_order_by_payment(array('studentID' => $studentID, 'schoolyearID' => $schoolyearID));
+
+        $allWeaverList = $this->weaverandfine_m->get_order_by_weaverandfine(array('studentID' => $studentID, 'schoolyearID' => $schoolyearID));
+
+        $this->data['payments'] = $this->generateAllPaymentAmount($allPaymentList);
+        $this->data['weavers'] = $this->generateAllWeaverAmount($allWeaverList);
+        $this->data['paymenteds'] = $allPaymentList;
+        $this->data['weavereds'] = $allWeaverList;
+
+        $this->data['globalpayment_max'] = $this->globalpayment_m->get_max_globalpayment();
+        $this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(), 'feetypes', 'feetypesID');
+
+        if(customCompute($this->data['single_student'])) {
+            $single_student = $this->data['single_student'];
+
+            $this->data['single_classes'] = $this->classes_m->get_single_classes(array('classesID' => $single_student->srclassesID));
+            $this->data['single_section'] = $this->section_m->get_single_section(array('sectionID' => $single_student->srsectionID));
+            $this->data['single_group'] = $this->studentgroup_m->get_single_studentgroup(array('studentgroupID' => $single_student->srstudentgroupID));
+
+            $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(array('studentID' => $single_student->srstudentID, 'schoolyearID' => $schoolyearID, 'deleted_at' => 1));
+
+            $this->data['invoicefeetype'] = pluck($this->data['invoices'], 'feetypeID', 'invoiceID');
+
+            $this->data['globalpayment'] = $this->globalpayment_m->get_order_by_globalpayment(array('globalpaymentID' => $globalpaymentID,  'schoolyearID' => $schoolyearID,   'studentID' => $single_student->srstudentID));
+            // echo "<pre>";print_r($this->data['globalpayment'] );die;
+
+            $this->data['paidpayments'] = $this->generateAllPaymentAmountWithGlobalID($allPaymentList);
+
+            $this->data['weaverandfines'] = pluck($this->weaverandfine_m->get_order_by_weaverandfine(array('studentID' => $single_student->srstudentID, 'schoolyearID' => $schoolyearID)), 'obj', 'paymentID');
+        } else {
+            $this->data['single_classes'] = [];
+            $this->data['single_section'] = [];
+            $this->data['single_group'] = [];
+            $this->data['invoices'] = [];
+            $this->data['globalpayments'] = [];
+        }
+        
+        $this->data['globalpayments'] = $this->globalpayment_m->get_order_by_globalpayment(array('schoolyearID' => $schoolyearID,  'studentID' => $single_student->srstudentID));
+        $this->data['paidpayments'] = $this->generateAllPaymentAmountWithGlobalID($allPaymentList);
+                $this->data["subview"] = "common_views/invoice";
+                $this->load->view('_layout_main', $this->data);
+             
+         
+    }
 
 }
 
