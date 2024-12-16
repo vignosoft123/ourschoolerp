@@ -40,126 +40,112 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>School</title>
     <style>
-  body {
-    margin: 40px;
-}
-.main-wrapper {
-    border: 5px rgb(141, 139, 139);
-    border-style: groove;
-    height: 600px;
-    width: 850px;
-    margin: auto;
-    border-radius: 3%;
-}
-.logo-heading {
-    display: flex;
-}
-.logo-heading img {
-    width: 100px;
-}
-.main-heading h1 {
-    color: #9c9898;
-}
-.logo {
-    width: 100px;
-    margin-left: 20px;
-    margin-top: 5px;
-}
-.main-heading {
-    margin: auto;
-    text-align: center;
-}
-.table-start table {
-    width: 100%;
-    font-weight: bolder;
-    border-collapse: collapse;
-    border-bottom: 2px solid lightgray;
-}
-.table-start table thead {
-    background-color: #4b4646 !important; /* Make sure this color is applied */
-    color: #fff;
-    width: 100%;
-}
-.table-start table thead th {
-    padding: 12px;
-}
-.center {
-    text-align: center !important;
-}
-.table-start table tr td, .table-start table tr {
-    padding: 10px;
-}
-.table-start thead th {
-    border-left: 0px solid black;
-}
-.table-start tbody td:nth-child(2) {
-    border-left: 2px solid lightgray;
-    width: 30%;
-}
-.footer {
-    padding: 10px;
-    display: flex;
-}
-.student-details {
-    padding-left: 20px;
-    padding-right: 20px;
-    display: flex;
-    justify-content: space-between;
-}
-.student-details table {
-    font-weight: bold;
-}
-
-/* Add a style to print */
-/* Default Screen Styles */
-.duplicate-print {
-    display: none; /* Hide the second copy on the screen */
-}
-
-/* Print Styles */
-@media print {
-    body {
-        margin: 0;
-        padding: 0;
+      body {
+        margin: 40px;
     }
-
-    .duplicate-print {
-        display: block;
-    }
-
-    
- 
     .main-wrapper {
+        border: 5px rgb(141, 139, 139);
+        border-style: groove;
+        height: 450px;
+        width: 850px;
+        margin: auto;
+        border-radius: 3%;
+    }
+    .logo-heading {
+        display: flex;
+    }
+    .logo-heading img {
+        width: 100px;
+    }
+    .main-heading h1 {
+        color: #000000;
+    }
+    .logo {
+        width: 100px;
+        margin-left: 20px;
+        margin-top: 5px;
+    }
+    .main-heading {
+        margin: auto;
+        text-align: center;
+    }
+    .table-start table {
         width: 100%;
-        margin: 0 auto;
-        border: 1px solid lightgray; /* Optional border */
+        font-weight: bolder;
+        border-collapse: collapse;
+        border-bottom: 2px solid lightgray;
     }
-
-    /* Landscape Mode: Side-by-Side Layout */
-    @media print and (orientation: landscape) {
-        .print-container {
-            grid-template-columns: 1fr 1fr; /* Two copies side-by-side */
-        }
+    .table-start table thead {
+        background-color: #4b4646 !important; /* Make sure this color is applied */
+        color: #fff;
+        width: 100%;
     }
-
-    /* Hide print button */
-    .print-button {
-        display: none;
+    .table-start table thead th {
+        padding: 12px;
     }
-
-       /* Ensure background is visible in print */
-       .table-start thead {
-      background-color: #4b4646 !important; /* Force background in print */
+    .center {
+        text-align: center !important;
+    }
+    .table-start table tr td, .table-start table tr {
+        padding: 10px;
     }
     .table-start thead th {
-        color: #fff !important;
+        border-left: 0px solid black;
+    }
+    .table-start tbody td:nth-child(2) {
+        border-left: 2px solid lightgray;
+        width: 30%;
+    }
+    .footer {
+        padding: 10px;
+        display: flex;        
+        padding-top: 50px;
+    }
+    .student-details {
+        padding-left: 20px;
+        padding-right: 20px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .student-details table {
+        font-weight: bold;
+    }
+    
+    .duplicate-print{
+      display:  none;
+    }
+    /* Add a style to print */
+    @media print {
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .duplicate-print{
+      display:  block;
     }
 
+        .main-wrapper {
+        border: 5px rgb(141, 139, 139);
+        border-style: groove;
+        height: 450px;
+        width: 850px;
+        margin: auto;
+        border-radius: 3%;
+    }
+        .print-button {
+            display: none;
+        }
+        /* Ensure background is visible in print */
+        .table-start thead {
+          background-color: #4b4646 !important; /* Force background in print */
+        }
+        .table-start thead th {
+            color: #fff !important;
+        }
+    }
     
-}
- 
-
-    </style>
+        </style>
   </head>
 
   <body>
@@ -226,7 +212,7 @@
                         $paymentedPaidAmount += $paymented->paymentamount; ?>
                         <tr>
                             <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
-                            <td class="textright"><?=$paymented->paymentamount?></td>
+                            <td class="center"><?=$paymented->paymentamount?></td>
                         </tr>
                     <?php }
                 }  ?>
@@ -235,14 +221,7 @@
 
             <tr><td></td><td></td></tr>
             <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
+           
             <tr>
               <td style="display: flex; justify-content: space-between;">
                 <div>
@@ -276,10 +255,7 @@
         </div>
       </div>
 
-      <!-- Print Button -->
-      <div style="text-align: center; margin-top: 20px;">
-        <button class="print-button" onclick="window.print()">Print Receipt</button>
-      </div>
+     
     </div>
 
     <div class="main-wrapper duplicate-print">
@@ -354,14 +330,8 @@
   
               <tr><td></td><td></td></tr>
               <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
+               
+             
               <tr>
                 <td style="display: flex; justify-content: space-between;">
                   <div>
@@ -395,10 +365,13 @@
           </div>
         </div>
   
-        <!-- Print Button -->
-        <div style="text-align: center; margin-top: 20px;">
-          <button class="print-button" onclick="window.print()">Print Receipt</button>
-        </div>
+       
+      </div>
+
+
+       <!-- Print Button -->
+       <div style="text-align: center; margin-top: 20px;">
+        <button class="print-button" onclick="window.print()">Print Receipt</button>
       </div>
 
     <script>
