@@ -46,8 +46,8 @@
     .main-wrapper {
         border: 5px rgb(141, 139, 139);
         border-style: groove;
-        height: 450px;
-        width: 850px;
+        height: 500px;
+        width: 95%;
         margin: auto;
         border-radius: 3%;
     }
@@ -71,7 +71,7 @@
     }
     .table-start table {
         width: 100%;
-        font-weight: bolder;
+            font-weight: bolder;
         border-collapse: collapse;
         border-bottom: 2px solid lightgray;
     }
@@ -87,7 +87,7 @@
         text-align: center !important;
     }
     .table-start table tr td, .table-start table tr {
-        padding: 10px;
+        padding: 5px;
     }
     .table-start thead th {
         border-left: 0px solid black;
@@ -99,7 +99,7 @@
     .footer {
         padding: 10px;
         display: flex;        
-        padding-top: 50px;
+        /*padding-top: 50px;*/
     }
     .student-details {
         padding-left: 20px;
@@ -128,8 +128,8 @@
         .main-wrapper {
         border: 5px rgb(141, 139, 139);
         border-style: groove;
-        height: 450px;
-        width: 850px;
+        height: 500px;
+        width: 95%;
         margin: auto;
         border-radius: 3%;
     }
@@ -167,7 +167,7 @@
               <tr> <td>Admission No</td> <td>:  <?=$single_student->srregisterNO?></td> </tr>
               <tr> <td>Student Name</td> <td>:  <?=customCompute($single_student) ? $single_student->srname : ''?></td> </tr>
               <tr> <td>Father Name</td> <td>: <?=$single_student->father_name?></td> </tr>
-              <tr> <td>Mother Name</td> <td>: <?=$single_student->phone?></td> </tr>
+              <tr> <td>Mobile Number</td> <td>: <?=$single_student->phone?></td> </tr>
             </tbody>
           </table>
         </div>
@@ -219,8 +219,6 @@
 
             
 
-            <tr><td></td><td></td></tr>
-            <tr><td></td><td></td></tr>
            
             <tr>
               <td style="display: flex; justify-content: space-between;">
@@ -234,7 +232,7 @@
                   <span>Total</span>
                 </div>
               </td>
-              <td class="center" style="border-top: 2px solid lightgray"><?=$paymentedPaidAmount?></td>
+              <td class="center" style="border-top: 2px solid lightgray;text-aligh:center;vertical-align:baseline"><?=$paymentedPaidAmount?></td>
             </tr>
           </tbody>
         </table>
@@ -242,15 +240,15 @@
         <div class="footer">
           <div style="width: 70%">
             <span>
-              Free once paid will be refunded. Collect receipt of payment.<br>
+              Fee once paid will not be refunded. Collect receipt of payment.<br>
               Keep this receipt carefully & Produce on demand
-              <span style="margin-left: 90px; font-weight: bolder;">
+              <span style="margin-left: 80px; font-weight: bolder;font-size:14px">
                 DUE AMOUNT : <?= $totalDue ?>
               </span>
             </span>
           </div>
-          <div style="width: 30%; text-align: center; vertical-align: middle;">
-            <span>Authorised Signatory</span>
+          <div style="width: 30%; text-align: center; vertical-align: middle;bottom: -35px;position:relative">
+            <p style = "font-size:18px">Authorised Signatory</p>
           </div>
         </div>
       </div>
@@ -258,7 +256,7 @@
      
     </div>
 
-    <div class="main-wrapper duplicate-print">
+    <div class="main-wrapper duplicate-print" style= "margin-top:20px;">
         <div class="logo-heading">
           <div class="logo">
           <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="Logo">
@@ -276,7 +274,7 @@
                 <tr> <td>Admission No</td> <td>:  <?=$single_student->srregisterNO?></td> </tr>
                 <tr> <td>Student Name</td> <td>:  <?=customCompute($single_student) ? $single_student->srname : ''?></td> </tr>
                 <tr> <td>Father Name</td> <td>: <?=$single_student->father_name?></td> </tr>
-                <tr> <td>Mother Name</td> <td>: <?=$single_student->phone?></td> </tr>
+                <tr> <td>Mobile Number</td> <td>: <?=$single_student->phone?></td> </tr>
               </tbody>
             </table>
           </div>
@@ -321,15 +319,10 @@
                           $paymentedPaidAmount += $paymented->paymentamount; ?>
                           <tr>
                               <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
-                              <td class="textright"><?=$paymented->paymentamount?></td>
+                              <td class="center"><?=$paymented->paymentamount?></td>
                           </tr>
                       <?php }
                   }  ?>
-  
-              
-  
-              <tr><td></td><td></td></tr>
-              <tr><td></td><td></td></tr>
                
              
               <tr>
@@ -344,7 +337,7 @@
                     <span>Total</span>
                   </div>
                 </td>
-                <td class="center" style="border-top: 2px solid lightgray"><?=$paymentedPaidAmount?></td>
+                <td class="center" style="border-top: 2px solid lightgray; text-aligh:center; vertical-align:initial"><?=$paymentedPaidAmount?></td>
               </tr>
             </tbody>
           </table>
@@ -352,15 +345,15 @@
           <div class="footer">
             <div style="width: 70%">
               <span>
-                Free once paid will be refunded. Collect receipt of payment.<br>
+                Fee once paid will not be refunded. Collect receipt of payment.<br>
                 Keep this receipt carefully & Produce on demand
-                <span style="margin-left: 90px; font-weight: bolder;">
+                <span style="margin-left: 80px; font-weight: bolder;font-size:14px">
                   DUE AMOUNT : <?= $totalDue ?>
                 </span>
               </span>
             </div>
-            <div style="width: 30%; text-align: center; vertical-align: middle;">
-              <span>Authorised Signatory</span>
+            <div style="width: 30%; text-align: center; vertical-align: middle;bottom: -35px;position:relative"; >
+              <p style = "font-size:18px">Authorised Signatory</p>
             </div>
           </div>
         </div>

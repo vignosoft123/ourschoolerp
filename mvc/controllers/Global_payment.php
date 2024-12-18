@@ -93,6 +93,8 @@ class Global_payment extends Admin_Controller
 
 
         $this->data['single_student'] = [];
+        
+        // print_r($_POST);die;
         if ($_POST || (!empty($classesID) && !empty($studentID) ) ) {
             $rules = $this->rules();
             $this->form_validation->set_rules($rules);
@@ -122,7 +124,7 @@ class Global_payment extends Admin_Controller
                 $this->data['weavereds'] = $allWeaverList;
 
                 $this->data['globalpayment_max'] = $this->globalpayment_m->get_max_globalpayment();
-
+                // print_r($this->data['globalpayments']);
                 if(customCompute($this->data['single_student'])) {
                     $single_student = $this->data['single_student'];
 
@@ -139,6 +141,15 @@ class Global_payment extends Admin_Controller
                     $this->data['paidpayments'] = $this->generateAllPaymentAmountWithGlobalID($allPaymentList);
 
                     $this->data['weaverandfines'] = pluck($this->weaverandfine_m->get_order_by_weaverandfine(array('studentID' => $single_student->srstudentID, 'schoolyearID' => $schoolyearID)), 'obj', 'paymentID');
+
+                    $users  = $this->data['globalpayments'];
+                    $usersArray = (array) $users;
+ 
+                    $lastUser = end($usersArray); 
+                    $globalpaymentID = $lastUser->globalpaymentID;
+                    // if($_POST){
+                    // redirect('Global_payment/print_reciept/'.$single_student->srstudentID.'/'.$globalpaymentID);
+                    // }
                 } else {
                     $this->data['single_classes'] = [];
                     $this->data['single_section'] = [];
@@ -615,6 +626,8 @@ class Global_payment extends Admin_Controller
                 $this->session->set_flashdata('success', $this->lang->line('menu_success'));
 
                 $retArray['sms_resp'] = $sms_status;
+                $retArray['studentID'] = $studentID;
+                $retArray['globalLastID'] = $globalLastID;
                 echo json_encode($retArray);
                 exit;
             }

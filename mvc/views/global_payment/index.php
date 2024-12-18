@@ -451,7 +451,7 @@
                                 </div>
                             </div>
 
-                            <button id="add_payment" type="submit" class="btn btn-success col-md-2" style="margin-top: 20px;"><?=$this->lang->line('global_submit')?></button>
+                            <button name="submit" value="sub" id="add_payment" type="submit" class="btn btn-success col-md-2" style="margin-top: 20px;"><?=$this->lang->line('global_submit')?></button>
                         <?php } ?>
                     <?php } ?>
                 </div>
@@ -2107,7 +2107,8 @@ $('#add_payment').on('click',function(e){
                 var response = jQuery.parseJSON(data);
 
                 if(response.status) {
-                    window.location.reload();
+                    // window.location.reload();
+                    location.href = "<?php echo base_url();?>Global_payment/print_reciept/"+response.studentID+'/'+response.globalLastID;
                 } else {
                     $(this).removeAttr("disabled");
                     $(this).removeAttr("disabled", '');
