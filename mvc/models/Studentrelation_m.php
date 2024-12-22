@@ -177,7 +177,7 @@ class Studentrelation_m extends MY_Model {
 		}
 
 		$arrays = $this->prefixLoad($arrays);
-        $this->db->select('student.*,villages.*,studentrelation.*,parents.father_name');
+        $this->db->select('student.*,villages.*,studentrelation.*,parents.father_name,parents.mother_name');
         $this->db->from('studentrelation');
         $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
 		$this->db->join('villages', 'student.villageID = villages.villageID', 'LEFT');

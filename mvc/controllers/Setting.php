@@ -288,6 +288,7 @@ Class Setting extends Admin_Controller {
                     $array['google_analytics'] = $this->input->post('google_analytics');
                     $array['schoolCode'] = $this->input->post('schoolCode');
                     $array['isRandomAdmissionNumber'] = $this->input->post('isRandomAdmissionNumber') ?  $this->input->post('isRandomAdmissionNumber') : 0;
+                    $array['isrecieptphone'] = $this->input->post('isrecieptphone') ?  $this->input->post('isrecieptphone') : 0;
                     $array['is_student_auto_invoice'] = $this->input->post('is_student_auto_invoice') ?  $this->input->post('is_student_auto_invoice') : 0;
                     $array['attendance_voice_notification'] = $this->input->post('attendance_voice_notification');
                     $array['attendance_voice_notification_template'] = $this->input->post('attendance_voice_notification_template');

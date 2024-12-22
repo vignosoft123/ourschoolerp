@@ -717,8 +717,9 @@ class Global_payment extends Admin_Controller
         $schoolyearID   = $this->session->userdata('defaultschoolyearID'); 
         $this->data['single_student'] = [];
         $this->data['single_student'] = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
+        $cnt = $this->db->query("select * from setting where fieldoption ='isrecieptphone' and value='1' ")->num_rows();
+        $this->data['is_phone_display'] = $cnt;
 
-        
         $this->payment_m->order_payment('paymentID asc');
         $allPaymentList = $this->payment_m->get_order_by_payment(array('studentID' => $studentID, 'schoolyearID' => $schoolyearID));
 

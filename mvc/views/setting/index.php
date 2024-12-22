@@ -510,6 +510,27 @@
                     </div>
                 </div>
 
+
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group <?= form_error('isrecieptphone') ? 'has-error' : '' ?>">
+                            <div class="col-sm-12">
+                                <label for="isrecieptphone"> Is phone numer display in Receipt?&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="right" title="If u required random admission number while admitting student please check this"></i>
+                                </label>
+                            </div>
+                            <div class="col-sm-2">
+                                <input type="checkbox" class="form-control" id="isrecieptphone" name="isrecieptphone" value="1" <?= (isset($setting->isrecieptphone) ?  ($setting->isrecieptphone == 1 ? 'checked' : '') : '') ?>>
+                                <span class="control-label">
+                                    <?php echo form_error('isrecieptphone'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+
                 <div class="row">
                     <div class="col-sm-12">
                         <div class="form-group <?= form_error('is_student_auto_invoice') ? 'has-error' : '' ?>">

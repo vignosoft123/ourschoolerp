@@ -111,11 +111,11 @@
         font-weight: bold;
     }
     
-    .duplicate-print{
+    /* .duplicate-print{
       display:  none;
-    }
+    } */
     /* Add a style to print */
-    @media print {
+    /* @media print {
         body {
             margin: 0;
             padding: 0;
@@ -124,6 +124,10 @@
         .duplicate-print{
       display:  block;
     }
+
+    strong {
+    display: none !important;
+  }
 
         .main-wrapper {
         border: 5px rgb(141, 139, 139);
@@ -135,7 +139,47 @@
     }
         .print-button {
             display: none;
-        }
+        } */
+
+        .duplicate-print{
+      display:  none;
+    }
+        @media print {
+          .print-button {
+            display: none;
+        } 
+          strong {
+    display: none !important;
+  }
+  body {
+            margin: 0;
+            padding: 0;
+        }     
+  .main-wrapper {
+        border: 5px rgb(141, 139, 139);
+        border-style: groove;
+        height: 500px;
+        width: 95%;
+        margin: auto;
+        border-radius: 3%;
+    }
+
+  .student-copy, .admin-copy {
+    display: none; /* Default: Hide all sections */
+  }
+  .print-student .student-copy {
+    display: block !important; /* Show student copy only */
+  }
+  .print-admin .admin-copy {
+    display: block !important; /* Show admin copy only */
+  }
+  .print-both .student-copy, .print-both .admin-copy {
+    display: block !important; /* Show both copies */
+  }
+}
+
+
+
         /* Ensure background is visible in print */
         .table-start thead {
           background-color: #4b4646 !important; /* Force background in print */
@@ -149,7 +193,10 @@
   </head>
 
   <body>
-    <div class="main-wrapper">
+
+    <div class="main-wrapper student-copy">
+    <div class="center scopy"></div>
+
       <div class="logo-heading">
         <div class="logo">
         <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="Logo">
@@ -167,7 +214,12 @@
               <tr> <td>Admission No</td> <td>:  <?=$single_student->srregisterNO?></td> </tr>
               <tr> <td>Student Name</td> <td>:  <?=customCompute($single_student) ? $single_student->srname : ''?></td> </tr>
               <tr> <td>Father Name</td> <td>: <?=$single_student->father_name?></td> </tr>
+              <?php if($is_phone_display){?>
               <tr> <td>Mobile Number</td> <td>: <?=$single_student->phone?></td> </tr>
+              <?php }else{?>
+              <tr> <td>Mother Name</td> <td>: <?=$single_student->mother_name?></td> </tr>
+
+                <?php }?>
             </tbody>
           </table>
         </div>
@@ -188,7 +240,7 @@
 
             <tr> <td>Receipt No</td> <td>:  INV-G-<?=$globalpayment[0]->globalpaymentID?></td> </tr>
             <tr> <td>Receipt Date</td> <td>: <?=isset($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID])) : '' ?></td> </tr>
-            <tr> <td>Father Name</td> <td>: <?=customCompute($single_classes) ? $single_classes->classes : ''?></td> </tr>
+            <tr> <td>Class Name</td> <td>: <?=customCompute($single_classes) ? $single_classes->classes : ''?></td> </tr>
             <tr> <td>Section</td> <td>: <?=customCompute($single_section) ? $single_section->section : ''?></td> </tr>
           </tbody>
         </table>
@@ -207,14 +259,21 @@
                 <?php $paymentedPaidAmount = 0; ?>
                 <?php $paymented_status = TRUE; $paymented_invoice_total = 0; $paymented_invoice_weaver = 0; $paymented_invoice_fine = 0; 
                     ?>
-                <?php foreach ($paymenteds as $paymented) {
+                <?php 
+                // echo "<pre>";
+                // print_r($paymenteds);
+                foreach ($paymenteds as $paymented) {
                     if ($globalpayment[0]->globalpaymentID == $paymented->globalpaymentID && $paymented->paymentamount > 0) {
                         $paymentedPaidAmount += $paymented->paymentamount; ?>
                         <tr>
                             <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
-                            <td class="center"><?=$paymented->paymentamount?></td>
+                            <td class="center"><?=$paymented->paymentamount.'.00'?></td>
                         </tr>
-                    <?php }
+                    <?php  $mode = $paymented->paymenttype;
+                      if($mode == 'Digita'){
+                        $mode = 'Digital'; 
+                      }  
+                  }
                 }  ?>
 
             
@@ -224,7 +283,7 @@
               <td style="display: flex; justify-content: space-between;">
                 <div>
                   <span>
-                    Mode: cash <br>
+                    Mode: <?= $mode?> <br>
                     <span> <?= convert_number($paymentedPaidAmount + $paymentedFineAmount, 2) ?> Rupees Only </span>
                   </span>
                 </div>
@@ -232,7 +291,7 @@
                   <span>Total</span>
                 </div>
               </td>
-              <td class="center" style="border-top: 2px solid lightgray;text-aligh:center;vertical-align:baseline"><?=$paymentedPaidAmount?></td>
+              <td class="center" style="border-top: 2px solid lightgray;text-aligh:center;vertical-align:baseline"><?=$paymentedPaidAmount.'.00'?></td>
             </tr>
           </tbody>
         </table>
@@ -256,7 +315,9 @@
      
     </div>
 
-    <div class="main-wrapper duplicate-print" style= "margin-top:20px;">
+    
+    <div class="main-wrapper duplicate-print admin-copy" style= "margin-top:20px;">
+    <div class="center acopy"></div>
         <div class="logo-heading">
           <div class="logo">
           <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="Logo">
@@ -270,11 +331,20 @@
         <div class="student-details">
           <div>
             <table>
+              <?php 
+              //  echo "<pre>";
+              //  print_r($single_student);
+               ?>
               <tbody>
                 <tr> <td>Admission No</td> <td>:  <?=$single_student->srregisterNO?></td> </tr>
                 <tr> <td>Student Name</td> <td>:  <?=customCompute($single_student) ? $single_student->srname : ''?></td> </tr>
                 <tr> <td>Father Name</td> <td>: <?=$single_student->father_name?></td> </tr>
-                <tr> <td>Mobile Number</td> <td>: <?=$single_student->phone?></td> </tr>
+                <?php if($is_phone_display){?>
+              <tr> <td>Mobile Number</td> <td>: <?=$single_student->phone?></td> </tr>
+              <?php }else{?>
+              <tr> <td>Mother Name</td> <td>: <?=$single_student->mother_name?></td> </tr>
+
+                <?php }?>
               </tbody>
             </table>
           </div>
@@ -295,7 +365,7 @@
   
               <tr> <td>Receipt No</td> <td>:  INV-G-<?=$globalpayment[0]->globalpaymentID?></td> </tr>
               <tr> <td>Receipt Date</td> <td>: <?=isset($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID])) : '' ?></td> </tr>
-              <tr> <td>Father Name</td> <td>: <?=customCompute($single_classes) ? $single_classes->classes : ''?></td> </tr>
+              <tr> <td>Class Name</td> <td>: <?=customCompute($single_classes) ? $single_classes->classes : ''?></td> </tr>
               <tr> <td>Section</td> <td>: <?=customCompute($single_section) ? $single_section->section : ''?></td> </tr>
             </tbody>
           </table>
@@ -319,9 +389,12 @@
                           $paymentedPaidAmount += $paymented->paymentamount; ?>
                           <tr>
                               <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
-                              <td class="center"><?=$paymented->paymentamount?></td>
+                              <td class="center"><?=$paymented->paymentamount.'.00'?></td>
                           </tr>
-                      <?php }
+                      <?php  $mode = $paymented->paymenttype; 
+                       if($mode == 'Digita'){
+                        $mode = 'Digital'; 
+                      } }
                   }  ?>
                
              
@@ -329,7 +402,7 @@
                 <td style="display: flex; justify-content: space-between;">
                   <div>
                     <span>
-                      Mode: cash <br>
+                      Mode: <?= $mode?> <br>
                       <span> <?= convert_number($paymentedPaidAmount + $paymentedFineAmount, 2) ?> Rupees Only </span>
                     </span>
                   </div>
@@ -337,7 +410,7 @@
                     <span>Total</span>
                   </div>
                 </td>
-                <td class="center" style="border-top: 2px solid lightgray; text-aligh:center; vertical-align:initial"><?=$paymentedPaidAmount?></td>
+                <td class="center" style="border-top: 2px solid lightgray; text-aligh:center; vertical-align:initial"><?=$paymentedPaidAmount.'.00'?></td>
               </tr>
             </tbody>
           </table>
@@ -362,16 +435,42 @@
       </div>
 
 
-       <!-- Print Button -->
-       <div style="text-align: center; margin-top: 20px;">
-        <button class="print-button" onclick="window.print()">Print Receipt</button>
-      </div>
+    <!-- Print Buttons -->
+<div style="text-align: center; margin-top: 20px;">
+  <button class="print-button" onclick="printSection('student')">Print Student Copy</button>
+  <button class="print-button" onclick="printSection('admin')">Print Admin Copy</button>
+  <button class="print-button" onclick="printSection('both')">Print Both</button>
+</div>
 
     <script>
         // You can call the print function when needed
-        function printPage() {
-            window.print();
-        }
-    </script>
+        // function printPage() {
+        //     window.print();
+        // }
+ 
+  function printSection(type) {
+    // Remove any existing print-specific classes
+    document.body.classList.remove('print-student', 'print-admin', 'print-both');
+    
+    // Add the appropriate class based on the button clicked
+    if (type === 'student') {
+      $('.scopy').html('Student Copy');
+      document.body.classList.add('print-student');
+    } else if (type === 'admin') {
+      $('.acopy').html('Admin Copy');
+
+      document.body.classList.add('print-admin');
+    } else if (type === 'both') {
+      $('.scopy').html('Student Copy');
+      $('.acopy').html('Admin Copy');
+
+      document.body.classList.add('print-both');
+    }
+
+    // Trigger the print function
+    window.print();
+  }
+</script>
+ 
   </body>
 </html>
