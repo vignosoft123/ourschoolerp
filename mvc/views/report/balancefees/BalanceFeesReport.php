@@ -10,6 +10,9 @@
             echo btn_xmlReport('balancefeesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
             echo btn_sentToMailReport('balancefeesreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
+
+        <button class="btn btn-default " id="send_sms_balance_btn"><span class="fa fa-send"></span> Send SMS</button>
+
     </div>
 </div>
 
@@ -79,6 +82,9 @@
                                         <th><?=$this->lang->line('balancefeesreport_paid')?> </th>
                                         <!-- <th><?=$this->lang->line('balancefeesreport_weaver')?> </th> -->
                                         <th><?=$this->lang->line('balancefeesreport_balance') ?></th>
+                                        
+                                   <th> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_balance"> </th>
+
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -180,6 +186,10 @@
                                                         echo number_format($Balance,2);
                                                     ?>
                                                 </td>
+
+                                                 <!-- //CONSTRUCT SEND MARKS SMS -->
+                                                 <td><input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>"  balance="<?php echo $Balance;?>"    name="send_sms_balance" id="send_sms_balance" class="checkbox"></td>
+                                               
                                             </tr>
                                             <?php
                                         }
@@ -394,4 +404,42 @@
             });
         }
     });
+
+
+       
+    $(document).on("click","#send_sms_balance_btn",function(){
+
+var st_ids = [];
+st_names =[];
+mobile_no = [];
+balance = [];
+// total_marks = [] ;
+// marks_template = []; 
+i=j=k=l=m=n=0;
+
+$('.checkbox:checked').each(function(){        
+    // var values = $(this).val();
+    // var sids = $(this).attr("st_ids");
+    
+    st_ids[i++] = $(this).attr("st_ids");
+    st_names[j++] = $(this).attr("st_names");
+    mobile_no[k++] = $(this).attr("mobile_no");
+    balance[l++] = $(this).attr("balance");
+    // total_marks[m++] = $(this).attr("total_marks");
+    // marks_template[n++] = $(this).attr("marks_template");
+});
+$.ajax({
+                
+    type: "POST",
+    url: "<?php echo site_url('progresscardreport/send_balance_sms'); ?>",
+    // dataType: "json",
+    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance},
+    success: function(result)
+    {
+        
+    }
+})
+});
+
+
 </script>

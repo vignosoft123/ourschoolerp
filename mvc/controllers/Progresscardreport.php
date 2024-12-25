@@ -1052,6 +1052,64 @@ class Progresscardreport extends Admin_Controller {
 		echo json_encode($total);
 	}
 	
+
+	public function send_balance_sms() {
+		// echo "<pre>";print_r($_POST);die;
+	    $this->load->model('mailandsms_m');
+		$st_ids = $this->input->post('st_ids');
+		$mobile_no = $this->input->post('mobile_no');
+		$balance = $this->input->post('balance');
+		// $marks_template = $this->input->post('marks_template');
+		$st_names = $this->input->post('st_names');
+		$total = 0;
+
+		$this->data['setting'] = $this->setting_m->get_setting();
+		$school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
+
+		$sql = "select * from smssettings where types='msg91' and field_names='msg91_senderID'";
+		$senderid = $this->db->query($sql)->row()->field_values;
+
+		$sql1 = "select * from smssettings where types='msg91' and field_names='msg91_register_school_name'";
+		$registered_school_name = $this->db->query($sql1)->row()->field_values;
+
+		foreach($st_ids as $key => $student)
+		{
+		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
+		    {
+ 		        	// $template1 = substr($marks_template[$key],0,-1);
+					
+		        	 
+				 $template = "Dear parent your children ".$st_names[$key]." please pay Rs ".$balance[$key]."/- on or before this month -Geethanjali School Vnk";
+			
+
+		       $campid = $res = $this->userConfigSMS($template,$mobile_no[$key]);
+		        // if($res==TRUE)
+		        if((int)$campid)
+		        {
+		            $total++;
+		            
+        		    $array = array(
+        				'campid' => $campid,
+        				'usertypeID' => 3,
+        				'users' => $st_names[$key],
+        				'type' => 'SMS',
+        				'message' => $template,
+        				'year' => date('Y'),
+        				'senderusertypeID' => $this->session->userdata('usertypeID'),
+        				'senderID' => $this->session->userdata('loginuserID')
+        			);
+        			$this->mailandsms_m->insert_mailandsms($array);
+		        }
+		    }
+		}
+		if($total>0)
+		{
+		    $this->session->set_flashdata('success', 'Balance SMS Sent successfully.');
+		}
+		echo json_encode($total);
+	}
+
+
 	private function userConfigSMS($message, $user)
 	{
 	    $this->load->model('mailandsmstemplate_m');
