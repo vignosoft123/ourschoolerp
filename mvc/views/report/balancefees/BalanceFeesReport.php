@@ -83,7 +83,10 @@
                                         <!-- <th><?=$this->lang->line('balancefeesreport_weaver')?> </th> -->
                                         <th><?=$this->lang->line('balancefeesreport_balance') ?></th>
                                         
-                                   <th> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_balance"> </th>
+                                   <th> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_balance">
+                                            <br/>
+                                            <input type="date" name="date" id="date">
+                                </th>
 
                                     </tr>
                                 </thead>
@@ -97,6 +100,8 @@
                                         $i=0;
                                         // dd($students);
                                         foreach($students as $student) { 
+
+                                           $feeamount =  $paid = $bal_amnt = 0;
                                         
                                         if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])){
                                             $i++; 
@@ -125,7 +130,7 @@
                                                     <?=$student->phone?>
                                                 </td>
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_fees_amount')?>">
-                                                    <?=isset($totalAmountAndDiscount[$student->srstudentID]['amount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['amount'],2) : number_format(0, 2)?>
+                                                    <?= $feeamount = isset($totalAmountAndDiscount[$student->srstudentID]['amount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['amount'],2) : number_format(0, 2)?>
                                                 </td>
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_discount')?>">
 
@@ -141,7 +146,7 @@
                                                 </td>
 
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_paid')?>">
-                                                    <?=isset($totalPayment[$student->srstudentID]['payment']) ? number_format($totalPayment[$student->srstudentID]['payment'],2) : number_format(0, 2)?>
+                                                    <?= $paid = isset($totalPayment[$student->srstudentID]['payment']) ? number_format($totalPayment[$student->srstudentID]['payment'],2) : number_format(0, 2)?>
                                                 </td>
 
                                                 <!-- <td data-title="<?=$this->lang->line('balancefeesreport_weaver')?>">
@@ -188,7 +193,14 @@
                                                 </td>
 
                                                  <!-- //CONSTRUCT SEND MARKS SMS -->
-                                                 <td><input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>"  balance="<?php echo $Balance;?>"    name="send_sms_balance" id="send_sms_balance" class="checkbox"></td>
+                                                 <td>
+                                                    <?php 
+                                                       $fee_paid_balance = $feeamount."^".$paid."^".$Balance;
+                                                       $fee_paid_balance = encrypt_data($fee_paid_balance); 
+                                                    ?>
+                                                
+
+                                                 <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>"  balance1="<?php //echo $Balance;?>" balance="<?php echo $fee_paid_balance;?>"    name="send_sms_balance" id="send_sms_balance" class="checkbox"></td>
                                                
                                             </tr>
                                             <?php
@@ -408,6 +420,7 @@
 
        
     $(document).on("click","#send_sms_balance_btn",function(){
+        alert();
 
 var st_ids = [];
 st_names =[];
@@ -416,6 +429,7 @@ balance = [];
 // total_marks = [] ;
 // marks_template = []; 
 i=j=k=l=m=n=0;
+var date = $("#date").val();
 
 $('.checkbox:checked').each(function(){        
     // var values = $(this).val();
@@ -433,7 +447,7 @@ $.ajax({
     type: "POST",
     url: "<?php echo site_url('progresscardreport/send_balance_sms'); ?>",
     // dataType: "json",
-    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance},
+    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance,"date":date},
     success: function(result)
     {
         

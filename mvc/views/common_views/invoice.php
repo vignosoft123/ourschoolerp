@@ -262,9 +262,11 @@
                 <?php 
                 // echo "<pre>";
                 // print_r($paymenteds);
+                $count1 = 1;
                 foreach ($paymenteds as $paymented) {
                     if ($globalpayment[0]->globalpaymentID == $paymented->globalpaymentID && $paymented->paymentamount > 0) {
-                        $paymentedPaidAmount += $paymented->paymentamount; ?>
+                        $paymentedPaidAmount += $paymented->paymentamount;
+                        $count1++;?>
                         <tr>
                             <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
                             <td class="center"><?=$paymented->paymentamount.'.00'?></td>
@@ -275,7 +277,17 @@
                       }  
                   }
                 }  ?>
-
+                     <?php  
+                  
+                while($count1 <= 5){ ?>
+                      <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                      </tr>
+                      
+                  <?php $count1++; }
+                  
+                  ?>
             
 
            
@@ -384,9 +396,11 @@
                   <?php $paymentedPaidAmount = 0; ?>
                   <?php $paymented_status = TRUE; $paymented_invoice_total = 0; $paymented_invoice_weaver = 0; $paymented_invoice_fine = 0; 
                       ?>
-                  <?php foreach ($paymenteds as $paymented) {
+                  <?php $count = 1; foreach ($paymenteds as $paymented) {
                       if ($globalpayment[0]->globalpaymentID == $paymented->globalpaymentID && $paymented->paymentamount > 0) {
-                          $paymentedPaidAmount += $paymented->paymentamount; ?>
+                          $paymentedPaidAmount += $paymented->paymentamount; 
+                          $count++;
+                          ?>
                           <tr>
                               <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
                               <td class="center"><?=$paymented->paymentamount.'.00'?></td>
@@ -395,7 +409,20 @@
                        if($mode == 'Digita'){
                         $mode = 'Digital'; 
                       } }
-                  }  ?>
+                  }  
+                  
+                  ?>
+                  <?php  
+                  
+                while($count <= 5){ ?>
+                      <tr>
+                            <td></td>
+                            <td></td>
+                      </tr>
+                      
+                  <?php $count++; }
+                  
+                  ?>
                
              
               <tr>

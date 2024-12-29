@@ -137,7 +137,7 @@ public function encryption($url=""){
     // echo "Encrypted String: " . $encryption . "\n";
     return $encryption;
     
-    }
+}
     
 public function decryption($url=""){
   

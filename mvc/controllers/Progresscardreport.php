@@ -28,6 +28,10 @@ class Progresscardreport extends Admin_Controller {
 		$this->load->model("studentgroup_m");
 		$this->load->model("marksetting_m");
 
+		
+        $this->load->model('mailandsmstemplate_m');
+		$this->load->model('mailandsmstemplatetag_m');
+
 		$language = $this->session->userdata('lang');
 		$this->lang->load('progresscardreport', $language);
 	}
@@ -1059,6 +1063,7 @@ class Progresscardreport extends Admin_Controller {
 		$st_ids = $this->input->post('st_ids');
 		$mobile_no = $this->input->post('mobile_no');
 		$balance = $this->input->post('balance');
+		$date = $this->input->post('date');
 		// $marks_template = $this->input->post('marks_template');
 		$st_names = $this->input->post('st_names');
 		$total = 0;
@@ -1072,14 +1077,35 @@ class Progresscardreport extends Admin_Controller {
 		$sql1 = "select * from smssettings where types='msg91' and field_names='msg91_register_school_name'";
 		$registered_school_name = $this->db->query($sql1)->row()->field_values;
 
+
+
+
+		$template_id = 0;
+        $template = $this->mailandsmstemplate_m->get_order_by_mailandsmstemplate(array('name'=>'balance_sms'));
+        $message = $template[0]->template;  
+		$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
+			 
+
+
 		foreach($st_ids as $key => $student)
 		{
+
+			$user = array();
+			 $decrypt_data1 =  decrypt_data($balance[$key]);
+			$decrypt_data = explode("^",$decrypt_data1);
+
+
+			 $user['fee_amount'] = $decrypt_data[0];
+			 $user['paid_amount'] = $decrypt_data[1];
+			$user['balance_amount'] = $decrypt_data[2];
+			$user['date'] = $date;
+			// print_r((object)($user));die;
+			echo $template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');die;
+
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
-		    {
- 		        	// $template1 = substr($marks_template[$key],0,-1);
-					
+		    { 	
 		        	 
-				 $template = "Dear parent your children ".$st_names[$key]." please pay Rs ".$balance[$key]."/- on or before this month -Geethanjali School Vnk";
+				 //$template = "Dear parent your children ".$st_names[$key]." please pay Rs ".$balance[$key]."/- on or before this month -Geethanjali School Vnk";
 			
 
 		       $campid = $res = $this->userConfigSMS($template,$mobile_no[$key]);
@@ -1130,6 +1156,44 @@ class Progresscardreport extends Admin_Controller {
 				return $campid;
     		}
 		}
+	}
+
+	private function tagConvertor($userTags, $user, $message, $sendType) { 
+		if(customCompute($userTags)) {
+		    $this->load->model('setting_m');
+		    $this->data['setting'] = $this->setting_m->get_setting();
+		    $school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
+			foreach ($userTags as $key => $userTag) {
+				if($userTag->tagname == '{{paid_amount}}') {
+					if($user->paid_amount) {
+						$message = str_replace('{{paid_amount}}', $user->paid_amount, $message);
+					} else {
+						$message = str_replace('{{paid_amount}}', ' ', $message);
+					}
+				} elseif($userTag->tagname == '{{category}}') {
+					if($user->category) {
+						$message = str_replace('{{category}}', $user->category, $message);
+					} else {
+						$message = str_replace('{{category}}', ' ', $message);
+					}
+				}
+				elseif($userTag->tagname == '{{school_name}}') {
+					$message = str_replace("{{school_name}}", $school_name, $message);
+				}
+                elseif($userTag->tagname == '{{student_name}}') {
+					$message = str_replace("{{student_name}}",$user->srname, $message);
+				}
+				elseif($userTag->tagname == '{{balance_amount}}') {
+					$message = str_replace("{{balance_amount}}",$user->balance_amount, $message);
+				}
+				elseif($userTag->tagname == '{{fee_amount}}') {
+					$message = str_replace("{{fee_amount}}",$user->fee_amount, $message);
+				}elseif($userTag->tagname == '{{date}}') {
+					$message = str_replace("{{date}}",$user->date, $message);
+				}
+			}
+		}
+		return $message;
 	}
 
 	public function send_marks_to_whatsapp() {
