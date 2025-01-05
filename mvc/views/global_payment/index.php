@@ -63,7 +63,7 @@
                 <?php if($this->uri->segment(3) == ""){?>
                 <div class="col-sm-12">
 
-                    <form method="POST">
+                    <form method="POST" >
                         <div class="row">
                             <div class="col-md-10">
                                 <div class="row">
@@ -2278,6 +2278,12 @@ function printCopy(type) {
     printWindow.print(); // Trigger the print dialog
 }
 
+
+$(document).ready(function () {
+      $('#add_payment').on('click', function () {
+        $('#add_payment').prop('disabled', true).text('Submitting...');
+      });
+    });
 
 
 </script>
