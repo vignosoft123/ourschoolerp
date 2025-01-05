@@ -418,8 +418,15 @@
     });
 
 
+$(document).ready(function() {
+
+    $("#checkAll").click(function(){
+        $('input:checkbox').not(this).prop('checked', this.checked);
+    });
+});
+
        
-    $(document).on("click","#send_sms_balance_btn",function(){
+$(document).on("click","#send_sms_balance_btn",function(){
 
 var st_ids = [];
 st_names =[];
