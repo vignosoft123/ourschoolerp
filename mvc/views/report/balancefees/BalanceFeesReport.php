@@ -420,7 +420,6 @@
 
        
     $(document).on("click","#send_sms_balance_btn",function(){
-        alert();
 
 var st_ids = [];
 st_names =[];

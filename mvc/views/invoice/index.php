@@ -115,7 +115,9 @@
                                              
                                              } ?>
 
-                                          <a  data-toggle="modal" data-target="#change_discount<?= $maininvoice->maininvoiceID?>" > <i title="Change discount amount" class="fa fa-edit"></i>  </a>
+                                          <!-- <a  data-toggle="modal" data-target="#change_discount<?= $maininvoice->maininvoiceID?>" > <i title="Change discount amount" class="fa fa-edit"></i>  </a> -->
+
+                                          <a onclick="checkDiscountValidation(<?= $maininvoice->maininvoiceID?>)"> <i title="Change discount amount" class="fa fa-edit"></i>  </a>
 
                                     </td>
 
@@ -152,15 +154,14 @@
                                                 //  $balance = '0.00';
                                             } 
                                         ?>
+                                        <input type="hidden" id="invoice_<?= $maininvoice->maininvoiceID?>" value="<?= $balance?>">
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_onlystatus')?>">
                                         <?php 
-                                        //echo $grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID];
+                                         
                                             $status = $maininvoice->maininvoicestatus;
-                                            $setButton = '';
-                                            // echo '@@@@@@'.$status;
-                                            // echo '$$$$$'.$balance;
+                                            $setButton = ''; 
                                             if($status == 0) {
                                                 $status = $this->lang->line('invoice_notpaid');
                                                 $setButton = 'btn-danger';
@@ -232,10 +233,13 @@
                             <input  class="form-control" type="hidden" id="invoice_id" name="invoice_id" value="<?= $maininvoice->maininvoiceID?>">
                             <input  class="form-control" type="hidden" id="srstudentID" name="srstudentID" value="<?= $maininvoice->srstudentID?>">
 
-                            <input class="form-control" type="" id="disc_amount" name="disc_amount" value="">
+                            <input type="hidden" id="balance_<?= $maininvoice->maininvoiceID ?>" value="">
+                            <input class="form-control" type="text" id="disc_amount" name="disc_amount" value="" 
+                                oninput="validate_disc(<?= $maininvoice->maininvoiceID ?>, this.value)">
+                            <span class="error" style="color: red;"></span>
                         </div>
                         <div class="mb-3">
-                            <button type="submit" class="btn btn-primary">Submit</button>
+                            <button type="submit" class="btn btn-primary submit_button" id="submit_button" >Submit</button>
                         </div>
                     </form>
                 </div>
@@ -312,4 +316,32 @@
             });
         }   
     });
+
+    function checkDiscountValidation(invoice_id){ 
+        var balance = $("#invoice_"+invoice_id).val();  
+        $("#balance_"+invoice_id).val(balance);       
+        $("#change_discount"+invoice_id).modal('show');
+    }
+
+    function validate_disc(invoice_id, discAmount) { 
+    var balance = parseFloat($('#balance_' + invoice_id).val());
+    var discAmount = parseFloat(discAmount); 
+    var errorMessage = '';
+    var isError = false;
+
+    if (isNaN(discAmount)) {
+        errorMessage = 'Please enter a valid number.';
+        isError = true;
+    } else if (discAmount > balance) {
+        errorMessage = 'Discount amount cannot exceed the balance.';
+        isError = true;
+    }
+
+    $('.error').text(errorMessage);
+
+    // Disable or enable the button based on the error
+    $('.submit_button').prop('disabled', isError);
+}
+
+
 </script>

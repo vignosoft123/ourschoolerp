@@ -1058,7 +1058,7 @@ class Progresscardreport extends Admin_Controller {
 	
 
 	public function send_balance_sms() {
-		// echo "<pre>";print_r($_POST);die;
+		// echo "<pre>";print_r($_POST);
 	    $this->load->model('mailandsms_m');
 		$st_ids = $this->input->post('st_ids');
 		$mobile_no = $this->input->post('mobile_no');
@@ -1100,7 +1100,7 @@ class Progresscardreport extends Admin_Controller {
 			$user['balance_amount'] = $decrypt_data[2];
 			$user['date'] = $date;
 			// print_r((object)($user));die;
-			echo $template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');die;
+			echo $template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');
 
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
 		    { 	
