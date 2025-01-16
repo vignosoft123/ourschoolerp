@@ -1005,8 +1005,28 @@ class Progresscardreport extends Admin_Controller {
 					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
 
 					
-					}
-				else{
+					}else if($senderid=='SDHEDU'){  //siddardha school
+						$template1 = substr($marks_template[$key],0,-1);
+	
+						$subs = explode(',',$template1);
+						// echo "<pre>";print_r($subs);die;
+						$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
+						$var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
+						$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
+						$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
+						
+						$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+	
+						
+	
+						//$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and'.$var3.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' '.$senderid;
+	
+						//Dear parent, your children vasu marks are 34 and 45 and56. Total: 100, From Principal Gowtham Institutions Cumbum. SRIGEI
+	
+						// Dear parent, your children {#var#} marks are {#var#} and {#var#} and {#var#}. Total: {#var#}, From Sri Sadana Juniour College Markapur . SSEMRK
+	
+						
+					} else{
 		        	$template1 = substr($marks_template[$key],0,-1);
 
 					$subs = explode(',',$template1);
@@ -1064,6 +1084,7 @@ class Progresscardreport extends Admin_Controller {
 		$mobile_no = $this->input->post('mobile_no');
 		$balance = $this->input->post('balance');
 		$date = $this->input->post('date');
+		$dynamic_term = $this->input->post('dynamic_term') != 'Please Select' ?  $this->input->post('dynamic_term') : '';
 		// $marks_template = $this->input->post('marks_template');
 		$st_names = $this->input->post('st_names');
 		$total = 0;
@@ -1086,11 +1107,14 @@ class Progresscardreport extends Admin_Controller {
 		$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
 			 
 
-
+		// print_r($st_ids);die;
+		$j=0;
 		foreach($st_ids as $key => $student)
 		{
 
+			$j++;
 			$user = array();
+		 
 			 $decrypt_data1 =  decrypt_data($balance[$key]);
 			$decrypt_data = explode("^",$decrypt_data1);
 
@@ -1099,6 +1123,7 @@ class Progresscardreport extends Admin_Controller {
 			 $user['paid_amount'] = $decrypt_data[1];
 			$user['balance_amount'] = $decrypt_data[2];
 			$user['date'] = $date;
+			$user['dynnamic_term'] = $dynamic_term;
 			// print_r((object)($user));die;
 			echo $template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');
 
@@ -1128,6 +1153,7 @@ class Progresscardreport extends Admin_Controller {
 		        }
 		    }
 		}
+		// echo $j;die;
 		if($total>0)
 		{
 		    $this->session->set_flashdata('success', 'Balance SMS Sent successfully.');
@@ -1184,7 +1210,7 @@ class Progresscardreport extends Admin_Controller {
 					$message = str_replace("{{student_name}}",$user->srname, $message);
 				}
 				elseif($userTag->tagname == '{{balance_amount}}') {
-					$message = str_replace("{{balance_amount}}",$user->balance_amount, $message);
+					$message = str_replace("{{balance_amount}}",$user->dynnamic_term .' '.$user->balance_amount, $message);
 				}
 				elseif($userTag->tagname == '{{fee_amount}}') {
 					$message = str_replace("{{fee_amount}}",$user->fee_amount, $message);

@@ -426,7 +426,9 @@ $(document).ready(function() {
 });
 
        
-$(document).on("click","#send_sms_balance_btn",function(){
+// $(document).on("click","#send_sms_balance_btn",function(){
+$(document).off("click", "#send_sms_balance_btn").on("click", "#send_sms_balance_btn", function() {
+
 
 var st_ids = [];
 st_names =[];
@@ -436,6 +438,8 @@ balance = [];
 // marks_template = []; 
 i=j=k=l=m=n=0;
 var date = $("#date").val();
+var dynamic_term = $("#feetypeID option:selected").text();
+
 
 $('.checkbox:checked').each(function(){        
     // var values = $(this).val();
@@ -447,16 +451,18 @@ $('.checkbox:checked').each(function(){
     balance[l++] = $(this).attr("balance");
     // total_marks[m++] = $(this).attr("total_marks");
     // marks_template[n++] = $(this).attr("marks_template");
-});
+}); 
+
 $.ajax({
                 
     type: "POST",
     url: "<?php echo site_url('progresscardreport/send_balance_sms'); ?>",
     // dataType: "json",
-    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance,"date":date},
+    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance,"date":date,"dynamic_term":dynamic_term},
     success: function(result)
     {
-        
+        console.log("SMS sent successfully:", result);
+
     }
 })
 });
