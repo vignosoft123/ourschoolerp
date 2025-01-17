@@ -1455,7 +1455,7 @@ class Sattendance extends Admin_Controller
 	{
 		$id = $this->input->post('id');
 		if ((int)$id) {
-			$allsubject = $this->subject_m->get_order_by_subject(array("classesID" => $id));
+			$allsubject = $this->subject_m->general_get_order_by_subject_only_subjects(array("classesID" => $id));
 			echo "<option value='0'>", $this->lang->line("attendance_select_subject"), "</option>";
 			foreach ($allsubject as $value) {
 				echo "<option value=\"$value->subjectID\">", $value->subject, "</option>";
