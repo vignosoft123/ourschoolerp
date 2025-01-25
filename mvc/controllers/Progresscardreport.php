@@ -1109,7 +1109,7 @@ class Progresscardreport extends Admin_Controller {
 
 		// print_r($st_ids);die;
 		$j=0;
-		foreach($st_ids as $key => $student)
+		foreach($st_names as $key => $student)
 		{
 
 			$j++;
@@ -1119,11 +1119,12 @@ class Progresscardreport extends Admin_Controller {
 			$decrypt_data = explode("^",$decrypt_data1);
 
 
-			 $user['fee_amount'] = $decrypt_data[0];
-			 $user['paid_amount'] = $decrypt_data[1];
-			$user['balance_amount'] = $decrypt_data[2];
+			 $user['fee_amount'] = 'Rs '.$decrypt_data[0].'.00';
+			 $user['paid_amount'] = 'Rs '.$decrypt_data[1].'.00';
+			$user['balance_amount'] = 'Rs '.$decrypt_data[2].'.00';
 			$user['date'] = $date;
 			$user['dynnamic_term'] = $dynamic_term;
+			$user['srname'] = $student;
 			// print_r((object)($user));die;
 			echo $template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');
 
@@ -1186,6 +1187,8 @@ class Progresscardreport extends Admin_Controller {
 
 	private function tagConvertor($userTags, $user, $message, $sendType) { 
 		if(customCompute($userTags)) {
+			// echo "<pre>";print_r($user);
+			// print_r($userTags);
 		    $this->load->model('setting_m');
 		    $this->data['setting'] = $this->setting_m->get_setting();
 		    $school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
@@ -1207,7 +1210,7 @@ class Progresscardreport extends Admin_Controller {
 					$message = str_replace("{{school_name}}", $school_name, $message);
 				}
                 elseif($userTag->tagname == '{{student_name}}') {
-					$message = str_replace("{{student_name}}",$user->srname, $message);
+					 $message = str_replace("{{student_name}}",$user->srname, $message);
 				}
 				elseif($userTag->tagname == '{{balance_amount}}') {
 					$message = str_replace("{{balance_amount}}",$user->dynnamic_term .' '.$user->balance_amount, $message);

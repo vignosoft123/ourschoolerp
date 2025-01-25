@@ -46,10 +46,20 @@ class Invoice_m extends MY_Model {
 		return $query;
 	}
 
+	public function get_order_by_invoice_join_maininvoice($studentID=NULL,$schoolyearID=NULL,$deleted_at=NULL) {
+		if(!empty($studentID) && !empty($schoolyearID) && !empty($deleted_at) ){
+		$sql ='select i.* from invoice i inner join maininvoice m on m.maininvoiceID = i.maininvoiceID where studentID = "'.$studentID.'" and schoolyearID = "'.$schoolyearID.'" and deleted_at = "'.$deleted_at.'" ';
+		return $this->db->query($sql)->result();
+		}else{
+			return array();
+		}
+	}
+
 	public function get_order_by_invoice($array=NULL) {
 		$query = parent::get_order_by($array);
 		return $query;
 	}
+
 
 	public function get_single_invoice($array=NULL) {
 		$query = parent::get_single($array);
@@ -129,10 +139,10 @@ class Invoice_m extends MY_Model {
 		return $query->result();
 	}
 
-	public function get_all_balancefees_for_report($queryArray) {
-		 
+	public function get_all_balancefees_for_report($queryArray) { 
 		$this->db->select('*');
-		$this->db->from('invoice');
+		$this->db->from('invoice ');
+		$this->db->join('maininvoice m','m.maininvoiceID = invoice.maininvoiceID','inner');	//newly added the condition for duplicate trasport fee
 		$this->db->where('invoice.schoolyearID',$queryArray['schoolyearID']);
 
 		if((isset($queryArray['classesID']) && $queryArray['classesID'] != 0) || (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) || (isset($queryArray['studentID']) && $queryArray['studentID'] != 0) || (isset($queryArray['feetypeID']) && $queryArray['feetypeID'] != 0) ) {
