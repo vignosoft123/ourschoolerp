@@ -580,6 +580,12 @@ class Student extends Admin_Controller
 				'rules' => 'trim|required|xss_clean|max_length[60]'
 			),
 			array(
+				'field' => 'father_name',
+				'label' => $this->lang->line("father_name"),
+				'rules' => 'trim|required|xss_clean|max_length[60]'
+			),
+		 
+			array(
 				'field' => 'dob',
 				'label' => $this->lang->line("student_dob"),
 				'rules' => 'trim|max_length[10]|callback_date_valid|xss_clean'
@@ -628,6 +634,11 @@ class Student extends Admin_Controller
 				'field' => 'classesID',
 				'label' => $this->lang->line("student_classes"),
 				'rules' => 'trim|required|numeric|max_length[11]|xss_clean|callback_unique_classesID'
+			),
+			array(
+				'field' => 'joined_class',
+				'label' => "joined_class",
+				'rules' => 'trim|required|numeric|max_length[11]|xss_clean|callback_unique_joined_class'
 			),
 			array(
 				'field' => 'sectionID',

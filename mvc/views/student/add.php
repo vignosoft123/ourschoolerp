@@ -173,7 +173,7 @@
                                 echo "<div class='col-md-4' >";
                             ?>
                             <label for="classesID" class="  control-label">
-                                Joined Class
+                                Joined Class <span class="text-red">*</span>
                             </label>
                                 <?php
                                 $classArray = array(0 => $this->lang->line("student_select_class"));
