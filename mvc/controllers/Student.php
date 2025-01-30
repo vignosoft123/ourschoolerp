@@ -638,7 +638,7 @@ class Student extends Admin_Controller
 			array(
 				'field' => 'joined_class',
 				'label' => "joined_class",
-				'rules' => 'trim|required|numeric|max_length[11]|xss_clean|callback_unique_joined_class'
+				'rules' => 'trim|required|xss_clean'
 			),
 			array(
 				'field' => 'sectionID',
@@ -875,7 +875,7 @@ class Student extends Admin_Controller
 
 	public function add()
 	{
-		//print_r($_POST);die;
+		// echo "<pre>";print_r($_POST);die;
 		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
 			$this->data['headerassets'] = array(
 				'css' => array(
@@ -1155,10 +1155,79 @@ class Student extends Admin_Controller
 					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' ")->row_array();
 					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
 					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
 
 					$amount = $this->db->query("SELECT fee_amount FROM `school_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
 
 					$subtotal_amount =$amount;
+
+					//admission fee added to invoice start
+					if( $this->input->post("add_admission_fee_invoice") == 1 && !empty($admission_fee_type)  ){
+						if($this->input->post('studentType') == 3){ //dayscolar
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),array(
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),array(
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+						}
+					}else{ 	//admission fee added to invoice end
+					
 
 					if($this->input->post('studentType') == 3){ //dayscolar
 						$fee_types = [array(
@@ -1200,6 +1269,7 @@ class Student extends Admin_Controller
 						)];
 					}
  					
+				}
 					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
 					
 

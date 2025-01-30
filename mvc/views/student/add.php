@@ -258,6 +258,22 @@
                         </span>
                     </div>
 
+
+                    <?php
+                        if (form_error('add_admission_fee_invoice'))
+                            echo "<div class='col-md-4 has-error' >";
+                        else
+                            echo "<div class='col-md-4' >";
+                        ?>
+                        <label for="add_admission_fee_invoice" class="  control-label"> Add Admission Fee to Invoice
+                        </label>                        
+                            <input type="checkbox" class="form-control" id="add_admission_fee_invoice" name="add_admission_fee_invoice" value="1">
+                           
+                        <span class="  control-label">
+                            <?php echo form_error('add_admission_fee_invoice'); ?>
+                        </span>
+                    </div>
+
               
 
             </div> <!------ end row----->
