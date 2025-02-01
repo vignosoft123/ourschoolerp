@@ -54,7 +54,7 @@
                                 foreach ($expensetypes as $type) {
                                     $array[$type->expensetypesID] = $type->expensetypes;
                                 }
-                                echo form_dropdown("expensetypesID", $array, set_value("userID",$expense->expensetypes), "id='expensetypesID' class='form-control select2'");
+                                echo form_dropdown("expensetypesID", $array, set_value("userID",$expense->expensetypesID), "id='expensetypesID' class='form-control select2'");
                             ?>
                         </div>
                         <span class="col-sm-4 control-label">

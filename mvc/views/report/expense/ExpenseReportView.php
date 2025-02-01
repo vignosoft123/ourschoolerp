@@ -3,6 +3,7 @@
         <h3 class="box-title"><i class="fa iniicon-productpurchasereport"></i> Expense Report</h3>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("Dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
+            <li class="active"> <a href="<?=base_url("expense/index")?>"><i class="fa fa-laptop"></i> Expense </a> </li>
             <li class="active"> Expense Report</li>
         </ol>
     </div><!-- /.box-header -->

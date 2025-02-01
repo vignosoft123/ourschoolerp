@@ -158,6 +158,9 @@ class Expense extends Admin_Controller {
 	}
 
 	public function edit() {
+
+		$this->data["expensetypes"] = $this->db->get('expensetypes')->result();
+		
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) {
 			$this->data['headerassets'] = array(
 				'css' => array(

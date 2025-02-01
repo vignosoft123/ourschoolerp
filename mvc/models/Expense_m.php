@@ -92,7 +92,7 @@ class Expense_m extends MY_Model {
 
         $this->db->select('expense.*');
         $this->db->from('expense');
-        $this->db->join('expensetypes', 'expense.expensetypesID = expensetypes.expensetypesID');
+        $this->db->join('expensetypes', 'expense.expensetypesID = expensetypes.expensetypesID','left');
 
         if(isset($queryArray['expensetypesID']) && $queryArray['expensetypesID'] != 0) {
             $this->db->where('expense.expensetypesID', $queryArray['expensetypesID']);
@@ -113,6 +113,7 @@ class Expense_m extends MY_Model {
 
         $this->db->where('expense.schoolyearID',$schoolyearID);
         $query = $this->db->get();
+		// echo $this->db->last_query();die;
         return $query->result_array();
     }
 
