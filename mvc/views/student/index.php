@@ -108,7 +108,7 @@
                                                             <?= profileimage($student->photo); ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_registerNO') ?>">
-                                                            <?php echo $student->registerNO; ?>
+                                                            <?php echo $student->srregisterNO; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
                                                             <?php echo $student->srname; ?>
@@ -218,7 +218,7 @@
                                                         </td>
 
                                                         <td data-title="<?= $this->lang->line('student_registerNO') ?>">
-                                                            <?php echo $student->registerNO; ?>
+                                                            <?php echo $student->srregisterNO; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
                                                             <?php echo $student->srname; ?>

@@ -2570,7 +2570,16 @@ public function study_certificate($sid=""){
 			'assets/select2/select2.js'
 		)
 	);
+	
+	$usertype = $this->session->userdata("usertype");
 	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+	$studentID = htmlentities(escapeString($this->uri->segment(3)));
+	$url = htmlentities(escapeString($this->uri->segment(4)));
+	if ((int)$studentID && (int)$url) {
+		$this->data['classes'] = $this->classes_m->get_classes();
+		$this->data['student'] = $objStudent = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+	}
+	//echo "<pre>";print_r($this->data['student'] );
 	// $this->data["subview"] = "student/study_certificate";
 	$this->data["subview"] = "studycertificate_new";
 	$this->load->view('_layout_main', $this->data);

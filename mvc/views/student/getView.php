@@ -77,6 +77,15 @@ if (customCompute($profile)) { ?>
 							<li class="list-group-item">
 								<span class="h5-title">RF ID</span> <span class="h6-title pull-right"><?= $profile->child_id?></span>
 							</li>
+
+							<li class="list-group-item">
+								<span class="h5-title">Joined Class</span> <span class="h6-title pull-right"><?= $profile->joined_class_name?></span>
+							</li>
+
+							<li class="list-group-item">
+								<span class="h5-title">Joined Date</span> <span class="h6-title pull-right"><?= date("d-M-Y",strtotime($profile->admission_date))?></span>
+							</li>
+
 							<!-- 
 							<li class="list-group-item" style="background-color: #FFF">
 								<b>Joined Class</b> <a class="pull-right"><?= customCompute($section) ? $section->section : '' ?></a>
