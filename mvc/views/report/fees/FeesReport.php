@@ -96,13 +96,14 @@
                                     $totalWeaver = 0;
                                     $totalFine = 0;
                                     $i= 0;
+                                    // echo "<pre>";print_r($getFeesReports);die;
                                     foreach($getFeesReports as $getFeesReport) { 
 
                                         if($getFeesReport->paymenttype == 'Cash'){
                                             $cash_amount += $getFeesReport->paymentamount;
                                         }else if($getFeesReport->paymenttype == 'Cheque'){
                                             $cheque_amount += $getFeesReport->paymentamount;
-                                        }else if($getFeesReport->paymenttype == 'Digital'){
+                                        }else if($getFeesReport->paymenttype == 'Digital' || $getFeesReport->paymenttype == 'Digita'){
                                             $digital_amount += $getFeesReport->paymentamount;
                                         }
 

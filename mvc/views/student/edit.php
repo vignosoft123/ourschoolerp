@@ -521,7 +521,40 @@
                             </div>
   
 
-                            
+                            <?php
+                    if (form_error('alternative_phone1'))
+                        echo "<div class='col-md-4 has-error' >";
+                    else
+                        echo "<div class='col-md-4' >";
+                    ?>
+                    <label for="alternative_phone1" class="  control-label">
+                        Alternative Phone1
+                    </label>
+                    
+                        <input type="text" class="form-control" id="alternative_phone1" name="alternative_phone1" value="<?= set_value('alternative_phone1', $student->alternative_phone1) ?>">
+                    
+                    <span class="  control-label">
+                        <?php echo form_error('alternative_phone1'); ?>
+                    </span>
+                    </div><!------ End Alternative Phone Number  ----->
+
+                    <?php
+                    if (form_error('alternative_phone2'))
+                        echo "<div class='col-md-4 has-error' >";
+                    else
+                        echo "<div class='col-md-4' >";
+                    ?>
+                    <label for="alternative_phone2" class="  control-label">
+                    Alternative Phone2
+                    </label>
+                    
+                        <input type="text" class="form-control" id="alternative_phone2" name="alternative_phone2" value="<?= set_value('alternative_phone2', $student->alternative_phone1) ?>">
+                    
+                    <span class="  control-label">
+                        <?php echo form_error('alternative_phone2'); ?>
+                    </span>
+                </div><!------ End Alternative Phone Number2  ----->
+
 
                             <?php 
                                 if(form_error('email')) 
@@ -1330,5 +1363,20 @@ $(document).ready(function(){
         }
     });
 });
+
+
+$(document).ready(function () {
+    // Initialize Select2
+    $("#transportID").select2();
+
+    // Trigger Select2 dropdown open on page load
+    setTimeout(function () {
+        $("#transportID").select2("open"); // Opens dropdown
+    }, 500);
+
+    // Ensure the change event fires for the already selected value
+    $("#transportID").trigger("change");
+});
+
 
 </script>

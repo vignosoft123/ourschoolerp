@@ -766,5 +766,35 @@ class Global_payment extends Admin_Controller
          
     }
 
+
+    public function updateMultiple() {
+        $invoiceIDs = $this->input->post('invoiceIDs');
+        $maininvoiceIDs = $this->input->post('maininvoiceIDs');
+    
+        if (!empty($invoiceIDs)) {
+            $this->invoice_m->updateInvoices($invoiceIDs);
+        }
+    
+        if (!empty($maininvoiceIDs)) {
+            $this->invoice_m->updateMainInvoices($maininvoiceIDs);
+        }
+    
+        echo "Selected invoices deleted successfully (only if no payments were found).";
+    }
+    
+    public function updateSingle() {
+        $invoiceID = $this->input->post('invoiceID');
+        $maininvoiceID = $this->input->post('maininvoiceID');
+    
+        if ($invoiceID) {
+            $this->invoice_m->updateInvoice($invoiceID);
+        }
+    
+        if ($maininvoiceID) {
+            $this->invoice_m->updateMainInvoice($maininvoiceID);
+        }
+    
+        echo "Invoice deleted successfully (only if no payments were found).";
+    }
 }
 

@@ -48,7 +48,8 @@ class Invoice_m extends MY_Model {
 
 	public function get_order_by_invoice_join_maininvoice($studentID=NULL,$schoolyearID=NULL,$deleted_at=NULL) {
 		if(!empty($studentID) && !empty($schoolyearID) && !empty($deleted_at) ){
-		$sql ='select i.* from invoice i inner join maininvoice m on m.maininvoiceID = i.maininvoiceID where studentID = "'.$studentID.'" and schoolyearID = "'.$schoolyearID.'" and deleted_at = "'.$deleted_at.'" ';
+			$sql ='select i.* from invoice i inner join maininvoice m on m.maininvoiceID = i.maininvoiceID where studentID = "'.$studentID.'" and schoolyearID = "'.$schoolyearID.'" and deleted_at = "'.$deleted_at.'" ';
+			// $sql ='select i.* from invoice i left join maininvoice m on m.maininvoiceID = i.maininvoiceID where schoolyearID = "'.$schoolyearID.'" and deleted_at = "'.$deleted_at.'" and m.maininvoicestudentID = "'.$studentID.'" ';
 		return $this->db->query($sql)->result();
 		}else{
 			return array();
@@ -153,6 +154,7 @@ class Invoice_m extends MY_Model {
 
 			if(isset($queryArray['studentID']) && $queryArray['studentID'] != 0) {
 				$this->db->where('invoice.studentID', $queryArray['studentID']);
+				// $this->db->where('m.maininvoicestudentID', $queryArray['studentID']);
 			}
 
 			if(isset($queryArray['feetypeID']) && $queryArray['feetypeID'] != 0) {
@@ -188,4 +190,103 @@ class Invoice_m extends MY_Model {
 		$query = $this->db->query($string);
 		return $query->row();
 	}
+
+	// public function updateInvoices($invoiceIDs) {
+    //     $this->db->where_in('invoiceID', $invoiceIDs)
+    //              ->update('invoice', ['deleted_at' => 0]);
+    // }
+
+    // public function updateMainInvoices($maininvoiceIDs) {
+    //     $this->db->where_in('maininvoiceID', $maininvoiceIDs)
+    //              ->update('maininvoice', ['maininvoicedeleted_at' => 0]);
+    // }
+
+    // public function updateInvoice($invoiceID) {
+    //     $this->db->where('invoiceID', $invoiceID)
+    //              ->update('invoice', ['deleted_at' => 0]);
+    // }
+
+    // public function updateMainInvoice($maininvoiceID) {
+    //     $this->db->where('maininvoiceID', $maininvoiceID)
+    //              ->update('maininvoice', ['maininvoicedeleted_at' => 0]);
+    // }
+
+
+	 // Check if the invoice has a payment
+	 private function hasPayment($invoiceID) {
+        $this->db->select('paymentamount');
+        $this->db->from('payment');
+        $this->db->where('invoiceID', $invoiceID);
+        $this->db->where('paymentamount IS NOT NULL AND paymentamount > 0');
+        $query = $this->db->get();
+
+        return $query->num_rows() > 0; // True if a payment exists
+    }
+
+    public function updateInvoices($invoiceIDs) {
+        $filteredIDs = [];
+
+        foreach ($invoiceIDs as $id) {
+            if (!$this->hasPayment($id)) { // Only update if no payment
+                $filteredIDs[] = $id;
+            }
+        }
+
+        if (!empty($filteredIDs)) {
+            $this->db->where_in('invoiceID', $filteredIDs)
+                     ->update('invoice', ['deleted_at' => 0]);
+        }
+    }
+
+    public function updateMainInvoices($maininvoiceIDs) {
+        // Only update maininvoice if ALL related invoices are deletable
+        foreach ($maininvoiceIDs as $maininvoiceID) {
+            $this->db->select('invoiceID');
+            $this->db->from('invoice');
+            $this->db->where('maininvoiceID', $maininvoiceID);
+            $query = $this->db->get();
+            
+            $shouldUpdate = true;
+            foreach ($query->result() as $row) {
+                if ($this->hasPayment($row->invoiceID)) {
+                    $shouldUpdate = false;
+                    break; // Skip update if any invoice has a payment
+                }
+            }
+
+            if ($shouldUpdate) {
+                $this->db->where('maininvoiceID', $maininvoiceID)
+                         ->update('maininvoice', ['maininvoicedeleted_at' => 0]);
+            }
+        }
+    }
+
+    public function updateInvoice($invoiceID) {
+        if (!$this->hasPayment($invoiceID)) {
+            $this->db->where('invoiceID', $invoiceID)
+                     ->update('invoice', ['deleted_at' => 0]);
+        }
+    }
+
+    public function updateMainInvoice($maininvoiceID) {
+        $this->db->select('invoiceID');
+        $this->db->from('invoice');
+        $this->db->where('maininvoiceID', $maininvoiceID);
+        $query = $this->db->get();
+        
+        $shouldUpdate = true;
+        foreach ($query->result() as $row) {
+            if ($this->hasPayment($row->invoiceID)) {
+                $shouldUpdate = false;
+                break; // Skip update if any invoice has a payment
+            }
+        }
+
+        if ($shouldUpdate) {
+            $this->db->where('maininvoiceID', $maininvoiceID)
+                     ->update('maininvoice', ['maininvoicedeleted_at' => 0]);
+        }
+    }
+
+
 }

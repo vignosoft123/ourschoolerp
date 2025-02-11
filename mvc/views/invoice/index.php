@@ -202,7 +202,7 @@
                                         <?php if(permissionChecker('invoice_view')) {
                                             //  if($maininvoice->maininvoicestatus != 2) { 
                                                 if($balance != '' || $balance != 0.00){
-                                                echo btn_invoice('invoice/payment/'.$maininvoice->maininvoiceID, $this->lang->line('payment')); 
+                                               // echo btn_invoice('invoice/payment/'.$maininvoice->maininvoiceID, $this->lang->line('payment')); 
                                                 }
                                                 // }
                                             } ?>
@@ -324,24 +324,27 @@
     }
 
     function validate_disc(invoice_id, discAmount) { 
-    var balance = parseFloat($('#balance_' + invoice_id).val());
-    var discAmount = parseFloat(discAmount); 
-    var errorMessage = '';
-    var isError = false;
+        // var balance = parseFloat($('#balance_' + invoice_id).val());
 
-    if (isNaN(discAmount)) {
-        errorMessage = 'Please enter a valid number.';
-        isError = true;
-    } else if (discAmount > balance) {
-        errorMessage = 'Discount amount cannot exceed the balance.';
-        isError = true;
+        var balance = parseFloat($('#balance_' + invoice_id).val().replace(/,/g, ''));
+
+        var discAmount = parseFloat(discAmount); 
+        var errorMessage = '';
+        var isError = false;
+        
+        if (isNaN(discAmount)) {
+            errorMessage = 'Please enter a valid number.';
+            isError = true;
+        } else if (discAmount > balance) {
+            errorMessage = 'Discount amount cannot exceed the balance.';
+            isError = true;
+        }
+
+        $('.error').text(errorMessage);
+
+        // Disable or enable the button based on the error
+        $('.submit_button').prop('disabled', isError);
     }
-
-    $('.error').text(errorMessage);
-
-    // Disable or enable the button based on the error
-    $('.submit_button').prop('disabled', isError);
-}
 
 
 </script>
