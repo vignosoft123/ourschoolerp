@@ -1888,6 +1888,7 @@ class Invoice extends Admin_Controller
                 if(isset($invoiceitems[$maininvoice->maininvoiceID])) {
                     if(customCompute($invoiceitems[$maininvoice->maininvoiceID])) {
                         foreach($invoiceitems[$maininvoice->maininvoiceID] as $invoiceitem) {
+                            if($maininvoice->maininvoicestudentID == $invoiceitem->studentID ){ //newly added condition for duplicate transport with mathcing of maininvoice id
                             $amount = $invoiceitem->amount;
                             if($invoiceitem->discount > 0) {
                                 // $amount = ($invoiceitem->amount - (($invoiceitem->amount / 100) * $invoiceitem->discount));
@@ -1949,6 +1950,7 @@ class Invoice extends Admin_Controller
                             } else {
                                 $retArray['fee_types'][$maininvoice->maininvoiceID][] = $invoiceitem->feetypeID;
                             }
+                        }
                         }
                     }
                 }
