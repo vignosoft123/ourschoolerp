@@ -1,3 +1,6 @@
+<?php 
+    $redirect_param = $this->uri->segment(4);
+?>
 <div class="row">
     <div class="col-sm-3">
         <div class="box">
@@ -8,6 +11,7 @@
                 <form role="form" method="post" enctype="multipart/form-data" id="invoiceDataForm"> 
                 <input type="text" class="form-control hidden" id="classesID" name="classesID" value="<?=set_value('classesID', $maininvoice->maininvoiceclassesID)?>">
                 <input type="text" class="form-control hidden" id="studentID" name="studentID" value="<?=set_value('studentID', $maininvoice->maininvoicestudentID)?>">
+                <input type="hidden" value="<?php echo $redirect_param;?>">
               
                     <div class="classesDiv form-group <?=form_error('classesID') ? 'has-error' : '' ?>" >
                         <label for="classesID">
@@ -747,6 +751,7 @@
             formData.append("totalsubtotal", totalsubtotal);
             formData.append("totalpaidamount", totalpaidamount);
             formData.append("editID", <?=$maininvoiceID?>);
+            formData.append("redirect_param", <?=$redirect_param?>);
             makingPostDataPreviousofAjaxCall(formData);
         }
     });
@@ -775,7 +780,7 @@
 
     function errrorLoader(response) {
         if(response.status) {
-            window.location = "<?=base_url("invoice/index")?>";
+            window.location = "<?=base_url("invoice/index/")?>"+response.redirect_param;
         } else {
             $('#editInvoiceButton').removeAttr('disabled');
             $.each(response.error, function(index, val) {

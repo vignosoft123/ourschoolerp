@@ -225,8 +225,8 @@ class Invoice extends Admin_Controller
         }
     }
 
-    public function edit()
-    { 
+    public function edit($m_invid="",$redirect_param=0)
+    { //echo 'hi';die;
         if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('defaultschoolyearID') == 5)) {
             $this->data['headerassets'] = [
                 'css' => [
@@ -241,9 +241,11 @@ class Invoice extends Admin_Controller
             ];
 
             $maininvoiceID = htmlentities(escapeString($this->uri->segment(3)));
+            $redirect_param = htmlentities(escapeString($this->uri->segment(4)));
             if((int)$maininvoiceID) {
                 $schoolyearID                = $this->session->userdata('defaultschoolyearID');
                 $this->data['maininvoiceID'] = $maininvoiceID;
+                $this->data['redirect_param'] = $redirect_param;
                 $this->data['maininvoice']   = $this->maininvoice_m->get_single_maininvoice(['maininvoiceID' => $maininvoiceID]);
                 if(customCompute($this->data['maininvoice'])) {
                     if($this->data['maininvoice']->maininvoicestatus == 0) {
@@ -282,7 +284,7 @@ class Invoice extends Admin_Controller
         }
     }
 
-    public function delete()
+    public function delete($m_invid="",$redirect_param=0)
     {
         if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('defaultschoolyearID') == 5)) {
             $maininvoiceID = htmlentities(escapeString($this->uri->segment(3)));
@@ -296,7 +298,7 @@ class Invoice extends Admin_Controller
                         $this->maininvoice_m->update_maininvoice(['maininvoicedeleted_at' => 0], $maininvoiceID);
                         $this->invoice_m->update_invoice_by_maininvoiceID(['deleted_at' => 0], $maininvoiceID);
                         $this->session->set_flashdata('success', $this->lang->line('menu_success'));
-                        redirect(base_url('invoice/index'));
+                        redirect(base_url('invoice/index/').$redirect_param);
                     } else {
                         $this->data["subview"] = "error";
                         $this->load->view('_layout_main', $this->data);
@@ -1698,6 +1700,7 @@ class Invoice extends Admin_Controller
                         $paymentHistoryArray = [];
 
                         $editID = $this->input->post('editID');
+                        $redirect_param = $this->input->post('redirect_param');
                         if((int)$editID) {
                             $feetype      = pluck($this->feetypes_m->get_feetypes(), 'feetypes', 'feetypesID');
                             $feetypeitems = json_decode($this->input->post('feetypeitems'));
@@ -1839,6 +1842,8 @@ class Invoice extends Admin_Controller
                                     $this->session->set_flashdata('success', $this->lang->line('menu_success'));
                                     $retArray['status']  = TRUE;
                                     $retArray['message'] = 'Success';
+                                    $retArray['redirect_param'] = $redirect_param;
+                                
                                     echo json_encode($retArray);
                                     exit;
                                 } else {

@@ -79,6 +79,8 @@ class Signin extends Admin_Controller {
 
         $this->load->dbforge(); // Load the Database Forge class
 
+        $this->create_signature_folder();   //create folder
+
         // Check if the column 'status' exists
         if (!$this->db->field_exists('message', 'sms_error_logs')) {
             // Define the column to add
@@ -308,6 +310,24 @@ class Signin extends Admin_Controller {
     {
         //return $this->updatechecker->verifyValidUser();
     }
+
+    public function create_signature_folder()
+{
+    $folderPath = FCPATH . 'uploads/signatures123/'; // Define the folder path
+
+    // Check if folder exists
+    if (!is_dir($folderPath)) {
+        // Create the folder with read/write/execute permissions (0755)
+        if (mkdir($folderPath, 0755, true)) {
+           // echo "Folder created successfully.";
+        } else {
+           // echo "Failed to create folder.";
+        }
+    } else {
+       // echo "Folder already exists.";
+    }
+}
+
 }
 
 

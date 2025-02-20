@@ -194,6 +194,18 @@
 
   <body>
 
+  
+<div class="box">
+    <div class="box-header">
+        <h3 class="box-title"><i class="fa fa-balance-scale"></i> <?=$this->lang->line('panel_title')?></h3>
+
+        <ol class="breadcrumb">
+            <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
+            <li class="active"><a href="<?=base_url("global_payment")?>"><?=$this->lang->line('menu_global_payment')?></a></li>
+        </ol>
+    </div><!-- /.box-header -->
+  </div>
+
     <div class="main-wrapper student-copy">
     <div class="center scopy"></div>
 

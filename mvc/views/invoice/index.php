@@ -1,4 +1,6 @@
-
+<?php 
+    $uri = $this->uri->segment(3);
+?>
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-invoice"></i> <?=$this->lang->line('panel_title')?></h3>
@@ -72,7 +74,8 @@
                         <tbody>
                             <?php
                         //    echo "<pre>"; print_r($maininvoices);
-                             if(customCompute($maininvoices)) {$i = 1; foreach($maininvoices as $maininvoice) { ?>
+                             if(customCompute($maininvoices)) {$i = 1; 
+                             foreach($maininvoices as $maininvoice) { ?>
                                 <tr>
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
@@ -92,10 +95,16 @@
                                     </td>
 
                                     <td data-title="Fee Type">
-                                        <?php foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType){?>
+                                        <?php foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType){
+                                            
+                                            ?>
+
+                                           
                                         <?=isset($feetypes[$feeType]) ? $feetypes[$feeType] : ''?>
                                         <?php if(count($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID])>1){ echo "<br>";}?>
-                                        <?php }?>
+
+                                        <?php //}
+                                    }?>
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_total')?>">
@@ -193,10 +202,10 @@
                                         <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) { ?>
                                             <?php 
                                                 if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {
-                                                     echo btn_edit('invoice/edit/'.$maininvoice->maininvoiceID, $this->lang->line('edit')); 
+                                                     echo btn_edit('invoice/edit/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('edit')); 
                                             } ?>
                                             <?php if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {
-                                                 echo btn_delete('invoice/delete/'.$maininvoice->maininvoiceID, $this->lang->line('delete'));
+                                                 echo btn_delete('invoice/delete/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('delete'));
                                             } ?>
                                         <?php } ?>
                                         <?php if(permissionChecker('invoice_view')) {
