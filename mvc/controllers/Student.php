@@ -832,6 +832,8 @@ class Student extends Admin_Controller
 			)
 		);
 
+		$this->addRemarksColumn();
+
 		$myProfile = false;
 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
 		if ($this->session->userdata('usertypeID') == 3) {
@@ -958,6 +960,7 @@ class Student extends Admin_Controller
 						$this->data['optionalSubjectID'] = 0;
 					}
 
+					$array["remarks"] = $this->input->post("remarks");
 					$array["first_name"] = $this->input->post("first_name");
 					$array["last_name"] = $this->input->post("last_name");
 					$array["name"] = $this->input->post("name");
@@ -1521,6 +1524,7 @@ class Student extends Admin_Controller
 							$this->load->view('_layout_main', $this->data);
 						} else {
 							$array = array();
+							$array["pickup_id"] = $this->input->post("pickup_id");
 							$array["first_name"] = $this->input->post("first_name");
 							$array["last_name"] = $this->input->post("last_name");
 							$array["name"] = $this->input->post("name");
@@ -1557,6 +1561,7 @@ class Student extends Admin_Controller
 							$array["sub_caste"] = $this->input->post('sub_caste'); 
 							$array["pen_number"] = $this->input->post('pen_number');
 							$array["child_id"] = $this->input->post('child_id');
+							$array["remarks"] = $this->input->post('remarks');
 
 							$array["mole1"] = $this->input->post('mole1');
 							$array["mole2"] = $this->input->post('mole2');
@@ -2835,7 +2840,7 @@ public function get_pickup_points(){
 	$transport_id = $_POST['id'];
 	$this->db->where('route_id',$transport_id);
 	$p_res = $this->db->get('pickup_points')->result_array();
-	$html = "<option>Select Pikcup point</option>";
+	$html = "<option value='0'>Select Pikcup point</option>";
 	foreach($p_res as $p){
 		$html .= "<option value='".$p['id']."'> ".$p['pickupPoint']." </option>";
 	}
@@ -2993,6 +2998,13 @@ public function uploadPhoto(){
     }
 }
 
+
+private function addRemarksColumn() {
+	if (!$this->db->field_exists('remarks', 'student')) {
+		$sql = "ALTER TABLE `student` ADD `remarks` TEXT NULL DEFAULT NULL AFTER `pickup_id`";
+		$this->db->query($sql);
+	}
+}
 
 
 }

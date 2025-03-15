@@ -408,7 +408,7 @@ class Global_payment extends Admin_Controller
     public function paymentSend() {
         $retArray['status'] = FALSE;
         $retArray['message'] = '';
-        //echo "<pre>";print_r($_POST);die;
+        // echo "<pre>";print_r($_POST);die;
         if($_POST) {
             $rules = $this->paymentRules();
             $this->form_validation->set_rules($rules);
@@ -442,6 +442,13 @@ class Global_payment extends Admin_Controller
                 $globalpayment['paymentyear']       = $paymentyear;
                 $globalpayment['schoolyearID']      = $schoolyearID;
 
+                $payment_date = $this->input->post('created_date') ? date("Y-m-d", strtotime($this->input->post('created_date'))) : date("Y-m-d");
+
+                // Extract day, month, year
+$day1 = date("d", strtotime($payment_date));
+$month1 = date("m", strtotime($payment_date));
+$year1 = date("Y", strtotime($payment_date));
+
                 if($studentID) {
                     $student = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
                     if(customCompute($student)) {
@@ -466,10 +473,10 @@ class Global_payment extends Admin_Controller
                             'studentID' => $studentID,                
                             'paymentamount' => ($paids[$i]['value'] == '') ? NULL : $paids[$i]['value'],                
                             'paymenttype' => ucfirst($payment_type),                
-                            'paymentdate' => date('Y-m-d'),                
-                            'paymentday' => date('d'),                
-                            'paymentmonth' => date('m'),                
-                            'paymentyear' => date('Y'),
+                            'paymentdate' => $payment_date,
+                            'paymentday' => $day1,//date('d'),                
+                            'paymentmonth' => $month1,//date('m'),                
+                            'paymentyear' => $year1,//date('Y'),
                             'userID' => $this->session->userdata('loginuserID'),
                             'usertypeID' => $this->session->userdata('usertypeID'),
                             'uname' => $this->session->userdata('name'),

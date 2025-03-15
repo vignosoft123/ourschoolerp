@@ -718,8 +718,9 @@
                 
                     <!-- <input type="text" class="form-control" id="village_name" name="village_name" value="<?= set_value('village_name') ?>"> -->
                     <select id="village_name" name="village_name" class='form-control select2' >
+                        <option value="0">--Select--</option>
                         <?php foreach($villages as $v){?>
-                            <option value="<?= $v['villageID']?>"> <?= $v['villageName']?> </option>
+                            <option value="<?= $v['villageID']?>" <?php if($student->villageID == $v['villageID']){echo 'selected';}?>> <?= $v['villageName']?> </option>
                        <?php  }?>
                     </select>
                 
@@ -933,7 +934,8 @@
                         </div>
 
                         <?php 
-                   
+                //    echo '<pre>';print_r($student);
+                //    echo '<pre>';print_r($pickup_points);
                    echo "<div class='col-md-4' >";
            ?>
                <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >
@@ -943,7 +945,7 @@
                    <select id="pickup_id" name ="pickup_id" class='form-control select2'>
                        <option>Select Pickup point</option>
                        <?php foreach($pickup_points as $p){?>
-                       <option value="<?= $p['id']?>" ><?php echo $p['pickupPoint'];?></option>
+                       <option value="<?= $p['id']?>"  <?php if($student->pickup_id == $p['id']){echo 'selected';}?>><?php echo $p['pickupPoint'];?></option>
                         
                         <?php }?>
                    </select>
@@ -1365,18 +1367,18 @@ $(document).ready(function(){
 });
 
 
-$(document).ready(function () {
-    // Initialize Select2
-    $("#transportID").select2();
+// $(document).ready(function () {
+//     // Initialize Select2
+//     $("#transportID").select2();
 
-    // Trigger Select2 dropdown open on page load
-    setTimeout(function () {
-        $("#transportID").select2("open"); // Opens dropdown
-    }, 500);
+//     // Trigger Select2 dropdown open on page load
+//     setTimeout(function () {
+//         $("#transportID").select2("open"); // Opens dropdown
+//     }, 500);
 
-    // Ensure the change event fires for the already selected value
-    $("#transportID").trigger("change");
-});
+//     // Ensure the change event fires for the already selected value
+//     $("#transportID").trigger("change");
+// });
 
 
 </script>

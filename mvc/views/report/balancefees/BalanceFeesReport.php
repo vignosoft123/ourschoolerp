@@ -70,6 +70,7 @@
                                         <th><?=$this->lang->line('slno')?></th>
                                         <th><?=$this->lang->line('balancefeesreport_name')?></th>
                                         <th><?=$this->lang->line('balancefeesreport_registerNO')?></th>
+                                        <th>Villege</th>
                                         <?php if($classesID == 0) { ?>
                                           <th><?=$this->lang->line('balancefeesreport_class')?></th>
                                         <?php } ?>
@@ -98,7 +99,7 @@
                                         $totalWeaver = 0;
                                         $totalBalance = 0;
                                         $i=0;
-                                        // dd($students);
+                                        //  echo "<pre>";print_r($totalAmountAndDiscount);
                                         foreach($students as $student) { 
 
                                            $feeamount =  $paid = $bal_amnt = 0;
@@ -113,6 +114,11 @@
                                                 </td>
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_registerNO')?>">
                                                     <?=$student->srregisterNO?>
+                                                </td>
+                                                <td> 
+                                                <?=$student->village_name?>
+
+
                                                 </td>
                                                 <?php if($classesID == 0) { ?>
                                                     <td data-title="<?=$this->lang->line('balancefeesreport_class')?>">

@@ -13,6 +13,8 @@ class Balancefeesreport extends Admin_Controller{
 		$this->load->model('weaverandfine_m');
 		$this->load->model('parents_m');
 		$this->load->model('payment_m');
+		$this->load->model('village_m');
+
 		$language = $this->session->userdata('lang');
 		$this->lang->load('balancefeesreport', $language);
 	}
@@ -90,6 +92,8 @@ class Balancefeesreport extends Admin_Controller{
 		$this->data['date'] = date("d-m-Y");		
 		$this->data['feetypes'] = $this->feetypes_m->get_feetypes();
 		$this->data['classes'] = $this->classes_m->general_get_classes();
+		$this->data['villeges'] = $this->village_m->get_active_villages();
+		// print_r($this->data['villeges']);die;
 		$this->data["subview"] = "report/balancefees/BalanceFeesReportView";
 		$this->load->view('_layout_main', $this->data);
 	}
@@ -140,12 +144,14 @@ class Balancefeesreport extends Admin_Controller{
  
 					$schoolyearID = $this->session->userdata('defaultschoolyearID');
 					$_POST['schoolyearID'] = $schoolyearID;
+					$villageID    = $this->input->post('villageID'); 
 					$classesID    = $this->input->post('classesID'); 
 					$sectionID    = $this->input->post('sectionID'); 
 					$studentID    = $this->input->post('studentID'); 
 					$feetypeID    = $this->input->post('feetypeID'); 
 
 					$this->data['classesID']    = $classesID;
+					$this->data['villageID']    = $villageID;
 					$this->data['sectionID']    = $sectionID;
 					$this->data['studentID']    = $studentID;
 					$this->data['schoolyearID'] = $schoolyearID; 
@@ -161,6 +167,11 @@ class Balancefeesreport extends Admin_Controller{
 					if((int)$studentID) {
 						$studentArray['srstudentID'] = $studentID;
 					}
+
+					if((int)$villageID) {
+						$studentArray['villageID'] = $villageID;
+					}
+
 					$studentArray['srschoolyearID'] = $schoolyearID;
 
 					$this->db->order_by('srclassesID','ASC');

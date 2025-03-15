@@ -356,8 +356,8 @@ class Studentrelation_m extends MY_Model {
 		$this->db->select('*');
         $this->db->from('student');
         $this->db->join('studentrelation', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+        // $this->db->join('villages', 'student.villageID = villages.villageID', 'LEFT');
 		
-		//echo $this->db->last_query();die;
 
         if(customCompute($arrays)) {
             $this->db->where($arrays);
@@ -365,6 +365,9 @@ class Studentrelation_m extends MY_Model {
 		$this->db->where('active',1);
         $this->db->order_by('srroll asc');
         $query = $this->db->get();
+
+		// echo $this->db->last_query();die;
+
 
         if($single) {
             return $query->row();

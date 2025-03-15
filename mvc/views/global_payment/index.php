@@ -463,7 +463,9 @@
                                                             <option value="digita">Digital</option>
                                                         </select>
                                                     </td>
-                                                    <td colspan="2"></td>
+                                                    <td colspan="">Payment Date</td>
+                                                    <td colspan=""> <input type="date" name="created_date" id="created_date"></td>
+                                                    
                                                 </tr>
                                             <?php } ?>
                                         </tbody>
@@ -2103,7 +2105,7 @@ $('#add_payment').on('click',function(e){
     //     $('input[name^=fine]').removeClass('errorClass');        
     // }
 
-
+    var created_date = $('#created_date').val();
     if(error == 0) {
         // $(this).attr("disabled", "disabled");
         $.ajax({
@@ -2120,7 +2122,8 @@ $('#add_payment').on('click',function(e){
                 'payment_type' : payment_type,
                 "paid" : paid,
                 "weaver" : weaver,
-                "fine" : fine
+                "fine" : fine,
+                "created_date" : created_date,
             },
             dataType: "html",
             success: function(data) {

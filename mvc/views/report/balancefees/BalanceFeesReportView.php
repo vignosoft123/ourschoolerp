@@ -24,6 +24,19 @@
                      ?>
                 </div>
 
+                <div class="form-group col-sm-4" id="villegesDiv">
+                    <label>Villeges</label>
+                    <?php
+                        $villegesArray = array(
+                            "0" => $this->lang->line("balancefeesreport_please_select"),
+                        );
+                        foreach ($villeges as $classaKey => $v) {
+                            $villegesArray[$v['villageID']] = $v['villageName'];
+                        }
+                        echo form_dropdown("villageID", $villegesArray, set_value("villageID"), "id='villageID' class='form-control select2'");
+                     ?>
+                </div>
+
                 
                 <div class="form-group col-sm-4" id="feetypeDiv">
                 <label>Fee Report</label>
@@ -154,6 +167,7 @@
         var sectionID = $('#sectionID').val();
         var studentID = $('#studentID').val();
         var feetypeID = $('#feetypeID').val();
+        var villageID = $('#villageID').val();
         var error = 0;
 
         var field = {
@@ -161,6 +175,7 @@
             "sectionID" : sectionID,
             "studentID" : studentID,
             "feetypeID" : feetypeID,
+            "villageID" : villageID,
         };
 
         if(error == 0 ) {
