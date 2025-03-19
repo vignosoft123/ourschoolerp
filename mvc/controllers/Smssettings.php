@@ -235,6 +235,8 @@ class Smssettings extends Admin_Controller {
 
 	public function index() {
 
+		$this->insert_smssettings_data();
+		
 		$clickatell_bind = array();
 		$get_clickatells = $this->smssettings_m->get_order_by_clickatell();
 		foreach ($get_clickatells as $key => $get_clickatell) {
@@ -358,23 +360,28 @@ class Smssettings extends Admin_Controller {
 					$this->load->view('_layout_main', $this->data);			
 				} else {
 					 
-					$whatsapp_api_key = $this->input->post('whatsapp_api_key');
-					$whatsapp_link_number = $this->input->post('whatsapp_link_number');
+					$whatsapp_user = $this->input->post('whatsapp_user');
+					$whatsapp_password = $this->input->post('whatsapp_password');
+					$whatsapp_sender = $this->input->post('whatsapp_sender');
 
-					$this->db->where('field_names',"whatsapp_link_number");
-					$num_cnt = $this->db->get('smssettings')->num_rows();
-					if($num_cnt == 0){
-						$this->db->query("INSERT INTO `smssettings` (`smssettingsID`, `types`, `field_names`, `field_values`, `smssettings_extra`) VALUES (NULL, 'whatsapp', 'whatsapp_link_number', '', NULL)");
-					}
+					// $this->db->where('field_names',"whatsapp_link_number");
+					// $num_cnt = $this->db->get('smssettings')->num_rows();
+					// if($num_cnt == 0){
+					// 	$this->db->query("INSERT INTO `smssettings` (`smssettingsID`, `types`, `field_names`, `field_values`, `smssettings_extra`) VALUES (NULL, 'whatsapp', 'whatsapp_link_number', '', NULL)");
+					// }
 
 					$array = array(
 						array(
-						   'field_names' => 'whatsapp_api_key',
-						   'field_values' => $whatsapp_api_key
+						   'field_names' => 'whatsapp_user',
+						   'field_values' => $whatsapp_user
 						),
 						array(
-                            'field_names' => 'whatsapp_link_number',
-                            'field_values' => $whatsapp_link_number
+                            'field_names' => 'whatsapp_password',
+                            'field_values' => $whatsapp_password
+                        ), 
+						array(
+                            'field_names' => 'whatsapp_sender',
+                            'field_values' => $whatsapp_sender
                         ), 
 					 );
  
@@ -498,6 +505,31 @@ class Smssettings extends Admin_Controller {
 		curl_close($curl);
 		return $response;
 	}
+
+	public function insert_smssettings_data() {
+		// Define the data to insert
+		$data = [
+			['types' => 'whatsapp', 'field_names' => 'whatsapp_user'],
+			['types' => 'whatsapp', 'field_names' => 'whatsapp_password'],
+			['types' => 'whatsapp', 'field_names' => 'whatsapp_sender']
+		];
+	
+		// Insert only if the records do not exist
+		foreach ($data as $row) {
+			$this->db->where($row);
+			$query = $this->db->get('smssettings');
+	
+			if ($query->num_rows() == 0) {
+				$this->db->insert('smssettings', $row);
+				// echo "Inserted: " . json_encode($row) . "<br>";
+			} else {
+				// echo "Already exists: " . json_encode($row) . "<br>";
+			}
+		}
+	}
+	
+
+	
 }
 
 /* End of file student.php */

@@ -44,6 +44,7 @@ class Sattendance extends Admin_Controller
 		$this->load->library('twilio');
 		$this->load->library('bulk');
 		$this->load->library('msg91');
+		
 
 		$this->data['setting'] = $this->setting_m->get_setting();
 
@@ -507,6 +508,7 @@ class Sattendance extends Admin_Controller
 						// 		$this->sendAbsentEmail($students, $schoolyearID, $classes, $sectionID);
 					} elseif ($messageType == 'sms') {
 						$this->sendAbsentSMS($students, $schoolyearID, $classes, $sectionID);
+						$this->sendAbsentWhatsapp($students, $schoolyearID, $classes, $sectionID);
 					}
 				}
 				if ($isSendVoiceCall) {
@@ -1646,4 +1648,76 @@ class Sattendance extends Admin_Controller
 		curl_close($curl);
 		return $response;
 	}
+
+
+
+
+
+
+
+	// whatsapp start
+
+	
+	private function sendAbsentWhatsapp($students, $schoolyearID, $classesID, $sectionID)
+	{
+		// $attendance_smsgateway = $this->data['setting']->attendance_smsgateway;
+		// $templateID = $this->data['setting']->attendance_notification_template;
+		// $mailandsmstemplate = $this->mailandsmstemplate_m->get_mailandsmstemplate($templateID);
+
+		 $template_sql = "select params,template_name from whatapp_templates where template_name like '%attendence_sms%' ";
+		$whatsapp_params = $this->db->query($template_sql)->row_array();
+
+		$objStudents = pluck($this->studentrelation_m->get_order_by_student(array('srschoolyearID' => $schoolyearID, 'srclassesID' => $classesID, 'srsectionID' => $sectionID), TRUE), 'obj', 'srstudentID');
+
+		$parents = pluck($this->parents_m->get_parents(), 'phone', 'parentsID');
+		foreach ($students as $student) {
+			$studentID = $student->studentID;
+			$user = isset($objStudents[$studentID]) ? $objStudents[$studentID] : [];
+			$parentsID = isset($objStudents[$studentID]) ? $objStudents[$studentID]->parentID : 0;
+			$parentsPhonenumber = isset($parents[$parentsID]) ? $parents[$parentsID] : '';
+			
+			if(customCompute($user) && $parentsID > 0 && $parentsPhonenumber != '') {
+				$user->phone = $parentsPhonenumber;
+				$message = $whatsapp_params['params'];
+				$this->userConfigWhatsapp($message, $user, 3, $schoolyearID,$whatsapp_params['template_name']);
+			}
+		}
+	}
+
+ 
+
+	private function userConfigWhatsapp($message, $user, $usertypeID, $schoolyearID = 1,$template_name)
+	{
+		if ($user && $usertypeID) {
+
+			$template_id = 0;
+			if (isset($this->data['setting']->attendance_notification_template) && $this->data['setting']->attendance_notification_template != '') {
+				$template = $this->mailandsmstemplate_m->get_mailandsmstemplate($this->data['setting']->attendance_notification_template);
+				$template_id = $template->templ_id;
+			}
+			$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => $usertypeID));
+
+			if ($usertypeID == 2) {
+				$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 2));
+			} elseif ($usertypeID == 3) {
+				$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
+			} elseif ($usertypeID == 4) {
+				$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 4));
+			} else {
+				$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 1));
+			}
+
+			 $message = $this->tagConvertor($userTags, $user, $message, 'SMS', $schoolyearID);
+			//  echo $message;die;
+			if ($user->phone) {
+				$this->load->model('Whatsapp_m'); 
+					$this->Whatsapp_m->sendWhatsapp($user->phone, $message, $template_name);
+				 
+			} else {
+				$send = array('check' => TRUE);
+				return $send;
+			}
+		}
+	}
+	// whatsapp end
 }

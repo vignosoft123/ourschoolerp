@@ -194,48 +194,57 @@
                                         <form class="form-horizontal" role="form" method="post" enctype="multipart/form-data">
                                             <?php echo form_hidden('type', 'whatsapp'); ?>
                                             <?php
-                                                if(form_error('whatsapp_api_key'))
+                                                if(form_error('whatsapp_user'))
                                                     echo "<div class='form-group has-error' >";
                                                 else
                                                     echo "<div class='form-group' >";
                                             ?>
                                                 <label for="API Key" class="col-sm-2 control-label">
-                                                    API Key <span class="text-red">*</span>
+                                                    User Name <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-6">
                                                   
-                                                    <input type="text" class="form-control" id="whatsapp_api_key" name="whatsapp_api_key" value="<?=set_value('whatsapp_api_key', $set_whatsapp['whatsapp_api_key'])?>" >
+                                                    <input type="text" class="form-control" id="whatsapp_user" name="whatsapp_user" value="<?=set_value('whatsapp_user', $set_whatsapp['whatsapp_user'])?>" >
                                                    
+                                                </div>
+                                                
+                                            </div>
+
+                                           
+
+                                            <?php
+                                                if(form_error('whatsapp_password'))
+                                                    echo "<div class='form-group has-error' >";
+                                                else
+                                                    echo "<div class='form-group' >";
+                                            ?>
+                                                <label for="API Key" class="col-sm-2 control-label">
+                                                Password <span class="text-red">*</span>
+                                                </label>
+                                                <div class="col-sm-6"> 
+                                                
+                                                    <input type="text" class="form-control" id="whatsapp_password" name="whatsapp_password" value="<?=set_value('whatsapp_password', $set_whatsapp['whatsapp_password'])?>" >
+                   
                                                 </div>
                                                 
                                             </div>
 
                                             <?php
-                                                if(form_error('whatsapp_link_number'))
+                                                if(form_error('whatsapp_sender'))
                                                     echo "<div class='form-group has-error' >";
                                                 else
                                                     echo "<div class='form-group' >";
                                             ?>
                                                 <label for="API Key" class="col-sm-2 control-label">
-                                                whatsapp_link_number <span class="text-red">*</span>
+                                                   Sender Id <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-6">
                                                   
-                                                <?php 
-                                                   // $res = file_get_contents("https://voice.vignosoft.com/api_v2/whats-app/add_number?api_key=gjK_1igpeGdsHGJwvN1u_c7-QZ7RFyGKFOClGgYMmdVxi7yrkysOK-0nRUFb9-cE");
-
-                                                    // echo "<pre>";print_r(json_decode($res,true));
-                                                   // $response = json_decode($res,true)
-                                                ?>
-                                                <!-- <img src="<?php echo $response['data']['qr_preview_url']?>" alt="No preview"> -->
-                                                
-                                                    <input type="text" class="form-control" id="whatsapp_link_number" name="whatsapp_link_number" value="<?=set_value('whatsapp_link_number', $set_whatsapp['whatsapp_link_number'])?>" >
-
-
+                                                    <input type="text" class="form-control" id="whatsapp_sender" name="whatsapp_sender" value="<?=set_value('whatsapp_sender', $set_whatsapp['whatsapp_sender'])?>" >
                                                    
                                                 </div>
                                                 
-                                            </div>
+                                                  </div>
 
                                             
 
