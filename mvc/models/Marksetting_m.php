@@ -74,7 +74,7 @@ class Marksetting_m extends MY_Model {
 			return $this->exam_m->get_exam();
 		} elseif(($marktypeID == 5) || ($marktypeID == 6)) {
 			if((int)$classesID) {
-				$this->db->select('marksetting.*, exam.exam');
+				$this->db->select('marksetting.*, exam.exam,exam.date');
 				$this->db->from('marksetting');
 				$this->db->join('exam', 'marksetting.examID=exam.examID');
 				$this->db->where('marksetting.marktypeID', $marktypeID);
@@ -86,7 +86,7 @@ class Marksetting_m extends MY_Model {
 			} 
 			return [];
 		} else {
-			$this->db->select('marksetting.*, exam.exam');
+			$this->db->select('marksetting.*, exam.exam,exam.date');
 			$this->db->from('marksetting');
 			$this->db->join('exam', 'marksetting.examID=exam.examID');
 			$this->db->where('marksetting.marktypeID', $marktypeID);

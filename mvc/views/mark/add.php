@@ -226,7 +226,7 @@
 
             </div>
 
-            <button style="margin-left:20px;" id="printBtn">Print Sheet</button>
+            <button class="btn btn-purple" style="margin-left:20px;" id="printBtn">Print Sheet</button>
             
             <div class="col-sm-12">
                 <?php if (customCompute($students)) { ?>
@@ -300,7 +300,7 @@
                                                         //     echo "</td>";
                                                         // }
                                                       
-                                                        //    echo "<pre>"; print_r($marks);
+                                                        //    echo "<pre>"; print_r($sendExam->date);die;
                                                             
                                                         foreach ($subjects as $subject) { 
 
@@ -448,7 +448,11 @@
 
 
                                                     <!-- //CONSTRUCT SEND MARKS SMS -->
-                                                    <td><input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam;?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" name="send_sms_marks" id="send_sms_marks" class="checkbox"></td>
+                                                    <td>
+                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam;?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
+                                                        exam_date = "<?= $sendExam->date?>"
+                                                        name="send_sms_marks" id="send_sms_marks" class="checkbox">
+                                                    </td>
                                                 </tr>
                                 <?php 
                                 $my_template = "";
@@ -464,7 +468,13 @@
                     </div>
                     <input type="button" class="btn btn-success col-sm-2 col-xs-12" id="add_mark" name="add_mark" value="<?= $this->lang->line("add_sub_mark") ?>" />
 
-                    <button class="btn btn-default sendSms" id="send_sms_marks_btn"><span class="fa fa-send"></span> Send SMS</button>
+                    <button class="btn btn-info sendSms" id="send_sms_marks_btn">
+                        <span class="fa fa-comment"></span> Send Marks - SMS
+                    </button>
+
+                    <button class="btn btn-primary sendSms" id="send_whatsapp_marks_btn">
+                        <span class="fa fa-whatsapp"></span> Send Marks - Whatsapp
+                    </button>
 
                     <script type="text/javascript">
                         window.addEventListener('load', function() {
@@ -637,6 +647,11 @@
         
         $(document).on("click","#send_sms_marks_btn",function(){
 
+            if ($(".checkbox:checked").length === 0) {
+                alert("Please check at least one checkbox before proceeding.");
+                return false;
+            }
+
             var st_ids = [];
             st_names =[];
             mobile_no = [];
@@ -669,6 +684,50 @@
                 }
             })
         });
+
+        $(document).on("click","#send_whatsapp_marks_btn",function(){
+
+            if ($(".checkbox:checked").length === 0) {
+                alert("Please check at least one checkbox before proceeding.");
+                return false;
+            }
+
+            var st_ids = [];
+            st_names =[];
+            mobile_no = [];
+            exam_name = [];
+            total_marks = [] ;
+            marks_template = [];  
+            exam_date = [];  
+            i=j=k=l=m=n=o=0;
+
+            $('.checkbox:checked').each(function(){        
+                // var values = $(this).val();
+                // var sids = $(this).attr("st_ids");
+                
+                st_ids[i++] = $(this).attr("st_ids");
+                st_names[j++] = $(this).attr("st_names");
+                mobile_no[k++] = $(this).attr("mobile_no");
+                exam_name[l++] = $(this).attr("exam_name");
+                total_marks[m++] = $(this).attr("total_marks");
+                marks_template[n++] = $(this).attr("marks_template");
+                exam_date[o++] = $(this).attr("exam_date");
+            });
+                 
+
+            $.ajax({
+                            
+                type: "POST",
+                url: "<?php echo site_url('progresscardreport/send_marks_to_whatsapp'); ?>",
+                // dataType: "json",
+                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"exam_date":exam_date},
+                success: function(result)
+                {
+                    
+                }
+            })
+            });
+
             
 
         // if( sessionStorage.getItem("click") == 'yes')){}else{

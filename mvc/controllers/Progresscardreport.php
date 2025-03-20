@@ -27,6 +27,7 @@ class Progresscardreport extends Admin_Controller {
 		$this->load->model("grade_m");
 		$this->load->model("studentgroup_m");
 		$this->load->model("marksetting_m");
+		$this->load->model("Whatsapp_m");
 
 		
         $this->load->model('mailandsmstemplate_m');
@@ -1075,6 +1076,41 @@ class Progresscardreport extends Admin_Controller {
 		}
 		echo json_encode($total);
 	}
+
+	public function send_marks_to_whatsapp() {
+		// error_reporting(E_ALL);
+		// ini_set('display_errors', 1);
+		// echo "<pre>";print_r($_POST);die; 
+		$st_ids = $this->input->post('st_ids');
+		$mobile_no = $this->input->post('mobile_no');
+		$marks_template = $this->input->post('marks_template');
+		$st_names = $this->input->post('st_names');
+		$total_marks = $this->input->post('total_marks');
+		$exam_name = $this->input->post('exam_name');
+		$exam_date = $this->input->post('exam_date');
+
+		$total = 0; 
+
+		foreach($st_ids as $key => $student)
+		{
+		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
+		    { 
+		        	$template1 = substr($marks_template[$key],0,-1);
+					 
+					$params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
+					$final_messege = $template1. '. Total: '.$total_marks[$key];
+					$final_messege = str_replace(',', '.', $final_messege);
+					$message = $params.','.$final_messege;
+					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,'exam_marks');
+		        
+		    }
+		}
+		if($total>0)
+		{
+		    $this->session->set_flashdata('success', 'Marks Sent successfully.');
+		}
+		echo json_encode($total);
+	}
 	
 
 	public function send_balance_sms() {
@@ -1225,9 +1261,9 @@ class Progresscardreport extends Admin_Controller {
 		return $message;
 	}
 
-	public function send_marks_to_whatsapp() {
-		 echo "<pre>";print_r($_POST);die;
+	// public function send_marks_to_whatsapp() {
+	// 	 echo "<pre>";print_r($_POST);die;
 	   
-	}
+	// }
 
 }
