@@ -448,6 +448,8 @@ class Sattendance extends Admin_Controller
 			$attendance = $this->input->post('attendance');
 			$schoolyearID = $this->session->userdata('defaultschoolyearID');
 
+			$send_whatsapp = $this->input->post('send_whatsapp');
+
 			$rules = $this->attendance_rules();
 			$this->form_validation->set_rules($rules);
 			if ($this->form_validation->run() == FALSE) {
@@ -504,12 +506,18 @@ class Sattendance extends Admin_Controller
 				}
 				// echo $messageType;die;
 				if ($f && customCompute($students)) {
-					if ($messageType == 'email') {
-						// 		$this->sendAbsentEmail($students, $schoolyearID, $classes, $sectionID);
-					} elseif ($messageType == 'sms') {
-						$this->sendAbsentSMS($students, $schoolyearID, $classes, $sectionID);
+
+					if($send_whatsapp == 0 || $send_whatsapp == ''){
+						if ($messageType == 'email') {
+							// 		$this->sendAbsentEmail($students, $schoolyearID, $classes, $sectionID);
+						} elseif ($messageType == 'sms') {
+							$this->sendAbsentSMS($students, $schoolyearID, $classes, $sectionID);
+							
+						}
+					}else if($send_whatsapp == 1){
 						$this->sendAbsentWhatsapp($students, $schoolyearID, $classes, $sectionID);
 					}
+
 				}
 				if ($isSendVoiceCall) {
 					$this->sendVoiceCall($students, $schoolyearID, $classes, $sectionID);

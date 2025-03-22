@@ -281,8 +281,9 @@
                             </tbody>
                         </table>
                     </div>
-                    <span style="margin-top: 20px;" class="btn btn-primary pull-right save_attendance"><?= $this->lang->line('sattendance_submit') ?>
-                    <?php } ?></span>
+                    <span style="margin-top: 20px;margin-left:6px;" class="btn btn-success pull-right  save_attendance_send_whatsapp"> Save & Send Whatsapp</span>&nbsp;&nbsp;&nbsp;
+                    <span style="margin-top: 20px;" class="btn btn-primary pull-right save_attendance">Save & Send SMS</span>
+                    <?php } ?>
 
                     <div class="col-md-12">
                         <?php if ($siteinfos->note == 1) { ?>
@@ -343,6 +344,92 @@
                                         "subject": subjectID,
                                         "monthyear": monthyear,
                                         "attendance": attendance
+                                    },
+                                    dataType: "html",
+                                    success: function(data) {
+                                        var response = JSON.parse(data);
+                                        if (response.status == true) {
+                                            toastr["success"](response.message)
+                                            toastr.options = {
+                                                "closeButton": true,
+                                                "debug": false,
+                                                "newestOnTop": false,
+                                                "progressBar": false,
+                                                "positionClass": "toast-top-right",
+                                                "preventDuplicates": false,
+                                                "onclick": null,
+                                                "showDuration": "500",
+                                                "hideDuration": "500",
+                                                "timeOut": "5000",
+                                                "extendedTimeOut": "1000",
+                                                "showEasing": "swing",
+                                                "hideEasing": "linear",
+                                                "showMethod": "fadeIn",
+                                                "hideMethod": "fadeOut"
+                                            }
+                                        } else {
+                                            $.each(response, function(index, value) {
+                                                if (index != 'status') {
+                                                    toastr["error"](value)
+                                                    toastr.options = {
+                                                        "closeButton": true,
+                                                        "debug": false,
+                                                        "newestOnTop": false,
+                                                        "progressBar": false,
+                                                        "positionClass": "toast-top-right",
+                                                        "preventDuplicates": false,
+                                                        "onclick": null,
+                                                        "showDuration": "500",
+                                                        "hideDuration": "500",
+                                                        "timeOut": "5000",
+                                                        "extendedTimeOut": "1000",
+                                                        "showEasing": "swing",
+                                                        "hideEasing": "linear",
+                                                        "showMethod": "fadeIn",
+                                                        "hideMethod": "fadeOut"
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    }
+                                });
+                            }
+                        });
+
+                        $('.save_attendance_send_whatsapp').click(function() {
+                            var attendance = {};
+                            $('.attendance').each(function(i) {
+                                var name = $(this).attr('name');
+                                if ($("input:radio[name=" + name + "]").is(":checked")) {
+                                    var val = $('input:radio[name=' + name + ']:checked').val();
+                                } else {
+                                    var val = 'A';
+                                }
+                                attendance[name] = val;
+                            });
+
+                            var day = "<?= $day ?>";
+                            var classes = "<?= $set ?>";
+                            var section = "<?= $sectionID ?>";
+                            var monthyear = "<?= $monthyear ?>";
+                            <?php if ($setting->attendance == "subject") { ?>
+                                var subjectID = "<?= $subjectID ?>";
+                            <?php } else { ?>
+                                var subjectID = 0;
+                            <?php } ?>
+
+                            if (parseInt(classes) && parseInt(day)) {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: "<?= base_url('sattendance/save_attendace') ?>",
+                                    data: {
+                                        "day": day,
+                                        "classes": classes,
+                                        "section": section,
+                                        "subject": subjectID,
+                                        "monthyear": monthyear,
+                                        "attendance": attendance,
+                                        "send_whatsapp" : 1
                                     },
                                     dataType: "html",
                                     success: function(data) {
