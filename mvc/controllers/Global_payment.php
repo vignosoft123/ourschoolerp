@@ -29,6 +29,7 @@ class Global_payment extends Admin_Controller
         $this->load->model('weaverandfine_m');
         $this->load->model('maininvoice_m');
         $this->load->model('studentrelation_m');
+        $this->load->model('Whatsapp_m'); 
         $language = $this->session->userdata('lang');
         $this->lang->load('global_payment', $language);
         $this->load->library("msg91");
@@ -445,9 +446,9 @@ class Global_payment extends Admin_Controller
                 $payment_date = $this->input->post('created_date') ? date("Y-m-d", strtotime($this->input->post('created_date'))) : date("Y-m-d");
 
                 // Extract day, month, year
-$day1 = date("d", strtotime($payment_date));
-$month1 = date("m", strtotime($payment_date));
-$year1 = date("Y", strtotime($payment_date));
+        $day1 = date("d", strtotime($payment_date));
+        $month1 = date("m", strtotime($payment_date));
+        $year1 = date("Y", strtotime($payment_date));
 
                 if($studentID) {
                     $student = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
@@ -624,8 +625,17 @@ $year1 = date("Y", strtotime($payment_date));
                 // print_r($entered_payment);die;
                 $student->paidamount = $entered_payment;
                 $student->category = $invoice->feetype;
+                $student->date = date("d-m-Y");
                 // $student->phone = $student_info->phone;
+                // echo "<pre>";print_r($student);die;
                 $sms_status = $this->userConfigSMS($student, $getway='msg91');
+
+                if($_POST['send_whatsapp']){
+                    $whatsapp_config_send = $this->Whatsapp_m->whatsapp_config_send($student);
+                    if(empty($whatsapp_config_send)){
+                        $messege =  "phone or template or params missing!, So Whatsapp Not Sent";
+                    }
+                }
 
                 $this->session->set_flashdata('paymentGenerateStatus', TRUE);
                 $this->session->set_flashdata('paymentGenerateGlobalLastID', $globalLastID);
@@ -635,6 +645,7 @@ $year1 = date("Y", strtotime($payment_date));
                 $retArray['sms_resp'] = $sms_status;
                 $retArray['studentID'] = $studentID;
                 $retArray['globalLastID'] = $globalLastID;
+                $retArray['message'] = $messege;
                 echo json_encode($retArray);
                 exit;
             }

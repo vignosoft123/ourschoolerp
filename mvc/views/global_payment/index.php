@@ -473,6 +473,12 @@
                                 </div>
                             </div>
 
+                            <br/>
+                            <div>
+                                <h4>Send Whatsapp :
+                                <input type="checkbox" name="send_whatsapp" id="send_whatsapp"  checked> </h4>
+                            </div>
+
                             <button name="submit" value="sub" id="add_payment" type="submit" class="btn btn-success col-md-2" style="margin-top: 20px;"><?=$this->lang->line('global_submit')?></button>
                         <?php } ?>
                     <?php } ?>
@@ -2078,6 +2084,7 @@ $('#add_payment').on('click',function(e){
     paymentyear             = paymentyear.val(); 
     payment_status          = payment_status.val(); 
     payment_type            = payment_type.val();
+    var isChecked_send_whatsapp = $("#send_whatsapp").is(":checked") ? 1 : 0;
 
     var paid = $('input[name^=paid]').map(function(){
         return { paidFieldID: this.name , value: this.value };
@@ -2124,6 +2131,7 @@ $('#add_payment').on('click',function(e){
                 "weaver" : weaver,
                 "fine" : fine,
                 "created_date" : created_date,
+                "send_whatsapp" : isChecked_send_whatsapp
             },
             dataType: "html",
             success: function(data) {
@@ -2131,6 +2139,9 @@ $('#add_payment').on('click',function(e){
 
                 if(response.status) {
                     // window.location.reload();
+                    if(response.message){
+                        alert(response.message);
+                    }
                     location.href = "<?php echo base_url();?>Global_payment/print_reciept/"+response.studentID+'/'+response.globalLastID;
                 } else {
                     $(this).removeAttr("disabled");
