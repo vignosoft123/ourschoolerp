@@ -46,12 +46,30 @@ class Examschedule extends Admin_Controller {
 		} else {
 			$id = htmlentities(escapeString($this->uri->segment(3)));
 			$examId = htmlentities(escapeString($this->uri->segment(4)));
+			$sectionID = htmlentities(escapeString($this->uri->segment(5)));
 		}
 
 		if((int)$id) {
 			$this->data['set'] = $id;
+			$this->data['examId'] = $examId;
+			$this->data['sec_id'] = $sectionID;
+			$exams    = pluck($this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $id), 'obj', 'examID'); 
+ 
+			// echo "<pre>";print_r($exams);die;
+			if (!empty($exams)) {
+				foreach ($exams as $exam) {
+					$examArray[$exam->examID] = $exam->exam; // Ensure examName is a string
+				}
+			}
+			
+			$this->data['examArray'] = $examArray;
+
 			$this->data['classes'] = $this->classes_m->get_classes();
+			if(!empty($sectionID)){
+				$this->data['examschedules'] = $this->examschedule_m->get_join_examschedule_with_exam_classes_section_subject(array('classesID' => $id, 'schoolyearID' => $schoolyearID, 'examId' => $examId,'sectionID' => $sectionID));
+			}else{
 			$this->data['examschedules'] = $this->examschedule_m->get_join_examschedule_with_exam_classes_section_subject(array('classesID' => $id, 'schoolyearID' => $schoolyearID, 'examId' => $examId));
+			}
 			if($this->data['examschedules']) {
 				$sections = $this->section_m->general_get_order_by_section(array("classesID" => $id));
 				$this->data['sections'] = $sections;
@@ -66,6 +84,7 @@ class Examschedule extends Admin_Controller {
 			$this->load->view('_layout_main', $this->data);
 		} else {
 			$this->data['set'] = 0;
+			$this->data['examId'] = 0;
 			$this->data['classes'] = $this->classes_m->get_classes();
 			$this->data['examschedules'] = [];
 			$this->data["subview"] = "examschedule/index";
@@ -492,8 +511,9 @@ class Examschedule extends Admin_Controller {
 	public function examschedule_list() {
 		$classID = $this->input->post('id');
 		$examID = $this->input->post('examID');
+		$sectionID = $this->input->post('sectionID') ??  0;
 		if((int)$classID) {
-			$string = base_url("examschedule/index/$classID/$examID");
+			$string = base_url("examschedule/index/$classID/$examID/$sectionID");
 			echo $string;
 		} else {
 			redirect(base_url("examschedule/index"));

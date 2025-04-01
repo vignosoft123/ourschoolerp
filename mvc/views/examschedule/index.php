@@ -29,16 +29,12 @@
 
 
                             
-                            <div class="col-lg-2 col-sm-2 col-md-2 col-xs-12 pull-right drop-marg">
-                     <?php
-                        $examArray['0'] = $this->lang->line("examschedulereport_please_select");
-                        echo form_dropdown("examID", $examArray, set_value("examID"), "id='examID' class='form-control select2'");
-                     ?>
-                </div>
+                
 
                 
                 <?php if($this->session->userdata('usertypeID') != 3) { ?>
-                            <div class="col-lg-2 col-sm-2 col-md-2 col-xs-12 pull-right drop-marg">
+                            <div class="col-lg-4 col-sm-4 col-md-4 col-xs-12 pull-right drop-marg">
+                                Class : 
                                 <?php
                                     $array = array("0" => $this->lang->line("examschedule_select_classes"));
                                     if(customCompute($classes)) {
@@ -48,18 +44,31 @@
                                     }
                                     echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2'");
                                 ?>
+
+                        Exam : 
+                     <?php
+                        $examArray['0'] = $this->lang->line("examschedulereport_please_select");
+                        echo form_dropdown("examID", $examArray, set_value("examID",$examId), "id='examID' class='form-control select2'"); 
+                     ?>
+
                             </div>
 
                         <?php } ?>
                     </h5>
+
+                  
+
                 <?php } ?>
+
+                
 
                 <?php if(customCompute($examschedules) > 0 ) { ?>
                     <div class="nav-tabs-custom">
                         <ul class="nav nav-tabs">
-                            <li class="active"><a data-toggle="tab" href="#all" aria-expanded="true"><?=$this->lang->line("examschedule_all_examschedule")?></a></li>
+                            <li class="<?= $sec_id == 0 ? 'active' : ''?>"><a class="section_wise" sectionid='0' data-toggle="tab" href="#all" aria-expanded="true"><?=$this->lang->line("examschedule_all_examschedule")?></a></li>
+                            
                             <?php foreach ($sections as $key => $section) {
-                                echo '<li class=""><a data-toggle="tab" href="#'. $section->sectionID .'" aria-expanded="false">'. $this->lang->line("examschedule_section")." ".$section->section. " ( ". $section->category." )".'</a></li>';
+                                echo '<li class="'.($section->sectionID == $sec_id ? 'active' : '').'"><a sectionid='.$section->sectionID.'  class="section_wise" data-toggle="tab" href="#'. $section->sectionID .'" aria-expanded="false">'. $this->lang->line("examschedule_section")." ".$section->section. " ( ". $section->category." )".'</a></li>';
                             } ?>
                         </ul>
 
@@ -291,6 +300,9 @@
 <script type="text/javascript">
     $(".select2").select2();
     $('#classesID').change(function() {
+
+
+
         var classesID = $(this).val();
         if(classesID == 0) {
             $('#hide-table').hide();
@@ -340,5 +352,28 @@
             });
         }
            });
+
+    $(document).on('click', '.section_wise', function() {
+    	$('#load_examschedulereport').html('');
+        var examID = $("#examID").val();
+        var classesID = $('#classesID').val();
+        var sectionID = $(this).attr('sectionid');
+ 
+        if(classesID == 0) {
+            $('#hide-table').hide();
+            $('.nav-tabs-custom').hide();
+        } else {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('examschedule/examschedule_list')?>",
+                data: {id:classesID,examID:examID,sectionID:sectionID}  ,
+                // data: "id=" + classesID ,
+                dataType: "html",
+                success: function(data) {
+                    window.location.href = data;
+                }
+            });
+        }
+    });
 
 </script>

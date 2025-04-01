@@ -67,8 +67,23 @@ public function index()
     echo "USERNAME:".$this->db->username."<br/>";
     echo "PASSWORD:".$this->db->password."<br/>";
    // var_dump($this->db);
-        $sql = "SELECT * FROM setting";
-		$rows = $this->db->query($sql)->result_array();
+        // $sql = "SELECT * FROM setting";
+		// $rows = $this->db->query($sql)->result_array();
+        $query = $this->db->query("SELECT * FROM setting");
+
+        if ($query) {
+            $rows = $query->result_array();
+            echo "Query executed successfully!<br/>";
+            echo "Number of rows: " . count($rows) . "<br/>";
+        } else {
+            // echo "Query failed: " . $this->db->error() . "<br/>";
+            
+    $error = $this->db->error();
+    echo "Error Code: " . $error['code'] . "<br/>";
+    echo "Error Message: " . $error['message'] . "<br/>";
+        }
+
+
 	ECHO "==============================================================SETTING DETAILS==============================================================================";
 
 	print("<pre>");
