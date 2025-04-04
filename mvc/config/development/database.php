@@ -73,11 +73,25 @@ $active_record = TRUE;
 
 $db['default']['dsn']	   = ''; 
 
-//hostgator
+// //hostgator
+
  $db['default']['hostname'] = '119.18.54.141'; 
-$db['default']['username'] = 'mindw2ft_ourschoolerp';
-$db['default']['database'] = 'mindw2ft_ourschoolerp';
-$db['default']['password'] = '7[oLxwM^gI#T'; //ourschoolerp
+$db['default']['username'] = 'mindw2ft_dummy';
+$db['default']['database'] = 'mindw2ft_dummy';
+$db['default']['password'] = 'DjmyAZTeNAq3'; 
+
+//  $db['default']['hostname'] = '119.18.54.141'; 
+// $db['default']['username'] = 'mindw2ft_ourschoolerp';
+// $db['default']['database'] = 'mindw2ft_ourschoolerp';
+// $db['default']['password'] = '7[oLxwM^gI#T'; //ourschoolerp 
+
+
+//pragna
+// $db['default']['hostname'] = '118.139.183.79'; 
+// $db['default']['username'] = 'pragnaschool';
+// $db['default']['database'] = 'pragnaschool';
+// $db['default']['password'] = 'pragnaschool@123'; 
+
 
 // $db['default']['username'] = 'mindw2ft_dummy';
 // $db['default']['database'] = 'mindw2ft_dummy';
