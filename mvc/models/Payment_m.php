@@ -107,7 +107,8 @@ class Payment_m extends MY_Model {
 		}
 		$invoiceID = implode(",",$invoice_ids);
 		
-		$query = $this->db->query("SELECT * FROM `payment` p WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc")->result();
+		// echo "SELECT i.feetype,i.amount,w.weaver,p.* FROM `payment` p LEFT JOIN `invoice` i ON i.invoiceID = p.invoiceID left join weaverandfine w on w.invoiceID = p.invoiceID WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc";die;
+		$query = $this->db->query("SELECT i.feetype,i.amount,IFNULL((w.weaver), 0) AS weaver,p.* FROM `payment` p LEFT JOIN `invoice` i ON i.invoiceID = p.invoiceID left join weaverandfine w on w.invoiceID = p.invoiceID WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc")->result();
 		// echo "<pre>";print_r($query);die;
 		return $query;
 	}

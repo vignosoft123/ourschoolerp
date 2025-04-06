@@ -1,3 +1,61 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
+
+<style>
+    /* Fee Type Section */
+.fee-type {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+/* Fee Type Name Styling */
+.fee-type-name {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Total Amount Styling */
+.total-amount {
+    font-size: 0.9em;
+    color: #777;
+    display: block;
+    margin-top: 5px;
+    color : blue;
+    font-weight: bold;
+}
+
+/* Payment Details Styling */
+.payment-details {
+    margin: 5px 0;
+    font-size: 0.95em;
+}
+
+/* Paid Amount Styling */
+.paid-amount {
+    color: green;
+    font-weight: bold;
+}
+
+/* Remaining Balance Styling */
+.remaining-balance {
+    color: red;
+    font-weight: bold;
+}
+
+/* Separator Styling */
+.separator {
+    border: none;
+    height: 1px;
+    background-color: #ccc;
+    margin-top: 10px;
+}
+
+</style>
+
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
@@ -12,6 +70,9 @@
         ?>
 
         <button class="btn btn-default " id="send_sms_balance_btn"><span class="fa fa-send"></span> Send SMS</button>
+
+        <button id="exportButton">Export to Excel</button>
+
 
     </div>
 </div>
@@ -64,7 +125,7 @@
                 if(customCompute($students)) { ?>
                     <div class="col-sm-12">
                         <div id="hide-table">
-                            <table class="table table-bordered">
+                            <table class="table table-bordered" id="myTable">
                                 <thead>
                                     <tr>
                                         <th><?=$this->lang->line('slno')?></th>
@@ -78,11 +139,14 @@
                                           <th><?=$this->lang->line('balancefeesreport_section')?></th>
                                         <?php } ?>
                                         <th>Phone</th>
+                                        <th> In Details</th>
                                         <th><?=$this->lang->line('balancefeesreport_fees_amount')?></th>
+                                        <!-- <th>Amount By Type</th> -->
                                         <th>Discount/Weaver </th>
                                         <th><?=$this->lang->line('balancefeesreport_paid')?> </th>
+                                       
                                         <!-- <th><?=$this->lang->line('balancefeesreport_weaver')?> </th> -->
-                                        <th><?=$this->lang->line('balancefeesreport_balance') ?></th>
+                                        <th><?=$this->lang->line('balancefeesreport_balance') ?></th> 
                                         
                                    <th> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_balance">
                                             <br/>
@@ -135,12 +199,59 @@
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_roll')?>">
                                                     <?=$student->phone?>
                                                 </td>
+
+                                                <td>
+    <?php  
+    // Ensure that the 'totalPayment_split' and 'srstudentID' are properly set
+    if (isset($totalPayment_split[$student->srstudentID])) {
+        foreach ($totalPayment_split[$student->srstudentID] as $ksplit => $split) {
+            // Wrap each fee type in a div or paragraph for cleaner styling
+            echo '<div class="fee-type">';
+            
+            // Fee type with its total amount
+            echo '<strong class="fee-type-name">' . htmlspecialchars($ksplit) . '</strong>';
+            echo '<span class="total-amount">(' . number_format($split['total'], 2) . ')</span>';
+
+            // Paid amount
+            echo '<div class="payment-details"><strong>Paid: </strong><span class="paid-amount">' . number_format($split['paid'], 2) . '</span></div>';
+
+            // Remaining balance (ensure it's not negative)
+            $remaining = isset($split['remaining']) ? max(0, $split['remaining']) : 0;
+            echo '<div class="payment-details"><strong>Balance: </strong><span class="remaining-balance">' . number_format($remaining, 2) . '</span></div>';
+            
+            // Optional separator for each fee type
+            // echo '<hr class="separator">';
+            
+            echo '</div>';
+        }
+    } else {
+        echo '<p>No payments found for this student.</p>';
+    }
+    ?>
+</td>
+
+
+
+
+                                               
+
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_fees_amount')?>">
                                                     <?= $feeamount = isset($totalAmountAndDiscount[$student->srstudentID]['amount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['amount'],2) : number_format(0, 2)?>
+                                                   
                                                 </td>
+
+                                                <!-- <td>
+                                                    <div>
+                                                        <?php foreach($totalAmountAndDiscount[$student->srstudentID]['type'] as $f_types ){?>
+                                                            <p style="color:green"><b> <?= $f_types?> </b></p>
+                                                        <?php }?>
+                                                    </div>
+                                                </td> -->
+
+
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_discount')?>">
 
-
+                                                <?php //echo "<pre>"; print_r($totalweavar);die;?>
                                                    <?php 
                                                     $discount_plus_waver = $totalAmountAndDiscount[$student->srstudentID]['discount'] + $totalweavar[$student->srstudentID]['weaver'];
                                                     ?>
@@ -154,10 +265,9 @@
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_paid')?>">
                                                     <?= $paid = isset($totalPayment[$student->srstudentID]['payment']) ? number_format($totalPayment[$student->srstudentID]['payment'],2) : number_format(0, 2)?>
                                                 </td>
+                                             
 
-                                                <!-- <td data-title="<?=$this->lang->line('balancefeesreport_weaver')?>">
-                                                    <?=isset($totalweavar[$student->srstudentID]['weaver']) ? number_format($totalweavar[$student->srstudentID]['weaver'],2) : number_format(0, 2)?>
-                                                </td> -->
+                                        
 
 
                                                 <td data-title="<?=$this->lang->line('balancefeesreport_balance')?>">
@@ -179,7 +289,7 @@
                                                             $totalDiscount += $Discount;
                                                         }
 
-                                                        // echo "<pre>";print_r($totalPayment);die;
+                                                        //  echo "<pre>";print_r($totalPayment[$student->srstudentID]);die;
                                                         if(isset($totalPayment[$student->srstudentID]['payment'])) {
                                                             $Payment = $totalPayment[$student->srstudentID]['payment'];
                                                             $totalPayments += $Payment;
@@ -197,6 +307,7 @@
                                                         echo number_format($Balance,2);
                                                     ?>
                                                 </td>
+ 
 
                                                  <!-- //CONSTRUCT SEND MARKS SMS -->
                                                  <td>
@@ -475,3 +586,13 @@ $.ajax({
 
 
 </script>
+
+<script>
+        $(document).ready(function () {
+            $("#exportButton").click(function () {
+                var table = document.getElementById("myTable");
+                var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+                XLSX.writeFile(wb, "table_data.xlsx");
+            });
+        });
+    </script>

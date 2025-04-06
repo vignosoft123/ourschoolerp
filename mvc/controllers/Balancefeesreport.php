@@ -195,6 +195,10 @@ class Balancefeesreport extends Admin_Controller{
 					
 					$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new($schoolyearID,$feetypeID));
 
+					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new($schoolyearID,$feetypeID));
+
+					// echo "<pre>";print_r($this->data['totalPayment_split']);die;
+
 					$this->data['totalweavar'] = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
 
 					$retArray['render'] = $this->load->view('report/balancefees/BalanceFeesReport', $this->data, true);
@@ -821,6 +825,100 @@ class Balancefeesreport extends Admin_Controller{
 	    	exit;
 		}
 	}
+
+	/*private function totalPaymentAndWeaver_split($arrays) {
+		$totalPayment = [];
+		
+		// Check if the input array is not empty
+		if(customCompute($arrays)) {
+			// Loop through the array to calculate the total payments by student and fee type
+			foreach ($arrays as $key => $array) {
+				// Check if the student ID and fee type already exist in the totalPayment array
+				if (isset($totalPayment[$array->studentID][$array->feetype])) {
+					// Add the payment amount to the existing fee type for this student
+					$totalPayment[$array->studentID][$array->feetype] += $array->paymentamount;
+				} else {
+					// If not, create a new entry for this student and fee type
+					$totalPayment[$array->studentID][$array->feetype] = $array->paymentamount;
+				}
+			}
+		}
+	
+		// Return the total payments grouped by student ID and fee type
+		return $totalPayment;
+	}
+	*/
+
+	// private function totalPaymentAndWeaver_split($arrays) {
+	// 	// Initialize the array to hold the total payments and remaining amounts by student ID
+	// 	$totalPaymentByStudent = [];
+	
+	// 	// Check if the input array is not empty
+	// 	if (customCompute($arrays)) {
+	// 		// Loop through each payment record
+	// 		foreach ($arrays as $key => $array) {
+	// 			// Calculate the total payment amount for each student and fee type
+	// 			if (isset($totalPaymentByStudent[$array->studentID][$array->feetype])) {
+	// 				// Add the payment amount to the existing fee type
+	// 				$totalPaymentByStudent[$array->studentID][$array->feetype]['paid'] += $array->paymentamount;
+	// 			} else {
+	// 				// Initialize the fee type entry with the payment amount
+	// 				$totalPaymentByStudent[$array->studentID][$array->feetype] = [
+	// 					'paid' => $array->paymentamount,
+	// 					'total' => $array->amount,
+	// 					'remaining' => $array->amount - $array->paymentamount
+	// 				];
+	// 			}
+	
+	// 			// Recalculate the remaining amount for each fee type
+	// 			$totalPaymentByStudent[$array->studentID][$array->feetype]['remaining'] = 
+	// 				$totalPaymentByStudent[$array->studentID][$array->feetype]['total'] -
+	// 				$totalPaymentByStudent[$array->studentID][$array->feetype]['paid'];
+	// 		}
+	// 	}
+	
+	// 	// Return the total payments and remaining amounts by student ID and fee type
+	// 	return $totalPaymentByStudent;
+	// }
+	
+
+	private function totalPaymentAndWeaver_split($arrays) {
+		// Initialize the array to hold the total payments and remaining amounts by student ID
+		$totalPaymentByStudent = [];
+	
+		// Check if the input array is not empty
+		if (customCompute($arrays)) {
+			// Loop through each payment record
+			foreach ($arrays as $key => $array) {
+				// If the student and fee type already have an entry, update the payment amount and remaining
+				if (isset($totalPaymentByStudent[$array->studentID][$array->feetype])) {
+					// Add the payment amount to the existing fee type
+					$totalPaymentByStudent[$array->studentID][$array->feetype]['paid'] += $array->paymentamount;
+				} else {
+					// Initialize the fee type entry with the payment amount
+					$totalPaymentByStudent[$array->studentID][$array->feetype] = [
+						'paid' => $array->paymentamount,
+						'total' => $array->amount,  // Keep the total fee intact (without weaver deduction)
+						'remaining' => $array->amount - $array->paymentamount  // Calculate the initial remaining balance
+					];
+				}
+	
+				// Recalculate the remaining amount for each fee type considering the weaver
+				$totalPaymentByStudent[$array->studentID][$array->feetype]['remaining'] = 
+					$totalPaymentByStudent[$array->studentID][$array->feetype]['total'] - 
+					$totalPaymentByStudent[$array->studentID][$array->feetype]['paid'];
+	
+				// Subtract the weaver from the remaining balance
+				$totalPaymentByStudent[$array->studentID][$array->feetype]['remaining'] -= $array->weaver;
+			}
+		}
+	
+		// Return the total payments and remaining amounts by student ID and fee type
+		return $totalPaymentByStudent;
+	}
+	
+
+	
 
 }
 
