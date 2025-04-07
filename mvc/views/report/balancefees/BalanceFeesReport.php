@@ -340,11 +340,13 @@
                                             }
                                         ?>
                                                                             <td></td>
+                                                                            <td></td>
+                                                                            <td></td>
 
-                                        <td data-title="<?=$this->lang->line('balancefeesreport_grand_total')?>" class="text-right text-bold" colspan="<?=$colspan?>">
+                                        <td  data-title="<?=$this->lang->line('balancefeesreport_grand_total')?>" class="text-right text-bold" colspan="<?=$colspan?>">
                                             <?=$this->lang->line('balancefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?> </td>
 
-                                        <td data-title="<?=$this->lang->line('balancefeesreport_total_fees_amount')?>" class="text-bold"><?=number_format($totalAmount,2)?></td>
+                                        <td style="color:blue" data-title="<?=$this->lang->line('balancefeesreport_total_fees_amount')?>" class="text-bold"><?=number_format($totalAmount,2)?></td>
 
                                         <td data-title="<?=$this->lang->line('balancefeesreport_total_discount')?>" class="text-bold">
                                             <?php 
@@ -352,9 +354,9 @@
                                             echo number_format($d_w,2);?> 
                                         </td>
                                         
-                                        <td data-title="<?=$this->lang->line('balancefeesreport_total_paid')?>" class="text-bold"><?=number_format($totalPayments,2)?></td>
+                                        <td style="color:green" data-title="<?=$this->lang->line('balancefeesreport_total_paid')?>" class="text-bold"><?=number_format($totalPayments,2)?></td>
                                         <!-- <td data-title="<?=$this->lang->line('balancefeesreport_total_weaver')?>" class="text-bold"><?=number_format($totalWeaver,2)?></td> -->
-                                        <td data-title="<?=$this->lang->line('balancefeesreport_total_balance')?>" class="text-bold"><?=number_format($totalBalance,2)?></td>
+                                        <td style="color:red" data-title="<?=$this->lang->line('balancefeesreport_total_balance')?>" class="text-bold"><?=number_format($totalBalance,2)?></td>
                                     </tr>                             
                                 </tbody>
                             </table>

@@ -190,14 +190,16 @@
 
                                         $markpercentagesexamArr = isset($markpercentagesmainArr[$student->srclassesID]) ? $markpercentagesmainArr[$student->srclassesID] : [];
 
-                                        if(customCompute($markpercentagesexamArr)) { foreach($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
+                                        if(customCompute($markpercentagesexamArr)) { 
+                                            foreach($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
                                             reset($markpercentagessubjectArr);
                                             $firstindex          = key($markpercentagessubjectArr);
                                             $uniquepercentageArr = isset($markpercentagessubjectArr[$firstindex]) ? $markpercentagessubjectArr[$firstindex] : [];
                                             $uniqueandown        = (($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own';
                                             $markpercentages     = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : ''; ?>
                                             <th colspan="<?=customCompute($markpercentages)?>"><?=isset($exams[$examID]) ? $exams[$examID] : ''?></th>
-                                        <?php } } ?>
+                                        <?php }
+                                     } ?>
                                         <th rowspan="2"><?=$this->lang->line('studentsessionreport_total')?></th>
                                         <th rowspan="2"><?=$this->lang->line('studentsessionreport_grade')?></th>
                                         <th rowspan="2"><?=$this->lang->line('studentsessionreport_point')?></th>
@@ -208,7 +210,8 @@
                                         $totalColumn = 4;
                                         $leftColumn  = 0;
 
-                                        if(customCompute($markpercentagesexamArr)) { foreach($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
+                                        if(customCompute($markpercentagesexamArr)) { 
+                                            foreach($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
                                             reset($markpercentagessubjectArr);
                                             $firstindex          = key($markpercentagessubjectArr);
                                             $uniquepercentageArr = isset($markpercentagessubjectArr[$firstindex]) ? $markpercentagessubjectArr[$firstindex] : [];
@@ -218,7 +221,8 @@
                                             if($i == 1) {
                                                 $leftColumn  = customCompute($markpercentages) + 1;
                                             }
-                                            if(customCompute($markpercentages)) { foreach($markpercentages as $markpercentageID) { $totalColumn++; ?>
+                                            if(customCompute($markpercentages)) {
+                                                 foreach($markpercentages as $markpercentageID) { $totalColumn++; ?>
                                                 <th>
                                                     <?=isset($percentageArr[$markpercentageID]) ? substr($percentageArr[$markpercentageID]->markpercentagetype, 0, 2) : '';?>
                                                 </th>
@@ -358,12 +362,12 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_gpa')?></td>
-                                    <td colspan="<?=$totalColumn-$leftColumn?>">
+                                    <!-- <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_gpa')?></td> -->
+                                    <!-- <td colspan="<?=$totalColumn-$leftColumn?>">
                                         <?php 
-                                            echo ini_round($totalGpaPoint / $tSubject);
+                                            // echo ini_round($totalGpaPoint / $tSubject);
                                         ?>
-                                    </td>
+                                    </td> -->
                                 </tr>
                                 <tr>
                                     <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_from_teacher_remarks')?></td>

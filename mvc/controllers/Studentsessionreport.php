@@ -44,8 +44,9 @@ class Studentsessionreport extends Admin_Controller {
 				'assets/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js',
 			)
 		);
+		$this->data['classes'] = $this->classes_m->general_get_classes();
 		$schoolyearID            = $this->session->userdata('defaultschoolyearID');
-		$this->data['students']  = $this->studentrelation_m->general_get_order_by_student(['srschoolyearID'=> $schoolyearID]);
+		// $this->data['students']  = $this->studentrelation_m->general_get_order_by_student(['srschoolyearID'=> $schoolyearID]);
 		$this->data["subview"]   = "report/studentsession/StudentsessionReportView";
 		$this->load->view('_layout_main', $this->data);
 	}
@@ -56,6 +57,8 @@ class Studentsessionreport extends Admin_Controller {
 		if(permissionChecker('studentsessionreport')) {
 			if($_POST) {
 				$studentID  = $this->input->post('studentID');
+				$classID  = $this->input->post('classID');
+				$sectionID  = $this->input->post('sectionID');
 				$rules      = $this->rules();
 				$this->form_validation->set_rules($rules);
 				if ($this->form_validation->run() == FALSE) {
@@ -78,7 +81,8 @@ class Studentsessionreport extends Admin_Controller {
 					$optionalSubjects       = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 0)), 'obj', 'classesID', 'subjectID');
 
 					$settingmarktypeID      = $this->data['siteinfos']->marktypeID;
-					$markpercentagesmainArr = $this->marksetting_m->get_marksetting_markpercentages();
+					// $markpercentagesmainArr = $this->marksetting_m->get_marksetting_markpercentages();
+					$markpercentagesmainArr = $this->marksetting_m->get_marksetting_markpercentages_new($classID,$sectionID);
 					$percentageArr          = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
 					
 

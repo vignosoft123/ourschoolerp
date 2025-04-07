@@ -239,12 +239,41 @@ class Marksetting_m extends MY_Model {
 		return $retMarkpercentages;
 	}
 
+	private function prefixLoad($array) {
+		if(is_array($array)) {
+			if(customCompute($array)) {
+				foreach ($array as $arkey =>  $ar) {
+					$array['examschedule'.'.'.$arkey] = $ar;
+					unset($array[$arkey]);
+				}
+			}
+		}
+		return $array;
+	}
+
+	public function get_join_examschedule_with_exam_classes_section_subject($array) {
+		$array = $this->prefixLoad($array);
+		$this->db->select('*');
+		$this->db->from('examschedule');
+		$this->db->join('exam', 'exam.examID = examschedule.examID', 'LEFT');
+		$this->db->join('classes', 'classes.classesID = examschedule.classesID', 'LEFT');
+		$this->db->join('section', 'section.sectionID = examschedule.sectionID', 'LEFT');
+		$this->db->join('subject', 'subject.subjectID = examschedule.subjectID', 'LEFT');
+		$this->db->where($array)->order_by('edate');
+		$query = $this->db->get();
+		// echo $this->db->last_query();die;
+		return $query->result();
+		 
+	}
+
+
 	public function get_marksetting_markpercentages() {
 		$marktypeID = (int)$this->data['siteinfos']->marktypeID;
 		$exclassID  = (int)$this->data['siteinfos']->ex_class;
         $examID = (isset($_POST['examID'])) ? $_POST['examID'] : 0;
 		$classes    = $this->classes_m->get_order_by_classes([]);//'classesID !='=> $exclassID
 		$exams      = $this->exam_m->get_order_by_exam(['examID'=>$examID],FALSE);
+		 
 		if($examID==0)
 		{
 		    $exams      = $this->exam_m->get_order_by_exam([],FALSE);
@@ -423,4 +452,192 @@ class Marksetting_m extends MY_Model {
 		}
 		return $retMarkpercentages;
 	}
+
+	public function get_marksetting_markpercentages_new($classID,$sectionID) {
+		$marktypeID = (int)$this->data['siteinfos']->marktypeID;
+		$exclassID  = (int)$this->data['siteinfos']->ex_class;
+        $examID = (isset($_POST['examID'])) ? $_POST['examID'] : 0;
+		$classes    = $this->classes_m->get_order_by_classes([]);//'classesID !='=> $exclassID
+		// $exams      = $this->exam_m->get_order_by_exam(['examID'=>$examID],FALSE);
+		$exams      = $this->get_join_examschedule_with_exam_classes_section_subject(['classesID'=>$classID,'sectionID'=>$sectionID],FALSE);
+		if($examID==0)
+		{
+		    $exams      = $this->get_join_examschedule_with_exam_classes_section_subject([],FALSE);
+		    // $exams      = $this->exam_m->get_order_by_exam([],FALSE);
+		}
+		
+		$subjects   = pluck_multi_array($this->subject_m->get_subject(), 'obj', 'classesID');
+		
+		$marksettingrelations          = $this->get_marksetting_with_marksettingrelation();
+		$retglobalmarksettingArr       = [];
+		$retclasswisemarksettingArr    = [];
+		$retsubjectwisemarksettingArr  = [];
+		$retclassexamwisemarksettingArr= [];
+		$retclassexamsubjectsettingArr = [];
+
+		if(customCompute($marksettingrelations)) {
+			foreach ($marksettingrelations as $marksettingrelation) {
+				if($marksettingrelation->marktypeID != $marktypeID) {
+					continue;
+				}
+				$retglobalmarksettingArr[$marksettingrelation->examID][$marksettingrelation->markpercentageID] = $marksettingrelation->markpercentageID;
+				$retclasswisemarksettingArr[$marksettingrelation->examID][$marksettingrelation->classesID][$marksettingrelation->markpercentageID] = (int)$marksettingrelation->markpercentageID;
+				$retsubjectwisemarksettingArr[$marksettingrelation->classesID][$marksettingrelation->subjectID][$marksettingrelation->markpercentageID] = (int)$marksettingrelation->markpercentageID;
+				$retclassexamwisemarksettingArr[$marksettingrelation->classesID][$marksettingrelation->examID][$marksettingrelation->markpercentageID] = (int)$marksettingrelation->markpercentageID;
+				$retclassexamsubjectsettingArr[$marksettingrelation->classesID][$marksettingrelation->examID][$marksettingrelation->subjectID][$marksettingrelation->markpercentageID] = (int)$marksettingrelation->markpercentageID;
+						
+			}
+		}
+
+		$retMarkpercentages = [];
+		if(customCompute($classes)) {
+			foreach ($classes as $class) {
+				if($marktypeID == 0) {
+					if(customCompute($exams)) {
+						foreach($exams as $exam) {
+							if(isset($retglobalmarksettingArr[$exam->examID])) {
+								$subjectsArr          = isset($subjects[$class->classesID]) ? $subjects[$class->classesID] : [];
+								$retmarkpercentageArr = $retglobalmarksettingArr[$exam->examID];
+								asort($retmarkpercentageArr);
+								if(customCompute($subjectsArr)) {
+									foreach ($subjectsArr as $subject) {
+										$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['own'] = $retmarkpercentageArr;
+									}
+								}
+							}
+						}
+					}
+				} else if($marktypeID == 1) {
+					if(customCompute($exams)) {
+						foreach($exams as $exam) {
+							if(isset($retclasswisemarksettingArr[$exam->examID])) {
+								$subjectsArr               = isset($subjects[$class->classesID]) ? $subjects[$class->classesID] : [];
+								$retclassmarkpercentageArr = isset($retclasswisemarksettingArr[$exam->examID][$class->classesID]) ? $retclasswisemarksettingArr[$exam->examID][$class->classesID] : [];
+								asort($retclassmarkpercentageArr);
+								if(customCompute($subjectsArr)) {
+									foreach ($subjectsArr as $subject) {
+										$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['own'] = $retclassmarkpercentageArr;
+									}
+								}
+							}
+						}
+					}
+				} else if($marktypeID == 2) {
+					if(customCompute($exams)) {
+						foreach($exams as $exam) {
+							if(isset($retglobalmarksettingArr[$exam->examID])) {
+								$subjectsArr          = isset($subjects[$class->classesID]) ? $subjects[$class->classesID] : [];
+								$retmarkpercentageArr = $retglobalmarksettingArr[$exam->examID];
+								asort($retmarkpercentageArr);
+								if(customCompute($subjectsArr)) {
+									foreach ($subjectsArr as $subject) {
+										$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['own'] = $retmarkpercentageArr;
+									}
+								}
+							}
+						}
+					}
+				} else if($marktypeID == 3) {
+					if(customCompute($exams)) {
+						foreach($exams as $exam) {
+							if(isset($retglobalmarksettingArr[$exam->examID])) {
+								$subjectsArr          = isset($subjects[$class->classesID]) ? $subjects[$class->classesID] : [];
+								$retmarkpercentageArr = $retglobalmarksettingArr[$exam->examID];
+								asort($retmarkpercentageArr);
+								if(customCompute($subjectsArr)) {
+									foreach ($subjectsArr as $subject) {
+										$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['own'] = $retmarkpercentageArr;
+									}
+								}
+							}
+						}
+					}
+				} else if($marktypeID == 4) {
+					if(customCompute($exams)) {
+						foreach($exams as $exam) {
+							$subjectsArr         = isset($subjects[$class->classesID]) ? $subjects[$class->classesID] : [];
+							$uniquePercentageArr = [];
+							if(customCompute($subjectsArr)) {
+								foreach ($subjectsArr as $subject) {
+									$retmarkpercentageArr    = isset($retsubjectwisemarksettingArr[$class->classesID][$subject->subjectID]) ? $retsubjectwisemarksettingArr[$class->classesID][$subject->subjectID] : [];
+									asort($retmarkpercentageArr);
+									$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['own'] = $retmarkpercentageArr;
+
+									if(customCompute($retmarkpercentageArr)) {
+										foreach ($retmarkpercentageArr as $markpercentageID) {
+											if(!isset($uniquePercentageArr[$markpercentageID])) {
+												$uniquePercentageArr[$markpercentageID] = $markpercentageID; 
+											}
+										}
+									}
+								}
+							}
+
+							asort($uniquePercentageArr);
+							if(customCompute($subjectsArr)) {
+								foreach ($subjectsArr as $subject) {
+									$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['unique'] = $uniquePercentageArr;
+								}
+							}
+						}
+					}
+				} else if($marktypeID == 5) {
+					if(customCompute($exams)) {
+						foreach($exams as $exam) {
+							if(isset($retclassexamwisemarksettingArr[$class->classesID][$exam->examID])) {
+								$retmarkpercentageArr    = $retclassexamwisemarksettingArr[$class->classesID][$exam->examID];
+								asort($retmarkpercentageArr);
+								$subjectsArr  = isset($subjects[$class->classesID]) ? $subjects[$class->classesID] : [];
+								if(customCompute($subjectsArr)) {
+									foreach ($subjectsArr as $subject) {
+										$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['own'] = $retmarkpercentageArr;
+									}
+								}
+							}
+						}
+					}
+				} else if($marktypeID == 6) {
+					if(customCompute($exams)) {
+						foreach($exams as $exam) {
+							if(isset($retclassexamsubjectsettingArr[$class->classesID][$exam->examID])) {
+								$subjectsArr         = isset($subjects[$class->classesID]) ? $subjects[$class->classesID] : [];
+								$uniquePercentageArr = [];
+								if(customCompute($subjectsArr)) {
+									foreach ($subjectsArr as $subject) {
+										if(isset($retclassexamsubjectsettingArr[$class->classesID][$exam->examID][$subject->subjectID])) {
+
+											$retmarkpercentageArr    = $retclassexamsubjectsettingArr[$class->classesID][$exam->examID][$subject->subjectID];
+											asort($retmarkpercentageArr);
+											$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['own'] = $retmarkpercentageArr;
+
+											if(customCompute($retmarkpercentageArr)) {
+												foreach ($retmarkpercentageArr as $markpercentageID) {
+													if(!isset($uniquePercentageArr[$markpercentageID])) {
+														$uniquePercentageArr[$markpercentageID] = $markpercentageID; 
+													}
+												}
+											}
+
+										}
+									}
+
+								}
+
+								asort($uniquePercentageArr);
+								if(customCompute($subjectsArr)) {
+									foreach ($subjectsArr as $subject) {
+										if(isset($retclassexamsubjectsettingArr[$class->classesID][$exam->examID][$subject->subjectID])) {
+											$retMarkpercentages[$class->classesID][$exam->examID][$subject->subjectID]['unique'] = $uniquePercentageArr;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return $retMarkpercentages;
+	}
+
 }

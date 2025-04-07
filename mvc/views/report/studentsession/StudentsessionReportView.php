@@ -10,7 +10,7 @@
     <div class="box-body">
         <div class="row">
             <div class="col-sm-12">
-                <div class="form-group col-sm-4" id="studentDiv">
+                <!-- <div class="form-group col-sm-4" id="studentDiv">
                     <label><?=$this->lang->line("studentsessionreport_student")?> <span class="text-red"> * </span></label>
                     <?php
                         $studentArray[0] = $this->lang->line("studentsessionreport_please_select");
@@ -22,7 +22,36 @@
                         }
                         echo form_dropdown("studentID", $studentArray, set_value("studentID"), "id='studentID' class='form-control select2'");
                      ?>
+                </div> -->
+
+                <div class="form-group col-sm-4" id="classesDiv">
+                    <label>Class<span class="text-red"> * </span></label>
+                    <?php
+                        $classesArray['0'] = $this->lang->line("progresscardreport_please_select");
+                        if(customCompute($classes)) {
+                            foreach ($classes as $classaKey => $classa) {
+                                $classesArray[$classa->classesID] = $classa->classes;
+                            }
+                        }
+                        echo form_dropdown("classesID", $classesArray, set_value("classesID"), "id='classesID' class='form-control select2'");
+                     ?>
                 </div>
+                <div class="form-group col-sm-4" id="sectionDiv">
+                    <label>Section</label>
+                    <?php
+                        $sectionArray[0] = $this->lang->line("progresscardreport_please_select");
+                        echo form_dropdown("sectionID", $sectionArray, set_value("sectionID"), "id='sectionID' class='form-control select2'");
+                     ?>
+                </div>
+                <div class="form-group col-sm-4" id="studentDiv">
+                    <label>Student</label>
+                    <?php
+                        $studentArray[0] = $this->lang->line("progresscardreport_please_select");
+                        echo form_dropdown("studentID", $studentArray, set_value("studentID"), "id='studentID' class='form-control select2'");
+                     ?>
+                </div>
+
+
                 <div class="col-sm-4">
                     <button id="get_studentsessionreport" class="btn btn-success" style="margin-top:23px;"> <?=$this->lang->line("studentsessionreport_submit")?></button>
                 </div>
@@ -75,7 +104,8 @@
         $.ajax({
             type: 'POST',
             url: "<?=base_url('studentsessionreport/getstudentsessionreport')?>",
-            data: passData,
+            // data: passData,
+            data: {studentID : $("#studentID").val(),classID : $("#classesID").val(), sectionID : $("#sectionID").val()},
             dataType: "html",
             success: function(data) {
                 var response = JSON.parse(data);
@@ -106,6 +136,79 @@
             }
         }
     }
+
+    $(function(){
+        $("#examID").val(0);
+        $("#classesID").val(0);
+        $("#sectionID").val(0);
+        $("#studentID").val(0);
+        $('#classesDiv').show('slow');
+        $('#sectionDiv').hide('slow');
+        $('#studentDiv').hide('slow');
+    });
+
+    $(document).on('change',"#classesID", function() {
+        $('#load_progresscardreport').html("");
+        $('#sectionDiv').show('slow');
+        var classesID = $(this).val();
+        if(classesID == '0') {
+            $('#sectionDiv').hide('slow');
+            $('#studentDiv').hide('slow');
+            $('#examDiv').show('slow');
+            $('#examID').html('<option value="0">'+"<?=$this->lang->line("marksheetreport_please_select")?>"+'</option>');
+            $('#sectionID').html('<option value="0">'+"<?=$this->lang->line("progresscardreport_please_select")?>"+'</option>');
+            $('#sectionID').val('0');
+            $('#studentID').html('<option value="0">'+"<?=$this->lang->line("progresscardreport_please_select")?>"+'</option>');
+            $('#studentID').val('0');
+        } else {
+            $('#studentID').html('<option value="0">'+"<?=$this->lang->line("progresscardreport_please_select")?>"+'</option>');
+            $('#studentID').val('0');
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('progresscardreport/getSection')?>",
+                data: {"classesID" : classesID},
+                dataType: "html",
+                success: function(data) {
+                   $('#sectionID').html(data);
+                }
+            });
+            
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('marksheetreport/getExam')?>",
+                data: {"classesID" : classesID},
+                dataType: "html",
+                success: function(data) {
+                   $('#examID').html(data);
+                }
+            });
+        }
+    });
+
+
+    $(document).on('change',"#sectionID", function() {
+        $('#load_progresscardreport').html("");
+        $('#studentDiv').show('slow');
+        var classesID = $('#classesID').val();
+        var sectionID = $('#sectionID').val();
+
+        if(sectionID == '0') {
+            $('#studentDiv').hide('slow');
+            $('#studentID').html('<option value="0">'+"<?=$this->lang->line("progresscardreport_please_select")?>"+'</option>');
+            $('#studentID').val('0');
+        } else {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('progresscardreport/getStudent')?>",
+                data: {"classesID" : classesID,"sectionID" : sectionID},
+                dataType: "html",
+                success: function(data) {
+                  $('#studentID').html(data);
+                }
+            });
+        }
+    });
+
 </script>
 
 
