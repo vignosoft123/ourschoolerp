@@ -1088,6 +1088,8 @@ class Progresscardreport extends Admin_Controller {
 		$total_marks = $this->input->post('total_marks');
 		$exam_name = $this->input->post('exam_name');
 		$exam_date = $this->input->post('exam_date');
+		$this->data['setting'] = $this->setting_m->get_setting();
+		$school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
 
 		$total = 0; 
 
@@ -1100,8 +1102,8 @@ class Progresscardreport extends Admin_Controller {
 					$params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
 					$final_messege = $template1. '. Total: '.$total_marks[$key];
 					$final_messege = str_replace(',', '.', $final_messege);
-					$message = $params.','.$final_messege;
-					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,'exam_marks');
+					$message = $params.','.$final_messege.','.$school_name;
+					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,'mark_sms');
 		        
 		    }
 		}

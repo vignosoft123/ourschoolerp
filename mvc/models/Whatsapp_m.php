@@ -19,7 +19,7 @@ class Whatsapp_m extends MY_Model {
     }
   
 
-	function sendWhatsapp($to, $message, $template_name = '') {  
+	function sendWhatsapp($to, $message, $template_name = '') {  //send marks &
         // URL encode message and template name
         $msg = $message;
         $message = urlencode($message);
@@ -72,9 +72,9 @@ class Whatsapp_m extends MY_Model {
 
 
    
-	function whatsapp_config_send($user) {  
+	function whatsapp_config_send($user) {  //paid fee
 
-        $template_sql = "select params,template_name from whatapp_templates where template_name like '%paidfee_sms%' ";
+        $template_sql = "select params,template_name from whatapp_templates where template_name like '%FEE_PAID%' ";
 		$whatsapp_params = $this->db->query($template_sql)->row_array();
         $params = $whatsapp_params['params'];
         $template_name = $whatsapp_params['template_name'];

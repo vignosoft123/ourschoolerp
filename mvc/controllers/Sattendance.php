@@ -1672,7 +1672,7 @@ class Sattendance extends Admin_Controller
 		// $templateID = $this->data['setting']->attendance_notification_template;
 		// $mailandsmstemplate = $this->mailandsmstemplate_m->get_mailandsmstemplate($templateID);
 
-		 $template_sql = "select params,template_name from whatapp_templates where template_name like '%attendence_sms%' ";
+		 $template_sql = "select params,template_name from whatapp_templates where template_name like '%ATTENDANCE%' ";
 		$whatsapp_params = $this->db->query($template_sql)->row_array();
 
 		$objStudents = pluck($this->studentrelation_m->get_order_by_student(array('srschoolyearID' => $schoolyearID, 'srclassesID' => $classesID, 'srsectionID' => $sectionID), TRUE), 'obj', 'srstudentID');
