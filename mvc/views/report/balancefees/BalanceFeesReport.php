@@ -215,6 +215,8 @@
             // Paid amount
             echo '<div class="payment-details"><strong>Paid: </strong><span class="paid-amount">' . number_format($split['paid'], 2) . '</span></div>';
 
+            echo '<div class="payment-details"><strong>Discount: </strong><span class="paid-amount">' . number_format($split['total_discount_weaver'], 2) . '</span></div>';
+
             // Remaining balance (ensure it's not negative)
             $remaining = isset($split['remaining']) ? max(0, $split['remaining']) : 0;
             echo '<div class="payment-details"><strong>Balance: </strong><span class="remaining-balance">' . number_format($remaining, 2) . '</span></div>';

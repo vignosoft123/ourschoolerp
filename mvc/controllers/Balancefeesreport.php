@@ -882,7 +882,7 @@ class Balancefeesreport extends Admin_Controller{
 	// }
 	
 
-	private function totalPaymentAndWeaver_split($arrays) {
+	/*private function totalPaymentAndWeaver_split($arrays) {
 		// Initialize the array to hold the total payments and remaining amounts by student ID
 		$totalPaymentByStudent = [];
 	
@@ -915,9 +915,86 @@ class Balancefeesreport extends Admin_Controller{
 	
 		// Return the total payments and remaining amounts by student ID and fee type
 		return $totalPaymentByStudent;
-	}
-	
+	}*/
 
+
+	private function totalPaymentAndWeaver_split($arrays) {
+		$totalPaymentByStudent = [];
+	
+		if (customCompute($arrays)) {
+			foreach ($arrays as $key => $array) {
+				if (!isset($totalPaymentByStudent[$array->studentID][$array->feetype])) {
+					$totalPaymentByStudent[$array->studentID][$array->feetype] = [
+						'paid'                 => $array->paymentamount,
+						'total'                => $array->amount,
+						'discount'             => $array->discount,
+						'weaver'               => $array->weaver,
+						'total_discount_weaver'=> $array->discount + $array->weaver,
+						'remaining'            => $array->amount - $array->paymentamount - $array->discount - $array->weaver
+					];
+				} else {
+					$record = &$totalPaymentByStudent[$array->studentID][$array->feetype];
+	
+					$record['paid']     += $array->paymentamount;
+					$record['discount'] += $array->discount;
+					$record['weaver']   += $array->weaver;
+					$record['total_discount_weaver'] = $record['discount'] + $record['weaver'];
+					$record['remaining'] = $record['total'] - $record['paid'] - $record['discount'] - $record['weaver'];
+				}
+			}
+		}
+	
+		return $totalPaymentByStudent;
+	}
+
+	
+	
+	
+    public function all_class_wise() {
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$this->data['headerassets'] = array(
+			'css' => array(
+				'assets/datepicker/datepicker.css',
+				'assets/select2/css/select2.css',
+				'assets/select2/css/select2-bootstrap.css'
+			),
+			'js' => array(
+				'assets/datepicker/datepicker.js',
+				'assets/select2/select2.js'
+			)
+		);
+		$sql = "SELECT 
+					c.classes AS Classname,
+					SUM(i.amount) AS TotalFee,
+					SUM(IFNULL(payments.totalPayment, 0)) AS TotalPaid,
+					SUM(IFNULL(i.discount, 0) + IFNULL(waver.totalWeaver, 0)) AS TotalDiscount,
+					SUM(i.amount - (IFNULL(i.discount, 0) + IFNULL(waver.totalWeaver, 0)) - IFNULL(payments.totalPayment, 0)) AS TotalBalance
+				FROM invoice i
+				LEFT JOIN (
+					SELECT 
+						invoiceID, 
+						SUM(paymentamount) AS totalPayment
+					FROM payment
+					WHERE schoolyearID = $schoolyearID
+					GROUP BY invoiceID
+				) payments ON payments.invoiceID = i.invoiceID
+				LEFT JOIN (
+					SELECT 
+						invoiceID, 
+						SUM(weaver) AS totalWeaver
+					FROM weaverandfine
+					GROUP BY invoiceID
+				) waver ON waver.invoiceID = i.invoiceID
+				LEFT JOIN classes c ON c.classesID = i.classesID
+				WHERE i.schoolyearID = $schoolyearID
+				AND i.deleted_at = 1
+				GROUP BY i.classesID
+				ORDER BY c.classes";
+				$this->data['result'] = $this->db->query($sql)->result();
+
+		$this->data["subview"] = "report/balancefees/all_classes_wise_report";
+		$this->load->view('_layout_main', $this->data);
+	}
 	
 
 }

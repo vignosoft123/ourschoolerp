@@ -1,6 +1,13 @@
 <div class="box">
     <div class="box-header">
-        <h3 class="box-title"><i class="fa iniicon-balancefeesreport"></i> <?=$this->lang->line('panel_title')?></h3>
+        <h3 class="box-title"><i class="fa iniicon-balancefeesreport"></i> 
+        <?=$this->lang->line('panel_title')?>
+
+        <a style="margin-left: 20px;; background-color:rgb(2, 97, 95); color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;" target="_blank" href="<?php echo base_url('balancefeesreport/all_class_wise');?>"> <i class="fa iniicon-balancefeesreport"></i> All Class Wise Balance Report </a>
+    </h3>
+
+        
+
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li class="active"> <?=$this->lang->line('menu_balancefeesreport')?></li>

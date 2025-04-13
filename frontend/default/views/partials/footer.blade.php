@@ -87,6 +87,18 @@
                 <div class="col-sm-12">
                     <div class="copyright text-center">
                         {{ frontendData::get_backend('footer') }}
+
+                     <?php
+                     
+                     $compress = [];
+                     $query    = $this->db->get('setting');
+                     foreach ( $query->result() as $row ) {
+                         $compress[ $row->fieldoption ] = $row->value;
+                     }
+                     $a =  (object) $compress;
+                        // echo "<pre>";print_r($a);
+		               echo $a->footer ;
+                    ?>
                     </div>
                 </div>
             </div>

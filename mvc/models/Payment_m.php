@@ -107,8 +107,36 @@ class Payment_m extends MY_Model {
 		}
 		$invoiceID = implode(",",$invoice_ids);
 		
-		// echo "SELECT i.feetype,i.amount,w.weaver,p.* FROM `payment` p LEFT JOIN `invoice` i ON i.invoiceID = p.invoiceID left join weaverandfine w on w.invoiceID = p.invoiceID WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc";die;
-		$query = $this->db->query("SELECT i.feetype,i.amount,IFNULL((w.weaver), 0) AS weaver,p.* FROM `payment` p LEFT JOIN `invoice` i ON i.invoiceID = p.invoiceID left join weaverandfine w on w.invoiceID = p.invoiceID WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc")->result();
+		//echo "SELECT i.feetype,i.amount,IFNULL((w.weaver), 0) AS weaver,p.* FROM `payment` p LEFT JOIN `invoice` i ON i.invoiceID = p.invoiceID left join weaverandfine w on w.invoiceID = p.invoiceID WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc";die;
+
+		// $query = $this->db->query("SELECT i.feetype,i.amount,IFNULL((w.weaver), 0) AS weaver,p.* FROM `payment` p LEFT JOIN `invoice` i ON i.invoiceID = p.invoiceID left join weaverandfine w on w.invoiceID = p.invoiceID WHERE p.`schoolyearID` = '".$schoolyearID."' and p.invoiceID in ($invoiceID) ORDER BY p.`paymentID` desc")->result();
+
+		$query = $this->db->query("SELECT 
+    i.invoiceID,
+    i.feetype,
+    i.amount,
+    IFNULL(i.discount, 0) AS discount,
+    IFNULL(w.weaver, 0) AS weaver,
+    SUM(p.paymentamount) AS paymentamount,
+    p.studentID
+FROM payment p
+LEFT JOIN invoice i ON i.invoiceID = p.invoiceID
+LEFT JOIN (
+    SELECT invoiceID, SUM(weaver) AS weaver
+    FROM weaverandfine
+    GROUP BY invoiceID
+) w ON w.invoiceID = p.invoiceID
+WHERE p.schoolyearID = '$schoolyearID'
+AND p.invoiceID IN ($invoiceID)
+GROUP BY i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, p.studentID
+ORDER BY i.invoiceID DESC
+
+
+
+")->result();
+
+
+		
 		// echo "<pre>";print_r($query);die;
 		return $query;
 	}
