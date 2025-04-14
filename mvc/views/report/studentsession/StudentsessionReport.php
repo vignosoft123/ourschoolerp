@@ -370,15 +370,15 @@
                                     </td> -->
                                 </tr>
                                 <tr>
-                                    <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_from_teacher_remarks')?></td>
+                                    <td colspan="<?=$leftColumn?>">Teacher Signature</td>
                                     <td colspan="<?=$totalColumn-$leftColumn?>"></td>
                                 </tr>
                                 <tr>
-                                    <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_house_teacher_remarks')?></td>
+                                    <td colspan="<?=$leftColumn?>">Correspondant Signature</td>
                                     <td colspan="<?=$totalColumn-$leftColumn?>"></td>
                                 </tr>
                                 <tr>
-                                    <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_principal_remarks')?></td>
+                                    <td colspan="<?=$leftColumn?>">Parent or Guardian Siganture</td>
                                     <td colspan="<?=$totalColumn-$leftColumn?>"></td>
                                 </tr>
 
