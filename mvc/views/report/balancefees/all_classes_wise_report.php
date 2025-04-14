@@ -1,6 +1,6 @@
 <?php
-header("Content-Type: application/vnd.ms-excel");
-header("Content-Disposition: attachment; filename=report.xls");
+// header("Content-Type: application/vnd.ms-excel");
+// header("Content-Disposition: attachment; filename=report.xls");
 ?>
 
 <style>
@@ -112,23 +112,23 @@ header("Content-Disposition: attachment; filename=report.xls");
 
  
 <script>
-function exportTableToExcel(tableID='myTable', filename = '') {
-    const dataType = 'application/vnd.ms-excel';
-    const tableSelect = document.getElementById(tableID);
-    const tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+// function exportTableToExcel(tableID='myTable', filename = '') {
+//     const dataType = 'application/vnd.ms-excel';
+//     const tableSelect = document.getElementById(tableID);
+//     const tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
 
-    filename = filename ? filename + '.xls' : 'excel_data.xls';
+//     filename = filename ? filename + '.xls' : 'excel_data.xls';
 
-    const downloadLink = document.createElement("a");
-    document.body.appendChild(downloadLink);
+//     const downloadLink = document.createElement("a");
+//     document.body.appendChild(downloadLink);
 
-    if (navigator.msSaveOrOpenBlob) {
-        const blob = new Blob(['\ufeff', tableHTML], { type: dataType });
-        navigator.msSaveOrOpenBlob(blob, filename);
-    } else {
-        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
-        downloadLink.download = filename;
-        downloadLink.click();
-    }
-}
+//     if (navigator.msSaveOrOpenBlob) {
+//         const blob = new Blob(['\ufeff', tableHTML], { type: dataType });
+//         navigator.msSaveOrOpenBlob(blob, filename);
+//     } else {
+//         downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+//         downloadLink.download = filename;
+//         downloadLink.click();
+//     }
+// }
 </script>
