@@ -198,7 +198,7 @@
 
                                     <?php if(permissionChecker('invoice_view') || permissionChecker('invoice_edit') || permissionChecker('invoice_delete')) { ?>
                                     <td data-title="<?=$this->lang->line('action')?>">
-                                        <?php echo btn_view('invoice/view/'.$maininvoice->maininvoiceID, $this->lang->line('view')) ?>
+                                        <?php echo btn_view('invoice/view/'.$maininvoice->maininvoiceID.'/'.$maininvoice->srstudentID, $this->lang->line('view')) ?>
                                         <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) { ?>
                                             <?php 
                                                 if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {

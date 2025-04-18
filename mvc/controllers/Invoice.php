@@ -323,6 +323,7 @@ class Invoice extends Admin_Controller
         $schoolyearID           = $this->session->userdata('defaultschoolyearID');
         $this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(), 'feetypes', 'feetypesID');
       
+        $stu_id = htmlentities(escapeString($this->uri->segment(4)));
         if($usertypeID == 3) {
             $id = htmlentities(escapeString($this->uri->segment(3)));
             if((int)$id) {
@@ -331,11 +332,12 @@ class Invoice extends Admin_Controller
                     "srstudentID"    => $studentID,
                     'srschoolyearID' => $schoolyearID
                 ]);
+                
                 if(customCompute($getstudent)) {
                     $this->data['maininvoice'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_maininvoiceID($id, $schoolyearID);
                   
                     if(customCompute($this->data['maininvoice']) && ($this->data['maininvoice']->maininvoicestudentID == $getstudent->studentID)) {
-                        $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(['maininvoiceID' => $id]);
+                        $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(['maininvoiceID' => $id,'studentID' => $stu_id]);
 
                         $this->data['grandtotalandpayment'] = $this->grandtotalandpaidsingle($this->data['maininvoice'], $schoolyearID, $this->data["maininvoice"]->maininvoicestudentID);
 
@@ -375,7 +377,7 @@ class Invoice extends Admin_Controller
                     $this->data['maininvoice'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_maininvoiceID($id, $schoolyearID);
                     if($this->data['maininvoice']) {
                         if(in_array($this->data['maininvoice']->maininvoicestudentID, $fetchStudent)) {
-                            $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(['maininvoiceID' => $id]);
+                            $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(['maininvoiceID' => $id,'studentID' => $stu_id]);
 
                             $this->data['grandtotalandpayment'] = $this->grandtotalandpaidsingle($this->data['maininvoice'], $schoolyearID, $this->data["maininvoice"]->maininvoicestudentID);
 
@@ -406,7 +408,7 @@ class Invoice extends Admin_Controller
             if((int)$id) {
                 $this->data['maininvoice'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_maininvoiceID($id, $schoolyearID);
                 
-                $this->data['invoices']    = $this->invoice_m->get_order_by_invoice(['maininvoiceID' => $id]);
+                $this->data['invoices']    = $this->invoice_m->get_order_by_invoice(['maininvoiceID' => $id,'studentID' => $stu_id]);
     
                 if(customCompute($this->data["maininvoice"])) {
                     $this->data['grandtotalandpayment'] = $this->grandtotalandpaidsingle($this->data['maininvoice'], $schoolyearID, $this->data["maininvoice"]->maininvoicestudentID);

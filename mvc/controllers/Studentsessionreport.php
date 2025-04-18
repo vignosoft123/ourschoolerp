@@ -51,6 +51,82 @@ class Studentsessionreport extends Admin_Controller {
 		$this->load->view('_layout_main', $this->data);
 	}
 
+	public function getstudentsessionreport_bkp () {
+		$retArray['status'] = FALSE;
+		$retArray['render'] = '';
+		if(permissionChecker('studentsessionreport')) {
+			if($_POST) {
+				$studentID  = $this->input->post('studentID');
+				$classID  = $this->input->post('classID');
+				$sectionID  = $this->input->post('sectionID');
+				$rules      = $this->rules();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					$retArray = $this->form_validation->error_array();
+					$retArray['status'] = FALSE;
+				    echo json_encode($retArray);
+				    exit;
+				} else {
+
+					$markArray    = [];
+					$queryArray   = [];
+					if((int)$studentID > 0) {
+						$markArray['studentID']    = $studentID;
+						$queryArray['srstudentID'] = $studentID;
+					}
+
+					$students               = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srschoolyearID');
+					$marks                  = $this->mark_m->student_all_mark_array($markArray);
+					$mandatorySubjects      = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 1)), 'obj', 'classesID', 'subjectID');
+					$optionalSubjects       = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 0)), 'obj', 'classesID', 'subjectID');
+
+					$settingmarktypeID      = $this->data['siteinfos']->marktypeID;
+					// $markpercentagesmainArr = $this->marksetting_m->get_marksetting_markpercentages();
+					$markpercentagesmainArr = $this->marksetting_m->get_marksetting_markpercentages_new($classID,$sectionID);
+					$percentageArr          = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
+					
+
+
+					$retMark = [];
+					if(customCompute($marks)) {
+						foreach ($marks as $mark) {
+							$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+						}
+					}
+
+					$this->data['classes']           = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+					$this->data['sections']          = pluck($this->section_m->general_get_section(),'section','sectionID');
+					$this->data['groups']            = pluck($this->studentgroup_m->get_studentgroup(),'group','studentgroupID');
+					$this->data['exams']             = pluck($this->exam_m->get_exam(),'exam','examID');
+					$this->data['grades']            = $this->grade_m->get_grade();
+					$this->data['schoolyears']       = pluck($this->schoolyear_m->get_schoolyear(),'schoolyear','schoolyearID');
+
+					$this->data['studentID']         = $studentID;
+					$this->data['retMark']           = $retMark;
+					$this->data['percentageArr']     = $percentageArr;
+					$this->data['mandatorySubjects'] = $mandatorySubjects;
+					$this->data['optionalSubjects']  = $optionalSubjects;					
+					$this->data['students']          = $students;
+					$this->data['settingmarktypeID']       = $settingmarktypeID;
+					$this->data['markpercentagesmainArr']  = $markpercentagesmainArr;
+
+					$retArray['render'] = $this->load->view('report/studentsession/StudentsessionReport',$this->data,true);
+					$retArray['status'] = TRUE;
+					echo json_encode($retArray);
+					exit();
+				}
+			} else {
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+			$retArray['status'] = TRUE;
+			echo json_encode($retArray);
+			exit;
+		}
+	}
+
 	public function getstudentsessionreport () {
 		$retArray['status'] = FALSE;
 		$retArray['render'] = '';
@@ -127,6 +203,7 @@ class Studentsessionreport extends Admin_Controller {
 		}
 	}
 
+	
 	public function pdf() {
 		if(permissionChecker('studentsessionreport')) {
 			$studentID    = htmlentities(escapeString($this->uri->segment(3)));

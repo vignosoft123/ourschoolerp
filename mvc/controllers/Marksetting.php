@@ -422,7 +422,8 @@ class Marksetting extends Admin_Controller {
 				}
 
 				$this->session->set_flashdata('success', "Success");
-				redirect(base_url('marksetting/index'));
+				// redirect(base_url('marksetting/index'));
+				redirect(base_url('examschedule'));
 			}
 		} else {
 			$this->data["subview"]          = "marksetting/index";

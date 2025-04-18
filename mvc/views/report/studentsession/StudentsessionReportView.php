@@ -83,12 +83,12 @@
             'studentID'   : $('#studentID').val(), 
         };
 
-        if (field['studentID'] == 0) {
-            $('#studentDiv').addClass('has-error');
-            error++;
-        } else {
-            $('#studentDiv').removeClass('has-error');
-        }
+       // if (field['studentID'] == 0) {
+        //     // $('#studentDiv').addClass('has-error');
+        //     error++;
+        // } else {
+        //     $('#studentDiv').removeClass('has-error');
+        // }
 
         if (error == 0) {
             makingPostDataPreviousofAjaxCall(field);

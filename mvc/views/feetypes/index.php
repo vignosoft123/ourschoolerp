@@ -31,12 +31,70 @@
                            Term Fee Setup
                         </a>
 
+                         <a  data-toggle="modal" data-target="#admission_fee_popup" > <i title="addmission fee" class="fa fa-edit"></i>  Admission Fee</a>
+
                     </h5>
 
                     
 
 
                 <?php } ?>
+
+
+<!-- Admission fee setup   Modal  start Structure -->
+<div class="modal fade" id="admission_fee_popup" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileUploadModalLabel">Change Amount</h5>
+                    <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
+                </div>
+                <div class="modal-body">
+                    <!-- Form for File Upload -->
+                    <div class="row">
+            <div class="col-sm-10">
+                
+                <form class="form-horizontal" role="form" method="post" action="<?php echo base_url('Feetypes/saveAdmissionfee');?>">
+
+                    <?php 
+                        if(form_error('feetypes')) 
+                            echo "<div class='form-group has-error' >";
+                        else     
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="feetypes" class="col-sm-6 control-label">
+                            Admission Fee Amount <span class="text-red">*</span>
+                        </label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" id="a_fee_amount" name="a_fee_amount" value="<?php echo $adminssion_fee_data['fee_amount']?>" >
+                            <input type="hidden" name="fee_type_id" value="<?php echo $adminssion_fee_data['feetypesID']?>">
+                        </div>
+                        <span class="col-sm-4 control-label">
+                            <?php echo form_error('feetypes'); ?>
+                        </span>
+                    </div>
+
+                     
+
+  
+
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-8">
+                            <input type="submit" class="btn btn-success" value="Add Admission Fee" >
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+
+                </div>
+            </div>
+        </div>
+    </div> 
+<!-- Admission fee modal end -->
+
 
                 <div id="hide-table">
                     <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">

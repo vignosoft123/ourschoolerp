@@ -26,6 +26,13 @@ class Feetypes extends Admin_Controller {
 
 		$this->auto_generate_term_fee_types();
 
+		$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+                
+		$res = $this->db->query('select * from feetypes where feetypes like "Admission Fee" and school_year_id= "'.$schoolyearID.'" ')->row_array();
+		if(!empty($res)){
+			$this->data['adminssion_fee_data'] = $res;
+		}
+
 		$this->data['feetypes'] = $this->feetypes_m->get_feetypes();
 		$this->data["subview"] = "feetypes/index";
 		$this->load->view('_layout_main', $this->data);
@@ -352,6 +359,27 @@ class Feetypes extends Admin_Controller {
 				$this->load->view('_layout_main', $this->data);
 			}
 		}  
+	}
+
+	public function saveAdmissionfee(){
+
+		$a_fee_amount       = $this->input->post('a_fee_amount'); 
+		$fee_type_id       = $this->input->post('fee_type_id'); 
+		$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+		$i_data = array(
+			'school_year_id' => $schoolyearID,
+			'fee_amount' => $a_fee_amount,
+			'feetypes' => 'Admission Fee',
+			'created_by' => $this->session->userdata('usertypeID')
+		);
+		if(!empty($fee_type_id)){
+			$this->db->where('feetypesID',$fee_type_id);
+			$this->db->update('feetypes',$i_data);
+		}else{
+			$this->db->insert('feetypes',$i_data);
+		}
+		redirect(base_url("feetypes/index"));
+
 	}
 
 }

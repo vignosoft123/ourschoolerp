@@ -251,20 +251,59 @@ class Marksetting_m extends MY_Model {
 		return $array;
 	}
 
-	public function get_join_examschedule_with_exam_classes_section_subject($array) {
+	/*public function get_join_examschedule_with_exam_classes_section_subject($classID,$sectionID) {
 		$array = $this->prefixLoad($array);
-		$this->db->select('*');
+		$this->db->distinct(); // Make results distinct
+		$this->db->select('exam.examID'); // Select only examID (you can add exam.exam if needed)
 		$this->db->from('examschedule');
 		$this->db->join('exam', 'exam.examID = examschedule.examID', 'LEFT');
 		$this->db->join('classes', 'classes.classesID = examschedule.classesID', 'LEFT');
 		$this->db->join('section', 'section.sectionID = examschedule.sectionID', 'LEFT');
 		$this->db->join('subject', 'subject.subjectID = examschedule.subjectID', 'LEFT');
-		$this->db->where($array)->order_by('edate');
-		$query = $this->db->get();
+		$this->db->join('mark', 'mark.examID = examschedule.examID', 'LEFT');
+		$this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
+		
+		$this->db->where('markrelation.mark IS NOT NULL');
+		$this->db->where('mark.studentID', 1);
+		$this->db->where('mark.classesID', $classID);
+ 		$query = $this->db->get();
 		// echo $this->db->last_query();die;
 		return $query->result();
 		 
+	}*/
+
+	public function get_join_examschedule_with_exam_classes_section_subject($classID, $sectionID) {
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+		$this->db->select('
+			exam.examID,
+			mark.studentID,
+			mark.classesID,
+			mark.subjectID,
+			markrelation.mark,
+			markrelation.markpercentageID,
+			subject.subjectID,
+			examschedule.sectionID
+		');
+		$this->db->from('examschedule');
+		$this->db->join('exam', 'exam.examID = examschedule.examID', 'LEFT');
+		$this->db->join('classes', 'classes.classesID = examschedule.classesID', 'LEFT');
+		$this->db->join('section', 'section.sectionID = examschedule.sectionID', 'LEFT');
+		$this->db->join('subject', 'subject.subjectID = examschedule.subjectID', 'LEFT');
+		$this->db->join('mark', 'mark.examID = examschedule.examID AND mark.subjectID = examschedule.subjectID', 'LEFT');
+		$this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
+	
+		// Filtering
+		$this->db->where('markrelation.mark IS NOT NULL');
+		$this->db->where('mark.classesID', $classID);
+		$this->db->where('examschedule.sectionID', $sectionID);
+		$this->db->where('mark.schoolyearID', $schoolyearID);
+	
+		$query = $this->db->get();
+		// echo $this->db->last_query();die;
+		return $query->result();
 	}
+	
 
 
 	public function get_marksetting_markpercentages() {
@@ -459,10 +498,10 @@ class Marksetting_m extends MY_Model {
         $examID = (isset($_POST['examID'])) ? $_POST['examID'] : 0;
 		$classes    = $this->classes_m->get_order_by_classes([]);//'classesID !='=> $exclassID
 		// $exams      = $this->exam_m->get_order_by_exam(['examID'=>$examID],FALSE);
-		$exams      = $this->get_join_examschedule_with_exam_classes_section_subject(['classesID'=>$classID,'sectionID'=>$sectionID],FALSE);
+		$exams      = $this->get_join_examschedule_with_exam_classes_section_subject($classID,$sectionID);
 		if($examID==0)
 		{
-		    $exams      = $this->get_join_examschedule_with_exam_classes_section_subject([],FALSE);
+		    $exams      = $this->get_join_examschedule_with_exam_classes_section_subject($classID,$sectionID);
 		    // $exams      = $this->exam_m->get_order_by_exam([],FALSE);
 		}
 		

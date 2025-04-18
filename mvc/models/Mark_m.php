@@ -97,6 +97,41 @@ class Mark_m extends MY_Model {
 		return $query->result();
 	}
 
+	public function student_all_mark_array_new($array) {
+		$this->db->select('*');
+		$this->db->from('mark');
+		$this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
+	
+		if (isset($array['subjectID'])) {
+			$this->db->where('mark.subjectID', $array['subjectID']);
+		}
+	
+		if (isset($array['schoolyearID'])) {
+			$this->db->where('mark.schoolyearID', $array['schoolyearID']);
+		}
+	
+		if (isset($array['examID'])) {
+			$this->db->where('mark.examID', $array['examID']);
+		}
+	
+		if (isset($array['classesID'])) {
+			$this->db->where('mark.classesID', $array['classesID']);
+		}
+	
+		if (isset($array['studentID'])) {
+			$this->db->where('mark.studentID', $array['studentID']);
+		}
+	
+		// ✅ NEW: Support multiple students
+		if (isset($array['studentIDs']) && is_array($array['studentIDs']) && count($array['studentIDs']) > 0) {
+			$this->db->where_in('mark.studentID', $array['studentIDs']);
+		}
+	
+		$query = $this->db->get();
+		return $query->result();
+	}
+	
+
 	public function count_subject_mark($studentID, $classesID, $subjectID) {
 		$query = "SELECT COUNT(*) as 'total_semester' FROM mark WHERE studentID = $studentID AND classesID = $classesID AND subjectID = $subjectID AND (mark != '' || mark <= 0 || mark >0)";
 	    $query = $this->db->query($query);

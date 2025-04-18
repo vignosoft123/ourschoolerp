@@ -1164,6 +1164,7 @@ class Student extends Admin_Controller
 
 					$subtotal_amount =$amount;
 
+					// print_r($admission_fee_type);die;
 					//admission fee added to invoice start
 					if( $this->input->post("add_admission_fee_invoice") == 1 && !empty($admission_fee_type)  ){
 						if($this->input->post('studentType') == 3){ //dayscolar
@@ -1272,7 +1273,7 @@ class Student extends Admin_Controller
 						)];
 					}
  					
-				}
+					}
 					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
 					
 
@@ -1325,40 +1326,22 @@ class Student extends Admin_Controller
 
 					$term_res = $this->db->query("SELECT * FROM `term_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
 					
+
+					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
+
 					$term1 = $term_res['term1_fee'];
 					$term2 = $term_res['term2_fee'];
 					$term3 = $term_res['term3_fee'];
 
 					$subtotal_amount =$term1+$term2+$term3;
 
-					if($this->input->post('studentType') == 3){ //dayscolar
+					if( $this->input->post("add_admission_fee_invoice") == 1 && !empty($admission_fee_type)  ){
+
+						if($this->input->post('studentType') == 3){ //dayscolar
 						
 
-						$fee_types = [
-							array(	//term1
-							'feetypeID' => $term1_fee_type['feetypesID'],
-							'amount' => $term1,
-							'discount' => "",
-							'subtotal' => $term1,
-							'paidamount' => "",
-						),array(	//term2
-							'feetypeID' => $term2_fee_type['feetypesID'],
-							'amount' => $term2,
-							'discount' => "",
-							'subtotal' => $term2,
-							'paidamount' => "",
-						),array(	//term3
-							'feetypeID' => $term3_fee_type['feetypesID'],
-							'amount' => $term3,
-							'discount' => "",
-							'subtotal' => $term3,
-							'paidamount' => "",
-						)
-					];
-						
-					}else if($this->input->post('studentType') == 1){ //trasport
-						$fee_types = [
-							array(	//term1
+							$fee_types = [
+								array(	//term1
 								'feetypeID' => $term1_fee_type['feetypesID'],
 								'amount' => $term1,
 								'discount' => "",
@@ -1376,18 +1359,96 @@ class Student extends Admin_Controller
 								'discount' => "",
 								'subtotal' => $term3,
 								'paidamount' => "",
-							),array(	//transport
-							'feetypeID' => $fee_type_trasport['feetypesID'],
-							'amount' => $p_amount,
-							'discount' => "",
-							'subtotal' => $p_amount,
-							'paidamount' => "",
-						)
-					];
-						
-					}if($this->input->post('studentType') == 2){ //hostel
-						$fee_types = [
-							array(	//term1
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//transport
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//hostel
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+						}
+
+					}else{
+
+						if($this->input->post('studentType') == 3){ //dayscolar
+							
+
+							$fee_types = [
+								array(	//term1
 								'feetypeID' => $term1_fee_type['feetypesID'],
 								'amount' => $term1,
 								'discount' => "",
@@ -1405,14 +1466,67 @@ class Student extends Admin_Controller
 								'discount' => "",
 								'subtotal' => $term3,
 								'paidamount' => "",
-							),array(	//hostel
-							'feetypeID' => $fee_type_hostel['feetypesID'],
-							'amount' => $h_amount,
-							'discount' => "",
-							'subtotal' => $h_amount,
-							'paidamount' => "",
-						)
-					];
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//transport
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//hostel
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							)
+						];
+						}
 					}
  					
 					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
