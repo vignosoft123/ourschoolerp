@@ -901,6 +901,8 @@ class Student extends Admin_Controller
 			$this->data['randomAdmissionCode'] = $this->getAdmissonNumber($settings);
 			$this->data['transports'] = $this->transport_m->get_transport();
 			$this->data["hostels"] = $this->hostel_m->get_hostel();
+			$this->data['teachers'] = pluck($this->teacher_m->get_teacher(), 'name', 'teacherID');
+			// print_r($this->data['teachers'] );die;
 
 			
 

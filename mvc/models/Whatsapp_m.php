@@ -17,7 +17,45 @@ class Whatsapp_m extends MY_Model {
         $this->username = $msg91_bind['whatsapp_user'];
         $this->password = $msg91_bind['whatsapp_password']; 
     }
+
+	  public function get_whatsapp_credits()
+        {
+             $get_msg91s = $this->smssettings_m->get_order_by_whatsapp(); 
+            if(isset($get_msg91s[1]->field_values) && isset($get_msg91s[2]->field_values))
+            {
+                $user_name = $get_msg91s[1]->field_values;
+                $password = $get_msg91s[2]->field_values; 
+               $url = "http://bwa.mindwhile.com/api/checkbalance.php?user=$user_name&pass=$password";
+               $result = file_get_contents($url); 
+                if(!empty($result))
+                {
+                    return $result;
+                }
+            }
+            return 0;
+        }
   
+		function url_get_contents ($url) {
+            // echo $url;
+                        
+            $ch = curl_init(); 
+            curl_setopt($ch, CURLOPT_URL, $url);
+
+            // 3. set cURL to return as a string
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            // 4. execute cURL and store the result
+            $output = curl_exec($ch);
+
+            if (curl_errno($ch)) {
+               echo $error_msg = curl_error($ch);die;
+            }
+
+            // 5. close cURL after use
+            curl_close($ch);
+ 
+            print_r($output) ;die;
+        }
 
 	function sendWhatsapp($to, $message, $template_name = '') {  //send marks &
         // URL encode message and template name
@@ -314,4 +352,6 @@ class Whatsapp_m extends MY_Model {
 		return $message;
 	}
     
+
+
 }

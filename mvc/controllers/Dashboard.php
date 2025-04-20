@@ -54,6 +54,8 @@ if ( !defined('BASEPATH') ) {
             $this->load->model('make_payment_m');
             $this->load->model('maininvoice_m');
             $this->load->model('studentrelation_m');
+            $this->load->model('Whatsapp_m');
+
             $language = $this->session->userdata('lang');
             $this->lang->load('dashboard', $language);
 
@@ -379,8 +381,9 @@ if ( !defined('BASEPATH') ) {
             }
             $this->data['sms_count'] = $this->get_sms_credits();
             $this->data['voice_count'] = $this->get_voice_credits('voice');
-            $this->data['whatsapp_count'] = $this->get_voice_credits('whatsapp');
+            // $this->data['whatsapp_count'] = $this->get_voice_credits('whatsapp');
             // $this->data['whatsapp_count'] = $this->get_whatsapp_credits();
+            $this->data['whatsapp_count'] = $this->Whatsapp_m->get_whatsapp_credits();
 
             $this->db->where('fieldoption',"is_fee_sms");
             $is_fee_sms = $this->db->get('setting')->num_rows();

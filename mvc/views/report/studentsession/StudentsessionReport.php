@@ -190,6 +190,9 @@
 
                                         $markpercentagesexamArr = isset($markpercentagesmainArr[$student->srclassesID]) ? $markpercentagesmainArr[$student->srclassesID] : [];
 
+                                        // echo '<pre>';print_r($mandatorySubjects);die;
+
+
                                         if(customCompute($markpercentagesexamArr)) { 
                                             foreach($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
                                             reset($markpercentagessubjectArr);
@@ -224,7 +227,7 @@
                                             if(customCompute($markpercentages)) {
                                                  foreach($markpercentages as $markpercentageID) { $totalColumn++; ?>
                                                 <th>
-                                                    <?=isset($percentageArr[$markpercentageID]) ? substr($percentageArr[$markpercentageID]->markpercentagetype, 0, 2) : '';?>
+                                                    <?=isset($percentageArr[$markpercentageID]) ? 'sss'.substr($percentageArr[$markpercentageID]->markpercentagetype, 0, 2) : '';?>
                                                 </th>
                                         <?php } } } } ?>
                                     </tr>

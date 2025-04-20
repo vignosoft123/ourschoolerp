@@ -993,6 +993,43 @@
         </div> 
     </div> <!----------End Hostel details ----------->
 
+
+
+    <!-- reference details start -->
+
+    <div class="student-address-sec">
+            <h2 class="h2-title">Reference Details</h2>
+            <div class="row">
+          
+
+                <?php
+                if (form_error('refered_by'))
+                    echo "<div class='col-md-4 has-error' >";
+                else
+                    echo "<div class='col-md-4' >";
+                ?>
+                <label for="refered_by" class="  control-label">
+                    Refered By <span class="text-red">*</span>
+                    <a title="Add Teacher" target="_blank" href="<?= base_url('teacher/add');?>" taret="_blank"> <i class="fa fa-plus" ></i></a>
+                </label>
+                 
+                    <select id="refered_by" name="refered_by" class='form-control select2' >
+                    <option value=""> --Select-- </option>
+
+                        <?php foreach($teachers as $k=>$v){?>
+                            <option value="<?= $k?>"> <?= $v?> </option>
+                       <?php  }?>
+                    </select>
+                
+                <span class="  control-label">
+                    <?php echo form_error('refered_by'); ?>
+                </span>
+                </div><!-------- End village  ------>
+                <div>
+                <div>
+                    
+                <!-- reference details end -->
+
 </div>
 
 
