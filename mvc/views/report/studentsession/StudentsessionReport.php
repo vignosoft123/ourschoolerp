@@ -190,7 +190,7 @@
 
                                         $markpercentagesexamArr = isset($markpercentagesmainArr[$student->srclassesID]) ? $markpercentagesmainArr[$student->srclassesID] : [];
 
-                                        // echo '<pre>';print_r($mandatorySubjects);die;
+                                        // echo '<pre>';print_r($percentageArr);die;
 
 
                                         if(customCompute($markpercentagesexamArr)) { 
@@ -204,8 +204,8 @@
                                         <?php }
                                      } ?>
                                         <th rowspan="2"><?=$this->lang->line('studentsessionreport_total')?></th>
-                                        <th rowspan="2"><?=$this->lang->line('studentsessionreport_grade')?></th>
-                                        <th rowspan="2"><?=$this->lang->line('studentsessionreport_point')?></th>
+                                        <!-- <th rowspan="2"><?=$this->lang->line('studentsessionreport_grade')?></th>
+                                        <th rowspan="2"><?=$this->lang->line('studentsessionreport_point')?></th> -->
                                     </tr>
                                     <tr>
                                         <?php 
@@ -215,6 +215,7 @@
 
                                         if(customCompute($markpercentagesexamArr)) { 
                                             foreach($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
+                                                
                                             reset($markpercentagessubjectArr);
                                             $firstindex          = key($markpercentagessubjectArr);
                                             $uniquepercentageArr = isset($markpercentagessubjectArr[$firstindex]) ? $markpercentagessubjectArr[$firstindex] : [];
@@ -225,11 +226,19 @@
                                                 $leftColumn  = customCompute($markpercentages) + 1;
                                             }
                                             if(customCompute($markpercentages)) {
+                                                // $tot_max_marks = 0;
                                                  foreach($markpercentages as $markpercentageID) { $totalColumn++; ?>
                                                 <th>
-                                                    <?=isset($percentageArr[$markpercentageID]) ? 'sss'.substr($percentageArr[$markpercentageID]->markpercentagetype, 0, 2) : '';?>
+                                                    <?php //echo isset($percentageArr[$markpercentageID]) ?  substr($percentageArr[$markpercentageID]->markpercentagetype, 0, 2) : '';
+                                                    
+                                                    ?>
+                                                    <?php echo  '<span style="color:green">Max:'.$exam_max_marks[$examID].'</span>';
+                                                    $tot_max_marks += $exam_max_marks[$examID];
+                                                    ?>
+                                                     
                                                 </th>
-                                        <?php } } } } ?>
+                                        <?php }  
+                                    } } } ?>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -335,13 +344,13 @@
 
                                         if(customCompute($grades)) { foreach($grades as $grade) {
                                             if(($grade->gradefrom <= floor($subjectGradeMark)) && ($grade->gradeupto >= floor($subjectGradeMark))) { ?>
-                                                <td><?=$grade->grade?></td>
+                                                <!-- <td><?=$grade->grade?></td>
                                                 <td>
                                                     <?php
                                                         echo $grade->point;
                                                         $totalGpaPoint += $grade->point;
                                                     ?>
-                                                </td>
+                                                </td> -->
                                         <?php } } } ?>
                                     </tr>
                                 <?php } ?>
@@ -350,20 +359,42 @@
                                     <td colspan="<?=$totalColumn-$leftColumn?>"><b><?=ini_round($totalAllSubjectMark)?></b></td>
                                 </tr>
                                 <tr>
-                                    <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_average_mark')?> </td>
+                                    <?php 
+                                        $tSubject     = customCompute($mandatorySubjects[$student->srclassesID]);
+                                        if($student->sroptionalsubjectID > 0) {
+                                            $tSubject = $tSubject + 1;
+                                        }
+                                    ?>
+                                    <td colspan="<?=$leftColumn?>">Average Marks %
+                                              <span style="font-weight: bold;" class="text-success fw-bold">  (<?php echo $totalAllSubjectMark.'/'.$tSubject *$tot_max_marks?>) </span>
+                                </td>
                                     <td colspan="<?=$totalColumn-$leftColumn?>">
                                         <b>
                                             <?php
-                                                $tSubject     = customCompute($mandatorySubjects[$student->srclassesID]);
-                                                if($student->sroptionalsubjectID > 0) {
-                                                    $tSubject = $tSubject + 1;
-                                                }
-                                                $totalAllSubject = $tSubject * customCompute($markpercentagesexamArr);
-                                                echo ini_round($totalAllSubjectMark / $totalAllSubject);
+                                                
+                                                
+                                                 $totalAllSubject = $tSubject * customCompute($markpercentagesexamArr);
+                                                // echo ini_round($totalAllSubjectMark / $totalAllSubject);
+                                                // echo $tSubject *$tot_max_marks.'===';
+                                                echo ini_round($totalAllSubjectMark / ($tSubject *$tot_max_marks) ) *100 . '%';
                                             ?>
                                         </b>
                                     </td>
                                 </tr>
+
+                                <!-- <tr>
+                                     
+                                    <td colspan="<?=$leftColumn?>">AVG : Total Marks/Total Subjects <span style="font-weight: bold;" class="text-success fw-bold">(<?= $totalAllSubjectMark .'/'. $tSubject * customCompute($markpercentagesexamArr) ?>)</span>
+                                </td>
+                                    <td colspan="<?=$totalColumn-$leftColumn?>">
+                                        <b>
+                                            <?php echo ini_round($totalAllSubjectMark / ($tSubject * customCompute($markpercentagesexamArr)));
+                                            ?>
+                                        </b>
+                                    </td>
+                                </tr> -->
+
+
                                 <tr>
                                     <!-- <td colspan="<?=$leftColumn?>"><?=$this->lang->line('studentsessionreport_gpa')?></td> -->
                                     <!-- <td colspan="<?=$totalColumn-$leftColumn?>">
@@ -378,14 +409,14 @@
                                 </tr>
                                 <tr>
                                     <td colspan="<?=$leftColumn?>">Correspondant Signature</td>
-                                    <td colspan="<?=$totalColumn-$leftColumn?>"></td>
+                                    <td colspan="<?=$totalColumn-$leftColumn?>"> <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;"></td>
                                 </tr>
                                 <tr>
                                     <td colspan="<?=$leftColumn?>">Parent or Guardian Siganture</td>
                                     <td colspan="<?=$totalColumn-$leftColumn?>"></td>
                                 </tr>
 
-                                <tr>
+                                <!-- <tr>
                                     <td colspan="<?=$totalColumn?>">
                                         <?=$this->lang->line('studentsessionreport_interpretation')?> :
                                         <b>
@@ -399,7 +430,7 @@
                                             } } ?>
                                         </b>
                                     </td>
-                                </tr>
+                                </tr> -->
                                 <?php } ?>
                             </tbody>
                             </table>

@@ -161,7 +161,15 @@ class Studentsessionreport extends Admin_Controller {
 					$markpercentagesmainArr = $this->marksetting_m->get_marksetting_markpercentages_new($classID,$sectionID);
 					$percentageArr          = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
 					
-
+					 
+					$query = $this->db->query("SELECT e.*, es.max_mark FROM exam e LEFT JOIN examschedule es ON es.examID = e.examID where es.classesID=$classID and es.sectionID=$sectionID  GROUP by examID");
+					$result = $query->result_array();					
+					$examMarks = [];
+					foreach ($result as $row) {
+						$examMarks[$row['examID']] = $row['max_mark'];
+					}
+					$this->data['exam_max_marks'] = $examMarks;
+					// echo "<pre>";print_r($this->data['exam_max_marks']);die;
 
 					$retMark = [];
 					if(customCompute($marks)) {
@@ -174,6 +182,7 @@ class Studentsessionreport extends Admin_Controller {
 					$this->data['sections']          = pluck($this->section_m->general_get_section(),'section','sectionID');
 					$this->data['groups']            = pluck($this->studentgroup_m->get_studentgroup(),'group','studentgroupID');
 					$this->data['exams']             = pluck($this->exam_m->get_exam(),'exam','examID');
+					// echo "<pre>";print_r($this->data['exams']);die;
 					$this->data['grades']            = $this->grade_m->get_grade();
 					$this->data['schoolyears']       = pluck($this->schoolyear_m->get_schoolyear(),'schoolyear','schoolyearID');
 

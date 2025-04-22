@@ -16,6 +16,8 @@ class Exam_m extends MY_Model {
 		return $query;
 	}
 
+	 
+
 	public function get_exam_academic($array=NULL) {
  
 		// $query = parent::get($array, $signal);
