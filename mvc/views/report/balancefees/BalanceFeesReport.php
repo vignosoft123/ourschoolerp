@@ -56,6 +56,51 @@
 
 </style>
 
+
+<style>
+/* Style the table header */
+#myTable thead th {
+    background-color: #4CAF50; /* Green background */
+    color: white;               /* White text */
+    padding: 10px;              /* Padding inside headers */
+    text-align: center;         /* Center the header text */
+    font-weight: bold;          /* Bold text */
+    border: 1px solid #ddd;     /* Light border */
+    font-size: 14px;            /* Font size */
+    white-space: nowrap;        /* Prevent headers from wrapping */
+}
+
+/* Table rows */
+#myTable tbody td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 13px;
+}
+
+/* Table overall */
+#myTable {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1200px; /* make sure table scrolls */
+}
+
+/* Scrollbar wrapping div */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* Optional: sticky headers when scrolling */
+#myTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+</style>
+
+
+
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
@@ -63,15 +108,17 @@
             $pdf_preview_uri = base_url('balancefeesreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID);
             $xml_preview_uri = base_url('balancefeesreport/xlsx/'.$classesID.'/'.$sectionID.'/'.$studentID);
 
-            echo btn_printReport('balancefeesreport', $this->lang->line('report_print'), 'printablediv');
-            echo btn_pdfPreviewReport('balancefeesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            echo btn_xmlReport('balancefeesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
-            echo btn_sentToMailReport('balancefeesreport', $this->lang->line('report_send_pdf_to_mail'));
+            echo btn_printReport('balancefeesreport', $this->lang->line('report_print'), 'printablediv'); 
+
+            // echo btn_pdfPreviewReport('balancefeesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+            // echo btn_xmlReport('balancefeesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
+            // echo btn_sentToMailReport('balancefeesreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
 
+        <button id="exportButton" class="btn btn-default">Export to Excel</button>
         <button class="btn btn-default " id="send_sms_balance_btn"><span class="fa fa-send"></span> Send SMS</button>
 
-        <button id="exportButton">Export to Excel</button>
+       
 
 
     </div>
@@ -125,243 +172,190 @@
                 if(customCompute($students)) { ?>
                     <div class="col-sm-12">
                         <div id="hide-table">
-                            <table class="table table-bordered" id="myTable">
-                                <thead>
-                                    <tr>
-                                        <th><?=$this->lang->line('slno')?></th>
-                                        <th><?=$this->lang->line('balancefeesreport_name')?></th>
-                                        <th><?=$this->lang->line('balancefeesreport_registerNO')?></th>
-                                        <th>Villege</th>
-                                        <?php if($classesID == 0) { ?>
-                                          <th><?=$this->lang->line('balancefeesreport_class')?></th>
-                                        <?php } ?>
-                                        <?php if($sectionID == 0) { ?>
-                                          <th><?=$this->lang->line('balancefeesreport_section')?></th>
-                                        <?php } ?>
-                                        <th>Phone</th>
-                                        <th> In Details</th>
-                                        <th><?=$this->lang->line('balancefeesreport_fees_amount')?></th>
-                                        <!-- <th>Amount By Type</th> -->
-                                        <th>Discount/Weaver </th>
-                                        <th><?=$this->lang->line('balancefeesreport_paid')?> </th>
-                                       
-                                        <!-- <th><?=$this->lang->line('balancefeesreport_weaver')?> </th> -->
-                                        <th><?=$this->lang->line('balancefeesreport_balance') ?></th> 
-                                        
-                                   <th> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_balance">
-                                            <br/>
-                                            <input type="date" name="date" id="date">
-                                </th>
-
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php 
-                                        $totalAmount = 0;
-                                        $totalDiscount = 0;
-                                        $totalPayments = 0;
-                                        $totalWeaver = 0;
-                                        $totalBalance = 0;
-                                        $i=0;
-                                        //  echo "<pre>";print_r($totalAmountAndDiscount);
-                                        foreach($students as $student) { 
-
-                                           $feeamount =  $paid = $bal_amnt = 0;
-                                        
-                                        if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])){
-                                            $i++; 
-                                        ?>
-                                            <tr>
-                                                <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_name')?>">
-                                                    <?=$student->srname?>
-                                                </td>
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_registerNO')?>">
-                                                    <?=$student->srregisterNO?>
-                                                </td>
-                                                <td> 
-                                                <?=$student->village_name?>
-
-
-                                                </td>
-                                                <?php if($classesID == 0) { ?>
-                                                    <td data-title="<?=$this->lang->line('balancefeesreport_class')?>">
-                                                        <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?>
-                                                    </td>
-                                                <?php } ?>
-
-                                                <?php if($sectionID == 0) { ?>
-                                                    <td data-title="<?=$this->lang->line('balancefeesreport_section')?>">
-                                                        <?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?>
-                                                    </td>
-                                                <?php } ?>
-
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_roll')?>">
-                                                    <?=$student->phone?>
-                                                </td>
-
-                                                <td>
-    <?php  
-    // Ensure that the 'totalPayment_split' and 'srstudentID' are properly set
-    if (isset($totalPayment_split[$student->srstudentID])) {
-        foreach ($totalPayment_split[$student->srstudentID] as $ksplit => $split) {
-            // Wrap each fee type in a div or paragraph for cleaner styling
-            echo '<div class="fee-type">';
-            
-            // Fee type with its total amount
-            echo '<strong class="fee-type-name">' . htmlspecialchars($ksplit) . '</strong>';
-            echo '<span class="total-amount">(' . number_format($split['total'], 2) . ')</span>';
-
-            // Paid amount
-            echo '<div class="payment-details"><strong>Paid: </strong><span class="paid-amount">' . number_format($split['paid'], 2) . '</span></div>';
-
-            echo '<div class="payment-details"><strong>Discount: </strong><span class="paid-amount">' . number_format($split['total_discount_weaver'], 2) . '</span></div>';
-
-            // Remaining balance (ensure it's not negative)
-            $remaining = isset($split['remaining']) ? max(0, $split['remaining']) : 0;
-            echo '<div class="payment-details"><strong>Balance: </strong><span class="remaining-balance">' . number_format($remaining, 2) . '</span></div>';
-            
-            // Optional separator for each fee type
-            // echo '<hr class="separator">';
-            
-            echo '</div>';
+                        <?php
+    // Prepare Fee Type List (dynamic headers)
+    $allFeeTypes = [];
+    foreach ($totalPayment_split as $studentID => $feeTypes) {
+        foreach ($feeTypes as $feeType => $values) {
+            $allFeeTypes[$feeType] = $feeType;
         }
-    } else {
-        echo '<p>No payments found for this student.</p>';
     }
-    ?>
-</td>
+    $allFeeTypes = array_values($allFeeTypes);
+?>
+            <div style="overflow-x: auto; margin-top: 20px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
 
+                <table class="table table-striped table-bordered" id="myTable" style="min-width: 1200px;">
+                    <thead>
+                        <tr>
+                            <th rowspan="2"><?=$this->lang->line('slno')?></th>
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_name')?></th>
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_registerNO')?></th>
+                            <th rowspan="2">Village</th>
+                            <?php if($classesID == 0) { ?>
+                                <th rowspan="2"><?=$this->lang->line('balancefeesreport_class')?></th>
+                            <?php } ?>
+                            <?php if($sectionID == 0) { ?>
+                                <th rowspan="2"><?=$this->lang->line('balancefeesreport_section')?></th>
+                            <?php } ?>
+                            <th rowspan="2">Phone</th>
 
+                            <!-- Fee Type main headings -->
+                            <?php foreach($allFeeTypes as $feeType) { ?>
+                                <th colspan="4"><?=htmlspecialchars($feeType)?></th>
+                            <?php } ?>
 
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_fees_amount')?></th>
+                            <th rowspan="2">Discount/Weaver</th>
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_paid')?></th>
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_balance')?></th>
+                            <th rowspan="2">
+                                Send SMS <input type="checkbox" id="checkAll" name="send_sms_balance"><br/>
+                                <input type="date" name="date" id="date">
+                            </th>
+                        </tr>
 
-                                               
+                        <tr>
+                            <!-- Subheadings for each Fee Type -->
+                            <?php foreach($allFeeTypes as $feeType) { ?>
+                                <th>Total</th>
+                                <th>Paid</th>
+                                <th>Discount</th>
+                                <th>Balance</th>
+                            <?php } ?>
+                        </tr>
+                    </thead>
 
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_fees_amount')?>">
-                                                    <?= $feeamount = isset($totalAmountAndDiscount[$student->srstudentID]['amount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['amount'],2) : number_format(0, 2)?>
-                                                   
-                                                </td>
+                    <tbody>
+                        <?php 
+                        $totalAmount = 0;
+                        $totalDiscount = 0;
+                        $totalPayments = 0;
+                        $totalWeaver = 0;
+                        $totalBalance = 0;
+                        $i = 0;
 
-                                                <!-- <td>
-                                                    <div>
-                                                        <?php foreach($totalAmountAndDiscount[$student->srstudentID]['type'] as $f_types ){?>
-                                                            <p style="color:green"><b> <?= $f_types?> </b></p>
-                                                        <?php }?>
-                                                    </div>
-                                                </td> -->
+                        foreach($students as $student) {
+                            if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
+                                $i++;
+                        ?>
+                        <tr>
+                            <td><?=$i?></td>
+                            <td><?=$student->srname?></td>
+                            <td><?=$student->srregisterNO?></td>
+                            <td><?=$student->village_name?></td>
 
+                            <?php if($classesID == 0) { ?>
+                                <td><?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?></td>
+                            <?php } ?>
 
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_discount')?>">
+                            <?php if($sectionID == 0) { ?>
+                                <td><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></td>
+                            <?php } ?>
 
-                                                <?php //echo "<pre>"; print_r($totalweavar);die;?>
-                                                   <?php 
-                                                    $discount_plus_waver = $totalAmountAndDiscount[$student->srstudentID]['discount'] + $totalweavar[$student->srstudentID]['weaver'];
-                                                    ?>
-                                                    <?php 
-                                                        //echo isset($totalAmountAndDiscount[$student->srstudentID]['discount']) ? number_format($totalAmountAndDiscount[$student->srstudentID]['discount'],2) : number_format(0, 2)
-                                                        echo isset($discount_plus_waver) ? number_format($discount_plus_waver,2) : number_format(0, 2)
-                                                    ?>
+                            <td><?=$student->phone?></td>
 
-                                                </td>
+                            <!-- Fee Type Amounts -->
+                            <?php 
+                            foreach($allFeeTypes as $feeType) {
+                                $total = $paid = $discount = $remaining = 0;
 
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_paid')?>">
-                                                    <?= $paid = isset($totalPayment[$student->srstudentID]['payment']) ? number_format($totalPayment[$student->srstudentID]['payment'],2) : number_format(0, 2)?>
-                                                </td>
-                                             
+                                if (isset($totalPayment_split[$student->srstudentID][$feeType])) {
+                                    $feeData = $totalPayment_split[$student->srstudentID][$feeType];
+                                    $total = $feeData['total'];
+                                    $paid = $feeData['paid'];
+                                    $discount = $feeData['total_discount_weaver'];
+                                    $remaining = isset($feeData['remaining']) ? max(0, $feeData['remaining']) : 0;
+                                }
+                            ?>
+                                <td><?=number_format($total, 2)?></td>
+                                <td><?=number_format($paid, 2)?></td>
+                                <td><?=number_format($discount, 2)?></td>
+                                <td><?=number_format($remaining, 2)?></td>
+                            <?php } ?>
 
-                                        
+                            <!-- Overall -->
+                            <td>
+                                <?=number_format($feeamount = $totalAmountAndDiscount[$student->srstudentID]['amount'], 2)?>
+                            </td>
 
+                            <td>
+                                <?php 
+                                    $discount_plus_waver = $totalAmountAndDiscount[$student->srstudentID]['discount'] + $totalweavar[$student->srstudentID]['weaver'];
+                                    echo number_format($discount_plus_waver,2);
+                                ?>
+                            </td>
 
-                                                <td data-title="<?=$this->lang->line('balancefeesreport_balance')?>">
-                                                    <?php 
+                            <td>
+                                <?=number_format($paid = $totalPayment[$student->srstudentID]['payment'], 2)?>
+                            </td>
 
-                                                    // echo "<pre>";print_r($totalweavar);
-                                                        $Amount = 0;
-                                                        $Discount = 0;
-                                                        $Payment = 0;
-                                                        $Weaver = 0;
+                            <td>
+                                <?php
+                                    $Amount = $totalAmountAndDiscount[$student->srstudentID]['amount'];
+                                    $Discount = $totalAmountAndDiscount[$student->srstudentID]['discount'];
+                                    $Payment = $totalPayment[$student->srstudentID]['payment'];
+                                    $Weaver = $totalweavar[$student->srstudentID]['weaver'];
 
-                                                        if(isset($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
-                                                            $Amount = $totalAmountAndDiscount[$student->srstudentID]['amount'];
-                                                            $totalAmount += $Amount;
-                                                        }
+                                    $Balance = ($Amount - $Discount) - ($Payment+$Weaver);
 
-                                                        if(isset($totalAmountAndDiscount[$student->srstudentID]['discount'])) {
-                                                            $Discount = $totalAmountAndDiscount[$student->srstudentID]['discount'];
-                                                            $totalDiscount += $Discount;
-                                                        }
+                                    $totalAmount += $Amount;
+                                    $totalDiscount += $Discount;
+                                    $totalPayments += $Payment;
+                                    $totalWeaver += $Weaver;
+                                    $totalBalance += $Balance;
 
-                                                        //  echo "<pre>";print_r($totalPayment[$student->srstudentID]);die;
-                                                        if(isset($totalPayment[$student->srstudentID]['payment'])) {
-                                                            $Payment = $totalPayment[$student->srstudentID]['payment'];
-                                                            $totalPayments += $Payment;
-                                                        }
+                                    echo number_format($Balance,2);
+                                ?>
+                            </td>
 
-                                                        if(isset($totalweavar[$student->srstudentID]['weaver'])) {
-                                                            $Weaver = $totalweavar[$student->srstudentID]['weaver'];
-                                                            $totalWeaver += $Weaver;
-                                                        }
+                            <td>
+                                <?php 
+                                $fee_paid_balance = $feeamount."^".$paid."^".$Balance;
+                                $fee_paid_balance = encrypt_data($fee_paid_balance); 
+                                ?>
+                                <input type="checkbox" st_ids="<?=$student->studentID?>" st_names="<?=$student->name?>" mobile_no="<?=$student->phone?>" balance="<?=$fee_paid_balance?>" name="send_sms_balance" id="send_sms_balance" class="checkbox">
+                            </td>
+                        </tr>
+                        <?php 
+                            }
+                        }
+                        ?>
 
-                                                        $Balance = ($Amount - $Discount) - ($Payment+$Weaver);
+                        <!-- Grand Total Row -->
+                        <tr>
+                            <?php 
+                                $colspan = 6;
+                                if($classesID == 0) {
+                                    $colspan++;
+                                }
+                                if($sectionID == 0) {
+                                    $colspan++;
+                                }
+                                $colspan += count($allFeeTypes) * 4;
+                            ?>
+                            <td colspan="<?=$colspan?>" class="text-right text-bold">
+                                <?=$this->lang->line('balancefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?>
+                            </td>
 
-                                                        $totalBalance += $Balance;
+                            <td style="color:blue" class="text-bold"><?=number_format($totalAmount,2)?></td>
 
-                                                        echo number_format($Balance,2);
-                                                    ?>
-                                                </td>
- 
+                            <td class="text-bold" style="color:purple">
+                                <?php 
+                                    $d_w = $totalDiscount + $totalWeaver;
+                                    echo number_format($d_w,2);
+                                ?> 
+                            </td>
 
-                                                 <!-- //CONSTRUCT SEND MARKS SMS -->
-                                                 <td>
-                                                    <?php 
-                                                       $fee_paid_balance = $feeamount."^".$paid."^".$Balance;
-                                                       $fee_paid_balance = encrypt_data($fee_paid_balance); 
-                                                    ?>
-                                                
+                            <td style="color:green" class="text-bold"><?=number_format($totalPayments,2)?></td>
 
-                                                 <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>"  balance1="<?php //echo $Balance;?>" balance="<?php echo $fee_paid_balance;?>"    name="send_sms_balance" id="send_sms_balance" class="checkbox"></td>
-                                               
-                                            </tr>
-                                            <?php
-                                        }
-                                        }
-                                    ?>       
-                                    <tr>
-                                        <?php 
-                                            $colspan = 3;
-                                            if($classesID == 0) {
-                                                $colspan = 4;
-                                            }
+                            <td style="color:red" class="text-bold"><?=number_format($totalBalance,2)?></td>
 
-                                            if($sectionID == 0) {
-                                                $colspan = 4;
-                                            }
+                            <td></td>
+                        </tr>   
+                    </tbody>
+                </table>
 
-                                            if($classesID == 0 && $sectionID == 0) {
-                                                $colspan = 5;
-                                            }
-                                        ?>
-                                                                            <td></td>
-                                                                            <td></td>
-                                                                            <td></td>
-
-                                        <td  data-title="<?=$this->lang->line('balancefeesreport_grand_total')?>" class="text-right text-bold" colspan="<?=$colspan?>">
-                                            <?=$this->lang->line('balancefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?> </td>
-
-                                        <td style="color:blue" data-title="<?=$this->lang->line('balancefeesreport_total_fees_amount')?>" class="text-bold"><?=number_format($totalAmount,2)?></td>
-
-                                        <td data-title="<?=$this->lang->line('balancefeesreport_total_discount')?>" class="text-bold">
-                                            <?php 
-                                                $d_w = $totalDiscount + $totalWeaver;
-                                            echo number_format($d_w,2);?> 
-                                        </td>
-                                        
-                                        <td style="color:green" data-title="<?=$this->lang->line('balancefeesreport_total_paid')?>" class="text-bold"><?=number_format($totalPayments,2)?></td>
-                                        <!-- <td data-title="<?=$this->lang->line('balancefeesreport_total_weaver')?>" class="text-bold"><?=number_format($totalWeaver,2)?></td> -->
-                                        <td style="color:red" data-title="<?=$this->lang->line('balancefeesreport_total_balance')?>" class="text-bold"><?=number_format($totalBalance,2)?></td>
-                                    </tr>                             
-                                </tbody>
-                            </table>
+            </div>
                         </div>
                     </div>
                 <?php } else { ?>

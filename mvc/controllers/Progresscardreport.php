@@ -268,50 +268,79 @@ class Progresscardreport extends Admin_Controller {
 									
 									// echo "<pre>";print_r($attendace);
 									// dd($attendace);
-									if(!empty($attendace)){
+								// 	if(!empty($attendace)){
 										
-									for($j=0;$j<count($attendace);$j++){
+								// 	for($j=0;$j<count($attendace);$j++){
 
-										// echo "<pre>";print_r($attendace[$j]);
+								// 		// echo "<pre>";print_r($attendace[$j]);
 										
-										if(!empty($attendace[$j])){
-									foreach($attendace[$j] as $k => $v){
+								// 		if(!empty($attendace[$j])){
+								// 	foreach($attendace[$j] as $k => $v){
 									
 										
-										for ($i=1; $i <= 31; $i++) { 
-											 $acolumnname = 'a'.$i;
-											if($k == $acolumnname){
+								// 		for ($i=1; $i <= 31; $i++) { 
+								// 			 $acolumnname = 'a'.$i;
+								// 			if($k == $acolumnname){
 
-												// echo $v[$k]."aaaaaa<br/>"; 
-												// echo $k;die;
-												// print_r($v);die;
+								// 				// echo $v[$k]."aaaaaa<br/>"; 
+								// 				// echo $k;die;
+								// 				// print_r($v);die;
 
-												// if(!empty($v[$k])){
-													// if (is_array($v)) {
-													if($v[$k] == 'P'){ 
-														 $present += 1;
-													}else{ 
-														$present += 0;
-													}
+								// 				// if(!empty($v[$k])){
+								// 					// if (is_array($v)) {
+								// 					if($v[$k] == 'P'){ 
+								// 						 $present += 1;
+								// 					}else{ 
+								// 						$present += 0;
+								// 					}
 													
-													if($v[$k] == 'A' ){ 
-														 $absent += 1;
-													}else{ 
-														$absent += 0;
-													}
-												// }
-												// }
+								// 					if($v[$k] == 'A' ){ 
+								// 						 $absent += 1;
+								// 					}else{ 
+								// 						$absent += 0;
+								// 					}
+								// 				// }
+								// 				// }
 
 										 
 
-											} 
+								// 			} 
+								// 		}
+								// 	}
+
+								// 	}
+
+								// }
+								// }
+
+
+								if(!empty($attendace)){
+									for($j = 0; $j < count($attendace); $j++) {
+										if(!empty($attendace[$j])){
+											foreach($attendace[$j] as $k => $v){
+												for ($i = 1; $i <= 31; $i++) { 
+													$acolumnname = 'a'.$i;
+													if($k == $acolumnname){
+								
+														// Corrected here: checking $v directly
+														if($v == 'P'){ 
+															$present += 1;
+														} else { 
+															$present += 0;
+														}
+								
+														if($v == 'A'){ 
+															$absent += 1;
+														} else { 
+															$absent += 0;
+														}
+													}
+												}
+											}
 										}
 									}
-
-									}
-
 								}
-								}
+								
 									$temp = array(
 										'absent' => $absent,
 										'present' => $present

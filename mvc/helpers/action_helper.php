@@ -1156,24 +1156,57 @@
         return $numPadded;
     }
 
-    function reportheader( $setting, $schoolyear, $pdf = false )
-    {
-        $data = '';
-        $CI   = &get_instance();
-        if ( customCompute($setting) && customCompute($schoolyear) ) {
-            $data .= '<div class="reportPage-header">';
-            if ( $pdf ) {
-                $data .= '<span class="header"><img class="logo" src="' . base_url('uploads/images/' . $setting->photo) . '"></span>';
-            } else {
-                $data .= '<span class="header" id="headerImage"><p class="bannerLogo"><img src="' . base_url('uploads/images/' . $setting->photo) . '"></p></span>';
-            }
-            $data .= '<p class="title">' . $setting->sname . '</p>';
-            $data .= '<p class="title-desc">' . $setting->address . '</p>';
-            $data .= '<p class="title-desc">' . $CI->lang->line('topbar_academic_year') . ' : ' . $schoolyear->schoolyear . '</p>';
+    // function reportheader( $setting, $schoolyear, $pdf = false )
+    // {
+    //     $data = '';
+    //     $CI   = &get_instance();
+    //     if ( customCompute($setting) && customCompute($schoolyear) ) {
+    //         $data .= '<div class="reportPage-header">';
+    //         if ( $pdf ) {
+    //             $data .= '<span class="header"><img class="logo" src="' . base_url('uploads/images/' . $setting->photo) . '"></span>';
+    //         } else {
+    //             $data .= '<span class="header" id="headerImage"><p class="bannerLogo"><img src="' . base_url('uploads/images/' . $setting->photo) . '"></p></span>';
+    //         }
+    //         $data .= '<p class="title">' . $setting->sname . '</p>';
+    //         $data .= '<p class="title-desc">' . $setting->address . '</p>';
+    //         $data .= '<p class="title-desc">' . $CI->lang->line('topbar_academic_year') . ' : ' . $schoolyear->schoolyear . '</p>';
+    //         $data .= '</div>';
+    //     }
+    //     return $data;
+    // }
+
+    function reportheader($setting, $schoolyear, $pdf = false)
+{
+    $data = '';
+    $CI = &get_instance();
+
+    if (customCompute($setting) && customCompute($schoolyear)) {
+        $data .= '<div class="reportPage-header" style="display:flex; align-items:center; justify-content:center; padding:20px 10px; border-bottom:2px solid #4CAF50; margin-bottom:20px;">';
+        
+        // Logo section
+        if ($pdf) {
+            $data .= '<div style="flex:0 0 80px; text-align:center;">';
+            $data .= '<img src="' . base_url('uploads/images/' . $setting->photo) . '" style="height:80px;">';
+            $data .= '</div>';
+        } else {
+            $data .= '<div style="flex:0 0 80px; text-align:center;">';
+            $data .= '<img src="' . base_url('uploads/images/' . $setting->photo) . '" style="height:80px;">';
             $data .= '</div>';
         }
-        return $data;
+
+        // Text section (school name, address, year)
+        $data .= '<div style="flex:1;  ">';
+        $data .= '<h2 class="title" style="margin:0; font-size:26px; color:#333;">' . $setting->sname . '</h2>';
+        $data .= '<p class="title-desc" style="margin:2px 0; font-size:16px; color:#666;">' . $setting->address . '</p>';
+        $data .= '<p class="title-desc" style="margin:2px 0; font-size:14px; color:#999;">' . $CI->lang->line('topbar_academic_year') . ' : <strong>' . $schoolyear->schoolyear . '</strong></p>';
+        $data .= '</div>';
+
+        $data .= '</div>'; // Close main header div
     }
+
+    return $data;
+}
+
 
     function reportfooter( $setting, $schoolyear, $pdf = false )
     {
