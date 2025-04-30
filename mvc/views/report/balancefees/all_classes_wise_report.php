@@ -11,6 +11,50 @@
 }
 </style>";
 
+
+
+<style>
+    /* thead th {
+        background: linear-gradient(90deg, #007bff, #3399ff);
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        vertical-align: middle;
+        padding: 10px;
+    } */
+
+    #myTable thead th {
+    background-color: #4CAF50; /* Green background */
+    
+    color: white;               /* White text */
+    padding: 10px;              /* Padding inside headers */
+    text-align: center;         /* Center the header text */
+    font-weight: bold;          /* Bold text */
+    border: 1px solid #ddd;     /* Light border */
+    font-size: 14px;            /* Font size */
+    white-space: nowrap;        /* Prevent headers from wrapping */
+}
+
+    tbody td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 8px;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+    .text-bold {
+        font-weight: bold;
+    }
+    tfoot td {
+        background-color: #e9ecef;
+        font-weight: bold;
+    }
+</style>
+
 <div class="box">
     <div class="box-header no-print">
         <h3 class="box-title"><i class="fa iniicon-balancefeesreport"></i> <?=$this->lang->line('panel_title')?> - All Class Report</h3>
@@ -32,17 +76,17 @@
 
                 <div class="no-print" style="margin-bottom: 15px;">
         <button onclick="window.print()" style="margin-right: 10px; background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Print</button>
-        <button onclick="exportToExcel()" style="background-color: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Export to Excel</button>
+        <button id="exportBtn" onclick="exportToExcel()" style="background-color: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Export to Excel</button>
       </div>
 
                     <table border='1' cellpadding='5' class="table table-bordered" id="myTable">
                         <thead>
                             <tr>
-                                <th style='background-color: #e3f2fd;'>Classname</th>
-                                <th style='background-color: #c8e6c9;'>Total Fee</th>
-                                <th style='background-color: #ffe0b2;'>Total Paid</th>
-                                <th style='background-color: #f8bbd0;'>Total Discount</th>
-                                <th style='background-color: #d1c4e9;'>Total Balance</th>
+                                <th  >Classname</th>
+                                <th >Total Fee</th>
+                                <th  >Total Paid</th>
+                                <th  >Total Discount</th>
+                                <th >Total Balance</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -90,45 +134,15 @@
 </div><!-- /.box -->
 
  
-
-<script type="text/javascript">
-
- </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
 
 <script>
-// function exportToExcel(tableID='myTable') {
-//     var table = document.getElementById(tableID);
-//     var html = table.outerHTML.replace(/ /g, '%20');
-//     var filename = 'class_fee_report.xls';
-//     var dataType = 'application/vnd.ms-excel';
-//     var link = document.createElement('a');
-//     link.href = 'data:' + dataType + ', ' + html;
-//     link.download = filename;
-//     link.click();
-// }
-
-</script>
-
- 
-<script>
-// function exportTableToExcel(tableID='myTable', filename = '') {
-//     const dataType = 'application/vnd.ms-excel';
-//     const tableSelect = document.getElementById(tableID);
-//     const tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
-
-//     filename = filename ? filename + '.xls' : 'excel_data.xls';
-
-//     const downloadLink = document.createElement("a");
-//     document.body.appendChild(downloadLink);
-
-//     if (navigator.msSaveOrOpenBlob) {
-//         const blob = new Blob(['\ufeff', tableHTML], { type: dataType });
-//         navigator.msSaveOrOpenBlob(blob, filename);
-//     } else {
-//         downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
-//         downloadLink.download = filename;
-//         downloadLink.click();
-//     }
-// }
-</script>
+        $(document).ready(function () {
+            $("#exportBtn").click(function () {
+                var table = document.getElementById("myTable");
+                var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+                XLSX.writeFile(wb, "AllClassWise Report.xlsx");
+            });
+        });
+    </script>

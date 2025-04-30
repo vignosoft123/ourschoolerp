@@ -1,3 +1,5 @@
+
+
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
@@ -14,9 +16,9 @@
             }
 
             echo btn_printReport('duefeesreport', $this->lang->line('report_print'), 'printablediv');
-            echo btn_pdfPreviewReport('duefeesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+            // echo btn_pdfPreviewReport('duefeesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
             echo btn_xmlReport('duefeesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
-            echo btn_sentToMailReport('duefeesreport', $this->lang->line('report_send_pdf_to_mail'));
+            // echo btn_sentToMailReport('duefeesreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
     </div>
 </div>

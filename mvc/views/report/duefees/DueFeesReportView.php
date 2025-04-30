@@ -73,7 +73,10 @@
 
 
                 <div class="col-sm-4">
-                    <button id="get_duefeesreport" class="btn btn-success" style="margin-top:23px;"> <?=$this->lang->line("duefeesreport_submit")?></button>
+                    <button id="get_duefeesreport" class="btn btn-success get_duefeesreport" style="margin-top:23px;" view_type="horizontal">Get Horizontal Report</button>
+
+                    <button id="get_duefeesreport" class="btn btn-success get_duefeesreport" style="margin-top:23px;" view_type="vertical">Get Vertival Report</button>
+
                 </div>
 
             </div>
@@ -195,7 +198,7 @@
         }
     });
 
-    $(document).on('click','#get_duefeesreport', function() {
+    $(document).on('click','.get_duefeesreport', function() {
         $('#load_duefeesreport').html("");
         var classesID = $('#classesID').val();
         var sectionID = $('#sectionID').val();
@@ -203,6 +206,7 @@
         var feetypeID = $('#feetypeID').val();
         var fromdate  = $('#fromdate').val();
         var todate    = $('#todate').val();
+        var view_type    = $(this).attr('view_type');
         var error = 0;
 
         var field = {
@@ -212,6 +216,7 @@
             "feetypeID" : feetypeID,
             "fromdate"  : fromdate,
             "todate"    : todate,
+            "view_type"    : view_type,
         }
 
         if(fromdate != '' && todate == '') {

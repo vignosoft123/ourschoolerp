@@ -209,8 +209,15 @@ class Duefeesreport extends Admin_Controller{
 					$this->data['getFeesReports'] = $this->totalPayment($this->payment_m->get_all_payment_for_report($this->input->post()), $schoolyearID);
 
 					$this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report($this->input->post());
+					// echo "<pre>";print_r($this->data['getDueFeesReports'] );die;
 
-					$retArray['render'] = $this->load->view('report/duefees/DueFeesReport', $this->data,true);
+					if($_POST['view_type'] == 'horizontal'){
+						$retArray['render'] = $this->load->view('report/duefees/DueFeesReport', $this->data,true);
+
+					}else{
+						$retArray['render'] = $this->load->view('report/duefees/DueFeesReport_vertical', $this->data,true);
+
+					}
 					$retArray['status'] = TRUE;
 					echo json_encode($retArray);
 					exit;
@@ -800,6 +807,9 @@ class Duefeesreport extends Admin_Controller{
 	    	exit;
 		}
 	}
+
+
+	
 
 }
 
