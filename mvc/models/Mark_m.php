@@ -21,11 +21,143 @@ class Mark_m extends MY_Model {
 		return $query;
 	}
 
-	public function get_order_by_mark($array=NULL) {
-		$query = parent::get_order_by($array);
-		return $query;
+	public function get_single_mark_new($params)
+	{
+		// Check if the necessary parameters are passed
+		if (empty($params['examID']) || empty($params['classesID']) || empty($params['subjectID']) || empty($params['studentID']) || empty($params['schoolyearID'])) {
+			return false; // Return false if any required parameter is missing
+		}
+	
+		// Construct the SQL query to fetch the mark and attendance information
+		$this->db->select('mark.mark AS mark, mark.eattendance');
+		$this->db->from('mark');
+		$this->db->join('markrelation', 'markrelation.markID = mark.markID', 'left'); // Assuming markrelation table is still relevant for this join
+		$this->db->where('mark.schoolyearID', $params['schoolyearID']);
+		$this->db->where('mark.examID', $params['examID']);
+		$this->db->where('mark.classesID', $params['classesID']);
+		$this->db->where('mark.studentID', $params['studentID']); // Corrected column name from studentId to studentID
+		$this->db->where('mark.subjectID', $params['subjectID']); // Corrected column name for subjectID
+		$this->db->where('markrelation.markpercentageID', isset($params['markpercentageID']) ? $params['markpercentageID'] : null); // Added a fallback for markpercentageID if not passed
+		
+		// Execute the query
+		$query = $this->db->get();
+	
+		// Check if any record was returned
+		if ($query->num_rows() > 0) {
+			// Return the row (single record)
+			return $query->row();
+		} else {
+			// Return false if no record found
+			return false;
+		}
 	}
 
+	public function get_single_markrelation($conditions)
+	{
+		$this->db->select('markrelation.*, mark.markID');
+		$this->db->from('markrelation');
+		$this->db->join('mark', 'mark.markID = markrelation.markID');
+	
+		// Apply conditions on mark table
+		if (isset($conditions['examID'])) {
+			$this->db->where('mark.examID', $conditions['examID']);
+		}
+		if (isset($conditions['classesID'])) {
+			$this->db->where('mark.classesID', $conditions['classesID']);
+		}
+		if (isset($conditions['subjectID'])) {
+			$this->db->where('mark.subjectID', $conditions['subjectID']);
+		}
+		if (isset($conditions['studentID'])) {
+			$this->db->where('mark.studentID', $conditions['studentID']);
+		}
+		if (isset($conditions['schoolyearID'])) {
+			$this->db->where('mark.schoolyearID', $conditions['schoolyearID']);
+		}
+		if (isset($conditions['markpercentageID'])) {
+			$this->db->where('markrelation.markpercentageID', $conditions['markpercentageID']);
+		}
+	
+		$query = $this->db->get();
+		return $query->row(); // Return single result or NULL
+	}
+	
+// Method to update markrelation
+public function update_markrelation($data, $markID, $markpercentageID)
+{
+    $this->db->where('markID', $markID);
+    $this->db->where('markpercentageID', $markpercentageID);
+    $this->db->update('markrelation', ['mark' => $data['mark']]);
+    return $this->db->affected_rows();
+}
+
+// Method to insert new markrelation
+public function insert_markrelation($data)
+{
+    $this->db->insert('markrelation', $data);
+    return $this->db->insert_id();
+}
+
+	
+	
+
+
+	// public function get_order_by_mark($array=NULL) {
+	// 	$query = parent::get_order_by($array);
+	// 	return $query;
+	// }
+
+	
+ 	public function get_order_by_mark($array = NULL) {
+		if ($array) {
+			$schoolyearID = $array['schoolyearID'];
+			$examID = $array['examID'];
+			$classesID = $array['classesID'];
+	
+			$sql = "SELECT m.*
+					FROM mark m
+					INNER JOIN (
+						SELECT studentID, MIN(markID) as minMarkID
+						FROM mark
+						WHERE schoolyearID = ? AND examID = ? AND classesID = ?
+						GROUP BY studentID,subjectID
+					) first ON m.markID = first.minMarkID
+					ORDER BY m.studentID DESC";
+	
+			$query = $this->db->query($sql, array($schoolyearID, $examID, $classesID));
+			return $query->result();
+		} else {
+			return array();
+		}
+	}
+
+	public function get_order_by_marka($array = NULL) {
+		if ($array) {
+			$schoolyearID = $array['schoolyearID'];
+			$examID = $array['examID'];
+			$classesID = $array['classesID'];
+	
+			$sql = "SELECT m.*
+					FROM mark m
+					INNER JOIN (
+						SELECT studentID, MAX(markID) as maxMarkID
+						FROM mark
+						WHERE schoolyearID = ? AND examID = ? AND classesID = ?
+						GROUP BY studentID,subjectID
+					) latest ON m.markID = latest.maxMarkID
+					ORDER BY m.studentID DESC";
+	
+			$query = $this->db->query($sql, array($schoolyearID, $examID, $classesID));
+			return $query->result();
+		} else {
+			return array();
+		}
+	}
+
+
+	
+	
+	
 	public function insert_mark($array) {
 		$error = parent::insert($array);
 		return TRUE;

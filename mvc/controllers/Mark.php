@@ -422,6 +422,568 @@ class Mark extends Admin_Controller
 		}
 	}
 
+	public function add_marks_excel($a=array())
+	{
+		if(!empty($a)){
+			$_POST = $a;
+			print_r($_POST);
+
+		}
+	    
+	   // error_reporting(E_ALL);
+		// ini_set('display_errors', 1);
+		// ini_set('display_startup_errors', 1);
+    
+		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) {
+			$this->data['headerassets'] = array(
+				'css' => array(
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css'
+				),
+				'js' => array(
+					'assets/select2/select2.js'
+				)
+			);
+			$this->data['students']           = [];
+			$this->data['settingmarktypeID']  = $this->data['siteinfos']->marktypeID;
+			$graduateclass                    = ''; //$this->data['siteinfos']->ex_class;
+
+			$this->data['set_exam']    = 0;
+			$this->data['set_classes'] = 0;
+			$this->data['set_section'] = 0;
+			$this->data['set_subject'] = 0;
+
+			$this->data['sendExam']    = [];
+			$this->data['sendSubject'] = [];
+			$this->data['sendClasses'] = [];
+			$this->data['sendSection'] = [];
+			$this->data['exams']       = [];
+			$this->data['classes']  = $this->classes_m->get_order_by_classes(['classesID !=' => $graduateclass]);
+
+			if ($_POST) {
+				$rules = $this->rules();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					$this->data["subview"] = "mark/add_marks_excel";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+					$examID          = $this->input->post('examID');
+					$classesID       = $this->input->post('classesID');
+					$sectionID       = $this->input->post('sectionID');
+					$subjectID       = $this->input->post('subjectID');
+					$downloadFile       = $this->input->post('downloadFile');
+
+					if ((int)$classesID) {
+        				$this->data['exams']    = $this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID);
+        				// $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID,'examID' => $examID,'sectionID' => $sectionID));
+        				
+        				$subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID),$examID,$sectionID);
+        				// echo "aaaa<pre>";print_r($subjectsss);die;
+        				$this->data['sections'] = $this->section_m->get_order_by_section(array('classesID' => $classesID));
+        			} else {
+        				$this->data['subjects'] = [];
+        				$this->data['sections'] = [];
+        			}
+					
+					$this->data['set_exam']    = $examID;
+					$this->data['set_classes'] = $classesID;
+					$this->data['set_section'] = $sectionID;
+					$this->data['set_subject'] = $subjectID;
+
+					$exam            = $this->exam_m->get_single_exam(array('examID' => $examID));
+					$subject         = $this->subject_m->get_single_subject(array('subjectID' => $subjectID));
+					$classes         = $this->classes_m->get_single_classes(array('classesID' => $classesID));
+					$section         = $this->section_m->get_single_section(array('sectionID' => $sectionID));
+					$markpercentages = $this->markpercentage_m->get_markpercentage();
+
+
+					$markpercentageArr['marktypeID'] = $this->data['siteinfos']->marktypeID;
+					$markpercentageArr['classesID']  = $classesID;
+					$markpercentageArr['examID']     = $examID;
+					$markpercentageArr['subjectID']  = $subjectID;
+					$markpercentageArr['subject']    = $subject;
+
+					$this->data['sendExam']     = $exam;
+					$this->data['sendSubject']  = $subject;
+					$this->data['sendClasses']  = $classes;
+					$this->data['sendSection']  = $section;
+
+					$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+					$studentArray = [
+						'srclassesID'   => $classesID,
+						'srsectionID'   => $sectionID,
+						'srschoolyearID' => $schoolyearID,
+					];
+
+					$students  = [];
+					if (customCompute($subject)) {
+						if ($subject->type == 1) {
+							// $students = $this->studentrelation_m->get_order_by_student([
+							$students = $this->studentrelation_m->get_order_by_student_limit([
+								"srclassesID"    	=> $classesID,
+								'srschoolyearID' 	=> $schoolyearID
+							]);
+						} else {
+							$students = $this->studentrelation_m->get_order_by_student_limit(array(
+								"srclassesID" => $classesID,
+								'srschoolyearID' => $schoolyearID,
+								'sroptionalsubjectID' => $subject->subjectID
+							));
+
+							$studentArray['sroptionalsubjectID'] = $subject->subjectID;
+						}
+					}
+
+					$sendStudent = $this->studentrelation_m->get_order_by_student($studentArray);
+					foreach ($subjectsss as $subj) { 
+
+					$markPluck   = pluck($this->mark_m->get_order_by_mark(array("examID" => $examID, "classesID" => $classesID, "	subjectID" => $subj->subjectID, 'schoolyearID' => $schoolyearID)), 'obj', 'studentID');
+
+					$array = [];
+					if (customCompute($students)) {
+
+						// echo "<pre>";print_r($subjectsss);die;
+
+						
+						foreach ($students as $student) {
+							if (!isset($markPluck[$student->studentID])) {
+								//echo 123; die;
+								$array[] = array(
+									"examID"       => $examID,
+									"schoolyearID" => $schoolyearID,
+									"exam"         => $exam->exam,
+									"studentID"    => $student->studentID,
+									"classesID"    => $classesID,
+									"subjectID"    => $subj->subjectID, //$subjectID,
+									"subject"      => $subj->subject,
+									"year"         => date('Y'),
+									"create_date"  => date("Y-m-d H:i:s"),
+									'create_userID' => $this->session->userdata("loginuserID"),
+									'create_usertypeID' => $this->session->userdata('usertypeID')
+								);
+							}
+						}
+
+						// echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@<pre>";print_r($array);
+
+						if (customCompute($array)) {
+							$count = customCompute($array);
+
+					 
+							$firstID = $this->mark_m->insert_batch_mark($array);
+							$lastID = $firstID + ($count - 1);
+
+							$markRelationArray = [];
+							if ($lastID >= $firstID) {
+								for ($i = $firstID; $i <= $lastID; $i++) {
+									foreach ($markpercentages as $value) {
+										$markRelationArray[] = [
+											"markID" => $i,
+											"markpercentageID" => $value->markpercentageID
+										];
+									}
+								}
+							}
+
+							if (customCompute($markRelationArray)) {
+								$this->markrelation_m->insert_batch_markrelation($markRelationArray);
+							}
+						}
+					}
+
+						$mark = $this->mark_m->get_order_by_mark(array('schoolyearID' => $schoolyearID, "examID" => $examID, "classesID" => $classesID));
+						$this->data['marks'] = $mark;
+						// echo "<pre>";print_r($this->data['marks']);die;
+					}
+
+					if (customCompute($students)) {
+						$missingmMarkRelationArray = [];
+						$allMarkWithRelation = $this->markrelation_m->get_all_mark_with_relation(array('schoolyearID' => $schoolyearID, 'examID' => $examID, 'classesID' => $classesID, 'subjectID' => $subjectID));
+
+
+						$studentMarkPercentage = [];
+						foreach ($allMarkWithRelation as $key => $value) {
+							$studentMarkPercentage[$value->studentID][$value->examID][$value->subjectID]['markpercentage'][] = $value->markpercentageID;
+							$studentMarkPercentage[$value->studentID][$value->examID]['markID'][$value->subjectID] = $value->markID;
+						}
+
+						$markpercentages = pluck($markpercentages, 'markpercentageID');
+						foreach ($students as $student) {
+							$studentPercentage = isset($studentMarkPercentage[$student->studentID][$examID][$subjectID]['markpercentage']) ? $studentMarkPercentage[$student->studentID][$examID][$subjectID]['markpercentage'] : [];
+
+							if (customCompute($studentPercentage)) {
+								$diffMarkPercentage = array_diff($markpercentages, $studentMarkPercentage[$student->studentID][$examID][$subjectID]['markpercentage']);
+								foreach ($diffMarkPercentage as $item) {
+									$missingmMarkRelationArray[] = [
+										"markID" => $studentMarkPercentage[$student->studentID][$examID]['markID'][$subjectID],
+										"markpercentageID" => $item
+									];
+								}
+							}
+						}
+
+						if (customCompute($missingmMarkRelationArray)) {
+							$this->markrelation_m->insert_batch_markrelation($missingmMarkRelationArray);
+						}
+					}
+
+					$this->data['students']         = $sendStudent;
+					$this->data['markpercentages']  = $this->marksetting_m->get_marksetting_markpercentages_add($markpercentageArr);
+
+					$this->data['markRelations']    = $this->getMarkRelationArray($this->mark_m->student_all_mark_array(array('schoolyearID' => $schoolyearID, 'examID' => $examID, 'classesID' => $classesID, 'subjectID' => $subjectID)));
+
+		// 					echo "<pre>";print_r($this->data['markRelations']);
+		// die;
+					if ($downloadFile == 1) {
+						$this->download_mark_sheet($this->data);
+					} else {
+						$this->data["subview"] = "mark/add_marks_excel";
+						$this->load->view('_layout_main', $this->data);
+					}
+				}
+			} else {
+				$this->data["subview"] = "mark/add_marks_excel";
+				$this->load->view('_layout_main', $this->data);
+			}
+		} else {
+			$this->data["subview"] = "error";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
+	public function add_modified($a=array())
+	{
+		if(!empty($a)){
+			$_POST = $a;
+			print_r($_POST);
+
+		}
+	    
+	   // error_reporting(E_ALL);
+		// ini_set('display_errors', 1);
+		// ini_set('display_startup_errors', 1);
+    
+		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) {
+			$this->data['headerassets'] = array(
+				'css' => array(
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css'
+				),
+				'js' => array(
+					'assets/select2/select2.js'
+				)
+			);
+			$this->data['students']           = [];
+			$this->data['settingmarktypeID']  = $this->data['siteinfos']->marktypeID;
+			$graduateclass                    = ''; //$this->data['siteinfos']->ex_class;
+
+			$this->data['set_exam']    = 0;
+			$this->data['set_classes'] = 0;
+			$this->data['set_section'] = 0;
+			$this->data['set_subject'] = 0;
+
+			$this->data['sendExam']    = [];
+			$this->data['sendSubject'] = [];
+			$this->data['sendClasses'] = [];
+			$this->data['sendSection'] = [];
+			$this->data['exams']       = [];
+			$this->data['classes']  = $this->classes_m->get_order_by_classes(['classesID !=' => $graduateclass]);
+
+			if ($_POST) {
+				$rules = $this->rules();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					$this->data["subview"] = "mark/add";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+					$examID          = $this->input->post('examID');
+					$classesID       = $this->input->post('classesID');
+					$sectionID       = $this->input->post('sectionID');
+					$subjectID       = $this->input->post('subjectID');
+					$downloadFile       = $this->input->post('downloadFile');
+
+
+					   // Form is submitted, now handle the bulk mark data
+					   $marksInput = $this->input->post('add_mark');
+        
+					   // Check if marks data is available
+					   if (!empty($marksInput)) {
+						   // Call saveAllMarks method to process the data
+						   $this->saveAllMarks();
+					   } else {
+						//    $this->session->set_flashdata('error', 'No marks data to save.');
+						//    redirect(base_url('mark/add'));
+					   }
+
+
+					if ((int)$classesID) {
+        				$this->data['exams']    = $this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID);
+        				// $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID,'examID' => $examID,'sectionID' => $sectionID));
+        				
+        				$subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID),$examID,$sectionID);
+        				// echo "aaaa<pre>";print_r($subjectsss);die;
+        				$this->data['sections'] = $this->section_m->get_order_by_section(array('classesID' => $classesID));
+        			} else {
+        				$this->data['subjects'] = [];
+        				$this->data['sections'] = [];
+        			}
+					
+					$this->data['set_exam']    = $examID;
+					$this->data['set_classes'] = $classesID;
+					$this->data['set_section'] = $sectionID;
+					$this->data['set_subject'] = $subjectID;
+
+					$exam            = $this->exam_m->get_single_exam(array('examID' => $examID));
+					$subject         = $this->subject_m->get_single_subject(array('subjectID' => $subjectID));
+					$classes         = $this->classes_m->get_single_classes(array('classesID' => $classesID));
+					$section         = $this->section_m->get_single_section(array('sectionID' => $sectionID));
+					$markpercentages = $this->markpercentage_m->get_markpercentage();
+
+
+					$markpercentageArr['marktypeID'] = $this->data['siteinfos']->marktypeID;
+					$markpercentageArr['classesID']  = $classesID;
+					$markpercentageArr['examID']     = $examID;
+					$markpercentageArr['subjectID']  = $subjectID;
+					$markpercentageArr['subject']    = $subject;
+
+					$this->data['sendExam']     = $exam;
+					$this->data['sendSubject']  = $subject;
+					$this->data['sendClasses']  = $classes;
+					$this->data['sendSection']  = $section;
+
+					$schoolyearID       = $this->session->userdata('defaultschoolyearID');
+					$studentArray = [
+						'srclassesID'   => $classesID,
+						'srsectionID'   => $sectionID,
+						'srschoolyearID' => $schoolyearID,
+					];
+
+					$students  = [];
+					if (customCompute($subject)) {
+						if ($subject->type == 1) {
+							// $students = $this->studentrelation_m->get_order_by_student([
+							$students = $this->studentrelation_m->get_order_by_student_limit([
+								"srclassesID"    	=> $classesID,
+								'srschoolyearID' 	=> $schoolyearID
+							]);
+						} else {
+							$students = $this->studentrelation_m->get_order_by_student_limit(array(
+								"srclassesID" => $classesID,
+								'srschoolyearID' => $schoolyearID,
+								'sroptionalsubjectID' => $subject->subjectID
+							));
+
+							$studentArray['sroptionalsubjectID'] = $subject->subjectID;
+						}
+					}
+
+					$sendStudent = $this->studentrelation_m->get_order_by_student($studentArray);
+					foreach ($subjectsss as $subj) { 
+
+					$markPluck   = pluck($this->mark_m->get_order_by_mark(array("examID" => $examID, "classesID" => $classesID, "	subjectID" => $subj->subjectID, 'schoolyearID' => $schoolyearID)), 'obj', 'studentID');
+
+					$array = [];
+					if (customCompute($students)) {
+
+						// echo "<pre>";print_r($subjectsss);die;
+
+						
+						foreach ($students as $student) {
+							if (!isset($markPluck[$student->studentID])) {
+								//echo 123; die;
+								$array[] = array(
+									"examID"       => $examID,
+									"schoolyearID" => $schoolyearID,
+									"exam"         => $exam->exam,
+									"studentID"    => $student->studentID,
+									"classesID"    => $classesID,
+									"subjectID"    => $subj->subjectID, //$subjectID,
+									"subject"      => $subj->subject,
+									"year"         => date('Y'),
+									"create_date"  => date("Y-m-d H:i:s"),
+									'create_userID' => $this->session->userdata("loginuserID"),
+									'create_usertypeID' => $this->session->userdata('usertypeID')
+								);
+							}
+						}
+
+						// echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@<pre>";print_r($array);
+
+						if (customCompute($array)) {
+							$count = customCompute($array);
+
+					 
+							$firstID = $this->mark_m->insert_batch_mark($array);
+							$lastID = $firstID + ($count - 1);
+
+							$markRelationArray = [];
+							if ($lastID >= $firstID) {
+								for ($i = $firstID; $i <= $lastID; $i++) {
+									foreach ($markpercentages as $value) {
+										$markRelationArray[] = [
+											"markID" => $i,
+											"markpercentageID" => $value->markpercentageID
+										];
+									}
+								}
+							}
+
+							if (customCompute($markRelationArray)) {
+								$this->markrelation_m->insert_batch_markrelation($markRelationArray);
+							}
+						}
+					}
+
+						$mark = $this->mark_m->get_order_by_mark(array('schoolyearID' => $schoolyearID, "examID" => $examID, "classesID" => $classesID));
+						$marks = $this->data['marks'] = $mark;
+						// echo "<pre>";print_r($this->data['marks']);die;
+					}
+
+					$marks_lookup = [];
+					foreach ($marks as $mark) {
+						$marks_lookup[$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+					}
+					$this->data['marks_lookup'] = $marks_lookup;  
+
+
+					if (customCompute($students)) {
+						$missingmMarkRelationArray = [];
+						$allMarkWithRelation = $this->markrelation_m->get_all_mark_with_relation(array('schoolyearID' => $schoolyearID, 'examID' => $examID, 'classesID' => $classesID, 'subjectID' => $subjectID));
+
+
+						$studentMarkPercentage = [];
+						foreach ($allMarkWithRelation as $key => $value) {
+							$studentMarkPercentage[$value->studentID][$value->examID][$value->subjectID]['markpercentage'][] = $value->markpercentageID;
+							$studentMarkPercentage[$value->studentID][$value->examID]['markID'][$value->subjectID] = $value->markID;
+						}
+
+						$markpercentages = pluck($markpercentages, 'markpercentageID');
+						foreach ($students as $student) {
+							$studentPercentage = isset($studentMarkPercentage[$student->studentID][$examID][$subjectID]['markpercentage']) ? $studentMarkPercentage[$student->studentID][$examID][$subjectID]['markpercentage'] : [];
+
+							if (customCompute($studentPercentage)) {
+								$diffMarkPercentage = array_diff($markpercentages, $studentMarkPercentage[$student->studentID][$examID][$subjectID]['markpercentage']);
+								foreach ($diffMarkPercentage as $item) {
+									$missingmMarkRelationArray[] = [
+										"markID" => $studentMarkPercentage[$student->studentID][$examID]['markID'][$subjectID],
+										"markpercentageID" => $item
+									];
+								}
+							}
+						}
+
+						if (customCompute($missingmMarkRelationArray)) {
+							$this->markrelation_m->insert_batch_markrelation($missingmMarkRelationArray);
+						}
+					}
+
+					$this->data['students']         = $sendStudent;
+					$this->data['markpercentages']  = $this->marksetting_m->get_marksetting_markpercentages_add($markpercentageArr);
+
+					$this->data['markRelations']    = $this->getMarkRelationArray($this->mark_m->student_all_mark_array(array('schoolyearID' => $schoolyearID, 'examID' => $examID, 'classesID' => $classesID, 'subjectID' => $subjectID)));
+
+		// 					echo "<pre>";print_r($this->data['markRelations']);
+		// die;
+					if ($downloadFile == 1) {
+						$this->download_mark_sheet($this->data);
+					} else {
+						$this->data["subview"] = "mark/add_modified";
+						$this->load->view('_layout_main', $this->data);
+					}
+				}
+			} else {
+				$this->data["subview"] = "mark/add_modified";
+				$this->load->view('_layout_main', $this->data);
+			}
+		} else {
+			$this->data["subview"] = "error";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
+
+	public function saveAllMarks()
+	{
+		$this->load->model('mark_m');
+	
+		$marksInput = $this->input->post('marks');
+		$examID = $this->input->post('examID') ?? $this->data['set_exam'];
+		$classesID = $this->input->post('classesID') ?? $this->data['set_classes'];
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+	
+		if (!empty($marksInput)) {
+			foreach ($marksInput as $studentID => $subjectArray) {
+				foreach ($subjectArray as $subjectID => $percentageArray) {
+					// Step 1: Ensure mark entry exists (1 per exam/student/subject/year)
+					$mark = $this->mark_m->get_single_mark([
+						'examID' => $examID,
+						'classesID' => $classesID,
+						'subjectID' => $subjectID,
+						'studentID' => $studentID,
+						'schoolyearID' => $schoolyearID
+					]);
+	
+					if (!$mark) {
+						// If no main mark record, insert one (basic data only)
+						$markID = $this->mark_m->insert_mark([
+							'examID' => $examID,
+							'classesID' => $classesID,
+							'subjectID' => $subjectID,
+							'studentID' => $studentID,
+							'schoolyearID' => $schoolyearID,
+							'create_date' => date('Y-m-d H:i:s'),
+							'create_userID' => $this->session->userdata('userID'),
+							'create_usertypeID' => $this->session->userdata('usertypeID'),
+							'year' => date('Y'),
+							'exam' => '',     // optional
+							'subject' => '',  // optional
+							'eattendance' => NULL
+						]);
+					} else {
+						$markID = $mark->markID;
+					}
+	
+					// Step 2: Save marks per percentage
+					foreach ($percentageArray as $markpercentageID => $markValue) {
+						$existingRelation = $this->mark_m->get_single_markrelation([
+							'examID' => $examID,
+							'classesID' => $classesID,
+							'subjectID' => $subjectID,
+							'studentID' => $studentID,
+							'schoolyearID' => $schoolyearID,
+							'markpercentageID' => $markpercentageID
+						]);
+	
+						$markValue = abs($markValue); // Ensure positive
+	
+						if ($existingRelation) {
+							$this->mark_m->update_markrelation([
+								'mark' => $markValue
+							], $markID, $markpercentageID);
+						} else {
+							$this->mark_m->insert_markrelation([
+								'markID' => $markID,
+								'markpercentageID' => $markpercentageID,
+								'mark' => $markValue
+							]);
+						}
+						//echo $this->db->last_query();die;
+					}
+				}
+			}
+	
+			$this->session->set_flashdata('success', 'Marks saved successfully.');
+		} else {
+			$this->session->set_flashdata('error', 'No marks data to save.');
+		}
+	
+		redirect(base_url('mark/add'));
+	}
+	
+
+	
+
+
 	public function view($studentID = null, $classID = null)
 	{
 		$this->data['headerassets'] = array(
@@ -632,20 +1194,8 @@ class Mark extends Admin_Controller
 							$this->db->where('markpercentageID',$value['markpercentageid']);
 							$this->db->where('markID',$data[1]);
 							$this->db->update('markrelation',array('mark' => abs($value['value']) ));
-
-							// $markRelationArray[] = [
-							// 	'markrelationID' => $data[1],
-							// 	'mark' => abs($value['value'])
-							// ];
 						} else {
-							// $markRelationArray[] = [
-							// 	'markrelationID' => $data[1],
-							// 	'mark' => NULL
-							// ];
-							// $this->db->where('markpercentageID',$value['markpercentageid']);
-							// $this->db->where('markID',$data[1]);
-							// $this->db->update('markrelation',array('mark' => abs($value['value']) ));
-
+							
 						}
 					}
 				}

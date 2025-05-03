@@ -139,7 +139,7 @@
                                         ?>
                                     </div>
                                 </div>
-                                <div class="col-md-3" style="display:none;">
+                                <div class="col-md-3"  >
                                     <div class="<?php echo form_error('subjectID') ? 'form-group has-error' : 'form-group'; ?>">
                                         <label for="subjectID" class="control-label">
                                             <?= $this->lang->line('mark_subject') ?> <span class="text-red">*</span>
@@ -169,7 +169,7 @@
                     </div>
                 </form>
                 <?php if (customCompute($students)) { ?>
-                    <!-- <form enctype="multipart/form-data" style="" action="<?= base_url('mark/mark_bulkimport'); ?>" class="form-horizontal" role="form" method="post">
+                    <form enctype="multipart/form-data" style="" action="<?= base_url('mark/mark_bulkimport'); ?>" class="form-horizontal" role="form" method="post">
                         <input  type="hidden"name="classId" value="" class="classId" />
                         <input  type="hidden"name="sectionId" value="" class="sectionId" />
                         <input  type="hidden"name="subjectId" value="" class="subjectId" />
@@ -196,7 +196,7 @@
                             </div>
                         </div>
                     </form>
-                    <form enctype="multipart/form-data" style="" action="<?= base_url('mark/add'); ?>" class="form-horizontal" role="form" method="post">
+                    <form enctype="multipart/form-data" style="" action="<?= base_url('mark/add_marks_excel'); ?>" class="form-horizontal" role="form" method="post">
                         <input type="hidden" name="classesID" value="" class="classId" />
                         <input  type="hidden"name="sectionID" value="" class="sectionId" />
                         <input  type="hidden"name="subjectID" value="" class="subjectId" />
@@ -207,7 +207,7 @@
                                 <input type="submit" class="btn btn-success" value="Download Sample File">
                             </div>
                         </div>
-                    </form> -->
+                    </form>
 
                 <?php }  ?>
 
@@ -227,8 +227,7 @@
             </div>
 
                 <div class="float-right">
-                    <button class="btn btn-primary" style="margin-left:20px;" id="printBtn">Print Sheet</button>
-                    <!-- <a href="<?php echo base_url('Mark/add_marks_excel');?>" class="btn btn-info" style="margin-left:20px;" id="printBtn">Marks Upload</a> -->
+                    <button class="btn btn-purple" style="margin-left:20px;" id="printBtn">Print Sheet</button>
                     
                 </div>
             
