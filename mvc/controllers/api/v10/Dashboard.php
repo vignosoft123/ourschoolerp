@@ -102,9 +102,9 @@ class Dashboard extends Api_Controller
 
 		$this->retdata['notices']  = $this->notice_m->get_order_by_notice(array('schoolyearID' => $schoolyearID));
 		$this->dashboard_tiles($widgetArray);
-// 		$calenderArray['holidays'] = $holidays;
-// 		$calenderArray['events']   = $events;
-// 		$this->calender_info($calenderArray);
+		// 		$calenderArray['holidays'] = $holidays;
+		// 		$calenderArray['events']   = $events;
+		// 		$this->calender_info($calenderArray);
 
         $this->retdata['events']   = $events;
 		$this->retdata['holidays'] = $holidays;

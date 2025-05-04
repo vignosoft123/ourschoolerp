@@ -362,7 +362,7 @@ class Mark extends Admin_Controller
 						}
 					}
 
-						$mark = $this->mark_m->get_order_by_mark(array('schoolyearID' => $schoolyearID, "examID" => $examID, "classesID" => $classesID));
+						$mark = $this->mark_m->get_order_by_mark_new(array('schoolyearID' => $schoolyearID, "examID" => $examID, "classesID" => $classesID));
 						$this->data['marks'] = $mark;
 						// echo "<pre>";print_r($this->data['marks']);die;
 					}

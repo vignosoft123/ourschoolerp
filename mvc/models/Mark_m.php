@@ -102,13 +102,13 @@ public function insert_markrelation($data)
 	
 
 
-	// public function get_order_by_mark($array=NULL) {
-	// 	$query = parent::get_order_by($array);
-	// 	return $query;
-	// }
+	public function get_order_by_mark($array=NULL) {
+		$query = parent::get_order_by($array);
+		return $query;
+	}
 
 	
- 	public function get_order_by_mark($array = NULL) {
+ 	public function get_order_by_mark_new($array = NULL) {
 		if ($array) {
 			$schoolyearID = $array['schoolyearID'];
 			$examID = $array['examID'];

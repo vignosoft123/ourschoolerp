@@ -1,4 +1,46 @@
 <style>
+    /* thead th {
+        background: linear-gradient(90deg, #007bff, #3399ff);
+        color: white;
+        text-align: center;
+        font-weight: bold;
+        vertical-align: middle;
+        padding: 10px;
+    } */
+
+    #myTable thead th {
+    background-color: #4CAF50; /* Green background */
+    
+    color: white;               /* White text */
+    padding: 10px;              /* Padding inside headers */
+    text-align: center;         /* Center the header text */
+    font-weight: bold;          /* Bold text */
+    border: 1px solid #ddd;     /* Light border */
+    font-size: 14px;            /* Font size */
+    /* white-space: nowrap;        Prevent headers from wrapping */
+}
+
+    tbody td {
+        text-align: center;
+        vertical-align: middle;
+        padding: 8px;
+    }
+    tbody tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    tbody tr:nth-child(odd) {
+        background-color: #ffffff;
+    }
+    .text-bold {
+        font-weight: bold;
+    }
+    tfoot td {
+        background-color: #e9ecef;
+        font-weight: bold;
+    }
+</style>
+
+<style>
         /* Print specific styles */
         @media print {
             input {
@@ -161,7 +203,7 @@
                             <div class="row">
                                 <div class="col-md-12 col-xs-12">
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-success col-md-12 col-xs-12 mark_btn" style="margin-top: 20px;"><?= $this->lang->line('add_mark') ?></button>
+                                        <button type="submit" class="btn btn-success col-md-12 col-xs-12 mark_btn" style="margin-top: 20px;">Get Marks</button>
                                     </div>
                                 </div>
                             </div>
@@ -227,7 +269,7 @@
             </div>
 
                 <div class="float-right">
-                    <button class="btn btn-primary" style="margin-left:20px;" id="printBtn">Print Sheet</button>
+                    <button class="btn btn-default " style="margin-left:91%;" id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
                     <!-- <a href="<?php echo base_url('Mark/add_marks_excel');?>" class="btn btn-info" style="margin-left:20px;" id="printBtn">Marks Upload</a> -->
                     
                 </div>
@@ -235,7 +277,7 @@
             <div class="col-sm-12">
                 <?php if (customCompute($students)) { ?>
                     <div id="hide-table">
-                        <table class="table table-striped table-bordered table-hover dataTable no-footer">
+                        <table class="table table-striped table-bordered table-hover dataTable no-footer" id="myTable">
                             <thead>
                                 <tr>
                                     <th><?= $this->lang->line('slno') ?></th>
@@ -340,12 +382,12 @@
                                                                }
 
 
-                                                                if($mrk == 0 || $mrk == '0' ){
-                                                                    
-                                                                    // $zero_mark = 'yes'; 
-                                                                    ++$zero_mark; 
-                                                                }
-                                                                $tot += $mrk; 
+                                                               $mrk = (int)$mrk;
+
+                                                               if ($mrk == 0) {
+                                                                   ++$zero_mark;
+                                                               }
+                                                               $tot += $mrk;
                                                                 
 
 
@@ -470,15 +512,22 @@
                             </tbody>
                         </table>
                     </div>
-                    <input type="button" class="btn btn-success col-sm-2 col-xs-12" id="add_mark" name="add_mark" value="<?= $this->lang->line("add_sub_mark") ?>" />
+                   
 
-                    <button class="btn btn-info sendSms" id="send_sms_marks_btn">
-                        <span class="fa fa-comment"></span> Send Marks - SMS
-                    </button>
+                    <div class="text-right">
 
-                    <button class="btn btn-primary sendSms" id="send_whatsapp_marks_btn">
-                        <span class="fa fa-whatsapp"></span> Send Marks - Whatsapp
-                    </button>
+                       
+                    
+                        <button class="btn btn-info sendSms" id="send_sms_marks_btn">
+                            <span class="fa fa-comment"></span> Send Marks - SMS
+                        </button>
+
+                        <button class="btn btn-primary sendSms" id="send_whatsapp_marks_btn">
+                            <span class="fa fa-whatsapp"></span> Send Marks - Whatsapp
+                        </button>
+
+                        <button type="button" class="btn btn-success " id="add_mark" name="add_mark" value="Save or Refresh Marks" > Save or Refresh Marks </button>
+                    </div>
 
                     <script type="text/javascript">
                         window.addEventListener('load', function() {
