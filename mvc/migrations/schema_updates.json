@@ -1,0 +1,34 @@
+[
+    {
+        "query": "ALTER TABLE `student` ADD `remarks` TEXT NULL DEFAULT NULL ",
+        "type": "alter",
+        "check_column": {
+            "table": "student",
+            "column": "remarks"
+        }
+    },
+    {
+        "query": "ALTER TABLE `feetypes` ADD `created_by` INT NULL DEFAULT '0' ",
+        "type": "alter",
+        "check_column": {
+            "table": "feetypes",
+            "column": "created_by"
+        }
+    },
+    {
+        "query": "ALTER TABLE `feetypes` ADD `school_year_id` INT NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "feetypes",
+            "column": "school_year_id"
+        }
+    },
+    {
+        "query": "ALTER TABLE `feetypes` ADD `fee_amount` DOUBLE(10,2) NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "feetypes",
+            "column": "fee_amount"
+        }
+    }
+]

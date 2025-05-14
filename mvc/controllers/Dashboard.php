@@ -385,11 +385,18 @@ if ( !defined('BASEPATH') ) {
             // $this->data['whatsapp_count'] = $this->get_whatsapp_credits();
             $this->data['whatsapp_count'] = $this->Whatsapp_m->get_whatsapp_credits();
 
+            //dynamically insert db row
             $this->db->where('fieldoption',"is_fee_sms");
             $is_fee_sms = $this->db->get('setting')->num_rows();
             if($is_fee_sms == 0){
                 $this->db->insert('setting',array('fieldoption'=>'is_fee_sms','value'=>1));
             }
+
+            //dynamically alter queries - db migration
+            $this->apply_updates();
+
+
+
             
             
             $this->data["subview"] = "dashboard/index";
@@ -1120,6 +1127,55 @@ if ( !defined('BASEPATH') ) {
             } 
             echo $li;
             
+        }
+
+
+
+        // db migration start
+        public function apply_updates() {
+            $this->load->database();
+        
+            $json_path = APPPATH . 'migrations/schema_updates.json';
+            if (!file_exists($json_path)) {
+                show_error('Schema update file not found.');
+            }
+        
+            $updates = json_decode(file_get_contents($json_path), true);
+        
+            foreach ($updates as $update) {
+                if ($update['type'] === 'alter' && isset($update['check_column'])) {
+                    $table = $update['check_column']['table'];
+                    $column = $update['check_column']['column'];
+        
+                    if (!$this->column_exists($table, $column)) {
+                        $this->db->query($update['query']);
+                       // echo "Executed ALTER: {$update['query']}<br>";
+                    } else {
+                       // echo "Skipped ALTER (already exists): $column in $table<br>";
+                    }
+        
+                } elseif ($update['type'] === 'insert' && isset($update['check_row'])) {
+                    $table = $update['check_row']['table'];
+                    $where = $update['check_row']['where'];
+        
+                    $exists = $this->db->get_where($table, $where)->num_rows() > 0;
+        
+                    if (!$exists) {
+                        $this->db->query($update['query']);
+                       // echo "Executed INSERT: {$update['query']}<br>";
+                    } else {
+                        //echo "Skipped INSERT (row already exists in $table)<br>";
+                    }
+        
+                } else {
+                    //echo "Invalid update entry or unsupported type.<br>";
+                }
+            }
+        }
+        
+        private function column_exists($table, $column) {
+            $fields = $this->db->list_fields($table);
+            return in_array($column, $fields);
         }
 
       
