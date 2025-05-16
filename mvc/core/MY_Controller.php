@@ -26,13 +26,21 @@ class MY_Controller extends CI_Controller {
         parent::__construct();
         $this->load->config('iniconfig');
         $this->data['errors'] = [];
-
+        $this->load->library('session');
 
          // 1. Get subdomain
-       /*  $subdomain = get_subdomain(); // defined in helper below
+        /* $subdomain = get_subdomain(); // defined in helper below
          if (!$subdomain) {
              show_error("Invalid subdomain.");
          }
+
+           // Store it in session (only if not already set)
+        if (!$this->session->userdata('subdomain')) {
+            $this->session->set_userdata('subdomain', $subdomain);
+        }
+
+        // for gettin session 
+        // $subdomain = $this->session->userdata('subdomain');
  
         //  echo $subdomain;die;
          // 2. Load fixed master DB to get credentials

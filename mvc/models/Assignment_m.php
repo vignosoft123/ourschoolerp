@@ -11,15 +11,39 @@ class Assignment_m extends MY_Model {
 		parent::__construct();
 	}
 
-	function join_get_assignment($classesID, $schoolyearID) {
-		$this->db->select('*');
-		$this->db->from('assignment');
-		$this->db->join('subject', 'subject.subjectID = assignment.subjectID AND subject.classesID = assignment.classesID', 'LEFT');
-		$this->db->where('assignment.schoolyearID', $schoolyearID);
-		$this->db->where('assignment.classesID', $classesID);
-		$query = $this->db->get();
-		return $query->result();
-	}
+	// function join_get_assignment($classesID, $schoolyearID) {
+	// 	$this->db->select('*');
+	// 	$this->db->from('assignment');
+	// 	$this->db->join('subject', 'subject.subjectID = assignment.subjectID AND subject.classesID = assignment.classesID', 'LEFT');
+	// 	$this->db->where('assignment.schoolyearID', $schoolyearID);
+	// 	$this->db->where('assignment.classesID', $classesID);
+	// 	$query = $this->db->get();
+	// 	return $query->result();
+	// }
+
+	function join_get_assignment($classesID, $schoolyearID, $sectionID = 0, $subjectID = 0, $date = 0) {
+    $this->db->select('*');
+    $this->db->from('assignment');
+    $this->db->join('subject', 'subject.subjectID = assignment.subjectID AND subject.classesID = assignment.classesID', 'LEFT');
+    $this->db->where('assignment.schoolyearID', $schoolyearID);
+    $this->db->where('assignment.classesID', $classesID);
+
+    if ((int)$sectionID > 0) {
+        $this->db->like('assignment.sectionID', '"' . $sectionID . '"');
+    }
+
+    if ((int)$subjectID > 0) {
+        $this->db->where('assignment.subjectID', $subjectID);
+    }
+
+    if ($date && $date != '0') {
+        $this->db->where('assignment.deadlinedate', $date); // adjust column name if needed
+    }
+
+    $query = $this->db->get();
+    return $query->result();
+}
+
 
 	function get_assignment($array=NULL, $signal=FALSE) {
 		$query = parent::get($array, $signal);

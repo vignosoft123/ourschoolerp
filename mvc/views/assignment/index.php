@@ -1,6 +1,15 @@
+<style>
+    .filter-box {
+    background-color:hsl(133, 46.30%, 75.90%);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+    </style>
 <div class="box">
     <div class="box-header">
-        <h3 class="box-title"><i class="fa icon-assignment"></i> <?=$this->lang->line('panel_title')?></h3>
+        <h3 class="box-title"><i class="fa icon-assignment"></i> Home Work</h3>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i><?=$this->lang->line('menu_dashboard')?></a></li>
             <li class="active"><?=$this->lang->line('menu_assignment')?></li>
@@ -8,20 +17,21 @@
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
-        <div class="row">
-            <div class="col-sm-12">
+        <div class="row ">
+            <div class="col-sm-12 ">
                 <?php if((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
+                    <div class="filter-box">
                     <h5 class="page-header">
                         <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if(permissionChecker('assignment_add')) { ?>
                                 <a class="ose-btn create-btn" href="<?php echo base_url('assignment/add') ?>">
                                     <i class="fa fa-plus"></i> 
-                                    <?=$this->lang->line('add_title')?>
+                                    Add Home Work
                                 </a>
                             <?php } ?>
                         <?php } ?>
                         <?php if($this->session->userdata('usertypeID') != 3) { ?>
-                            <div class="col-lg-2 col-sm-2 col-md-2 col-xs-12 pull-right drop-marg">
+                            <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
                                 <?php
                                     $array = array("0" => $this->lang->line("assignment_select_classes"));
                                     if(customCompute($classes)) {
@@ -32,8 +42,45 @@
                                     echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2'");
                                 ?>
                             </div>
+
+                        <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
+                            <?php
+                                 $array = array('0' => 'Select Section');
+                                if($sections != "empty") {
+                                    foreach ($sections as $section) {
+                                        $array[$section->sectionID] = $section->section;
+                                    }
+                                }
+                                
+                                echo form_dropdown("sectionID", $array, set_value("sectionID",$setsectionID), "id='sectionID' class='form-control select2'");
+                            ?>
+                        </div>
+
+                        <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
+                            <?php
+                                $array = array('0' => $this->lang->line("assignment_select_subject"));
+                                if($subjects != "empty") {
+                                    foreach ($subjects as $subject) {
+                                        $array[$subject->subjectID] = $subject->subject;
+                                    }
+                                }
+                                
+                                echo form_dropdown("subjectID", $array, set_value("subjectID",$setsubjectID), "id='subjectID' class='form-control select2'");
+                            ?>   
+                        </div>
+
+                        <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
+                            <input type="text" class="form-control" id="deadlinedate" name="deadlinedate" value="<?=set_value('deadlinedate',$date)?>" >
+                        </div>
+
+                        <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
+                            <button class="btn btn-success" id="get_data" > Get Data</button> 
+                        </div>
+                        
+
                         <?php } ?>
                     </h5>
+                </div>
                 <?php } ?>
 
                 <div id="hide-table">
@@ -121,8 +168,37 @@
 
 <script type="text/javascript">
     $(".select2").select2();
-    $('#classesID').change(function() {
-        var classesID = $(this).val();
+    $("#deadlinedate").datepicker({
+    autoclose: true,
+    format: 'yyyy-mm-dd',
+    //startDate:'<?=$schoolyearobj->startingdate?>',
+    //endDate:'<?=$schoolyearobj->endingdate?>',
+});
+
+    // $('#classesID').change(function() {
+    //     var classesID = $(this).val();
+    //     if(classesID == 0) {
+    //         $('#hide-table').hide();
+    //         $('.nav-tabs-custom').hide();
+    //     } else {
+    //         $.ajax({
+    //             type: 'POST',
+    //             url: "<?=base_url('assignment/student_list')?>",
+    //             data: "id=" + classesID,
+    //             dataType: "html",
+    //             success: function(data) {
+    //                 window.location.href = data;
+    //             }
+    //         });
+    //     }
+    // });
+
+        $('#get_data').click(function() {
+        // var classesID = $(this).val();
+        var classesID = $('#classesID').val();
+        var subjectID = $('#subjectID').val();
+        var sectionID = $('#sectionID').val();
+        var deadlinedate = $('#deadlinedate').val();
         if(classesID == 0) {
             $('#hide-table').hide();
             $('.nav-tabs-custom').hide();
@@ -130,7 +206,12 @@
             $.ajax({
                 type: 'POST',
                 url: "<?=base_url('assignment/student_list')?>",
-                data: "id=" + classesID,
+                 data: {
+                id: classesID,
+                sectionID: sectionID,
+                subjectID: subjectID,
+                deadlinedate:deadlinedate
+            },
                 dataType: "html",
                 success: function(data) {
                     window.location.href = data;
@@ -138,4 +219,36 @@
             });
         }
     });
+
+
+    $('#classesID').change(function(event) {
+    var classesID = $(this).val();
+    if(classesID === '0') {
+        $('#subjectID').val(0);
+        $('#sectionID').val('');
+    } else {
+        $('#sectionID').val('');
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('assignment/subjectcall')?>",
+            data: "id=" + classesID,
+            dataType: "html",
+            success: function(data) {
+               $('#subjectID').html(data);
+            }
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('assignment/sectioncall')?>",
+            data: "id=" + classesID,
+            dataType: "html",
+            success: function(data) {
+               $('#sectionID').html(data);
+            }
+        });
+    }
+});
+
+ 
 </script>

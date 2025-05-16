@@ -164,7 +164,7 @@ class Assignment extends Admin_Controller {
 		}
 	}
 
-	public function index() {
+	public function index_bkp() {
 		$this->data['headerassets'] = array(
 			'css' => array(
 				'assets/select2/css/select2.css',
@@ -205,6 +205,63 @@ class Assignment extends Admin_Controller {
 			$this->load->view('_layout_main', $this->data);
 		}
 	}
+
+	public function index($classID = 0, $sectionID = 0, $subjectID = 0, $date = 0) {
+    $this->data['headerassets'] = array(
+        'css' => array(
+            'assets/select2/css/select2.css',
+            'assets/select2/css/select2-bootstrap.css'
+        ),
+        'js' => array(
+            'assets/select2/select2.js',
+			'assets/datepicker/datepicker.js',
+        )
+    );
+
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+    $this->data['student']    = [];
+    $this->data['opsubjects'] = [];
+
+    if($this->session->userdata('usertypeID') == 3) {
+        $classID       = (int)$this->data['myclass'];
+        $loginuserID   = $this->session->userdata('loginuserID');
+        $this->data['opsubjects']  = pluck($this->subject_m->get_order_by_subject([
+            'classesID' => $classID,
+            'type' => 0
+        ]), 'subjectID', 'subjectID');
+        $this->data['student'] = $this->studentrelation_m->get_single_studentrelation([
+            'srstudentID' => $loginuserID,
+            'srschoolyearID' => $schoolyearID
+        ]);
+    }
+
+    $this->data['classes'] = $this->classes_m->get_classes();
+    $fetchClasses          = pluck($this->data['classes'], 'classesID', 'classesID');
+
+    if((int)$classID && isset($fetchClasses[$classID])) {
+        $this->data['set']         = $classID;
+        $this->data['setsectionID']   = $sectionID;
+        $this->data['setsubjectID']   = $subjectID;
+        $this->data['date']        = $date;
+
+        $this->data['sections']    = pluck($this->section_m->general_get_order_by_section([
+            'classesID' => $classID
+        ]), 'section', 'sectionID');
+
+$this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, $schoolyearID, $sectionID, $subjectID, $date);
+
+        $this->data["subview"]     = "assignment/index";
+        $this->load->view('_layout_main', $this->data);
+    } else {
+        $this->data['set']         = 0;
+        $this->data['sections']    = [];
+        $this->data['assignments'] = [];
+
+        $this->data["subview"]     = "assignment/index";
+        $this->load->view('_layout_main', $this->data);
+    }
+}
+
 
 	public function add() {
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
@@ -609,15 +666,21 @@ class Assignment extends Admin_Controller {
 		}
 	}
 
-	public function student_list() {
-		$classID = $this->input->post('id');
-		if((int)$classID) {
-			$string = base_url("assignment/index/$classID");
-			echo $string;
-		} else {
-			redirect(base_url("assignment/index"));
-		}
-	}
+public function student_list() {
+    $classID   = $this->input->post('id')         ?: 0;
+    $sectionID = $this->input->post('sectionID')  ?: 0;
+    $subjectID = $this->input->post('subjectID')  ?: 0;
+    $deadlinedate      = $this->input->post('deadlinedate')       ?: 0;
+
+    if((int)$classID) {
+        // Construct URL with all parameters
+        $string = base_url("assignment/index/$classID/$sectionID/$subjectID/$deadlinedate");
+        echo $string;
+    } else {
+        redirect(base_url("assignment/index"));
+    }
+}
+
 
 	public function download() {
 		$id = htmlentities(escapeString($this->uri->segment(3)));

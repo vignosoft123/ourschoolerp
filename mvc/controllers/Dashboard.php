@@ -392,6 +392,8 @@ if ( !defined('BASEPATH') ) {
                 $this->db->insert('setting',array('fieldoption'=>'is_fee_sms','value'=>1));
             }
 
+            $this->db->query("UPDATE `menu` SET `menuName` = 'Home Work' WHERE `menu`.`menuID` = 27");
+
             //dynamically alter queries - db migration
             $this->apply_updates();
 
