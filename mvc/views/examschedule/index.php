@@ -11,6 +11,8 @@
         <div class="row">
             <div class="col-sm-12">
                 <?php if((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
+                    <div class="filter-box">
+
                     <h5 class="page-header">
                         <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if(permissionChecker('examschedule_add')) { ?>
@@ -33,7 +35,7 @@
 
                 
                 <?php if($this->session->userdata('usertypeID') != 3) { ?>
-                            <div class="col-lg-4 col-sm-4 col-md-4 col-xs-12 pull-right drop-marg">
+                            <div class="col-lg-4 col-sm-4 col-md-4 col-xs-4 pull-right drop-marg">
                                 Class : 
                                 <?php
                                     $array = array("0" => $this->lang->line("examschedule_select_classes"));
@@ -44,18 +46,34 @@
                                     }
                                     echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2'");
                                 ?>
+                            </div>
 
-                        Exam : 
-                     <?php
-                        $examArray['0'] = $this->lang->line("examschedulereport_please_select");
-                        echo form_dropdown("examID", $examArray, set_value("examID",$examId), "id='examID' class='form-control select2'"); 
-                     ?>
+
+                            <div class="col-lg-4 col-sm-4 col-md-4 col-xs-4 pull-right drop-marg">
+                                Exam : 
+                                <?php
+                                    $examArray['0'] = $this->lang->line("examschedulereport_please_select");
+                                    echo form_dropdown("examID", $examArray, set_value("examID",$examId), "id='examID' class='form-control select2'"); 
+                                ?>
 
                             </div>
 
-                        <?php } ?>
+                        <?php }else{ ?> 
+
+                            <div class="col-lg-4 col-sm-4 col-md-4 col-xs-4 pull-right drop-marg">
+                                <input type="hidden" value="<?= $set?>" name="classesID" id='classesID'> 
+                                Exam :  
+
+                                <?php
+                                $examArray['0'] = $this->lang->line("examschedulereport_please_select");
+                                echo form_dropdown("examID", $examArray, set_value("examID",$examId), "id='examID' class='form-control select2'"); 
+                                ?>
+ 
+                            </div>
+                        <?php }?>
                     </h5>
 
+                            </div>
                   
 
                 <?php } ?>

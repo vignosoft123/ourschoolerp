@@ -3997,9 +3997,18 @@ padding-bottom: 10px;
   color: #667085;
   font-size: 14px;
 }
+
+.bg-lpurple{
+   background-color: #eec4ff82; /* Light purple */
+}
    
 
-
+.filter-box {
+background-color:hsl(133, 46.30%, 75.90%);
+padding: 10px;
+border-radius: 5px;
+margin-bottom: 15px;
+}
 
 
 

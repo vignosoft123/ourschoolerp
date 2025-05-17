@@ -1,4 +1,31 @@
-        <header class="header">
+<style>
+    /* Optional enhancements */
+.input-group .form-control {
+    border-radius: 20px 0 0 20px;
+}
+
+.input-group .btn {
+    border-radius: 0 20px 20px 0;
+}
+
+.search-box {
+    background-color: #fff9c4; /* Light yellow */
+    padding-right: 80px;       /* Make space for the icon */
+    border-radius: 20px;
+}
+
+.search-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none; /* So clicks go to the input */
+}
+
+
+    </style>
+<header class="header">
             <!-- <a href="<?php echo base_url('dashboard/index'); ?>" class="logo">
                 <?php if(customCompute($siteinfos)) { echo namesorting($siteinfos->sname, 14); } ?>
             </a> -->
@@ -49,18 +76,17 @@
                         <li>
                            
                         </li>
+                        <?php //echo 'aaaaaa'.$this->session->userdata('usertypeID');die;
+                        if($this->session->userdata('usertypeID') != 3){?>
                         <li>
-                            <form name="g_search_form" action="<?php echo base_url('Student/global_student_search');?>" method="post">
-                                <!-- <input type="text" name="global_search" placeholder="Global Student Search..." value="">
-                                <input type="submit" class="btn btn-success" value="Search"> -->
-                                <div class="search">
-                                    <input type="text" name="global_search" class="search__input form-control" placeholder="Global student search...">
-                                    <button class="search__button">
-                                    <i class="fa fa-search"></i>
-                                    </button>
-                                </div>                                
-                            </form>  
+                                <form name="g_search_form" action="<?= base_url('Student/global_student_search'); ?>" method="post">
+        <div class="position-relative" style="max-width: 300px;    margin-top: 6px;">
+            <input type="text" name="global_search" class="form-control search-box" placeholder="Global student search...">
+            <i class="fa fa-search search-icon"></i>
+        </div>
+    </form>
                         </li>
+                        <?php }?>
                         <li class="dropdown notifications-menu">
                             <a target="_blank" href="<?=base_url('frontend/index')?>" class="dropdown-toggle" data-toggle="tooltip" title="<?=$this->lang->line('menu_visit_site')?>" data-placement="bottom">
                                 <i class="fa fa-globe"></i>

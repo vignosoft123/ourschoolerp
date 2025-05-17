@@ -30,7 +30,7 @@
 
         <link href="<?php echo base_url('assets/datatables/dataTables.bootstrap.css'); ?>" rel="stylesheet">
 
-        <link id="headStyleCSSLink" href="<?php echo base_url($backendThemePath.'/style.css?v=1.0'); ?>" rel="stylesheet">
+        <link id="headStyleCSSLink" href="<?php echo base_url($backendThemePath.'/style.css?v=').CSSVERSION; ?>" rel="stylesheet">
 
         <link href="<?php echo base_url('assets/inilabs/hidetable.css'); ?>" rel="stylesheet">
 

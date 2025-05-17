@@ -1,3 +1,14 @@
+<style>
+  
+
+/* Optional: highlight on hover */
+/* .select2-container-active .select2-choice, .select2-container-multi.select2-container-active .select2-choices {
+    background-color: #eec4ff82 !important;
+    color: #000;
+} */
+
+    </style>
+
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-student"></i> Student </h3>
@@ -89,7 +100,7 @@
                     else
                         echo "<div class='col-md-4' >";
                     ?>
-                    <label for="classesID" class="control-label">
+                    <label for="classesID" class="control-label bg-lpurple">
                         <?= $this->lang->line("student_classes") ?> <span class="text-red">*</span>
                     </label>
                         <?php
@@ -97,7 +108,7 @@
                         foreach ($classes as $classa) {
                             $classArray[$classa->classesID] = $classa->classes;
                         }
-                        echo form_dropdown("classesID", $classArray, set_value("classesID"), "id='classesID' class='form-control select2'");
+                        echo form_dropdown("classesID", $classArray, set_value("classesID"), "id='classesID' class='form-control bg-lpurple select2'");
                         ?>
                     <span class=" control-label">
                         <?php echo form_error('classesID'); ?>
@@ -110,7 +121,7 @@
                         else
                             echo "<div class='col-md-4' >";
                         ?>
-                        <label for="sectionID" class="  control-label">
+                        <label for="sectionID" class="  control-label bg-lpurple">
                             <?= $this->lang->line("student_section") ?> <span class="text-red">*</span>
                             <a title="Add Section" target="_blank" href="<?= base_url('section/add');?>"> <i class="fa fa-plus" ></i></a>
                         </label>
@@ -130,7 +141,7 @@
                                 $sID = $sectionID;
                             }
 
-                            echo form_dropdown("sectionID", $sectionArray, set_value("sectionID", $sID), "id='sectionID' class='form-control select2'");
+                            echo form_dropdown("sectionID", $sectionArray, set_value("sectionID", $sID), "id='sectionID' class='form-control bg-lpurple select2'");
                             ?>
                         <span class="  control-label">
                             <?php echo form_error('sectionID'); ?>
@@ -161,7 +172,7 @@
                             <label for="roll" class="  control-label">
                                 <?= $this->lang->line("student_roll") ?> <span class="text-red">*</span>
                             </label>
-                                <input type="text" class="form-control" id="roll" name="roll" value="<?= set_value('roll') ?>">
+                                <input type="text" class="form-control bg-lpurple" id="roll" name="roll" value="<?= set_value('roll') ?>">
                             <span class=" err control-label">
                                 <?php echo form_error('roll'); ?>
                             </span>
@@ -199,7 +210,7 @@
                                         $groupArray[$studentgroup->studentgroupID] = $studentgroup->group;
                                     }
                                 }
-                                echo form_dropdown("studentGroupID", $groupArray, set_value("studentGroupID"), "id='studentGroupID' class='form-control select2'");
+                                echo form_dropdown("studentGroupID", $groupArray, set_value("studentGroupID"), "id='studentGroupID' class='form-control  select2'");
                                 ?>
                             <span class="  control-label">
                                 <?php echo form_error('studentGroupID'); ?>
@@ -329,7 +340,7 @@
                             ID Card Name <span class="text-red">*</span>
                         </label>
                         
-                            <input type="text" class="form-control" id="name_id" name="name" value="<?= set_value('name') ?>">
+                            <input type="text" class="form-control bg-lpurple" id="name_id" name="name" value="<?= set_value('name') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('name'); ?>
@@ -469,7 +480,7 @@
                             Father Name <span class="text-red">*</span>
                         </label>
                         
-                            <input type="text" class="form-control" id="father_name_id" name="father_name" value="<?= set_value('father_name') ?>">
+                            <input type="text" class="form-control bg-lpurple" id="father_name_id" name="father_name" value="<?= set_value('father_name') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('father_name'); ?>
@@ -486,7 +497,7 @@
                             Father Aadhar <span class="text-red">*</span>
                         </label>
                         
-                            <input type="text" class="form-control" id="father_aadhar" name="father_aadhar" value="<?= set_value('father_aadhar') ?>">
+                            <input type="text" class="form-control bg-lpurple" id="father_aadhar" name="father_aadhar" value="<?= set_value('father_aadhar') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('father_aadhar'); ?>
@@ -538,7 +549,7 @@
                         <?= $this->lang->line("student_phone") ?> <span class="text-red">*</span>
                     </label>
                     
-                        <input type="text" class="form-control" id="phone" name="phone" maxlength="10"  value="<?= set_value('phone') ?>">
+                        <input type="text" class="form-control bg-lpurple" id="phone" name="phone" maxlength="10"  value="<?= set_value('phone') ?>">
                     
                         <span id="error-message" class="control-label" style="color:red;">
                                     <?php echo form_error('phone'); ?>

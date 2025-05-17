@@ -151,6 +151,9 @@ class Invoice extends Admin_Controller
                 $this->data['maininvoices']         = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_studentID($student->studentID, $schoolyearID);
                 $this->data['grandtotalandpayment'] = $this->grandtotalandpaid($this->data['maininvoices'], $schoolyearID);
 
+                $this->data['studentID']  = $student->studentID;   
+                $this->data['classesID']  = $student->classesID;  
+
                 $this->data["subview"] = "invoice/index";
                 $this->load->view('_layout_main', $this->data);
             } else {

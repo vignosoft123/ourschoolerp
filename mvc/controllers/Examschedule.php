@@ -30,6 +30,7 @@ class Examschedule extends Admin_Controller {
 	}
 
 	public function index() {
+		// echo "<pre>";print_r($this->session->userdata());die;
 		$this->data['headerassets'] = array(
 			'css' => array(
 				'assets/select2/css/select2.css',
@@ -43,12 +44,15 @@ class Examschedule extends Admin_Controller {
 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
 		if($this->session->userdata('usertypeID') == 3) {
 			$id = $this->data['myclass'];
+			
+			$examId = htmlentities(escapeString($this->uri->segment(4)));
+			$sectionID = htmlentities(escapeString($this->uri->segment(5)));
 		} else {
-			$id = htmlentities(escapeString($this->uri->segment(3)));
+			$id = htmlentities(escapeString($this->uri->segment(3)));	//classid
 			$examId = htmlentities(escapeString($this->uri->segment(4)));
 			$sectionID = htmlentities(escapeString($this->uri->segment(5)));
 		}
-
+		//echo $id;die;
 		if((int)$id) {
 			$this->data['set'] = $id;
 			$this->data['examId'] = $examId;
@@ -68,7 +72,7 @@ class Examschedule extends Admin_Controller {
 			if(!empty($sectionID)){
 				$this->data['examschedules'] = $this->examschedule_m->get_join_examschedule_with_exam_classes_section_subject(array('classesID' => $id, 'schoolyearID' => $schoolyearID, 'examId' => $examId,'sectionID' => $sectionID));
 			}else{
-			$this->data['examschedules'] = $this->examschedule_m->get_join_examschedule_with_exam_classes_section_subject(array('classesID' => $id, 'schoolyearID' => $schoolyearID, 'examId' => $examId));
+			$this->data['examschedules'] = $this->examschedule_m->get_join_examschedule_with_exam_classes_section_subject(array('classesID' => $id, 'schoolyearID' => $schoolyearID, 'examId' => $examId)); 
 			}
 			if($this->data['examschedules']) {
 				$sections = $this->section_m->general_get_order_by_section(array("classesID" => $id));

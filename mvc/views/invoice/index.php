@@ -16,7 +16,19 @@
         <div class="row">
             <div class="col-sm-12">
 
-                <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) { ?>
+            
+                <?php 
+                // echo $this->session->userdata('usertypeID');die;
+                if($this->session->userdata('usertypeID') == 3){?>
+                    <h5 class="page-header pull-right">
+                            <a class="btn btn-info" href="<?php echo base_url('Global_payment/index/').$classesID.'/'.$studentID ?>">
+                                <i class="fa fa-balance-scale"></i> 
+                                Global Payment
+                            </a>
+                        </h5>
+                 <?php  }
+
+                if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) { ?>
                     <?php if(permissionChecker('invoice_add')) { ?>
                         <h5 class="page-header">
                             <a href="<?php echo base_url('invoice/add') ?>">
