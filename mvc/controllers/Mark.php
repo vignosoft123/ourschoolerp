@@ -1754,48 +1754,53 @@ class Mark extends Admin_Controller
 		
 		$mark_id = $_POST['markID']; 
 		if( $_POST['attendance'] == 'Absent'){
-			$sql = "select * from markrelation where markID=$mark_id and mark is not null";
+			$sql = "select * from markrelation where markID=$mark_id and mark is not null and mark!=0";
 			  $cnt = $this->db->query($sql)->num_rows();
 			if(($cnt) > 0){
  				$this->session->set_flashdata('error', 'Already have marks, please remove the marks before adding attendance as absent!' );
+				 redirect(base_url("mark/add"));
+				
+			}else{
+				// $this->add($_POST);
+
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+				$examID = $_POST['examID'];
+				$classesID = $_POST['classesID'];
+				$sectionID = $_POST['sectionID'];
+				$subjectID = $_POST['subjectID'];
+				$studentID = $_POST['studentID'];
+				$mark_id = $_POST['markID']; 
+
+
+				$data = array('eattendance' => $_POST['attendance']);
+
+				$this->db->where('schoolyearID', $schoolyearID);
+				$this->db->where('examID', $examID);
+				$this->db->where('classesID', $classesID);
+				$this->db->where('sectionID', $sectionID);
+				$this->db->where('subjectID', $subjectID);
+				$this->db->where('studentID', $studentID);
+				$this->db->update('eattendance' ,$data);
+
+				$this->db->where('schoolyearID', $schoolyearID);
+				// $this->db->where('examID', $examID);
+				// $this->db->where('classesID', $classesID);
+				// $this->db->where('sectionID', $sectionID);
+				// $this->db->where('subjectID', $subjectID);
+				// $this->db->where('studentID', $studentID);
+				$this->db->where('markID', $mark_id);
+				$this->db->update('mark' ,$data);
+
+				$this->session->set_flashdata('success', 'Successfully added the attendance' );
+
+				// redirect(base_url("mark/add"));
 				$this->add($_POST);
 			}
 		}
 
 		
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
-
-		$examID = $_POST['examID'];
-		$classesID = $_POST['classesID'];
-		$sectionID = $_POST['sectionID'];
-		$subjectID = $_POST['subjectID'];
-		$studentID = $_POST['studentID'];
-		$mark_id = $_POST['markID']; 
-
-
-		$data = array('eattendance' => $_POST['attendance']);
-
-		$this->db->where('schoolyearID', $schoolyearID);
-		$this->db->where('examID', $examID);
-		$this->db->where('classesID', $classesID);
-		$this->db->where('sectionID', $sectionID);
-		$this->db->where('subjectID', $subjectID);
-		$this->db->where('studentID', $studentID);
-		$this->db->update('eattendance' ,$data);
-
-		$this->db->where('schoolyearID', $schoolyearID);
-		// $this->db->where('examID', $examID);
-		// $this->db->where('classesID', $classesID);
-		// $this->db->where('sectionID', $sectionID);
-		// $this->db->where('subjectID', $subjectID);
-		// $this->db->where('studentID', $studentID);
-		$this->db->where('markID', $mark_id);
-		$this->db->update('mark' ,$data);
-
-		$this->session->set_flashdata('success', 'Successfully added the attendance' );
-
-		// redirect(base_url("mark/add"));
-		$this->add($_POST);
+		
 
 	}
 }

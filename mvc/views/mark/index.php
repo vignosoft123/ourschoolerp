@@ -11,6 +11,7 @@
         <div class="row">
             <div class="col-sm-12">
                 <?php if ((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
+                <div class="filter-box">
                     <h5 class="page-header">
                         <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if (permissionChecker('mark_add')) { ?>
@@ -35,6 +36,7 @@
                             </div>
                         <?php } ?>
                     </h5>
+                </div>
                 <?php } ?>
 
                 <?php if (customCompute($students) > 0) { ?>

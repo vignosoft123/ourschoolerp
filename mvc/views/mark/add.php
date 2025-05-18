@@ -8,6 +8,79 @@
         padding: 10px;
     } */
 
+    .grade-label {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 13px;
+}
+
+.grade-a-plus { background-color: #e6f4ea; color: #2e7d32; }
+.grade-a      { background-color: #e8f5e9; color: #388e3c; }
+.grade-b-plus { background-color: #e3f2fd; color: #0288d1; }
+.grade-b      { background-color: #e1f5fe; color: #039be5; }
+.grade-c-plus { background-color: #fff9c4; color: #fbc02d; }
+.grade-c      { background-color: #ffe0b2; color: #f57c00; }
+.grade-d      { background-color: #ffcdd2; color: #d32f2f; }
+
+
+
+
+   .grade-label {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 13px;
+}
+
+/* Light backgrounds with readable text */
+.grade-a-plus {
+    background-color: #e6f4ea; /* Light green */
+    color: #2e7d32;
+}
+.grade-a {
+    background-color: #e8f5e9;
+    color: #388e3c;
+}
+.grade-b-plus {
+    background-color: #e3f2fd; /* Light blue */
+    color: #0288d1;
+}
+.grade-b {
+    background-color: #e1f5fe;
+    color: #039be5;
+}
+.grade-c-plus {
+    background-color: #fff9c4; /* Light yellow */
+    color: #fbc02d;
+}
+.grade-c {
+    background-color: #ffe0b2; /* Light orange */
+    color: #f57c00;
+}
+.grade-d {
+    background-color: #ffcdd2; /* Light red */
+    color: #d32f2f;
+}
+
+   .attendance-circle {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #f8d7da; /* light red */
+    color: #a94442;             /* darker red text */
+    font-weight: bold;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    margin: 2px;
+}
+
+
     #myTable thead th {
     background-color: #4CAF50; /* Green background */
     
@@ -135,7 +208,7 @@
                 <form method="POST">
                     <div class="row hide-in-print">
                         <div class="col-md-10">
-                            <div class="row">
+                            <div class="row filter-box">
 
                                 <div class="col-md-3">
                                     <div class="<?php echo form_error('classesID') ? 'form-group has-error' : 'form-group'; ?>">
@@ -254,25 +327,45 @@
                 <?php }  ?>
 
 
-                <?php if (customCompute($sendExam) && customCompute($sendClasses) && customCompute($sendSection) && customCompute($sendSubject)) { ?>
-                    <div class="col-sm-4 col-sm-offset-4 box-layout-fame">
-                        <?php
-                        echo '<h5><center>' . $this->lang->line('mark_details') . '</center></h5>';
-                        echo '<h5><center>' . $this->lang->line('mark_exam') . ' : ' . $sendExam->exam . '</center></h5>';
-                        echo '<h5><center>' . $this->lang->line('mark_classes') . ' : ' . $sendClasses->classes . '</center></h5>';
-                        echo '<h5><center>' . $this->lang->line('mark_section') . ' : ' . $sendSection->section . '</center></h5>';
-                        // echo '<h5><center>' . $this->lang->line('mark_subject') . ' : ' . $sendSubject->subject . '</center></h5>';
-                        ?>
-                    </div>
-                <?php } ?> 
+ <div class="row" style="margin-top: 20px;">
+    <!-- Left: Info Box -->
+    <?php if (customCompute($sendExam) && customCompute($sendClasses) && customCompute($sendSection) && customCompute($sendSubject)) { ?>
+        <div class="col-sm-6 box-layout-fame">
+            <div class="panel panel-default" style="padding: 10px; background-color: #f9f9f9;">
+                <h5><center><?php echo $this->lang->line('mark_details'); ?></center></h5>
+                <h5><center><?php echo $this->lang->line('mark_exam') . ' : ' . $sendExam->exam; ?></center></h5>
+                <h5><center><?php echo $this->lang->line('mark_classes') . ' : ' . $sendClasses->classes; ?></center></h5>
+                <h5><center><?php echo $this->lang->line('mark_section') . ' : ' . $sendSection->section; ?></center></h5>   
+                <br/>
+                <br/>
+                <button class="btn btn-default "   id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
+            </div>       
+             
+        </div>
+    <?php } ?>
+
+    <!-- Right: Grade Legend -->
+    <div class="col-sm-6">
+        <div class="grade-legend" style="background-color: #fdfdfd; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+            <strong>Note:</strong>
+            <ul>
+                <li><span class="grade-label grade-a-plus">A+</span> – 95% and above</li>
+                <li><span class="grade-label grade-a">A</span> – 90% to 94%</li>
+                <li><span class="grade-label grade-b-plus">B+</span> – 80% to 89%</li>
+                <li><span class="grade-label grade-b">B</span> – 70% to 79%</li>
+                <li><span class="grade-label grade-c-plus">C+</span> – 60% to 69%</li>
+                <li><span class="grade-label grade-c">C</span> – 50% to 59%</li>
+                <li><span class="grade-label grade-d">D</span> – Below 50% or zero marks</li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
 
             </div>
 
-                <div class="float-right">
-                    <button class="btn btn-default " style="margin-left:91%;" id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
-                    <!-- <a href="<?php echo base_url('Mark/add_marks_excel');?>" class="btn btn-info" style="margin-left:20px;" id="printBtn">Marks Upload</a> -->
-                    
-                </div>
+            
             
             <div class="col-sm-12">
                 <?php if (customCompute($students)) { ?>
@@ -393,11 +486,13 @@
 
                                                         echo "<td data-title='$data->markpercentagetype'>";
 
-                                                        echo "<i class='fa icon-eattendance pull-left' title='add exaxm attendance' data-toggle='modal' data-target='#attendance-modal_".$mark->markID."'></i>";
+                                                        echo "<a href='#' ><i class='fa icon-eattendance pull-left' title='add exam attendance' data-toggle='modal' data-target='#attendance-modal_".$mark->markID."'></i></a>";
 
 
                                                         if($A == 'a'){
-                                                            echo "A";
+                                                            echo '<span class="attendance-circle">A</span>';
+
+
                                                         }else{
                                                             
                                                             echo  "<input subj_id = '".$subject->subjectID."'  class='form-control mark input_mark' type='' style='width: 100px !important;' name='".$subject->subjectID."mark-" . $mark->markID . "' id='" . $data->markpercentageID . "' value='" . $mrk . "' min='0' max='" . $subject->max_mark . "' $readonly  />
@@ -467,29 +562,38 @@
                                                         }
                                                         }
                                                     }
-                                                }
-                                                // echo '@@@@@@@@@'.$tot;
-                                                    echo "<td>".$tot."<td/>";
-                                                //echo 'ddd='. $out_of;die;
-                                                    $out_of =  $out_of !=0 ?  $out_of : 1;
+                                                } 
+echo "<td>".$tot."</td>"; 
 
-                                                    $percent_cal = ($tot / $out_of) * 100;
-                                                    if($percent_cal >= 95 && $zero_mark == 0){
-                                                        $grade = "A+";
-                                                    }else if($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0){
-                                                        $grade = "A";
-                                                    }else if($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0){
-                                                        $grade = "B+";
-                                                    }else if($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0){
-                                                        $grade = "B";
-                                                    }else if($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0){
-                                                        $grade =  "C+";
-                                                    }else if($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0){
-                                                        $grade = "C";
-                                                    }else{
-                                                        $grade = "D";
-                                                    }
-                                                    echo  $grade;
+$out_of = $out_of != 0 ? $out_of : 1;
+$percent_cal = ($tot / $out_of) * 100;
+
+if ($percent_cal >= 95 && $zero_mark == 0) {
+    $grade = "A+";
+    $gradeClass = "grade-a-plus";
+} else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
+    $grade = "A";
+    $gradeClass = "grade-a";
+} else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
+    $grade = "B+";
+    $gradeClass = "grade-b-plus";
+} else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
+    $grade = "B";
+    $gradeClass = "grade-b";
+} else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
+    $grade = "C+";
+    $gradeClass = "grade-c-plus";
+} else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
+    $grade = "C";
+    $gradeClass = "grade-c";
+} else {
+    $grade = "D";
+    $gradeClass = "grade-d";
+}
+
+echo "<td><span class='grade-label {$gradeClass}'>$grade</span></td>";
+
+
                                                     ?>
 
 

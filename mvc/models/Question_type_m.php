@@ -21,10 +21,27 @@ class Question_type_m extends MY_Model {
         return $query;
     }
 
-    function get_order_by_question_type($array=NULL) {
-        $query = parent::get_order_by($array);
-        return $query;
-    }
+    // function get_order_by_question_type($array=NULL) {
+    //     $query = parent::get_order_by($array);
+    //     return $query;
+    // }
+
+  function get_order_by_question_type($array = NULL) {
+    // Define static types
+    $staticTypes = [
+        (object)['typeNumber' => 1, 'name' => 'Single'],
+        (object)['typeNumber' => 2, 'name' => 'Multiple'], 
+    ];
+
+    // If DB values exist, fetch and merge — adjust this based on your DB logic
+    $dbTypes = parent::get_order_by($array); // Assuming this returns array of objects
+
+    // Optional: merge and remove duplicates by `typeNumber` if needed
+    $allTypes = array_merge($staticTypes, $dbTypes);
+
+    return $allTypes;
+}
+
 
     function insert_question_type($array) {
         $error = parent::insert($array);
