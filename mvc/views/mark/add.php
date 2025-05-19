@@ -342,7 +342,7 @@
             </div>       
              
         </div>
-    <?php } ?>
+    
 
     <!-- Right: Grade Legend -->
     <div class="col-sm-6">
@@ -359,6 +359,7 @@
             </ul>
         </div>
     </div>
+    <?php } ?>
 
 </div>
 

@@ -178,6 +178,12 @@
   }
 }
 
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
+
 
 
         /* Ensure background is visible in print */
@@ -186,8 +192,7 @@
         }
         .table-start thead th {
             color: #fff !important;
-        }
-    }
+        } 
     
         </style>
   </head>
@@ -196,7 +201,7 @@
 
   
 <div class="box">
-    <div class="box-header">
+    <div class="box-header no-print">
         <h3 class="box-title"><i class="fa fa-balance-scale"></i> <?=$this->lang->line('panel_title')?></h3>
 
         <ol class="breadcrumb">
@@ -476,9 +481,9 @@
 
     <!-- Print Buttons -->
 <div style="text-align: center; margin-top: 20px;">
-  <button class="print-button" onclick="printSection('student')">Print Student Copy</button>
-  <button class="print-button" onclick="printSection('admin')">Print Admin Copy</button>
-  <button class="print-button" onclick="printSection('both')">Print Both</button>
+  <button class="print-button btn btn-success" onclick="printSection('student')">Print Student Copy</button>
+  <button class="print-button btn btn-success" onclick="printSection('admin')">Print Admin Copy</button>
+  <button class="print-button btn btn-success" onclick="printSection('both')">Print Both</button>
 </div>
 
     <script>
