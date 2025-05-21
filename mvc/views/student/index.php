@@ -1,3 +1,9 @@
+
+<style>
+    label { 
+    color: #ffff;
+    }
+    </style>
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-student"></i> <?= $this->lang->line('menu_student') ?></h3>
@@ -36,6 +42,181 @@
                                     <i class="fa fa-plus"></i>
                                     <?= $this->lang->line('add_title') ?>
                                 </a>
+
+ 
+<!-- Button to trigger modal -->
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#quickStudentModal">
+  Quick Student Creation
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="quickStudentModal" tabindex="-1" role="dialog" aria-labelledby="quickStudentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <form id="quickStudentForm" method="post" action="<?= base_url('student/add') ?>">
+      <div class="modal-content">
+
+        <!-- Header -->
+        <div class="modal-header bg-gradient-primary ">
+          <h5 class="modal-title" id="quickStudentModalLabel">
+            <i class="fa fa-user-plus"></i> Quick Student Creation
+          </h5>
+          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body" style="background-color: #4da8fb;">
+          <div class="container-fluid">
+
+            <!-- Basic Info -->
+            <fieldset class="border p-3 mb-4 bg-white shadow-sm rounded">
+              <legend class="w-auto text-primary font-weight-bold">Basic Information</legend>
+              <div class="row">
+                
+                <div class="col-md-3 form-group">
+                  <label>First Name <span class="text-danger">*</span></label>
+                  <input type="text" id="first_name" name="first_name" class="form-control id_card" placeholder="First Name" required>
+                </div>
+                <div class="col-md-3 form-group">
+                  <label>Last Name</label>
+                  <input type="text" id="last_name" name="last_name" class="form-control id_card" placeholder="Last Name">
+                </div>
+                <div class="col-md-3 form-group">
+                  <label>ID Card Name</label>
+                  <input type="text" id="name_id" name="name" class="form-control" placeholder="Name on ID Card">
+                </div>
+
+                <div class="col-md-3 form-group">
+                  <label>Phone <span class="text-danger">*</span></label>
+                  <input type="text" name="phone" class="form-control" required>
+                </div>
+               
+              </div>
+
+              <div class="row">
+                <div class="col-md-3 form-group">
+                  <label>Class <span class="text-danger">*</span></label>
+                  <select class="form-control select2" name="classesID" id="classesID_popup" required>
+                    <option value="">Select Class</option>
+                    <?php foreach ($classes as $class): ?>
+                      <option value="<?= $class->classesID ?>"><?= $class->classes ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+
+                <div class="col-md-3 form-group">
+                  <label>Section <span class="text-danger">*</span></label>
+                  <select class="form-control select2" name="sectionID" id="sectionID" required>
+                    <option value="">Select Section</option>
+                  </select>
+                </div>
+
+                 <div class="col-md-3 form-group">
+                  <label>Roll No <span class="text-danger">*</span></label>
+                  <input type="text" id="roll" name="roll" class="form-control" placeholder="Roll No" required>
+                </div>
+
+                <div class="col-md-3 form-group">
+                  <label>Admission No <span class="text-danger">*</span></label>
+                     <input type="text" class="form-control" id="registerNO" name="registerNO" value="<?= set_value('registerNO', $randomAdmissionCode) ?>" <?= $randomAdmissionCode ? 'readonly' : '';?> >
+                </div>
+
+                
+<!-- 
+                <div class="col-md-3 form-group">
+                  <label>Email</label>
+                  <input type="email" name="email" class="form-control">
+                </div> -->
+              </div>
+
+              <div class="row">
+                <div class="col-md-3 form-group">
+                  <label>Date of Birth</label>
+                  <input type="date" name="dob" class="form-control">
+                </div>
+                <div class="col-md-3 form-group">
+                  <label>Student Type <span class="text-danger">*</span></label>
+                  <select name="studentType" id="studentType" class="form-control" required>
+                    <option value="3">Day Scholar</option>
+                    <option value="1">Transport</option>
+                    <option value="2">Hostel</option>
+                  </select>
+                </div>
+                <div class="col-md-3 form-group">
+                  <label>Village Name</label>
+                 
+                  <select id="village_name" name="village_name" class='form-control select2' >
+                        <?php foreach($villages as $v){?>
+                            <option value="<?= $v['villageID']?>"> <?= $v['villageName']?> </option>
+                       <?php  }?>
+                    </select>
+
+                </div>
+                <div class="col-md-3 form-group">
+                  <label>Parent Name</label>
+                  <input type="text" name="parent_name" class="form-control">
+                </div>
+              </div>
+            </fieldset>
+
+            <!-- Transport -->
+            <div id="transport_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
+              <legend class="w-auto text-success font-weight-bold">Transport Details</legend>
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <label>Transport Route</label>
+                  <select name="transportID" class="form-control">
+                    <option value="">Select Route</option>
+                    <?php foreach ($transports as $transport): ?>
+                      <option value="<?= $transport->transportID ?>"><?= $transport->route ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-6 form-group">
+                  <label>Vehicle Number</label>
+                  <input type="text" name="vehicle_number" class="form-control">
+                </div>
+              </div>
+            </div>
+
+            <!-- Hostel -->
+            <div id="hostel_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
+              <legend class="w-auto text-warning font-weight-bold">Hostel Details</legend>
+              <div class="row">
+                <div class="col-md-6 form-group">
+                  <label>Hostel Name</label>
+                  <select name="hostelID" class="form-control">
+                    <option value="">Select Hostel</option>
+                    <?php foreach ($hostels as $hostel): ?>
+                      <option value="<?= $hostel->hostelID ?>"><?= $hostel->name ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="col-md-6 form-group">
+                  <label>Room Number</label>
+                  <input type="text" name="room_number" class="form-control">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer bg-white">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="fa fa-save"></i> Save Student
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
                             <?php } ?>
                         <?php } ?>
 
@@ -330,6 +511,7 @@
 
 
 
+
 <script type="text/javascript">
     $(".select2").select2();
 
@@ -521,4 +703,290 @@ document.getElementById('fileUploadForm').addEventListener('submit', function(ev
         console.error('Error:', error);
     });
 });
+</script>
+
+
+<script type="text/javascript">
+    // $(".select2").select2();
+    $('#dob').datepicker({
+        startView: 2
+    });
+    $('#admission_date').datepicker({
+        startView: 2
+    });
+
+    $('#username').keyup(function() {
+        $(this).val($(this).val().replace(/\s/g, ''));
+    });
+
+
+    $('#classesID_popup').change(function(event) {
+        var classesID = $(this).val();
+        if (classesID === '0') {
+            $('#sectionID').val(0);
+        } else {
+            $.ajax({
+                async: false,
+                type: 'POST',
+                url: "<?= base_url('student/sectioncall') ?>",
+                data: "id=" + classesID,
+                dataType: "html",
+                success: function(data) {
+                    $('#sectionID').html(data);
+                }
+            });
+
+            $.ajax({
+                async: false,
+                type: 'POST',
+                url: "<?= base_url('student/optionalsubjectcall') ?>",
+                data: "id=" + classesID,
+                dataType: "html",
+                success: function(data2) {
+                    $('#optionalSubjectID').html(data2);
+                }
+            });
+        }
+    });
+
+    $('#sectionID').change(function(event) {
+        var sectionID = $(this).val();
+        var classesID = $('select[name="classesID"] option:selected').val();
+
+            $.ajax({
+                async: false,
+                type: 'POST',
+                url: "<?= base_url('student/get_auto_roll_no') ?>",
+                data: {"sectionID":sectionID,"classesID":classesID},
+                dataType: "json",
+                success: function(data) {
+                    $('#roll').val(data);
+                }
+            }); 
+    });
+
+    $(document).on('click', '#close-preview', function() {
+        $('.image-preview').popover('hide');
+        // Hover befor close the preview
+        $('.image-preview').hover(
+            function() {
+                $('.image-preview').popover('show');
+                $('.content').css('padding-bottom', '100px');
+            },
+            function() {
+                $('.image-preview').popover('hide');
+                $('.content').css('padding-bottom', '20px');
+            }
+        );
+    });
+
+    $(function() {
+        // Create the close button
+        var closebtn = $('<button/>', {
+            type: "button",
+            text: 'x',
+            id: 'close-preview',
+            style: 'font-size: initial;',
+        });
+        closebtn.attr("class", "close pull-right");
+        // Set the popover default content
+        $('.image-preview').popover({
+            trigger: 'manual',
+            html: true,
+            title: "<strong>Preview</strong>" + $(closebtn)[0].outerHTML,
+            content: "There's no image",
+            placement: 'bottom'
+        });
+        // Clear event
+        $('.image-preview-clear').click(function() {
+            $('.image-preview').attr("data-content", "").popover('hide');
+            $('.image-preview-filename').val("");
+            $('.image-preview-clear').hide();
+            $('.image-preview-input input:file').val("");
+            $(".image-preview-input-title").text("<?= $this->lang->line('student_file_browse') ?>");
+        });
+        // Create the preview image
+        $(".image-preview-input input:file").change(function() {
+            var img = $('<img/>', {
+                id: 'dynamic',
+                width: 250,
+                height: 200,
+                overflow: 'hidden'
+            });
+            var file = this.files[0];
+            var reader = new FileReader();
+            // Set preview image into the popover data-content
+            reader.onload = function(e) {
+                $(".image-preview-input-title").text("<?= $this->lang->line('student_file_browse') ?>");
+                $(".image-preview-clear").show();
+                $(".image-preview-filename").val(file.name);
+                img.attr('src', e.target.result);
+                $(".image-preview").attr("data-content", $(img)[0].outerHTML).popover("show");
+                $('.content').css('padding-bottom', '100px');
+            }
+            reader.readAsDataURL(file);
+        });
+    });
+
+
+    $("#transport_div").hide();
+    $("#hostel_div").hide();
+
+    $('#studentType').change(function() {
+        var studentType = $('#studentType').val();
+        if(studentType == 1)
+        {   
+            // $('.transport').removeClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").show();
+            $("#hostel_div").hide();
+        }
+        else if(studentType==2){
+            // $('.transport').addClass('hide');
+            // $('.hostel').removeClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").show();
+        }
+        else{
+            // $('.transport').addClass('hide');
+            // $('.hostel').addClass('hide');
+            $("#transport_div").hide();
+            $("#hostel_div").hide();
+        }
+    });
+
+    var transportID = $('#transportID').val();
+   
+    if(transportID == 0 || transportID == "" || transportID == null) {
+        $('#tbalance').val("0.00");
+    } else {
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('tmember/transport_fare')?>",
+            data: "id=" + transportID,
+            dataType: "html",
+            success: function(data) {
+               $('#tbalance').val(data)
+            }
+        });
+    }
+
+
+    $('#transportID').change(function() {
+        
+       var transportID = $(this).val();
+        if(transportID == 0 || transportID == "" || transportID == null) {
+            $('#tbalance').val("0.00");
+        } else {
+            $.ajax({
+                type: 'POST',
+                // url: "<?=base_url('tmember/transport_fare')?>",
+                url: "<?=base_url('Student/get_pickup_points')?>",
+                data: "id=" + transportID,
+                dataType: "html",
+                success: function(data) {
+                //    $('#tbalance').val(data)
+                   $('#pickup_id').html(data)
+                }
+            });
+        }
+    });
+
+    $('#pickup_id').change(function() {
+        
+        var pickup_id = $(this).val();
+         if(pickup_id == 0 || pickup_id == "" || pickup_id == null) {
+             $('#tbalance').val("0.00");
+         } else {
+             $.ajax({
+                 type: 'POST',
+                 // url: "<?=base_url('tmember/transport_fare')?>",
+                 url: "<?=base_url('Student/transport_fare')?>",
+                 data: "id=" + pickup_id,
+                 dataType: "html",
+                 success: function(data) {
+                    $('#tbalance').val(data) 
+                 }
+             });
+         }
+     });
+
+    $('#hostelID').change(function(event) {
+        $('#categoryID').val(0).select2()
+        var hostelID = $(this).val();
+        if(hostelID == 0 || hostelID == "" || hostelID == null) {
+            $('#categoryID').val(0).select2()
+        } else {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('hmember/categorycall')?>",
+                data: "id=" + hostelID,
+                dataType: "html",
+                success: function(data) {
+                $('#categoryID').html(data)
+                }
+            });
+        }
+});
+$(document).on("keyup",".id_card",function(){
+    var f_name= $("#first_name").val();
+   
+    let letter = f_name.charAt(0).toUpperCase(); 
+
+    var string= $("#last_name").val();
+    var l_name = string.charAt(0).toUpperCase() + string.slice(1);
+    var idcard = letter + " " + l_name;
+    // alert (idcart);
+    $("#name_id").val(idcard);
+});
+
+
+
+$(document).on("focusout","#roll",function(){
+    var classesID = $("#classesID_popup").val();
+    var sectionID = $("#sectionID").val();
+    var rollNo = $("#roll").val();
+
+    $.ajax({
+            type: 'POST',
+            url: "<?=base_url('student/checkRoll')?>",
+            data: {"classesID":classesID,"sectionID":sectionID,"rollNo":rollNo},
+            dataType: "html",
+            success: function(data) {
+              $('.err').html(data);
+            }
+        });
+})
+
+
+
+$(document).ready(function(){
+    // Allow only numbers
+    $('#phone').on('keypress', function (e) {
+        var charCode = e.which ? e.which : e.keyCode;
+        if (charCode < 48 || charCode > 57) {
+            e.preventDefault();
+        }
+    });
+
+    // Limit to max 10 characters
+    $('#phone').on('input', function () {
+        var maxLength = 10;
+        if ($(this).val().length > maxLength) {
+            $(this).val($(this).val().slice(0, maxLength));
+        }
+    });
+
+    // Validate when the user leaves the input field
+    $('#phone').on('blur', function () {
+        var phoneNumber = $(this).val();
+        if (phoneNumber.length < 10) {
+            $('#error-message').text('Phone number must be exactly 10 digits.');
+        } else {
+            $('#error-message').text(''); // Clear error message if valid
+        }
+    });
+});
+
+
 </script>

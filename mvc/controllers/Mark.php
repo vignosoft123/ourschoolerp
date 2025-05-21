@@ -197,7 +197,7 @@ class Mark extends Admin_Controller
 	{
 		if(!empty($a)){
 			$_POST = $a;
-			print_r($_POST);
+			//print_r($_POST);
 
 		}
 	    
@@ -1751,9 +1751,9 @@ class Mark extends Admin_Controller
 
 	public function saveAttendance(){
 
-		
+		// print_r($_POST);die;
 		$mark_id = $_POST['markID']; 
-		if( $_POST['attendance'] == 'Absent'){
+		// if( $_POST['attendance'] == 'Absent'){
 			$sql = "select * from markrelation where markID=$mark_id and mark is not null and mark!=0";
 			  $cnt = $this->db->query($sql)->num_rows();
 			if(($cnt) > 0){
@@ -1797,7 +1797,7 @@ class Mark extends Admin_Controller
 				// redirect(base_url("mark/add"));
 				$this->add($_POST);
 			}
-		}
+		// }
 
 		
 		

@@ -825,14 +825,692 @@ class Student extends Admin_Controller
 		$this->data['headerassets'] = array(
 			'css' => array(
 				'assets/select2/css/select2.css',
-				'assets/select2/css/select2-bootstrap.css'
+				'assets/select2/css/select2-bootstrap.css',
+				'assets/datepicker/datepicker.css'
 			),
 			'js' => array(
-				'assets/select2/select2.js'
+				'assets/datepicker/datepicker.js',
+					'assets/select2/select2.js'
 			)
 		);
 
 		$this->addRemarksColumn();
+
+
+
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			$this->data['classes'] = $this->classes_m->get_classes();
+			$this->data['sections'] = $this->section_m->general_get_section();
+			$this->data['parents'] = $this->parents_m->get_parents();
+			$this->data['studentgroups'] = $this->studentgroup_m->get_studentgroup();
+			$this->data['villages'] = $this->village_m->get_active_villages();
+			$settings = $this->Setting_m->get_setting();
+			$this->data['randomAdmissionCode'] = $this->getAdmissonNumber($settings);
+			$this->data['transports'] = $this->transport_m->get_transport();
+			$this->data["hostels"] = $this->hostel_m->get_hostel();
+			$this->data['teachers'] = pluck($this->teacher_m->get_teacher(), 'name', 'teacherID');
+			// print_r($this->data['teachers'] );die;
+
+			
+
+			if ($this->input->post("hostelID") > 0) {
+				$this->data['categorys'] = $this->category_m->get_order_by_category(array("hostelID" => $this->input->post("hostelID")));
+			} else {
+				$this->data['categorys'] = [];
+			}
+
+			$classesID = $this->input->post("classesID");
+
+			if ($classesID > 0) {
+				$this->data['sections'] = $this->section_m->general_get_order_by_section(array("classesID" => $classesID));
+				$this->data['optionalSubjects'] = $this->subject_m->general_get_order_by_subject(array("classesID" => $classesID, 'type' => 0));
+			} else {
+				$this->data['sections'] = [];
+				$this->data['optionalSubjects'] = [];
+			}
+
+			$this->data['sectionID'] = $this->input->post("sectionID");
+			$this->data['optionalSubjectID'] = 0;
+
+			if ($_POST) {
+				if(!empty($this->input->post("village_name"))){
+					$village_name = $this->db->query('select villageName from villages where villageID='.$this->input->post("village_name"))->row()->villageName;
+				}
+				
+				$rules = $this->rules();
+				$this->form_validation->set_rules($rules);
+				if ($this->input->post('studentType') == 1) {
+					$transportRules = $this->transportRules();
+					$this->form_validation->set_rules($transportRules);
+				}
+
+				if ($this->input->post('studentType') == 2) {
+					$hostelRules = $this->hostelRules();
+					$this->form_validation->set_rules($hostelRules);
+				}
+
+
+				if ($this->form_validation->run() == FALSE) {
+					$this->data["subview"] = "student/add";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+
+					$sectionID = $this->input->post("sectionID");
+					if ($sectionID == 0) {
+						$this->data['sectionID'] = 0;
+					} else {
+						$this->data['sections'] = $this->section_m->general_get_order_by_section(array('classesID' => $classesID));
+						$this->data['sectionID'] = $this->input->post("sectionID");
+					}
+
+					if ($this->input->post('optionalSubjectID')) {
+						$this->data['optionalSubjectID'] = $this->input->post('optionalSubjectID');
+					} else {
+						$this->data['optionalSubjectID'] = 0;
+					}
+
+					$array["remarks"] = $this->input->post("remarks");
+					$array["first_name"] = $this->input->post("first_name");
+					$array["last_name"] = $this->input->post("last_name");
+					$array["name"] = $this->input->post("name");
+					$array["sex"] = $this->input->post("sex");
+					$array["religion"] = $this->input->post("religion");
+					$array["email"] = $this->input->post("email");
+					$array["phone"] = $this->input->post("phone");
+					$array["address"] = $this->input->post("address");
+					$array["classesID"] = $this->input->post("classesID");
+					$array["sectionID"] = $this->input->post("sectionID");
+					$array["roll"] = $this->input->post("roll");
+					$array["bloodgroup"] = $this->input->post("bloodgroup");
+					$array["state"] = $this->input->post("state");
+					$array["country"] = $this->input->post("country");
+					$array["registerNO"] = $this->input->post("registerNO");
+					// $array["username"] = "stud" . rand(100000, 999999); //$this->input->post("username");
+					// $array['password'] = $this->student_m->hash("1234567890"); //$this->input->post("password")
+					$array['username'] = $this->input->post("registerNO");
+					$array['password'] =  $this->student_m->hash($this->input->post("phone"));
+					$array['usertypeID'] = 3;
+					$array['parentID'] = $this->input->post('guargianID');
+					$array['library'] = 0;
+					$array['hostel'] = 0;
+					$array['transport'] = 0;
+					$array['createschoolyearID'] = $schoolyearID;
+					$array['schoolyearID'] = $schoolyearID;
+					$array["create_date"] = date("Y-m-d H:i:s");
+					$array["modify_date"] = date("Y-m-d H:i:s");
+					$array["create_userID"] = $this->session->userdata('loginuserID');
+					$array["create_username"] = $this->session->userdata('username');
+					$array["create_usertype"] = $this->session->userdata('usertype');
+					$array["active"] = 1;
+					$array["villageID"] = $this->input->post('village_name');
+					$array["village_name"] = $village_name;
+					$array["aadharCardNumber"] = $this->input->post('aadharCardNumber');
+
+					$array["ration_card"] = $this->input->post('ration_card');
+					$array["bank_name"] = $this->input->post('bank_name');
+					$array["account_no"] = $this->input->post('account_no');
+					$array["ifsc_code"] = $this->input->post('ifsc_code');
+					$array["branch_name"] = $this->input->post('branch_name');
+					$array["joined_class"] = $this->input->post('joined_class');
+					$array["rf_id"] = $this->input->post('rf_id');
+					$array["alternative_phone1"] = $this->input->post('alternative_phone1');
+					$array["alternative_phone2"] = $this->input->post('alternative_phone2');
+					$array["caste"] = $this->input->post('cast');
+					$array["sub_caste"] = $this->input->post('sub_caste');
+					$array["pen_number"] = $this->input->post('pen_number');
+					$array["child_id"] = $this->input->post('child_id');
+
+					$array["mole1"] = $this->input->post('mole1');
+					$array["mole2"] = $this->input->post('mole2');
+					$array["studentType"] = $this->input->post('studentType');
+
+					if ($this->input->post('studentType') == 1) {
+						if ($this->input->post("transportID") == 0) {
+							$this->data["subview"] = "error";
+							$this->load->view('_layout_main', $this->data);
+						}
+					}
+
+
+					if ($this->input->post('dob')) {
+						$array["dob"] = date("Y-m-d", strtotime($this->input->post("dob")));
+					}
+					if ($this->input->post('admission_date')) {
+						$array["admission_date"] = date("Y-m-d", strtotime($this->input->post("admission_date")));
+					}
+					$array['photo'] = $this->upload_data['file']['file_name'];
+					// 	@$this->usercreatemail($this->input->post('email'), $this->input->post('username'), $this->input->post('password'));
+					//echo print_r($array);die;
+					$this->student_m->insert_student($array);
+					// echo $this->db->last_query();die;
+					$studentID = $this->db->insert_id();
+
+					if ($studentID && $array["studentType"] == 1) {
+						$transPortArray = array(
+							"studentID" => $studentID,
+							"transportID" => $this->input->post("transportID"),
+							"name" => $this->input->post("name"),
+							"email" => $this->input->post("email"),
+							"phone" => $this->input->post("phone"),
+							"tbalance" => $this->input->post("tbalance"),
+							"tjoindate" => date("Y-m-d")
+						);
+
+						$this->tmember_m->insert_tmember($transPortArray);
+						$this->student_m->update_student(array("transport" => 1), $studentID);
+					} else if ($studentID && $array["studentType"] == 2) {
+						$category_main_id = $this->category_m->get_single_category(array("hostelID" => $this->input->post("hostelID"), "categoryID" =>  $this->input->post("categoryID")));
+						$hostelArray = array(
+							"hostelID" => $this->input->post("hostelID"),
+							"categoryID" => $this->input->post("categoryID"),
+							"studentID" => $studentID,
+							"hbalance" => $category_main_id->hbalance,
+							"hjoindate" => date("Y-m-d")
+						);
+						$this->hmember_m->insert_hmember($hostelArray);
+						$this->student_m->update_student(array("hostel" => 1), $studentID);
+					}
+
+
+					//Edited by Naveen
+					if ($studentID > 0) {
+						$parent_array = array();
+						$parent_array['name'] = $this->input->post("father_name");
+						$parent_array['father_name'] = $this->input->post("father_name");
+						$parent_array['father_aadhar'] = $this->input->post("father_aadhar");
+						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar");
+						$parent_array['mother_name'] = $this->input->post("mother_name");
+						$parent_array["phone"] = $this->input->post("phone");
+						$parent_array['photo'] = "default.png";
+						$parent_array['usertypeID'] = 4;
+						$parent_array['active'] = 1;
+						$parent_array['create_date'] = date("Y-m-d H:i:s");
+						$parent_array['modify_date'] = date("Y-m-d H:i:s");
+
+						$parent_id = $this->student_m->insert_parent($parent_array);
+						if ($parent_id > 0) {
+							$this->student_m->update_student(array("parentID" => $parent_id), $studentID);
+						}
+					}
+
+					$section = $this->section_m->general_get_section($this->input->post("sectionID"));
+					$classes = $this->classes_m->get_classes($this->input->post("classesID"));
+
+					if (customCompute($classes)) {
+						$setClasses = $classes->classes;
+					} else {
+						$setClasses = NULL;
+					}
+
+					if (customCompute($section)) {
+						$setSection = $section->section;
+					} else {
+						$setSection = NULL;
+					}
+
+					$arrayStudentRelation = array(
+						'srstudentID' => $studentID,
+						'srname' => $this->input->post("name"),
+						'srclassesID' => $this->input->post("classesID"),
+						'srclasses' => $setClasses,
+						'srroll' => $this->input->post("roll"),
+						'srregisterNO' => $this->input->post("registerNO"),
+						'srsectionID' => $this->input->post("sectionID"),
+						'srsection' => $setSection,
+						'srstudentgroupID' => $this->input->post('studentGroupID'),
+						'sroptionalsubjectID' => $this->input->post('optionalSubjectID'),
+						'srschoolyearID' => $schoolyearID,
+					);
+
+					$studentExtendArray = array(
+						'studentID' => $studentID,
+						'studentgroupID' => $this->input->post('studentGroupID'),
+						'optionalsubjectID' => $this->input->post('optionalSubjectID'),
+						'extracurricularactivities' => $this->input->post('extraCurricularActivities'),
+						'remarks' => $this->input->post('remarks')
+					);
+
+					$this->studentextend_m->insert_studentextend($studentExtendArray);
+					$this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
+
+
+
+					$this->load->model("mailandsmstemplate_m");
+					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
+					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+
+					//code for auto invoice generation 
+					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
+
+					// echo $is_auto_invoice['value'] ; die;
+				if(!empty($is_auto_invoice) && $is_auto_invoice['value'] == 1 ){ //school fee invoice
+					$class_id = $this->input->post("classesID");
+					$section_id = $this->input->post("sectionID");
+					$year_id = $this->session->userdata('defaultschoolyearID');
+
+
+					if($this->input->post('studentType') == 1){//transport
+						$pickup_id = $this->input->post("pickup_id");
+						$this->db->where('id',$pickup_id);
+						$p_res = $this->db->get('pickup_points')->row_array();
+						$p_amount = $p_res['fare'];
+					}else if($this->input->post('studentType') == 2){ //hostel
+						$hostelID = $this->input->post("hostelID");
+						$categoryID = $this->input->post("categoryID");
+						$this->db->where('categoryID',$categoryID);
+						$this->db->where('hostelID',$hostelID);
+						$p_res = $this->db->get('category')->row_array();
+						$h_amount = $p_res['hbalance'];
+					}
+
+					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' ")->row_array();
+					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
+
+					$amount = $this->db->query("SELECT fee_amount FROM `school_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
+
+					$subtotal_amount =$amount;
+
+					// print_r($admission_fee_type);die;
+					//admission fee added to invoice start
+					if( $this->input->post("add_admission_fee_invoice") == 1 && !empty($admission_fee_type)  ){
+						if($this->input->post('studentType') == 3){ //dayscolar
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),array(
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),array(
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+						}
+					}else{ 	//admission fee added to invoice end
+					
+
+					if($this->input->post('studentType') == 3){ //dayscolar
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						)];
+						
+					}else if($this->input->post('studentType') == 1){ //trasport
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						),array(
+							'feetypeID' => $fee_type_trasport['feetypesID'],
+							'amount' => $p_amount,
+							'discount' => "",
+							'subtotal' => $p_amount,
+							'paidamount' => "",
+						)];
+						
+					}if($this->input->post('studentType') == 2){ //hostel
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						),array(
+							'feetypeID' => $fee_type_hostel['feetypesID'],
+							'amount' => $h_amount,
+							'discount' => "",
+							'subtotal' => $h_amount,
+							'paidamount' => "",
+						)];
+					}
+ 					
+					}
+					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
+					
+
+
+					$json_fee_types = json_encode($fee_types);
+					// echo "<pre>";print_r($json_fee_types);die;
+					$invoice_data = array(
+						'classesID' => $this->input->post("classesID"),
+						'sectionID' =>$this->input->post("sectionID"),
+						'studentID' => $studentID,
+						'date' => date('d-m-Y'),
+						'statusID' => 0,
+						'payment_method' => 0,
+						// 'feetypeitems' => '['.$json_fee_types.']',
+						'feetypeitems' => $json_fee_types,
+						'totalsubtotal' => $subtotal_amount,
+						'totalpaidamount' => 0,
+						'editID' => 0,
+					);
+
+					$invoice_error = $this->saveinvoice($invoice_data);
+					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
+
+				}else if(!empty($is_auto_invoice) && $is_auto_invoice['value'] == 2 ){ //term fee invoice
+					$class_id = $this->input->post("classesID");
+					$section_id = $this->input->post("sectionID");
+					$year_id = $this->session->userdata('defaultschoolyearID');
+
+
+					if($this->input->post('studentType') == 1){//transport
+						$pickup_id = $this->input->post("pickup_id");
+						$this->db->where('id',$pickup_id);
+						$p_res = $this->db->get('pickup_points')->row_array();
+						$p_amount = $p_res['fare'];
+					}else if($this->input->post('studentType') == 2){ //hostel
+						$hostelID = $this->input->post("hostelID");
+						$categoryID = $this->input->post("categoryID");
+						$this->db->where('categoryID',$categoryID);
+						$this->db->where('hostelID',$hostelID);
+						$p_res = $this->db->get('category')->row_array();
+						$h_amount = $p_res['hbalance'];
+					}
+
+					$term1_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term1 Fee' ")->row_array();
+					$term2_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term2 Fee' ")->row_array();
+					$term3_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term3 Fee' ")->row_array();
+
+					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+
+					$term_res = $this->db->query("SELECT * FROM `term_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
+					
+
+					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
+
+					$term1 = $term_res['term1_fee'];
+					$term2 = $term_res['term2_fee'];
+					$term3 = $term_res['term3_fee'];
+
+					$subtotal_amount =$term1+$term2+$term3;
+
+					if( $this->input->post("add_admission_fee_invoice") == 1 && !empty($admission_fee_type)  ){
+
+						if($this->input->post('studentType') == 3){ //dayscolar
+						
+
+							$fee_types = [
+								array(	//term1
+								'feetypeID' => $term1_fee_type['feetypesID'],
+								'amount' => $term1,
+								'discount' => "",
+								'subtotal' => $term1,
+								'paidamount' => "",
+							),array(	//term2
+								'feetypeID' => $term2_fee_type['feetypesID'],
+								'amount' => $term2,
+								'discount' => "",
+								'subtotal' => $term2,
+								'paidamount' => "",
+							),array(	//term3
+								'feetypeID' => $term3_fee_type['feetypesID'],
+								'amount' => $term3,
+								'discount' => "",
+								'subtotal' => $term3,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//transport
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//hostel
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+						}
+
+					}else{
+
+						if($this->input->post('studentType') == 3){ //dayscolar
+							
+
+							$fee_types = [
+								array(	//term1
+								'feetypeID' => $term1_fee_type['feetypesID'],
+								'amount' => $term1,
+								'discount' => "",
+								'subtotal' => $term1,
+								'paidamount' => "",
+							),array(	//term2
+								'feetypeID' => $term2_fee_type['feetypesID'],
+								'amount' => $term2,
+								'discount' => "",
+								'subtotal' => $term2,
+								'paidamount' => "",
+							),array(	//term3
+								'feetypeID' => $term3_fee_type['feetypesID'],
+								'amount' => $term3,
+								'discount' => "",
+								'subtotal' => $term3,
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//transport
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//hostel
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							)
+						];
+						}
+					}
+ 					
+					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
+					
+
+
+					$json_fee_types = json_encode($fee_types);
+					// echo "<pre>";print_r($json_fee_types);die;
+					$invoice_data = array(
+						'classesID' => $this->input->post("classesID"),
+						'sectionID' =>$this->input->post("sectionID"),
+						'studentID' => $studentID,
+						'date' => date('d-m-Y'),
+						'statusID' => 0,
+						'payment_method' => 0,
+						// 'feetypeitems' => '['.$json_fee_types.']',
+						'feetypeitems' => $json_fee_types,
+						'totalsubtotal' => $subtotal_amount,
+						'totalpaidamount' => 0,
+						'editID' => 0,
+					);
+					// echo "<pre>";print_r($invoice_data);die;
+
+					$invoice_error = $this->saveinvoice($invoice_data);
+					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
+
+				}
+					
+					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+					redirect(base_url("student/index"));
+				}
+			}
+
+
+			
 
 		$myProfile = false;
 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
