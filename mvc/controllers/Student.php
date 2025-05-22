@@ -590,11 +590,11 @@ class Student extends Admin_Controller
 				'label' => $this->lang->line("student_dob"),
 				'rules' => 'trim|max_length[10]|callback_date_valid|xss_clean'
 			),
-			array(
-				'field' => 'sex',
-				'label' => $this->lang->line("student_sex"),
-				'rules' => 'trim|required|max_length[10]|xss_clean'
-			),
+			// array(
+			// 	'field' => 'sex',
+			// 	'label' => $this->lang->line("student_sex"),
+			// 	'rules' => 'trim|required|max_length[10]|xss_clean'
+			// ),
 			array(
 				'field' => 'bloodgroup',
 				'label' => $this->lang->line("student_bloodgroup"),
@@ -638,7 +638,7 @@ class Student extends Admin_Controller
 			array(
 				'field' => 'joined_class',
 				'label' => "joined_class",
-				'rules' => 'trim|required|xss_clean'
+				'rules' => 'trim|xss_clean'
 			),
 			array(
 				'field' => 'sectionID',
@@ -1759,6 +1759,7 @@ class Student extends Admin_Controller
 						$parent_array['modify_date'] = date("Y-m-d H:i:s");
 
 						$parent_id = $this->student_m->insert_parent($parent_array);
+						// echo $this->db->last_query
 						if ($parent_id > 0) {
 							$this->student_m->update_student(array("parentID" => $parent_id), $studentID);
 						}
@@ -1788,8 +1789,8 @@ class Student extends Admin_Controller
 						'srregisterNO' => $this->input->post("registerNO"),
 						'srsectionID' => $this->input->post("sectionID"),
 						'srsection' => $setSection,
-						'srstudentgroupID' => $this->input->post('studentGroupID'),
-						'sroptionalsubjectID' => $this->input->post('optionalSubjectID'),
+						'srstudentgroupID' => $this->input->post('studentGroupID') ? $this->input->post('studentGroupID') : 0,
+						'sroptionalsubjectID' => $this->input->post('optionalSubjectID')??0,
 						'srschoolyearID' => $schoolyearID,
 					);
 
@@ -1803,6 +1804,7 @@ class Student extends Admin_Controller
 
 					$this->studentextend_m->insert_studentextend($studentExtendArray);
 					$this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
+					// echo $this->db->last_query();die;
 
 
 

@@ -66,7 +66,7 @@
         </div>
 
         <!-- Body -->
-        <div class="modal-body" style="background-color: #4da8fb;">
+        <div class="modal-body" style="background-color: #4d93fb;">
           <div class="container-fluid">
 
             <!-- Basic Info -->
@@ -132,8 +132,8 @@
 
               <div class="row">
                 <div class="col-md-3 form-group">
-                  <label>Date of Birth</label>
-                  <input type="date" name="dob" class="form-control">
+                  <label>Date of Birth</label> 
+                  <input type="text" class="form-control" id="dob" name="dob" value="<?= set_value('dob') ?>">
                 </div>
                 <div class="col-md-3 form-group">
                   <label>Student Type <span class="text-danger">*</span></label>
@@ -154,10 +154,34 @@
 
                 </div>
                 <div class="col-md-3 form-group">
-                  <label>Parent Name</label>
-                  <input type="text" name="parent_name" class="form-control">
+                  <label>Father Name</label>
+                  <input type="text" name="father_name" class="form-control">
                 </div>
               </div>
+
+              <div class="row">
+                
+                <div class="col-md-3 form-group">
+                  <label>Student Type <span class="text-danger">*</span></label>
+                  <select name="sex" id="sex" class="form-control" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option> 
+                  </select>
+                </div>
+
+                <div class="col-md-3 form-group">
+                  <label>Refered By <span class="text-danger">*</span></label>
+                 <select id="refered_by" name="refered_by" class='form-control select2' >
+                    <option value=""> --Select-- </option>
+
+                        <?php foreach($teachers as $k=>$v){?>
+                            <option value="<?= $k?>"> <?= $v?> </option>
+                       <?php  }?>
+                    </select>
+                </div>
+
+                </div>
+
             </fieldset>
 
             <!-- Transport -->
@@ -987,6 +1011,6 @@ $(document).ready(function(){
         }
     });
 });
-
+ 
 
 </script>
