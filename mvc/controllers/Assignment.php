@@ -263,7 +263,7 @@ $this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, 
 }
 
 
-	public function add() {
+	public function add_bkp() {
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
 			$this->data['headerassets'] = array(
 				'css' => array(
@@ -317,6 +317,75 @@ $this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, 
 					redirect(base_url("assignment/index"));
 				}
 			} else {
+				$this->data["subview"] = "assignment/add";
+				$this->load->view('_layout_main', $this->data);
+			}
+		} else {
+			$this->data["subview"] = "error";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
+	public function add() {
+		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
+			$this->data['headerassets'] = array(
+				'css' => array(
+					'assets/datepicker/datepicker.css',
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css'
+				),
+				'js' => array(
+					'assets/datepicker/datepicker.js',
+					'assets/select2/select2.js'
+				)
+			);
+
+			$this->data['classes'] = $this->classes_m->get_classes();
+			$classesID = $this->input->post("classesID");
+			
+			if($classesID != 0) {
+				$this->data['subjects'] = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID));
+				$this->data['sections'] = $this->section_m->general_get_order_by_section(array("classesID" => $classesID));
+			} else {
+				$this->data['subjects'] = [];
+				$this->data['sections'] = [];
+			}
+
+			if($_POST) {
+    $titles = $this->input->post('title');
+    $descriptions = $this->input->post('description');
+    $deadlinedates = $this->input->post('deadlinedate');
+    $subjectIDs = $this->input->post('subjectID');
+
+    foreach ($titles as $key => $title) {
+        $data = array(
+            "title"         => $title,
+            "description"   => $descriptions[$key],
+            "deadlinedate"  => date("Y-m-d", strtotime($deadlinedates[$key])),
+            'subjectID'     => $subjectIDs[$key],
+            "usertypeID"    => $this->session->userdata('usertypeID'),
+            "userID"        => $this->session->userdata('loginuserID'),
+            "classesID"     => $this->input->post("classesID"),
+            "schoolyearID"  => $this->session->userdata('defaultschoolyearID'),
+            'assignusertypeID' => 0,
+            'assignuserID'  => 0
+        );
+
+        $sectionKey = 'sectionID_' . $key;
+        $sections = $this->input->post($sectionKey);
+        $data['sectionID'] = json_encode($sections);
+
+        if ($key == 0 && isset($this->upload_data['file'])) {
+            $data['originalfile'] = $this->upload_data['file']['original_file_name'];
+            $data['file'] = $this->upload_data['file']['file_name'];
+        }
+
+        $this->assignment_m->insert_assignment($data);
+    }
+
+    $this->session->set_flashdata('success', $this->lang->line('menu_success'));
+    redirect(base_url("assignment/index"));
+} else {
 				$this->data["subview"] = "assignment/add";
 				$this->load->view('_layout_main', $this->data);
 			}

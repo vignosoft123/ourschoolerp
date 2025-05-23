@@ -1,178 +1,132 @@
-
-<div class="box">
+ <div class="box">
     <div class="box-header">
-        <h3 class="box-title"><i class="fa icon-assignment"></i> <?=$this->lang->line('panel_title')?></h3>
+        <h3 class="box-title"><i class="fa icon-assignment"></i> Homework</h3>
 
-       
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li><a href="<?=base_url("assignment/index")?>"></i> <?=$this->lang->line('menu_assignment')?></a></li>
             <li class="active"><?=$this->lang->line('menu_add')?> <?=$this->lang->line('menu_assignment')?></li>
         </ol>
     </div><!-- /.box-header -->
-    <!-- form start -->
+
     <div class="box-body">
-        <div class="row">
+        <div class="row filter-box1">
             <div class="col-sm-12">
-                <form class="form-horizontal ose-vertical-form-list" enctype="multipart/form-data" role="form" method="post">
+                <form class="form-horizontal ose-vertical-form-list1" enctype="multipart/form-data" role="form" method="post">
+<div id="assignmentContainer">
 
-                    <?php 
-                        if(form_error('title')) 
-                            echo "<div class='form-group has-error' >";
-                        else     
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="title" class="control-label">
-                            <?=$this->lang->line("assignment_title")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="title" name="title" value="<?=set_value('title')?>" >
+    <!-- Initial Assignment Block -->
+    <div class="assignment-block" style="border: 2px solid #4287f5; padding: 20px; margin-bottom: 20px; border-radius: 10px; background: #e8f0fe; position: relative;">
+        <div class="row">
+            <?php 
+                $titleClass = form_error('title') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
+            ?>
+            <div class="<?=$titleClass?>">
+                <label>Homework <span class="text-red">*</span></label>
+                <input type="text" class="form-control" name="title[]" value="<?=set_value('title[0]')?>">
+                <span class="control-label"><?php echo form_error('title'); ?></span>
+            </div>
+
+            <?php 
+                $deadlineClass = form_error('deadlinedate') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
+            ?>
+            <div class="<?=$deadlineClass?>">
+                <label><?=$this->lang->line("assignment_deadlinedate")?> <span class="text-red">*</span></label>
+                <input type="text" class="form-control deadlinedate" name="deadlinedate[]" value="<?=set_value('deadlinedate[0]')?>">
+                <span class="control-label"><?php echo form_error('deadlinedate'); ?></span>
+            </div>
+
+              <?php 
+            $descClass = form_error('description') ? 'form-group col-md-6 has-error' : 'form-group col-md-6';
+        ?>
+        <div class="<?=$descClass?>">
+            <label><?=$this->lang->line("assignment_description")?> <span class="text-red">*</span></label>
+            <textarea class="form-control" name="description[]" rows="3" style="resize: none;"><?=set_value('description[0]')?></textarea>
+            <span class="control-label"><?php echo form_error('description'); ?></span>
+        </div>
+        
+        </div>
+
+      
+
+        <div class="row">
+            <?php 
+                $classClass = form_error('classesID') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
+            ?>
+            <div class="<?=$classClass?>">
+                <label><?=$this->lang->line("assignment_classes")?> <span class="text-red">*</span></label>
+                <?php
+                    $array = array(0 => $this->lang->line("assignment_select_classes"));
+                    foreach ($classes as $classa) {
+                        $array[$classa->classesID] = $classa->classes;
+                    }
+                    echo form_dropdown("classesID[]", $array, set_value("classesID[0]"), "class='form-control select2 classesID'");
+                ?>
+                <span class="control-label"><?php echo form_error('classesID'); ?></span>
+            </div>
+
+            <?php 
+                $sectionClass = form_error('sectionID') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
+            ?>
+            <div class="<?=$sectionClass?>">
+                <label><?=$this->lang->line("assignment_section")?></label>
+                <?php
+                    $array = array();
+                    if($sections != "empty") {
+                        foreach ($sections as $section) {
+                            $array[$section->sectionID] = $section->section;
+                        }
+                    }
+                    echo form_dropdown("sectionID[]", $array, set_value("sectionID[0]"), "class='form-control select2 sectionID'");
+                ?>
+                <span class="control-label"><?php echo form_error('sectionID'); ?></span>
+            </div>
+
+            <?php 
+                $subjectClass = form_error('subjectID') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
+            ?>
+            <div class="<?=$subjectClass?>">
+                <label><?=$this->lang->line("assignment_subject")?> <span class="text-red">*</span></label>
+                <?php
+                    $array = array('0' => $this->lang->line("assignment_select_subject"));
+                    if($subjects != "empty") {
+                        foreach ($subjects as $subject) {
+                            $array[$subject->subjectID] = $subject->subject;
+                        }
+                    }
+                    echo form_dropdown("subjectID[]", $array, set_value("subjectID[0]"), "class='form-control select2 subjectID'");
+                ?>
+                <span class="control-label"><?php echo form_error('subjectID'); ?></span>
+            </div>
+      
+
+            <div class=" col-md-3 form-group <?php if(form_error('file')) echo 'has-error'; ?>">
+                <label><?=$this->lang->line("assignment_file")?></label>
+                <div class="input-group image-preview">
+                    <input type="text" class="form-control image-preview-filename" disabled="disabled">
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default image-preview-clear" style="display:none;">
+                            <span class="fa fa-remove"></span>
+                            <?=$this->lang->line('assignment_clear')?>
+                        </button>
+                        <div class="btn btn-primary image-preview-input">
+                            <span class="fa fa-repeat"></span>
+                            <span class="image-preview-input-title"><?=$this->lang->line('assignment_file_browse')?></span>
+                            <input type="file" name="file[]" />
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('title'); ?>
-                        </span>
-                    </div>
+                    </span>
+                </div>
+                <span class="control-label"><?php echo form_error('file'); ?></span>
+            </div>
+        </div>
+    </div>
+</div>
 
-                    <?php 
-                        if(form_error('description')) 
-                            echo "<div class='form-group has-error' >";
-                        else     
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="description" class="control-label">
-                            <?=$this->lang->line("assignment_description")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <textarea class="form-control" style="resize:none;" id="description" name="description"><?=set_value('description')?></textarea>
-                        </div>
-                        <span class="control-label">
-                            <?php echo form_error('description'); ?>
-                        </span>
-                    </div>
 
-                    <?php 
-                        if(form_error('deadlinedate')) 
-                            echo "<div class='form-group has-error' >";
-                        else     
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="deadlinedate" class="control-label">
-                            <?=$this->lang->line("assignment_deadlinedate")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="deadlinedate" name="deadlinedate" value="<?=set_value('deadlinedate')?>" >
-                        </div>
-                        <span class="control-label">
-                            <?php echo form_error('deadlinedate'); ?>
-                        </span>
-                    </div>
-
-                    <?php 
-                        if(form_error('classesID')) 
-                            echo "<div class='form-group has-error' >";
-                        else     
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="classesID" class="control-label">
-                            <?=$this->lang->line("assignment_classes")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            
-                            <?php
-                                $array = array();
-                                $array[0] = $this->lang->line("assignment_select_classes");
-
-                                foreach ($classes as $classa) {
-                                    $array[$classa->classesID] = $classa->classes;
-                                }
-                                echo form_dropdown("classesID", $array, set_value("classesID"), "id='classesID' class='form-control select2'");
-                            ?>
-                        </div>
-                        <span class="control-label">
-                            <?php echo form_error('classesID'); ?>
-                        </span>
-                    </div>
-
-                    <?php 
-                        if(form_error('sectionID')) 
-                            echo "<div class='form-group has-error' >";
-                        else     
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="sectionID" class="control-label">
-                            <?=$this->lang->line("assignment_section")?> 
-                        </label>
-                        <div class="input-field">
-                            <?php
-                                $array = array();
-                                if($sections != "empty") {
-                                    foreach ($sections as $section) {
-                                        $array[$section->sectionID] = $section->section;
-                                    }
-                                }
-                                
-                                echo form_multiselect("sectionID[]", $array, set_value("sectionID"), "id='sectionID' class='form-control select2'");
-                            ?>
-                        </div>
-                 
-                        <span class="control-label">
-                            <?php echo form_error('sectionID'); ?>
-                        </span>
-                    </div>
-
-                    <?php 
-                        if(form_error('subjectID')) 
-                            echo "<div class='form-group has-error' >";
-                        else     
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="subjectID" class="control-label">
-                            <?=$this->lang->line("assignment_subject")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <?php
-                                $array = array('0' => $this->lang->line("assignment_select_subject"));
-                                if($subjects != "empty") {
-                                    foreach ($subjects as $subject) {
-                                        $array[$subject->subjectID] = $subject->subject;
-                                    }
-                                }
-                                
-                                echo form_dropdown("subjectID", $array, set_value("subjectID"), "id='subjectID' class='form-control select2'");
-                            ?>   
-                        </div>
-                        
-                        <span class="control-label">
-                            <?php echo form_error('subjectID'); ?>
-                        </span>
-                    </div>
-
-                    
-                    <div class="form-group <?php if(form_error('file')) { echo 'has-error'; } ?>" >
-                        <label for="file" class="control-label">
-                            <?=$this->lang->line("assignment_file")?>
-                        </label>
-                        <div class="input-field">
-                            <div class="input-group image-preview">
-                                <input type="text" class="form-control image-preview-filename" disabled="disabled">
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-default image-preview-clear" style="display:none;">
-                                        <span class="fa fa-remove"></span>
-                                        <?=$this->lang->line('assignment_clear')?>
-                                    </button>
-                                    <div class="btn btn-primary image-preview-input">
-                                        <span class="fa fa-repeat"></span>
-                                        <span class="image-preview-input-title">
-                                        <?=$this->lang->line('assignment_file_browse')?></span>
-                                        <input type="file" name="file"/>
-                                    </div>
-                                </span>
-                            </div>
-                        </div>
-
-                        <span class="control-label">
-                            <?php echo form_error('file'); ?>
-                        </span>
+                    <div class="form-group float-right">
+                        <button type="button" id="addMoreAssignment" class="ose-btn" style="margin-bottom: 15px;">
+                           Add More
+                        </button>
                     </div>
 
                     <div class="col-md-12">
@@ -182,112 +136,182 @@
                     </div>
 
                 </form>
-                    
-
-
             </div>
         </div>
     </div>
 </div>
 
 <script>
-$(".select2" ).select2();
+    // Pass PHP language lines to JS variables
+    var lang_assignment_select_section = "<?= addslashes($this->lang->line('assignment_select_section')) ?>";
+    var lang_assignment_select_subject = "<?= addslashes($this->lang->line('assignment_select_subject')) ?>";
+    var lang_assignment_select_classes = "<?= addslashes($this->lang->line('assignment_select_classes')) ?>";
+    var lang_assignment_clear = "<?= addslashes($this->lang->line('assignment_clear')) ?>";
+    var lang_assignment_file_browse = "<?= addslashes($this->lang->line('assignment_file_browse')) ?>";
+    var lang_add_more = "<?= addslashes($this->lang->line('add_more') ?? 'Add More') ?>";
 
-$("#deadlinedate").datepicker({
-    autoclose: true,
-    format: 'dd-mm-yyyy',
-    //startDate:'<?=$schoolyearobj->startingdate?>',
-    //endDate:'<?=$schoolyearobj->endingdate?>',
-});
+    // $(".select2").select2();
 
-$('#classesID').change(function(event) {
-    var classesID = $(this).val();
-    if(classesID === '0') {
-        $('#subjectID').val(0);
-        $('#sectionID').val('');
-    } else {
-        $('#sectionID').val('');
+    $(".deadlinedate").datepicker({
+        autoclose: true,
+        format: 'dd-mm-yyyy',
+        //startDate:'<?=$schoolyearobj->startingdate?>',
+        //endDate:'<?=$schoolyearobj->endingdate?>',
+    });
+
+    // Utility to show/hide loader on buttons
+    function updateLoaderVisibility(show) {
+        if(show) {
+            $("#addMoreAssignment").prop('disabled', true).text('Loading...');
+        } else {
+            $("#addMoreAssignment").prop('disabled', false).text(lang_add_more);
+        }
+    }
+
+    // Event: Class change inside any assignment block
+    $(document).on('change', '.classesID', function() {
+        var $block = $(this).closest('.assignment-block');
+        var classesID = $(this).val();
+        var sectionSelect = $block.find('.sectionID');
+        var subjectSelect = $block.find('.subjectID');
+
+        if(classesID === '0' || classesID === '') {
+            sectionSelect.select2('destroy').html('<option value="">' + lang_assignment_select_section + '</option>').select2({width:'100%'});
+            subjectSelect.select2('destroy').html('<option value="0">' + lang_assignment_select_subject + '</option>').select2({width:'100%'});
+            return;
+        }
+
+        // Load subjects for the selected class
         $.ajax({
             type: 'POST',
             url: "<?=base_url('assignment/subjectcall')?>",
-            data: "id=" + classesID,
+            data: {id: classesID},
             dataType: "html",
             success: function(data) {
-               $('#subjectID').html(data);
+                subjectSelect.select2('destroy').html(data).select2({width:'100%'});
             }
         });
 
+        // Load sections for the selected class
         $.ajax({
             type: 'POST',
             url: "<?=base_url('assignment/sectioncall')?>",
-            data: "id=" + classesID,
+            data: {id: classesID},
             dataType: "html",
             success: function(data) {
-               $('#sectionID').html(data);
+                sectionSelect.select2('destroy').html(data).select2({width:'100%'});
             }
         });
-    }
-});
-
-$(document).on('click', '#close-preview', function(){ 
-    $('.image-preview').popover('hide');
-    // Hover befor close the preview
-    $('.image-preview').hover(
-        function () {
-           $('.image-preview').popover('show');
-           $('.content').css('padding-bottom', '100px');
-        }, 
-         function () {
-           $('.image-preview').popover('hide');
-           $('.content').css('padding-bottom', '20px');
-        }
-    );    
-});
-
-$(function() {
-    // Create the close button
-    var closebtn = $('<button/>', {
-        type:"button",
-        text: 'x',
-        id: 'close-preview',
-        style: 'font-size: initial;',
     });
-    closebtn.attr("class","close pull-right");
-    // Set the popover default content
-    $('.image-preview').popover({
-        trigger:'manual',
-        html:true,
-        title: "<strong>Preview</strong>"+$(closebtn)[0].outerHTML,
-        content: "There's no image",
-        placement:'bottom'
-    });
-    // Clear event
-    $('.image-preview-clear').click(function(){
-        $('.image-preview').attr("data-content","").popover('hide');
-        $('.image-preview-filename').val("");
-        $('.image-preview-clear').hide();
-        $('.image-preview-input input:file').val("");
-        $(".image-preview-input-title").text("<?=$this->lang->line('assignment_file_browse')?>"); 
-    }); 
-    // Create the preview image
-    $(".image-preview-input input:file").change(function (){     
-        var img = $('<img/>', {
-            id: 'dynamic',
-            width:250,
-            height:200,
-            overflow:'hidden'
-        });      
-        var file = this.files[0];
-        var reader = new FileReader();
-        // Set preview image into the popover data-content
-        reader.onload = function (e) {
-            $(".image-preview-input-title").text("<?=$this->lang->line('assignment_file_browse')?>");
-            $(".image-preview-clear").show();
-            $(".image-preview-filename").val(file.name);
-        }        
-        reader.readAsDataURL(file);
-    });  
-});
 
+    // Add More button click - append a new assignment block
+    $("#addMoreAssignment").click(function() {
+        updateLoaderVisibility(true);
+
+        var index = $("#assignmentContainer .assignment-block").length;
+
+        // Build new assignment block HTML with unique index for input names
+       var newBlock = `<div class="assignment-block" style="border: 2px solid #28a745; padding: 20px; margin-bottom: 20px; border-radius: 10px; background: #eaf8ee; position: relative;">
+    <div style="position: absolute; top: 10px; right: 10px;">
+        <button type="button" class="btn btn-sm btn-danger remove-assignment"><i class="fa fa-trash"></i></button>
+    </div>
+
+    <div class="row">
+        <div class="form-group col-md-3">
+            <label>Homework <span class="text-red">*</span></label>
+            <input type="text" class="form-control" name="title[]" />
+        </div>
+
+        <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_deadlinedate")?> <span class="text-red">*</span></label>
+            <input type="text" class="form-control deadlinedate" name="deadlinedate[]" />
+        </div>
+
+        <div class="form-group col-md-6">
+        <label><?=$this->lang->line("assignment_description")?> <span class="text-red">*</span></label>
+        <textarea class="form-control" style="resize: none;" name="description[]" rows="3"></textarea>
+    </div>
+
+    </div>
+
+    
+
+    <div class="row">
+        <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_classes")?> <span class="text-red">*</span></label>
+            <select class="form-control select2 classesID" name="classesID[]">
+                <option value="0">${lang_assignment_select_classes}</option>
+                <?php foreach ($classes as $classa): ?>
+                    <option value="<?=$classa->classesID?>"><?=htmlspecialchars($classa->classes)?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_section")?></label>
+            <select class="form-control select2 sectionID" name="sectionID[]">
+                <option value=""><?=$this->lang->line("assignment_select_section")?></option>
+            </select>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_subject")?> <span class="text-red">*</span></label>
+            <select class="form-control select2 subjectID" name="subjectID[]">
+                <option value="0">${lang_assignment_select_subject}</option>
+            </select>
+        </div>
+
+            <div class="form-group col-md-3">
+        <label><?=$this->lang->line("assignment_file")?></label>
+        <div class="input-group image-preview">
+            <input type="text" class="form-control image-preview-filename" disabled="disabled">
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-default image-preview-clear" style="display:none;">
+                    <span class="fa fa-remove"></span> ${lang_assignment_clear}
+                </button>
+                <div class="btn btn-primary image-preview-input">
+                    <span class="fa fa-upload"></span>
+                    <span class="image-preview-input-title">${lang_assignment_file_browse}</span>
+                    <input type="file" name="file[]" />
+                </div>
+            </span>
+        </div>
+    </div>
+
+    </div>
+
+
+</div>`;
+
+        $("#assignmentContainer").append(newBlock);
+
+        // Initialize select2 and datepicker for new elements
+        // $("#assignmentContainer .assignment-block").last().find(".select2").select2();
+        // $("#assignmentContainer .assignment-block").last().find(".deadlinedate").datepicker({
+        //     autoclose: true,
+        //     format: 'dd-mm-yyyy',
+        // });
+
+        updateLoaderVisibility(false);
+    });
+
+    // Image preview logic for dynamically added file inputs (optional, if you had before)
+    $(document).on('click', '.image-preview-clear', function() {
+        var $inputGroup = $(this).closest('.image-preview');
+        $inputGroup.find('.image-preview-filename').val('');
+        $inputGroup.find('input[type=file]').val('');
+        $(this).hide();
+    });
+
+    $(document).on('change', '.image-preview-input input[type=file]', function() {
+        var $inputGroup = $(this).closest('.image-preview');
+        var filename = $(this).val().split('\\').pop();
+        $inputGroup.find('.image-preview-filename').val(filename);
+        $inputGroup.find('.image-preview-clear').show();
+    });
+
+    $(document).on('click', '.remove-assignment', function () {
+    $(this).closest('.assignment-block').remove();
+});
 
 </script>

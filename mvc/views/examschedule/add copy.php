@@ -38,36 +38,8 @@ $(document).ready(function() {
     <!-- form start -->
     <div class="box-body">
         <div class="row">
-
-
-               <!-- Assign Default Input Fields -->
-<div class="col-md-12 filter-box" > 
-    <div class="col-md-2">
-        <label>Default Pass Marks</label>
-        <input type="text" id="default_min_mark" class="form-control">
-    </div>
-    <div class="col-md-2">
-        <label>Default Max Marks</label>
-        <input type="text" id="default_max_mark" class="form-control">
-    </div>
-    <div class="col-md-2">
-        <label>Default Start Time</label>
-        <input type="text" id="default_examfrom" class="form-control examfrom">
-    </div>
-    <div class="col-md-2">
-        <label>Default End Time</label>
-        <input type="text" id="default_examto" class="form-control examto">
-    </div>
-    <div class="col-md-2" style="padding-top: 25px;">
-        <button type="button" id="assign_defaults" class="btn btn-black">Assign to All</button>
-    </div> 
-</div>
-
-
-
-
             <div class="col-sm-12">
-                <form class="form-horizontal filter-box1" role="form" method="post">
+                <form class="form-horizontal" role="form" method="post">
 
                     <?php
                         if(form_error('classesID'))
@@ -145,8 +117,6 @@ $(document).ready(function() {
                     </div>
 
                     
-                  
-
 
                     <?php
                         if(form_error('subjectID'))
@@ -181,7 +151,7 @@ $(document).ready(function() {
                             echo "<div class='col-md-2'>";
                     ?>
                         <label for="min_mark" class=" control-label">
-                            Pass Marks
+                            Min Marks
                         </label>
                       <div class="input-field">
                             <input type="text" class="form-control" id="min_mark" name="min_mark[]" value="<?=set_value('min_mark')?>" >
@@ -234,7 +204,7 @@ $(document).ready(function() {
                             echo "<div class='col-md-2' >";
                     ?>
                         <label for="examfrom" class="control-label">
-                            Start Time <span class="text-red">*</span>
+                            <?=$this->lang->line("examschedule_examfrom")?> <span class="text-red">*</span>
                         </label>
                         <div class="input-field">
                             <input type="text" class="form-control examfrom" id="examfrom" name="examfrom[]" value="<?=set_value('examfrom')?>" >
@@ -251,7 +221,7 @@ $(document).ready(function() {
                             echo "<div class='col-md-2'>";
                     ?>
                         <label for="examto" class="control-label">
-                            End Time <span class="text-red">*</span>
+                            <?=$this->lang->line("examschedule_examto")?> <span class="text-red">*</span>
                         </label>
                         <div class="input-field">
                             <input type="text" class="form-control examto" id="examto" name="examto[]" value="<?=set_value('examto')?>" >
@@ -303,11 +273,6 @@ $(document).ready(function() {
                 </div>
             </div>
         </div>
-
-
- 
-
-
     </div>
 </div>
 
@@ -362,78 +327,35 @@ $('#classesID').change(function(event) {
 $('#examfrom').timepicker();
 $('#examto').timepicker();*/
 
-$(document).on('click', ".addDetails", function() {
-    var count = $('#dynamic_div .dynamic-row').length;
-    var ct = count + 1;
-    var $dyn_subjects = $("#subjectID").html();
 
-    var markup = `
-    <div id="row_${ct}" class="row dynamic-row" style="margin-bottom:10px; padding:15px; border-radius:7px;">
-        <div class="col-md-2">
-            <label>Subject <span class="text-red">*</span></label>
-            <select name="subjectID[]" class="form-control select2">${$dyn_subjects}</select>
-        </div>
-        <div class="col-md-2">
-            <label>Pass Marks</label>
-            <input type="text" class="form-control min_mark" name="min_mark[]" />
-        </div>
-        <div class="col-md-2">
-            <label>Max Marks</label>
-            <input type="text" class="form-control max_mark" name="max_mark[]" />
-        </div>
-        <div class="col-md-2">
-            <label>Date <span class="text-red">*</span></label>
-            <input type="text" class="form-control date" name="date[]" />
-        </div>
-        <div class="col-md-2">
-            <label>Time From <span class="text-red">*</span></label>
-            <input type="text" class="form-control examfrom" name="examfrom[]" />
-        </div>
-        <div class="col-md-2">
-            <label>
-                Time To <span class="text-red">*</span>
-                <span class="remove" myct="${ct}" style="cursor:pointer; margin-left:10px;"><i class="fa fa-trash-o"></i></span>
-            </label>
-            <input type="text" class="form-control examto" name="examto[]" />
-        </div>
-    </div>`;
 
-    $("#dynamic_div").append(markup);
+$(document).on('click', ".addDetails", function(){ 
 
-    $(".select2").select2();
-    $(".date").datepicker({
-        autoclose: true,
-        format: 'dd-mm-yyyy',
-        startDate: '01-04-2025',  // example value
-        endDate: '31-03-2026',    // example value
-        daysOfWeekDisabled: "0,6", // example value (Sunday and Saturday)
-        datesDisabled: ["15-08-2025", "02-10-2025"] // example holidays
+        // alert("hi");
+        var count = $('#dynamic_div div').length;;
+        $dyn_subjects = $("#subjectID").html();
+        var ct = count+1;
+        var markup = '<span id='+ct+'><div class="col-md-2"><label for="s2id_autogen4" class=" control-label"> Subject <span class="text-red">*</span> </label> <div class="inpt-field">  <select name="subjectID[]" id="" class="form-control select2 "> <option value="0">Select Subject</option>'+$dyn_subjects+ '</select> </div>  <span class="control-label"> </span> </div><div class="col-md-2"> <label for="min_mark" class=" control-label"> Min Marks </label> <div class="input-field"> <input type="text" class="form-control" id="min_mark" name="min_mark[]" value="">  </div> <span class="col-sm-4 control-label">  </div><div class="col-md-2"> <label for="max_mark" class="control-label">  Max Marks  </label> <div class="input-field">  <input type="text" class="form-control" id="max_mark" name="max_mark[]" value=""> </div> <span class="control-label"> </span> </div></div> <div class="col-md-2">   <label for="date" class="control-label">  Date <span class="text-red">*</span> </label> <div class="input-field"> <input type="text" class="form-control date" id="date" name="date[]" value=""> </div> <span class="control-label">  </span> </div> <div class="col-md-2"> <label for="examfrom" class="control-label"> Time From <span class="text-red">*</span>  </label> <div class="input-field"> <input type="text" class="form-control examfrom" id="examfrom" name="examfrom[]" value=""> </div> <span class="control-label"> </span>  </div> <div class="col-md-2">  <label   class="control-label"> Time To <span class="text-red">* <span myct='+ct+' class="remove  " style="margin-left:20px;"><i class="fa fa-trash-o"></i></span> </span> </label>  <div class="input-field"> <input type="text" class="form-control examto" id="examto" name="examto[]" value="">    </div></span><br/> '; 
+         
+        $("#dynamic_div").append(markup);
+
+                $(".date").datepicker({ 
+                autoclose: true,
+                format: 'dd-mm-yyyy',
+                startDate:'<?=$schoolyearsessionobj->startingdate?>',
+                endDate:'<?=$schoolyearsessionobj->endingdate?>',
+                daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
+                datesDisabled: ["<?=$get_all_holidays;?>"], 
+            });
+            $('.examfrom').timepicker();
+            $('.examto').timepicker();
+
     });
-    $('.examfrom').timepicker({ timeFormat: 'h:mm p', interval: 15 });
-    $('.examto').timepicker({ timeFormat: 'h:mm p', interval: 15 });
-});
 
 $(document).on('click', '.remove', function(){
     var ct = $(this).attr('myct');
-    $('#row_' + ct).remove();
-});
-
-$(document).on('click', '#assign_defaults', function() {
-    let min = $('#default_min_mark').val();
-    let max = $('#default_max_mark').val();
-    let from = $('#default_examfrom').val();
-    let to = $('#default_examto').val();
-
-    $('.dynamic-row').each(function() {
-        $(this).find('input[name="min_mark[]"]').val(min);
-        $(this).find('input[name="max_mark[]"]').val(max);
-        $(this).find('input[name="examfrom[]"]').val(from);
-        $(this).find('input[name="examto[]"]').val(to);
+    // alert(ct);
+    $(this).closest('#'+ct).remove();
+    
     });
-
-    $("#min_mark").val(min);
-    $("#max_mark").val(max);
-    $("#examfrom").val(from);
-    $("#examfto").val(to);
-});
 </script>

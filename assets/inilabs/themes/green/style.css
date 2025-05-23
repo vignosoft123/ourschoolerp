@@ -4006,10 +4006,22 @@ padding-bottom: 10px;
 .filter-box {
 background-color:hsl(133, 46.30%, 75.90%);
 padding: 10px;
-border-radius: 5px;
+border-radius: 7px;
 margin-bottom: 15px;
 }
 
+.filter-box1{
+    background: #aff3e9;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 7px;
+}
+
+.btn-black{
+      color: #fff;
+    background-color: #2a4242d6;
+    border-color: #00acac;
+}
 
 
 
