@@ -902,7 +902,7 @@
                         foreach ($transports as $transport) {
                             $array[$transport->transportID] = $transport->route;
                         }
-                        echo form_dropdown("transportID", $array, set_value("transportID"), "id='transportID' class='form-control select2'");
+                        echo form_dropdown("transportID", $array, set_value("transportID"), "id='transportID' class='form-control clear-dropdown select2'");
                     ?>
                 </div>
                 <span class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
@@ -918,7 +918,7 @@
                     Pickup Point <span class="text-red">*</span>
                 </label>
                 <div class="col1-sm-4 " >                    
-                    <select id="pickup_id" name ="pickup_id" class='form-control select2'>
+                    <select id="pickup_id" name ="pickup_id" class='form-control clear-dropdown select2'>
                         <option>Select Pickup point</option>
                          
                     </select>
@@ -936,7 +936,7 @@
                         <?=$this->lang->line("tmember_tfee")?> <span class="text-red">*</span>
                     </label>
                     <div class="col1-sm-4 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
-                        <input type="text" class="form-control" id="tbalance" name="tbalance" value="<?=set_value('tbalance', "0.00")?>" readonly>
+                        <input type="text" class="form-control clear-dropdown" id="tbalance" name="tbalance" value="<?=set_value('tbalance', "0.00")?>" readonly>
                     </div>
                     <span class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
                         <?php echo form_error('tbalance'); ?>
@@ -969,7 +969,7 @@
                         foreach ($hostels as $hostel) {
                             $array[$hostel->hostelID] = $hostel->name;
                         }
-                        echo form_dropdown("hostelID", $array, set_value("hostelID"), "id='hostelID' class='form-control select2'");
+                        echo form_dropdown("hostelID", $array, set_value("hostelID"), "id='hostelID' class='form-control clear-dropdown select2'");
                     ?>
                 </div>
                 <span class="  control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel">
@@ -994,7 +994,7 @@
                                 $array[$category->categoryID] = $category->class_type;
                             }
                         }
-                        echo form_dropdown("categoryID", $array, set_value("categoryID"), "id='categoryID' class='form-control select2'");
+                        echo form_dropdown("categoryID", $array, set_value("categoryID"), "id='categoryID' class='form-control clear-dropdown select2'");
                     ?>
                 </div>
                 <span class="control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel" >
@@ -1208,6 +1208,12 @@
     $("#hostel_div").hide();
 
     $('#studentType').change(function() {
+        $(".clear-dropdown").val('');
+        $("#categoryID").val('0').change();;
+        $("#pickup_id").val('0').change();;
+        $("#hostelID").val('0').change();;
+        $("#transportID").val('0').change();;
+
         var studentType = $('#studentType').val();
         if(studentType == 1)
         {   

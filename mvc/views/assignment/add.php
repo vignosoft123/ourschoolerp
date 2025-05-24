@@ -18,39 +18,8 @@
     <!-- Initial Assignment Block -->
     <div class="assignment-block" style="border: 2px solid #4287f5; padding: 20px; margin-bottom: 20px; border-radius: 10px; background: #e8f0fe; position: relative;">
         <div class="row">
-            <?php 
-                $titleClass = form_error('title') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
-            ?>
-            <div class="<?=$titleClass?>">
-                <label>Homework <span class="text-red">*</span></label>
-                <input type="text" class="form-control" name="title[]" value="<?=set_value('title[0]')?>">
-                <span class="control-label"><?php echo form_error('title'); ?></span>
-            </div>
 
-            <?php 
-                $deadlineClass = form_error('deadlinedate') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
-            ?>
-            <div class="<?=$deadlineClass?>">
-                <label><?=$this->lang->line("assignment_deadlinedate")?> <span class="text-red">*</span></label>
-                <input type="text" class="form-control deadlinedate" name="deadlinedate[]" value="<?=set_value('deadlinedate[0]')?>">
-                <span class="control-label"><?php echo form_error('deadlinedate'); ?></span>
-            </div>
-
-              <?php 
-            $descClass = form_error('description') ? 'form-group col-md-6 has-error' : 'form-group col-md-6';
-        ?>
-        <div class="<?=$descClass?>">
-            <label><?=$this->lang->line("assignment_description")?> <span class="text-red">*</span></label>
-            <textarea class="form-control" name="description[]" rows="3" style="resize: none;"><?=set_value('description[0]')?></textarea>
-            <span class="control-label"><?php echo form_error('description'); ?></span>
-        </div>
-        
-        </div>
-
-      
-
-        <div class="row">
-            <?php 
+         <?php 
                 $classClass = form_error('classesID') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
             ?>
             <div class="<?=$classClass?>">
@@ -82,6 +51,25 @@
                 <span class="control-label"><?php echo form_error('sectionID'); ?></span>
             </div>
 
+             <?php 
+                $deadlineClass = form_error('deadlinedate') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
+            ?>
+            <div class="<?=$deadlineClass?>">
+                <label>Deadline Date <span class="text-red">*</span></label>
+                <input type="text" class="form-control deadlinedate" name="deadlinedate[]" value="<?=set_value('deadlinedate[0]')?>">
+                <span class="control-label"><?php echo form_error('deadlinedate'); ?></span>
+            </div>
+
+
+            
+        
+        </div>
+
+      
+
+        <div class="row">
+           
+
             <?php 
                 $subjectClass = form_error('subjectID') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
             ?>
@@ -94,13 +82,33 @@
                             $array[$subject->subjectID] = $subject->subject;
                         }
                     }
-                    echo form_dropdown("subjectID[]", $array, set_value("subjectID[0]"), "class='form-control select2 subjectID'");
+                    echo form_dropdown("subjectID[]", $array, set_value("subjectID[0]"), "class='form-control sticky-subjects select2 subjectID'");
                 ?>
                 <span class="control-label"><?php echo form_error('subjectID'); ?></span>
             </div>
+
+            <?php 
+                $titleClass = form_error('title') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
+            ?>
+            <div class="<?=$titleClass?>">
+                <label>Homework <span class="text-red">*</span></label>
+                <input type="text" class="form-control" name="title[]" value="<?=set_value('title[0]')?>">
+                <span class="control-label"><?php echo form_error('title'); ?></span>
+            </div>
+
+           
+
+              <?php 
+            $descClass = form_error('description') ? 'form-group col-md-4 has-error' : 'form-group col-md-4';
+        ?>
+        <div class="<?=$descClass?>">
+            <label><?=$this->lang->line("assignment_description")?> <span class="text-red">*</span></label>
+            <textarea class="form-control" name="description[]" rows="3" style="resize: none;"><?=set_value('description[0]')?></textarea>
+            <span class="control-label"><?php echo form_error('description'); ?></span>
+        </div>
       
 
-            <div class=" col-md-3 form-group <?php if(form_error('file')) echo 'has-error'; ?>">
+            <div class=" col-md-2 form-group <?php if(form_error('file')) echo 'has-error'; ?>">
                 <label><?=$this->lang->line("assignment_file")?></label>
                 <div class="input-group image-preview">
                     <input type="text" class="form-control image-preview-filename" disabled="disabled">
@@ -189,6 +197,7 @@
             dataType: "html",
             success: function(data) {
                 subjectSelect.select2('destroy').html(data).select2({width:'100%'});
+                cachedSubjects = data;
             }
         });
 
@@ -209,6 +218,7 @@
         updateLoaderVisibility(true);
 
         var index = $("#assignmentContainer .assignment-block").length;
+        
 
         // Build new assignment block HTML with unique index for input names
        var newBlock = `<div class="assignment-block" style="border: 2px solid #28a745; padding: 20px; margin-bottom: 20px; border-radius: 10px; background: #eaf8ee; position: relative;">
@@ -217,51 +227,27 @@
     </div>
 
     <div class="row">
+
+    <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_subject")?> <span class="text-red">*</span></label>
+           <select class="form-control select2 subjectID" name="subjectID[]">
+                ${cachedSubjects || '<option value="0"><?= $this->lang->line("assignment_select_subject") ?></option>'}
+            </select>
+        </div>
+
         <div class="form-group col-md-3">
             <label>Homework <span class="text-red">*</span></label>
             <input type="text" class="form-control" name="title[]" />
         </div>
 
-        <div class="form-group col-md-3">
-            <label><?=$this->lang->line("assignment_deadlinedate")?> <span class="text-red">*</span></label>
-            <input type="text" class="form-control deadlinedate" name="deadlinedate[]" />
-        </div>
+       
 
-        <div class="form-group col-md-6">
+        <div class="form-group col-md-4">
         <label><?=$this->lang->line("assignment_description")?> <span class="text-red">*</span></label>
         <textarea class="form-control" style="resize: none;" name="description[]" rows="3"></textarea>
     </div>
 
-    </div>
-
-    
-
-    <div class="row">
-        <div class="form-group col-md-3">
-            <label><?=$this->lang->line("assignment_classes")?> <span class="text-red">*</span></label>
-            <select class="form-control select2 classesID" name="classesID[]">
-                <option value="0">${lang_assignment_select_classes}</option>
-                <?php foreach ($classes as $classa): ?>
-                    <option value="<?=$classa->classesID?>"><?=htmlspecialchars($classa->classes)?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-
-        <div class="form-group col-md-3">
-            <label><?=$this->lang->line("assignment_section")?></label>
-            <select class="form-control select2 sectionID" name="sectionID[]">
-                <option value=""><?=$this->lang->line("assignment_select_section")?></option>
-            </select>
-        </div>
-
-        <div class="form-group col-md-3">
-            <label><?=$this->lang->line("assignment_subject")?> <span class="text-red">*</span></label>
-            <select class="form-control select2 subjectID" name="subjectID[]">
-                <option value="0">${lang_assignment_select_subject}</option>
-            </select>
-        </div>
-
-            <div class="form-group col-md-3">
+    <div class="form-group col-md-2">
         <label><?=$this->lang->line("assignment_file")?></label>
         <div class="input-group image-preview">
             <input type="text" class="form-control image-preview-filename" disabled="disabled">
@@ -277,6 +263,38 @@
             </span>
         </div>
     </div>
+
+    </div>
+
+    
+
+    <div class="row">
+
+    <!-- <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_deadlinedate")?> <span class="text-red">*</span></label>
+            <input type="text" class="form-control deadlinedate" name="deadlinedate[]" />
+        </div>-->
+
+       <!-- <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_classes")?> <span class="text-red">*</span></label>
+            <select class="form-control select2 classesID" name="classesID[]">
+                <option value="0">${lang_assignment_select_classes}</option>
+                <?php foreach ($classes as $classa): ?>
+                    <option value="<?=$classa->classesID?>"><?=htmlspecialchars($classa->classes)?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div class="form-group col-md-3">
+            <label><?=$this->lang->line("assignment_section")?></label>
+            <select class="form-control select2 sectionID" name="sectionID[]">
+                <option value=""><?=$this->lang->line("assignment_select_section")?></option>
+            </select>
+        </div>-->
+
+        
+
+            
 
     </div>
 

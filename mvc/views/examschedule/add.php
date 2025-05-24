@@ -10,18 +10,32 @@
     }
 });
 
-
-$(document).ready(function() {
-    $(".date").datepicker({ 
+function initializeDatepickers() {//alert();
+    $(".date").datepicker({
         autoclose: true,
         format: 'dd-mm-yyyy',
-        startDate:'<?=$schoolyearsessionobj->startingdate?>',
-        endDate:'<?=$schoolyearsessionobj->endingdate?>',
-        daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
-        datesDisabled: ["<?=$get_all_holidays;?>"], 
+        startDate: '01-04-2025',
+        endDate: '31-03-2026',
+        daysOfWeekDisabled: "0,6",
+        datesDisabled: ["15-08-2025", "02-10-2025"]
     });
-    $('.examfrom').timepicker();
+        $('.examfrom').timepicker();
     $('.examto').timepicker();
+}
+
+
+$(document).ready(function() {
+     initializeDatepickers();
+    // $(".date").datepicker({ 
+    //     autoclose: true,
+    //     format: 'dd-mm-yyyy',
+    //     startDate:'<?=$schoolyearsessionobj->startingdate?>',
+    //     endDate:'<?=$schoolyearsessionobj->endingdate?>',
+    //     daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
+    //     datesDisabled: ["<?=$get_all_holidays;?>"], 
+    // });
+    // $('.examfrom').timepicker();
+    // $('.examto').timepicker();
 })
 
 </script>
@@ -383,7 +397,7 @@ $(document).on('click', ".addDetails", function() {
         </div>
         <div class="col-md-2">
             <label>Date <span class="text-red">*</span></label>
-            <input type="text" class="form-control date" name="date[]" />
+            <input type="text" class="form-control date" id="date" name="date[]" />
         </div>
         <div class="col-md-2">
             <label>Time From <span class="text-red">*</span></label>
@@ -400,17 +414,14 @@ $(document).on('click', ".addDetails", function() {
 
     $("#dynamic_div").append(markup);
 
+    initializeDatepickers();
+
     $(".select2").select2();
-    $(".date").datepicker({
-        autoclose: true,
-        format: 'dd-mm-yyyy',
-        startDate: '01-04-2025',  // example value
-        endDate: '31-03-2026',    // example value
-        daysOfWeekDisabled: "0,6", // example value (Sunday and Saturday)
-        datesDisabled: ["15-08-2025", "02-10-2025"] // example holidays
-    });
+    
     $('.examfrom').timepicker({ timeFormat: 'h:mm p', interval: 15 });
     $('.examto').timepicker({ timeFormat: 'h:mm p', interval: 15 });
+
+     
 });
 
 $(document).on('click', '.remove', function(){

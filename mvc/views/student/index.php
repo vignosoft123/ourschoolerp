@@ -188,19 +188,53 @@
             <div id="transport_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
               <legend class="w-auto text-success font-weight-bold">Transport Details</legend>
               <div class="row">
-                <div class="col-md-6 form-group">
+                <div class="col-md-4 form-group">
                   <label>Transport Route</label>
-                  <select name="transportID" class="form-control">
+                  <select name="transportID" id="transportID" class="form-control clear-dropdown">
                     <option value="">Select Route</option>
                     <?php foreach ($transports as $transport): ?>
                       <option value="<?= $transport->transportID ?>"><?= $transport->route ?></option>
                     <?php endforeach; ?>
                   </select>
+                </div> 
+
+
+
+             <?php 
+                   
+                    echo "<div class='col-md-4' >";
+            ?>
+                <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >
+                    Pickup Point <span class="text-red">*</span>
+                </label>
+                <div class="col1-sm-4 " >                    
+                    <select id="pickup_id" name ="pickup_id" class='form-control clear-dropdown select2'>
+                        <option>Select Pickup point</option>
+                         
+                    </select>
                 </div>
-                <div class="col-md-6 form-group">
-                  <label>Vehicle Number</label>
-                  <input type="text" name="vehicle_number" class="form-control">
+                 
+            </div> 
+
+            <?php 
+                    if(form_error('tbalance')) 
+                        echo "<div class='col-md-4 has-error'>";
+                    else     
+                        echo "<div class='col-md-4'>";
+                ?>
+                    <label for="tbalance" class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
+                        <?=$this->lang->line("tmember_tfee")?> <span class="text-red">*</span>
+                    </label>
+                    <div class="col1-sm-4 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
+                        <input type="text" class="form-control clear-dropdown" id="tbalance" name="tbalance" value="<?=set_value('tbalance', "0.00")?>" readonly>
+                    </div>
+                    <span class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
+                        <?php echo form_error('tbalance'); ?>
+                    </span>
                 </div>
+
+
+
               </div>
             </div>
 
@@ -210,17 +244,37 @@
               <div class="row">
                 <div class="col-md-6 form-group">
                   <label>Hostel Name</label>
-                  <select name="hostelID" class="form-control">
+                  <select name="hostelID" id='hostelID' class="form-control clear-dropdown">
                     <option value="">Select Hostel</option>
                     <?php foreach ($hostels as $hostel): ?>
                       <option value="<?= $hostel->hostelID ?>"><?= $hostel->name ?></option>
                     <?php endforeach; ?>
                   </select>
                 </div>
-                <div class="col-md-6 form-group">
-                  <label>Room Number</label>
-                  <input type="text" name="room_number" class="form-control">
+                <?php 
+                if(form_error('categoryID')) 
+                    echo "<div class='col-md-4 has-error' >";
+                else     
+                    echo "<div class='col-md-4' >";
+            ?>
+                <label for="categoryID" class="control-label hostel  <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?>">
+                    <?=$this->lang->line("hmember_class_type")?> <span class="text-red">*</span>
+                </label>
+                <div class="coll-sm-6  <?= $this->input->post('studentType')=='2'  ? '' : 'show'; ?> hostel">
+                    <?php
+                        $array = array(0 => $this->lang->line("hmember_select_class_type"));
+                        if(customCompute($categorys)) {
+                            foreach ($categorys as $key => $category) {
+                                $array[$category->categoryID] = $category->class_type;
+                            }
+                        }
+                        echo form_dropdown("categoryID", $array, set_value("categoryID"), "id='categoryID' class='clear-dropdown form-control select2'");
+                    ?>
                 </div>
+                <span class="control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel" >
+                    <?php echo form_error('categoryID'); ?>
+                </span>
+            </div>
               </div>
             </div>
 
@@ -857,6 +911,11 @@ document.getElementById('fileUploadForm').addEventListener('submit', function(ev
     $("#hostel_div").hide();
 
     $('#studentType').change(function() {
+        $(".clear-dropdown").val('');
+        $("#categoryID").val('0').change();;
+        $("#pickup_id").val('0').change();;
+
+
         var studentType = $('#studentType').val();
         if(studentType == 1)
         {   
@@ -1012,5 +1071,8 @@ $(document).ready(function(){
     });
 });
  
+
+
+
 
 </script>

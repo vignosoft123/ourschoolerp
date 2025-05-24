@@ -1232,6 +1232,12 @@ $(function() {
 
 
  $('#studentType').change(function() {
+    $(".clear-dropdown").val('');
+        $("#categoryID").val('0').change();;
+        $("#pickup_id").val('0').change();;
+        $("#hostelID").val('0').change();;
+        $("#transportID").val('0').change();;
+        
         var studentType = $('#studentType').val();
         if(studentType == 1)
         {   

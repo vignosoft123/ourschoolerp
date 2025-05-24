@@ -1019,7 +1019,7 @@ class Student extends Admin_Controller
 						$parent_array['father_name'] = $this->input->post("father_name");
 						$parent_array['father_aadhar'] = $this->input->post("father_aadhar");
 						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar");
-						$parent_array['mother_name'] = $this->input->post("mother_name");
+						$parent_array['mother_name'] =  $this->input->post("mother_name") ? $this->input->post("mother_name") : '-';
 						$parent_array["phone"] = $this->input->post("phone");
 						$parent_array['photo'] = "default.png";
 						$parent_array['usertypeID'] = 4;
@@ -1750,7 +1750,7 @@ class Student extends Admin_Controller
 						$parent_array['father_name'] = $this->input->post("father_name");
 						$parent_array['father_aadhar'] = $this->input->post("father_aadhar");
 						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar");
-						$parent_array['mother_name'] = $this->input->post("mother_name");
+						$parent_array['mother_name'] =  $this->input->post("mother_name") ? $this->input->post("mother_name") : '-';
 						$parent_array["phone"] = $this->input->post("phone");
 						$parent_array['photo'] = "default.png";
 						$parent_array['usertypeID'] = 4;
@@ -2527,7 +2527,7 @@ class Student extends Admin_Controller
 							$arrParentData =  array(
 								'phone' => $this->input->post("phone"),
 								'father_name' => $this->input->post("father_name"),
-								'mother_name' => $this->input->post("mother_name"),
+								'mother_name' =>  $this->input->post("mother_name") ? $this->input->post("mother_name") : '-',
 								'father_aadhar' => $this->input->post("father_aadhar"),
 								'mother_aadhar' => $this->input->post("mother_aadhar"),
 							);
