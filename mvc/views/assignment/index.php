@@ -200,6 +200,7 @@
         var sectionID = $('#sectionID').val();
         var deadlinedate = $('#deadlinedate').val();
         if(classesID == 0) {
+            alert("Please select Class!");
             $('#hide-table').hide();
             $('.nav-tabs-custom').hide();
         } else {

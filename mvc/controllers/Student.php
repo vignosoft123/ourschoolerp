@@ -1746,12 +1746,12 @@ class Student extends Admin_Controller
 					//Edited by Naveen
 					if ($studentID > 0) {
 						$parent_array = array();
-						$parent_array['name'] = $this->input->post("father_name");
-						$parent_array['father_name'] = $this->input->post("father_name");
-						$parent_array['father_aadhar'] = $this->input->post("father_aadhar");
-						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar");
+						$parent_array['name'] = $this->input->post("father_name") ?? '';
+						$parent_array['father_name'] = $this->input->post("father_name") ?? '';
+						$parent_array['father_aadhar'] = $this->input->post("father_aadhar") ?? '';
+						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar") ?? '';
 						$parent_array['mother_name'] =  $this->input->post("mother_name") ? $this->input->post("mother_name") : '-';
-						$parent_array["phone"] = $this->input->post("phone");
+						$parent_array["phone"] = $this->input->post("phone") ?? 0;
 						$parent_array['photo'] = "default.png";
 						$parent_array['usertypeID'] = 4;
 						$parent_array['active'] = 1;
@@ -1782,24 +1782,24 @@ class Student extends Admin_Controller
 
 					$arrayStudentRelation = array(
 						'srstudentID' => $studentID,
-						'srname' => $this->input->post("name"),
-						'srclassesID' => $this->input->post("classesID"),
+						'srname' => $this->input->post("name") ?? 0,
+						'srclassesID' => $this->input->post("classesID") ?? 0,
 						'srclasses' => $setClasses,
-						'srroll' => $this->input->post("roll"),
-						'srregisterNO' => $this->input->post("registerNO"),
-						'srsectionID' => $this->input->post("sectionID"),
+						'srroll' => $this->input->post("roll") ?? 0,
+						'srregisterNO' => $this->input->post("registerNO") ?? 0,
+						'srsectionID' => $this->input->post("sectionID") ?? 0,
 						'srsection' => $setSection,
 						'srstudentgroupID' => $this->input->post('studentGroupID') ? $this->input->post('studentGroupID') : 0,
-						'sroptionalsubjectID' => $this->input->post('optionalSubjectID')??0,
+						'sroptionalsubjectID' => $this->input->post('optionalSubjectID') ?? 0,
 						'srschoolyearID' => $schoolyearID,
 					);
 
 					$studentExtendArray = array(
 						'studentID' => $studentID,
-						'studentgroupID' => $this->input->post('studentGroupID'),
-						'optionalsubjectID' => $this->input->post('optionalSubjectID'),
-						'extracurricularactivities' => $this->input->post('extraCurricularActivities'),
-						'remarks' => $this->input->post('remarks')
+						'studentgroupID' => $this->input->post('studentGroupID') ?? 0,
+						'optionalsubjectID' => $this->input->post('optionalSubjectID') ?? 0,
+						'extracurricularactivities' => $this->input->post('extraCurricularActivities') ?? 0,
+						'remarks' => $this->input->post('remarks') ?? -''
 					);
 
 					$this->studentextend_m->insert_studentextend($studentExtendArray);

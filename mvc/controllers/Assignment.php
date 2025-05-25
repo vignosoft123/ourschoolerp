@@ -361,7 +361,7 @@ $this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, 
         $data = array(
             "title"         => $title,
             "description"   => $descriptions[$key],
-            "deadlinedate"  => date("Y-m-d", strtotime($deadlinedates[$key])),
+            "deadlinedate"  => date("Y-m-d", strtotime($deadlinedates)),
             'subjectID'     => $subjectIDs[$key],
             "usertypeID"    => $this->session->userdata('usertypeID'),
             "userID"        => $this->session->userdata('loginuserID'),
@@ -371,15 +371,20 @@ $this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, 
             'assignuserID'  => 0
         );
 
-        $sectionKey = 'sectionID_' . $key;
-        $sections = $this->input->post($sectionKey);
-        $data['sectionID'] = json_encode($sections);
+        // $sectionKey = 'sectionID_' . $key;
+        // $sections = $this->input->post($sectionKey);
+        // $data['sectionID'] = json_encode($sections);
+		$sectionIDs = $this->input->post('sectionID'); // Assuming it's coming from form input
+		 $sectionIDsStringArray = array_map('strval', $sectionIDs);
+		$data['sectionID'] = json_encode($sectionIDsStringArray);
 
         if ($key == 0 && isset($this->upload_data['file'])) {
             $data['originalfile'] = $this->upload_data['file']['original_file_name'];
             $data['file'] = $this->upload_data['file']['file_name'];
         }
 
+		
+		// echo "<pre>";print_r($data);die;
         $this->assignment_m->insert_assignment($data);
     }
 

@@ -17,7 +17,7 @@
 
     <!-- Initial Assignment Block -->
     <div class="assignment-block" style="border: 2px solid #4287f5; padding: 20px; margin-bottom: 20px; border-radius: 10px; background: #e8f0fe; position: relative;">
-        <div class="row">
+        <div class="row filter-box">
 
          <?php 
                 $classClass = form_error('classesID') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
@@ -29,7 +29,7 @@
                     foreach ($classes as $classa) {
                         $array[$classa->classesID] = $classa->classes;
                     }
-                    echo form_dropdown("classesID[]", $array, set_value("classesID[0]"), "class='form-control select2 classesID'");
+                    echo form_dropdown("classesID", $array, set_value("classesID"), "class='form-control select2 classesID'");
                 ?>
                 <span class="control-label"><?php echo form_error('classesID'); ?></span>
             </div>
@@ -46,7 +46,7 @@
                             $array[$section->sectionID] = $section->section;
                         }
                     }
-                    echo form_dropdown("sectionID[]", $array, set_value("sectionID[0]"), "class='form-control select2 sectionID'");
+                    echo form_multiselect("sectionID[]", $array, set_value("sectionID[0]"), "class='form-control select2 sectionID'");
                 ?>
                 <span class="control-label"><?php echo form_error('sectionID'); ?></span>
             </div>
@@ -55,8 +55,8 @@
                 $deadlineClass = form_error('deadlinedate') ? 'form-group col-md-3 has-error' : 'form-group col-md-3';
             ?>
             <div class="<?=$deadlineClass?>">
-                <label>Deadline Date <span class="text-red">*</span></label>
-                <input type="text" class="form-control deadlinedate" name="deadlinedate[]" value="<?=set_value('deadlinedate[0]')?>">
+                <label>Date <span class="text-red">*</span></label>
+                <input type="text" class="form-control deadlinedate" name="deadlinedate" value="<?=set_value('deadlinedate')?>">
                 <span class="control-label"><?php echo form_error('deadlinedate'); ?></span>
             </div>
 
@@ -156,7 +156,7 @@
     var lang_assignment_select_classes = "<?= addslashes($this->lang->line('assignment_select_classes')) ?>";
     var lang_assignment_clear = "<?= addslashes($this->lang->line('assignment_clear')) ?>";
     var lang_assignment_file_browse = "<?= addslashes($this->lang->line('assignment_file_browse')) ?>";
-    var lang_add_more = "<?= addslashes($this->lang->line('add_more') ?? 'Add More') ?>";
+    var lang_add_more =  'Add More';
 
     // $(".select2").select2();
 
@@ -215,7 +215,13 @@
 
     // Add More button click - append a new assignment block
     $("#addMoreAssignment").click(function() {
-        updateLoaderVisibility(true);
+
+        if($(".classesID").val() == 0){
+            alert("Please select Class first!");
+            
+        }
+
+        // updateLoaderVisibility(true);
 
         var index = $("#assignmentContainer .assignment-block").length;
         

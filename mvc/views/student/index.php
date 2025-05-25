@@ -133,7 +133,7 @@
               <div class="row">
                 <div class="col-md-3 form-group">
                   <label>Date of Birth</label> 
-                  <input type="text" class="form-control" id="dob" name="dob" value="<?= set_value('dob') ?>">
+                  <input type="text" class="form-control" id="dob" name="dob" value="<?= set_value('dob') ?>" required>
                 </div>
                 <div class="col-md-3 form-group">
                   <label>Student Type <span class="text-danger">*</span></label>
@@ -155,7 +155,7 @@
                 </div>
                 <div class="col-md-3 form-group">
                   <label>Father Name</label>
-                  <input type="text" name="father_name" class="form-control">
+                  <input type="text" name="father_name" class="form-control" required>
                 </div>
               </div>
 
