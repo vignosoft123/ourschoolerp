@@ -1799,7 +1799,7 @@ class Student extends Admin_Controller
 						'studentgroupID' => $this->input->post('studentGroupID') ?? 0,
 						'optionalsubjectID' => $this->input->post('optionalSubjectID') ?? 0,
 						'extracurricularactivities' => $this->input->post('extraCurricularActivities') ?? 0,
-						'remarks' => $this->input->post('remarks') ?? -''
+						'remarks' => $this->input->post('remarks') ?? '-'
 					);
 
 					$this->studentextend_m->insert_studentextend($studentExtendArray);
