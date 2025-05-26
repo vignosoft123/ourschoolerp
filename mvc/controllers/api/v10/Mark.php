@@ -28,7 +28,8 @@ class Mark extends Api_Controller
                 $myProfile = true;
             }
         }
-
+        $myProfile = true;
+        // echo $this->session->userdata('usertypeID').'===='.$myProfile;die;
         if($this->session->userdata('usertypeID') == 3 && $myProfile) {
             $url = $id;
             $id = $this->session->userdata('loginuserID');
