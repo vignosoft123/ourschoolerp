@@ -1189,14 +1189,14 @@ class Mark extends Admin_Controller
 				if (customCompute($inputs)) {
 					foreach ($inputs as $key => $value) {
 						$data = explode('-', $value['mark']);
-						if (!empty($value['value']) || $value['value'] != "") {
+						// if (!empty($value['value']) || $value['value'] != "") {
 
 							$this->db->where('markpercentageID',$value['markpercentageid']);
 							$this->db->where('markID',$data[1]);
 							$this->db->update('markrelation',array('mark' => abs($value['value']) ));
-						} else {
+						// } else {
 							
-						}
+						// }
 					}
 				}
 
@@ -1753,14 +1753,15 @@ class Mark extends Admin_Controller
 
 		// print_r($_POST);die;
 		$mark_id = $_POST['markID']; 
-		// if( $_POST['attendance'] == 'Absent'){
-			$sql = "select * from markrelation where markID=$mark_id and mark is not null and mark!=0";
-			  $cnt = $this->db->query($sql)->num_rows();
+		if( $_POST['attendance'] == 'Absent'){
+			 $sql = "select * from markrelation where markID=$mark_id and mark is not null and mark!=0";
+			   $cnt = $this->db->query($sql)->num_rows();
 			if(($cnt) > 0){
  				$this->session->set_flashdata('error', 'Already have marks, please remove the marks before adding attendance as absent!' );
 				 redirect(base_url("mark/add"));
-				
-			}else{
+			}
+		}
+			// }else{
 				// $this->add($_POST);
 
 				$schoolyearID = $this->session->userdata('defaultschoolyearID');
@@ -1796,7 +1797,7 @@ class Mark extends Admin_Controller
 
 				// redirect(base_url("mark/add"));
 				$this->add($_POST);
-			}
+			// }
 		// }
 
 		

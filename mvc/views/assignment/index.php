@@ -88,10 +88,12 @@
                         <thead>
                             <tr>
                                 <th><?=$this->lang->line('slno')?></th>
+                                <th><?=$this->lang->line('assignment_section')?></th>
+                                <th>Subject</th>
+
                                 <th><?=$this->lang->line('assignment_title')?></th>
                                 <th class="col-lg-3"><?=$this->lang->line('assignment_description')?></th>
                                 <th><?=$this->lang->line('assignment_deadlinedate')?></th>
-                                <th><?=$this->lang->line('assignment_section')?></th>
                                 <th><?=$this->lang->line('assignment_uploder')?></th>
                                 <th><?=$this->lang->line('assignment_file')?></th>
                                 <?php if(permissionChecker('assignment_edit') || permissionChecker('assignment_delete') || permissionChecker('assignment_view')) { ?>
@@ -108,17 +110,10 @@
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
                                     </td>
-                                    <td data-title="<?=$this->lang->line('assignment_title')?>">
-                                        <?php echo $assignment->title; ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('assignment_description')?>">
-                                        <?php echo namesorting($assignment->description, 130); ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('assignment_deadlinedate')?>">
-                                        <?php echo date('d M Y', strtotime($assignment->deadlinedate)); ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('assignment_section')?>">
+
+                                     <td data-title="<?=$this->lang->line('assignment_section')?>">
                                         <?php  
+                                        // print_r($assignment);die;
                                         if($assignment->sectionID == 'false') {
                                             if(customCompute($sections)) foreach ($sections as $section) {
                                                 echo $this->lang->line('assignment_section').' '.$section.'<br>';
@@ -131,6 +126,21 @@
                                         }
                                         ?>
                                     </td>
+                                    
+                                    <td data-title="<?=$this->lang->line('subject')?>">
+                                        <?php echo $assignment->subject; ?>
+                                    </td>
+                                    
+                                    <td data-title="<?=$this->lang->line('assignment_title')?>">
+                                        <?php echo $assignment->title; ?>
+                                    </td>
+                                    <td data-title="<?=$this->lang->line('assignment_description')?>">
+                                        <?php echo namesorting($assignment->description, 130); ?>
+                                    </td>
+                                    <td data-title="<?=$this->lang->line('assignment_deadlinedate')?>">
+                                        <?php echo date('d M Y', strtotime($assignment->deadlinedate)); ?>
+                                    </td>
+                                   
                                     <td data-title="<?=$this->lang->line('assignment_uploder')?>">
                                         <?php echo getNameByUsertypeIDAndUserID($assignment->usertypeID, $assignment->userID); ?>
                                     </td>

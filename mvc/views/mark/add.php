@@ -277,6 +277,8 @@
                                 <div class="col-md-12 col-xs-12">
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-success col-md-12 col-xs-12 mark_btn" style="margin-top: 20px;">Get Marks</button>
+
+                                        <!-- <input class="btn btn-black" type="reset" value="Clear"> -->
                                     </div>
                                 </div>
                             </div>
