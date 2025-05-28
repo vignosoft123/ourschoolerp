@@ -39,6 +39,7 @@ class Subjectattendance_m extends MY_Model {
 
 	public function update_batch_sub_attendance($data, $id = NULL) {
         parent::update_batch($data, $id);
+		// echo $this->db->last_query();die;
         return TRUE;
     }
 

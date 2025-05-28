@@ -485,6 +485,7 @@ class Sattendance extends Admin_Controller
 						);
 					}
 				}
+				// echo "<pre>";print_r($updateArray);die;
 
 				$updateStatus = FALSE;
 				if (customCompute($updateArray)) {

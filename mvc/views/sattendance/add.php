@@ -248,6 +248,8 @@
                                                                 $lemethod = '';
                                                                 $lmethod = '';
                                                                 $amethod = '';
+                                                                $mmethod = '';
+                                                                $nmethod = '';
 
                                                                 if ($attendances[$student->studentID]->$aday == "P") {
                                                                     $pmethod = "checked";
@@ -257,17 +259,28 @@
                                                                     $lmethod = "checked";
                                                                 } elseif ($attendances[$student->studentID]->$aday == "A") {
                                                                     $amethod = "checked";
+                                                                }elseif ($attendances[$student->studentID]->$aday == "M") {
+                                                                    $mmethod = "checked";
+                                                                }elseif ($attendances[$student->studentID]->$aday == "N") {
+                                                                    $nmethod = "checked";
                                                                 } else {
                                                                     $pmethod = "checked";
                                                                 }
 
+                                                                echo "<div class='filter-box1'>";
                                                                 echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-1', $pmethod, "attendance btn btn-warning present", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_present'), 'P');
 
-                                                                // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-2', $lemethod, "attendance btn btn-warning lateexcuse", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_late_excuse'), 'LE');
+                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-4', $amethod, "attendance btn btn-warning absent", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_absent'), 'A');
+
+                                                                // HALF DAYS
+                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-5', $mmethod, "attendance btn btn-warning morning", "attendance" . $attendances[$student->studentID]->attendanceID, "Morning", 'M');
+
+                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-6', $nmethod, "attendance btn btn-warning evening", "attendance" . $attendances[$student->studentID]->attendanceID, "Afternoon", 'N');
+
+                                                                echo "</div>";
+                                                                   // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-2', $lemethod, "attendance btn btn-warning lateexcuse", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_late_excuse'), 'LE');
 
                                                                 // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-3', $lmethod, "attendance btn btn-warning late", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_late_present'), 'L');
-
-                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-4', $amethod, "attendance btn btn-warning absent", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_absent'), 'A');
                                                             }
                                                         }
                                                     }
