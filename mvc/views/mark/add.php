@@ -331,7 +331,7 @@
 
  <div class="row" style="margin-top: 20px;">
     <!-- Left: Info Box -->
-    <?php if (customCompute($sendExam) && customCompute($sendClasses) && customCompute($sendSection) && customCompute($sendSubject)) { ?>
+    <?php if (customCompute($sendExam) && customCompute($sendClasses) && customCompute($sendSection) ) { ?>
         <div class="col-sm-6 box-layout-fame">
             <div class="panel panel-default" style="padding: 10px; background-color: #f9f9f9;">
                 <h5><center><?php echo $this->lang->line('mark_details'); ?></center></h5>
@@ -340,7 +340,7 @@
                 <h5><center><?php echo $this->lang->line('mark_section') . ' : ' . $sendSection->section; ?></center></h5>   
                 <br/>
                 <br/>
-                <button class="btn btn-default "   id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
+                <button class="btn btn-black "   id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
             </div>       
              
         </div>

@@ -17,7 +17,7 @@
 
                 <?php if ($setting->attendance == "subject") { ?>
                     <form method="POST">
-                        <div class="row">
+                        <div class="row filter-box">
                             <div class="col-md-10">
                                 <div class="row">
                                     <div class="col-md-3">
@@ -89,7 +89,7 @@
 
                 <?php } else { ?>
                     <form method="POST">
-                        <div class="row">
+                        <div class="row filter-box">
                             <div class="col-md-10">
                                 <div class="row">
                                     <div class="col-md-4">
@@ -194,7 +194,7 @@
                                                     <?= profileproimage($student->photo) ?>
                                                 </td>
                                                 <td data-title="<?= $this->lang->line('attendance_name') ?>">
-                                                    <?php echo $student->name; ?>
+                                                    <?php echo $student->name; ?>  (<?= $student->roll ?>)
                                                 </td>
                                                 <td data-title="<?= $this->lang->line('attendance_phone') ?>">
                                                     <?php echo $student->phone; ?>
@@ -266,18 +266,54 @@
                                                                 } else {
                                                                     $pmethod = "checked";
                                                                 }
+                                                                
+                                                                  // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-1', $pmethod, "attendance btn btn-warning present", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_present'), 'P');
 
-                                                                echo "<div class='filter-box1'>";
-                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-1', $pmethod, "attendance btn btn-warning present", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_present'), 'P');
-
-                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-4', $amethod, "attendance btn btn-warning absent", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_absent'), 'A');
+                                                                // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-4', $amethod, "attendance btn btn-warning absent", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_absent'), 'A');
 
                                                                 // HALF DAYS
-                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-5', $mmethod, "attendance btn btn-warning morning", "attendance" . $attendances[$student->studentID]->attendanceID, "Morning", 'M');
+                                                                // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-5', $mmethod, "attendance btn btn-warning morning", "attendance" . $attendances[$student->studentID]->attendanceID, "Morning", 'M');
 
-                                                                echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-6', $nmethod, "attendance btn btn-warning evening", "attendance" . $attendances[$student->studentID]->attendanceID, "Afternoon", 'N');
+                                                                // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-6', $nmethod, "attendance btn btn-warning evening", "attendance" . $attendances[$student->studentID]->attendanceID, "Afternoon", 'AF');
 
-                                                                echo "</div>";
+                                                                $attendanceValue = $attendances[$student->studentID]->$aday ?? 'P'; // default to 'P'
+
+                                                                ?>
+
+                                                                <div class='filter-box1'>
+                                                              
+
+                                                                <div class="card mb-3 shadow-sm p-3">
+    <!-- <h5><?= $student->name ?> (<?= $student->roll ?>)</h5> -->
+
+    <div class="form-group d-flex align-items-center gap-3 mb-2">
+        <!-- Full Day Radio -->
+        <label class="btn btn-outline-success mb-0">
+            <input type="radio" name="attendance[<?= $student->studentID ?>]" value="P"
+    class="attendance-radio attendance" data-studentid="<?= $attendances[$student->studentID]->attendanceID ?>"
+    <?= $attendanceValue == 'P' ? 'checked' : '' ?>> Full Day
+        </label>
+
+        <!-- Absent Radio -->
+        <label class="btn btn-outline-danger mb-0">
+           <input type="radio" name="attendance[<?= $student->studentID ?>]" value="A"
+    class="attendance-radio attendance" data-studentid="<?= $attendances[$student->studentID]->attendanceID ?>"
+    <?= $attendanceValue == 'A' ? 'checked' : '' ?>> Absent
+        </label>
+
+        <!-- Morning/Afternoon Dropdown -->
+      <select name="halfday[<?= $student->studentID ?>]" class="form-control halfday-dropdown attendance"
+    data-studentid="<?= $attendances[$student->studentID]->attendanceID ?>">
+    <option value="">-- Select --</option>
+    <option value="M" <?= $attendanceValue == 'M' ? 'selected' : '' ?>>Morning Session</option>
+    <option value="AF" <?= $attendanceValue == 'AF' ? 'selected' : '' ?>>Afternoon Session</option>
+</select>
+
+    </div>
+</div>
+
+
+                                                            <?php  echo "</div>";
                                                                    // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-2', $lemethod, "attendance btn btn-warning lateexcuse", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_late_excuse'), 'LE');
 
                                                                 // echo  btn_attendance_radio($attendances[$student->studentID]->attendanceID . '-3', $lmethod, "attendance btn btn-warning late", "attendance" . $attendances[$student->studentID]->attendanceID, $this->lang->line('sattendance_late_present'), 'L');
@@ -326,15 +362,44 @@
 
                         $('.save_attendance').click(function() {
                             var attendance = {};
-                            $('.attendance').each(function(i) {
-                                var name = $(this).attr('name');
-                                if ($("input:radio[name=" + name + "]").is(":checked")) {
-                                    var val = $('input:radio[name=' + name + ']:checked').val();
-                                } else {
-                                    var val = 'A';
-                                }
-                                attendance[name] = val;
-                            });
+                            // $('.attendance').each(function(i) {
+                            //     var name = $(this).attr('name');
+                            //     if ($("input:radio[name=" + name + "]").is(":checked")) {
+                            //         var val = $('input:radio[name=' + name + ']:checked').val();
+                            //     } else {
+                            //         var val = 'A';
+                            //     }
+                            //     attendance[name] = val;
+                            // });
+ var attendance = {};
+
+$('.attendance').each(function() {
+    var $this = $(this);
+    var studentID = $this.data('studentid');
+    var key = 'attendance' + studentID;
+
+    if ($this.is(':radio')) {
+        if ($this.is(':checked')) {
+            attendance[ key ] = $this.val();
+        }
+    } else if ($this.is('select')) {
+        var selectedVal = $this.val();
+        if (selectedVal === 'M' || selectedVal === 'AF') {
+            attendance[key] = selectedVal;
+        }
+    }
+});
+
+// Optional fallback: mark as 'A' if nothing selected
+$('.attendance').each(function() {
+    var studentID = $(this).data('studentid');
+    var key = 'attendance' + studentID;
+    if (attendance[key] === undefined) {
+        attendance[ key ] = 'A';
+    }
+});
+
+
 
                             var day = "<?= $day ?>";
                             var classes = "<?= $set ?>";
@@ -410,16 +475,45 @@
                         });
 
                         $('.save_attendance_send_whatsapp').click(function() {
+                            // var attendance = {};
+                            // $('.attendance').each(function(i) {
+                            //     var name = $(this).attr('name');
+                            //     if ($("input:radio[name=" + name + "]").is(":checked")) {
+                            //         var val = $('input:radio[name=' + name + ']:checked').val();
+                            //     } else {
+                            //         var val = 'A';
+                            //     }
+                            //     attendance[name] = val;
+                            // });
+
                             var attendance = {};
-                            $('.attendance').each(function(i) {
-                                var name = $(this).attr('name');
-                                if ($("input:radio[name=" + name + "]").is(":checked")) {
-                                    var val = $('input:radio[name=' + name + ']:checked').val();
-                                } else {
-                                    var val = 'A';
-                                }
-                                attendance[name] = val;
-                            });
+
+$('.attendance').each(function() {
+    var $this = $(this);
+    var studentID = $this.data('studentid');
+    var key = 'attendance' + studentID;
+
+    if ($this.is(':radio')) {
+        if ($this.is(':checked')) {
+            attendance[ key ] = $this.val();
+        }
+    } else if ($this.is('select')) {
+        var selectedVal = $this.val();
+        if (selectedVal === 'M' || selectedVal === 'AF') {
+            attendance[key] = selectedVal;
+        }
+    }
+});
+
+// Optional fallback: mark as 'A' if nothing selected
+$('.attendance').each(function() {
+    var studentID = $(this).data('studentid');
+    var key = 'attendance' + studentID;
+    if (attendance[key] === undefined) {
+        attendance[ key ] = 'A';
+    }
+});
+
 
                             var day = "<?= $day ?>";
                             var classes = "<?= $set ?>";
@@ -563,5 +657,55 @@ $(document).ready( function () {
 );
 } )
     
+
+$(document).ready(function() {
+    $('.halfday-dropdown').show(); // shown by default since Full Day is selected
+
+    // When radio button changes
+    $(document).on('change', '.attendance-radio', function() {
+        var studentID = $(this).data('studentid');
+        var selectedVal = $(this).val();
+
+        if (selectedVal === 'A') {
+            $('select.halfday-dropdown[data-studentid="' + studentID + '"]').hide().val('');
+        } else if (selectedVal === 'P') {
+            $('select.halfday-dropdown[data-studentid="' + studentID + '"]').show().val('');
+        }
+    });
+
+    // When dropdown is changed
+    $(document).on('change', '.halfday-dropdown', function() {
+        var studentID = $(this).data('studentid');
+        var selected = $(this).val();
+
+        if (selected === 'M' || selected === 'AF') {
+            $('input.attendance-radio[data-studentid="' + studentID + '"]').prop('checked', false);
+        }
+    });
+});
+
+
+$(document).ready(function() {
+    $('.halfday-dropdown').each(function() {
+        var selected = $(this).val();
+        var studentID = $(this).data('studentid');
+
+        if (selected === 'M' || selected === 'AF') {
+            $('input.attendance-radio[data-studentid="' + studentID + '"]').prop('checked', false);
+        }
+
+        if (selected === '') {
+            // Show if Full Day is selected
+            var radioVal = $('input.attendance-radio[data-studentid="' + studentID + '"]:checked').val();
+            if (radioVal === 'P') {
+                // $(this).show();
+            } else {
+                // $(this).hide();
+            }
+        }
+    });
+});
+
+
 
 </script>
