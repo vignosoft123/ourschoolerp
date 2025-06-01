@@ -182,7 +182,7 @@ class Mark extends Api_Controller
 
     private function pluckInfo() 
     {
-        // $this->retdata['subjects'] = pluck($this->subject_m->general_get_subject(), 'subject', 'subjectID');
+        $this->retdata['subjects'] = pluck($this->subject_m->general_get_subject(), 'subject', 'subjectID');
     }
 
     private function basicInfo($studentInfo) 
@@ -190,8 +190,8 @@ class Mark extends Api_Controller
         if(customCompute($studentInfo)) {
             $this->retdata['profile']  = $studentInfo;
             $this->retdata['usertype'] = $this->usertype_m->get_single_usertype(array('usertypeID' => $studentInfo->usertypeID));
-            // $this->retdata['class']    = $this->classes_m->get_single_classes(array('classesID' => $studentInfo->srclassesID));
-            // $this->retdata['section']  = $this->section_m->general_get_single_section(array('sectionID' => $studentInfo->srsectionID));
+            $this->retdata['class']    = $this->classes_m->get_single_classes(array('classesID' => $studentInfo->srclassesID));
+            $this->retdata['section']  = $this->section_m->general_get_single_section(array('sectionID' => $studentInfo->srsectionID));
 
             $optionalsubject = null;
             if($studentInfo->sroptionalsubjectID > 0) {
@@ -238,53 +238,52 @@ class Mark extends Api_Controller
                     'schoolyearID' => $schoolyearID, 
                 ];
 
-                // $exams             = pluck($this->exam_m->get_exam(), 'exam', 'examID');
-                // $grades            = $this->grade_m->get_grade();
+                $exams             = pluck($this->exam_m->get_exam(), 'exam', 'examID');
+                $grades            = $this->grade_m->get_grade();
                 $marks             = $this->mark_m->student_all_mark_array($queryArray);
-                // $markpercentages   = $this->markpercentage_m->get_markpercentage();
+                $markpercentages   = $this->markpercentage_m->get_markpercentage();
 
-                // $subjects          = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID));
+                $subjects          = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID));
                 $subjectArr        = [];
                 $optionalsubjectArr= [];
-                // if(customCompute($subjects)) {
-                //     foreach ($subjects as $subject) {
-                //         if($subject->type == 0) {
-                //             $optionalsubjectArr[$subject->subjectID] = $subject->subjectID;
-                //         }
-                //         $subjectArr[$subject->subjectID] = $subject;
-                //     }
-                // }
+                if(customCompute($subjects)) {
+                    foreach ($subjects as $subject) {
+                        if($subject->type == 0) {
+                            $optionalsubjectArr[$subject->subjectID] = $subject->subjectID;
+                        }
+                        $subjectArr[$subject->subjectID] = $subject;
+                    }
+                }
 
                 $retMark = [];
-                // echo json_encode($marks);die;
                 if(customCompute($marks)) {
                     foreach ($marks as $mark) {
                         if(isset($optionalsubjectArr[$mark->subjectID]) && ($mark->subjectID != $student->sroptionalsubjectID)) {
                             continue;
                         }
-                        $retMark[$mark->exam][$mark->subject][$mark->markpercentageID] = $mark->mark;
+                        $retMark[$mark->examID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
                     }
                 }
 
-                // $allStudentMarks = $this->mark_m->student_all_mark_array(array('classesID' => $classesID, 'schoolyearID' => $schoolyearID));
-                // $highestMarks    = [];
-                // foreach ($allStudentMarks as $value) {
-                //     if(!isset($highestMarks[$value->examID][$value->subjectID][$value->markpercentageID])) {
-                //         $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = -1;
-                //     }
-                //     $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = max($value->mark, $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID]);
-                // }
-                // $marksettings  = $this->marksetting_m->get_marksetting_markpercentages();
+                $allStudentMarks = $this->mark_m->student_all_mark_array(array('classesID' => $classesID, 'schoolyearID' => $schoolyearID));
+                $highestMarks    = [];
+                foreach ($allStudentMarks as $value) {
+                    if(!isset($highestMarks[$value->examID][$value->subjectID][$value->markpercentageID])) {
+                        $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = -1;
+                    }
+                    $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = max($value->mark, $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID]);
+                }
+                $marksettings  = $this->marksetting_m->get_marksetting_markpercentages();
 
-                // $this->retdata['settingmarktypeID'] = $this->data['siteinfos']->marktypeID;
-                // $this->retdata['subjects']          = $subjectArr;
-                // $this->retdata['exams']             = $exams;
-                // $this->retdata['grades']            = $grades;
-                // $this->retdata['markpercentages']   = pluck($markpercentages, 'obj', 'markpercentageID');
-                // $this->retdata['optionalsubjectArr']= $optionalsubjectArr;
+                $this->retdata['settingmarktypeID'] = $this->data['siteinfos']->marktypeID;
+                $this->retdata['subjects']          = $subjectArr;
+                $this->retdata['exams']             = $exams;
+                $this->retdata['grades']            = $grades;
+                $this->retdata['markpercentages']   = pluck($markpercentages, 'obj', 'markpercentageID');
+                $this->retdata['optionalsubjectArr']= $optionalsubjectArr;
                 $this->retdata['marks']             = $retMark;
-                // $this->retdata['highestmarks']      = $highestMarks;
-               // $this->retdata['marksettings']      = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
+                $this->retdata['highestmarks']      = $highestMarks;
+                $this->retdata['marksettings']      = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
             } else {
                 $this->retdata['settingmarktypeID'] = 0;
                 $this->retdata['subjects']          = [];
