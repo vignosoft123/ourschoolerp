@@ -86,6 +86,16 @@
         </div>
     </form>
                         </li>
+
+
+                        <li>
+                            <a href="#" id="qr-icon">
+                                <img src="<?php echo base_url();?>uploads/qr.jpg" 
+                                    alt="QR Icon" width="24" height="24" style="cursor:pointer;">
+                            </a>
+                        </li>
+
+
                         <?php }?>
                         <li class="dropdown notifications-menu">
                             <a target="_blank" href="<?=base_url('frontend/index')?>" class="dropdown-toggle" data-toggle="tooltip" title="<?=$this->lang->line('menu_visit_site')?>" data-placement="bottom">
@@ -149,3 +159,38 @@
                 </div>
             </nav>
         </header>
+
+<div class="modal fade" id="qrModal" tabindex="-1" role="dialog" aria-labelledby="qrModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+    <div class="modal-content">
+      
+      <!-- Close Button -->
+      <div class="modal-header p-2 border-0">
+        <button type="button" class="close ml-auto" data-dismiss="modal" aria-label="Close" style="font-size: 1.4rem;">
+          <span aria-hidden="true">Close&times;</span>
+        </button>
+      </div>
+
+      <!-- QR Image -->
+      <div class="modal-body text-center pt-0">
+        <img id="qrImage" src="" alt="QR Code" class="img-fluid">
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+$(document).ready(function(){
+    $('#qr-icon').on('click', function(e){
+        e.preventDefault();
+
+        // Replace with your actual QR image path
+        var qrPath = '<?php echo base_url();?>uploads/pqr.jpg';
+
+        $('#qrImage').attr('src', qrPath);
+        $('#qrModal').modal('show');
+    });
+});
+</script>

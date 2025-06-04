@@ -216,7 +216,8 @@
                                         <?php echo $transport->droping_time; ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('transport_fare')?>">
-                                        <?php echo $transport->fare; ?>
+                                        <input value="<?php echo $transport->fare; ?>" name="fare" id="fare"  data-id="<?php echo $transport->id; ?>" class="fare-input">
+
                                     </td>
                                     <td data-title="">
                                         <?php echo $transport->created_on; ?>
@@ -244,4 +245,29 @@ $(document).ready(function(){
 
 
 });
+
+$(document).ready(function () {
+    $('.fare-input').on('focusout', function () {
+        var fare = $(this).val();
+        var id = $(this).data('id');
+
+        $.ajax({
+            url: "<?php echo base_url('Transport/update_fare'); ?>",
+            type: "POST",
+            data: { id: id, fare: fare },
+            dataType: "json",
+            success: function (response) {
+                if (response.status === 'success') {
+                    alert("Fare updated successfully.");
+                } else {
+                    alert("Update failed.");
+                }
+            },
+            error: function () {
+                alert("AJAX error.");
+            }
+        });
+    });
+});
+
 </script>

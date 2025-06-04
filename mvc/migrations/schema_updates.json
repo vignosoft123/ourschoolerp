@@ -30,5 +30,13 @@
             "table": "feetypes",
             "column": "fee_amount"
         }
+    },
+    {
+        "query": "ALTER TABLE `transport` ADD `year_id` INT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "feetypes",
+            "column": "fee_amount"
+        }
     }
 ]

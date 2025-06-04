@@ -117,9 +117,19 @@ class Transport extends Admin_Controller {
 		);
 		 
 		// echo "<pre>";print_r($_POST);die;
+		$year_id = $this->session->userdata('defaultschoolyearID');
+
+		$new_year_data = $this->db->query("select id from pickup_points where year_id=$year_id")->num_rows();
+		if($new_year_data > 0){
+			$year_id = $this->session->userdata('defaultschoolyearID');
+		}else{
+			$year_id = 0;
+		}
+
+
 		$this->data["transports"] = $this->db->get('transport')->result();
 
-		$sql = "select p.*,t.route from pickup_points p left join transport t on t.transportID = p.route_id";
+		$sql = "select p.*,t.route from pickup_points p left join transport t on t.transportID = p.route_id where p.year_id=$year_id";
 		$this->data['pickup_points'] = $this->db->query($sql)->result();
 
 		if($_POST) {
@@ -143,6 +153,7 @@ class Transport extends Admin_Controller {
 					"pickup_time" => $this->input->post("pickup_time"),
 					"droping_time" => $this->input->post("drop_time"),
 					"route_id" => $this->input->post("transportID"),
+					"year_id" => $year_id,
 				);
 				$this->db->insert('pickup_points',$insert_array);
  
@@ -254,6 +265,32 @@ class Transport extends Admin_Controller {
 		}
 		return TRUE;
 	}
+
+	public function update_fare()
+{
+    $id = $this->input->post('id');
+    $fare = $this->input->post('fare');
+
+    if ($id && is_numeric($fare)) { 
+        $result = $this->update_fare_query($id, $fare);
+        
+        if ($result) {
+            echo json_encode(['status' => 'success']);
+        } else {
+            echo json_encode(['status' => 'fail']);
+        }
+    } else {
+        echo json_encode(['status' => 'invalid']);
+    }
+}
+public function update_fare_query($id, $fare)
+{
+    $this->db->where('id', $id);
+    return $this->db->update('pickup_points', ['fare' => $fare]);
+}
+
+
+
 }
 
 /* End of file transport.php */
