@@ -90,7 +90,7 @@
 
                         <li>
                             <a href="#" id="qr-icon">
-                                <img src="<?php echo base_url();?>uploads/qr.jpg" 
+                                <img src="<?php echo base_url('Qr/show');?>" 
                                     alt="QR Icon" width="24" height="24" style="cursor:pointer;">
                             </a>
                         </li>
@@ -187,7 +187,7 @@ $(document).ready(function(){
         e.preventDefault();
 
         // Replace with your actual QR image path
-        var qrPath = '<?php echo base_url();?>uploads/pqr.jpg';
+        var qrPath = '<?php echo base_url('Qr/pqr');?>';
 
         $('#qrImage').attr('src', qrPath);
         $('#qrModal').modal('show');

@@ -324,7 +324,7 @@
                         <!-- Grand Total Row -->
                         <tr>
                             <?php 
-                                $colspan = 6;
+                                $colspan = 5;
                                 if($classesID == 0) {
                                     $colspan++;
                                 }

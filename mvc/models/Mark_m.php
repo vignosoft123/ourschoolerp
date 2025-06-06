@@ -264,6 +264,46 @@ public function insert_markrelation($data)
 	}
 	
 
+	public function student_all_mark_array_api($array) {
+    $this->db->select('
+        mark.*,
+        markrelation.*,
+        examschedule.min_mark,
+        examschedule.max_mark,
+        examschedule.edate AS exam_schedule_date,
+        exam.date AS exam_date,
+        exam.exam AS exam_name
+    ');
+    $this->db->from('mark');
+    $this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
+    $this->db->join('examschedule', 'examschedule.examID = mark.examID AND examschedule.subjectID = mark.subjectID AND examschedule.classesID = mark.classesID ', 'LEFT');
+    $this->db->join('exam', 'exam.examID = mark.examID', 'LEFT');
+
+    if (isset($array['subjectID'])) {
+        $this->db->where('mark.subjectID', $array['subjectID']);
+    }
+
+    if (isset($array['schoolyearID'])) {
+        $this->db->where('mark.schoolyearID', $array['schoolyearID']);
+    }
+
+    if (isset($array['examID'])) {
+        $this->db->where('mark.examID', $array['examID']);
+    }
+
+    if (isset($array['classesID'])) {
+        $this->db->where('mark.classesID', $array['classesID']);
+    }
+
+    if (isset($array['studentID'])) {
+        $this->db->where('mark.studentID', $array['studentID']);
+    }
+
+    $query = $this->db->get();
+	// echo $this->db->last_query();die;
+    return $query->result();
+}
+
 	public function count_subject_mark($studentID, $classesID, $subjectID) {
 		$query = "SELECT COUNT(*) as 'total_semester' FROM mark WHERE studentID = $studentID AND classesID = $classesID AND subjectID = $subjectID AND (mark != '' || mark <= 0 || mark >0)";
 	    $query = $this->db->query($query);

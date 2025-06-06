@@ -225,88 +225,108 @@ class Mark extends Api_Controller
     }
 
     private function getMark($studentID, $classesID) {
-        if((int)$studentID && (int)$classesID) {
-            $schoolyearID = $this->session->userdata('defaultschoolyearID');
-            $student      = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srclassesID' => $classesID, 'srschoolyearID' => $schoolyearID));
-            $classes      = $this->classes_m->get_single_classes(array('classesID' => $classesID));
+    if ((int)$studentID && (int)$classesID) {
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+        $student = $this->studentrelation_m->get_single_student([
+            'srstudentID'    => $studentID,
+            'srclassesID'    => $classesID,
+            'srschoolyearID' => $schoolyearID
+        ]);
+        $classes = $this->classes_m->get_single_classes(['classesID' => $classesID]);
 
-            if(customCompute($student) && customCompute($classes)) {
-                $queryArray = [
-                    'classesID'    => $student->srclassesID,
-                    'sectionID'    => $student->srsectionID,
-                    'studentID'    => $student->srstudentID, 
-                    'schoolyearID' => $schoolyearID, 
-                ];
+        if (customCompute($student) && customCompute($classes)) {
+            $queryArray = [
+                'classesID'    => $student->srclassesID,
+                'sectionID'    => $student->srsectionID,
+                'studentID'    => $student->srstudentID, 
+                'schoolyearID' => $schoolyearID, 
+            ];
 
-                // $exams             = pluck($this->exam_m->get_exam(), 'exam', 'examID');
-                // $grades            = $this->grade_m->get_grade();
-                $marks             = $this->mark_m->student_all_mark_array($queryArray);
-                // $markpercentages   = $this->markpercentage_m->get_markpercentage();
+            $retMark = [];
+            $examSummaries = [];
 
-                // $subjects          = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID));
-                $subjectArr        = [];
-                $optionalsubjectArr= [];
-                // if(customCompute($subjects)) {
-                //     foreach ($subjects as $subject) {
-                //         if($subject->type == 0) {
-                //             $optionalsubjectArr[$subject->subjectID] = $subject->subjectID;
-                //         }
-                //         $subjectArr[$subject->subjectID] = $subject;
-                //     }
-                // }
+            $marks = $this->mark_m->student_all_mark_array_api($queryArray);
 
-                $retMark = [];
-                // echo json_encode($marks);die;
-                if(customCompute($marks)) {
-                    foreach ($marks as $mark) {
-                        if(isset($optionalsubjectArr[$mark->subjectID]) && ($mark->subjectID != $student->sroptionalsubjectID)) {
-                            continue;
-                        }
-                        $retMark[$mark->exam][$mark->subject][$mark->markpercentageID] = $mark->mark;
+            if (customCompute($marks)) {
+                foreach ($marks as $mark) {
+                    // Skip optional subject if required
+                    if ((int)$student->sroptionalsubjectID > 0 && $mark->subjectID == $student->sroptionalsubjectID) {
+                        continue;
                     }
+
+                    $exam        = $mark->exam_name;
+                    $subject     = $mark->subject;
+                    $percentageID = $mark->markpercentageID;
+
+                    if (!isset($retMark[$exam][$subject])) {
+                        $retMark[$exam][$subject] = [
+                            'min_mark'  => $mark->min_mark,
+                            'max_mark'  => $mark->max_mark,
+                            'exam_date' => $mark->exam_date,
+                            'marks'     => []
+                        ];
+                    }
+
+                    $retMark[$exam][$subject]['marks'][$percentageID] = $mark->mark;
                 }
 
-                // $allStudentMarks = $this->mark_m->student_all_mark_array(array('classesID' => $classesID, 'schoolyearID' => $schoolyearID));
-                // $highestMarks    = [];
-                // foreach ($allStudentMarks as $value) {
-                //     if(!isset($highestMarks[$value->examID][$value->subjectID][$value->markpercentageID])) {
-                //         $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = -1;
-                //     }
-                //     $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = max($value->mark, $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID]);
-                // }
-                // $marksettings  = $this->marksetting_m->get_marksetting_markpercentages();
+                // Compute exam-wise summary
+                foreach ($retMark as $examName => $subjects) {
+                    $totalObtained = 0;
+                    $totalMax      = 0;
+                    $zeroMark      = 0;
 
-                // $this->retdata['settingmarktypeID'] = $this->data['siteinfos']->marktypeID;
-                // $this->retdata['subjects']          = $subjectArr;
-                // $this->retdata['exams']             = $exams;
-                // $this->retdata['grades']            = $grades;
-                // $this->retdata['markpercentages']   = pluck($markpercentages, 'obj', 'markpercentageID');
-                // $this->retdata['optionalsubjectArr']= $optionalsubjectArr;
-                $this->retdata['marks']             = $retMark;
-                // $this->retdata['highestmarks']      = $highestMarks;
-               // $this->retdata['marksettings']      = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
-            } else {
-                $this->retdata['settingmarktypeID'] = 0;
-                $this->retdata['subjects']          = [];
-                $this->retdata['exams']             = [];
-                $this->retdata['grades']            = [];
-                $this->retdata['markpercentages']   = [];
-                $this->retdata['optionalsubjectArr']= [];
-                $this->retdata['marks']             = [];
-                $this->retdata['highestmarks']      = [];
-                $this->retdata['marksettings']      = [];
+                    foreach ($subjects as $subject => $details) {
+                        $subjectTotal = 0;
+
+                        foreach ($details['marks'] as $mark) {
+                            $mark = (float)$mark;
+                            $subjectTotal += $mark;
+                            if ($mark == 0 || $mark === null) {
+                                $zeroMark++;
+                            }
+                        }
+
+                        $totalObtained += $subjectTotal;
+                        $totalMax      += (float)$details['max_mark'];
+                    }
+
+                    $percent_cal = $totalMax > 0 ? ($totalObtained / $totalMax) * 100 : 0;
+
+                    if ($percent_cal >= 95 && $zeroMark == 0) {
+                        $grade = "A+";
+                    } else if ($percent_cal >= 90) {
+                        $grade = "A";
+                    } else if ($percent_cal >= 80) {
+                        $grade = "B+";
+                    } else if ($percent_cal >= 70) {
+                        $grade = "B";
+                    } else if ($percent_cal >= 60) {
+                        $grade = "C+";
+                    } else if ($percent_cal >= 50) {
+                        $grade = "C";
+                    } else {
+                        $grade = "D";
+                    }
+
+                    $examSummaries[$examName] = [
+                        'total_obtained' => $totalObtained,
+                        'total_max'      => $totalMax,
+                        'percentage'     => round($percent_cal, 2),
+                        'grade'          => $grade
+                    ];
+                }
             }
+
+            $this->retdata['marks']         = $retMark;
+            $this->retdata['exam_summary']  = $examSummaries;
         } else {
-            $this->retdata['settingmarktypeID'] = 0;
-            $this->retdata['subjects']          = [];
-            $this->retdata['exams']             = [];
-            $this->retdata['grades']            = [];
-            $this->retdata['markpercentages']   = [];
-            $this->retdata['optionalsubjectArr']= [];
-            $this->retdata['marks']             = [];
-            $this->retdata['highestmarks']      = [];
-            $this->retdata['marksettings']      = [];
+            // $this->setEmptyMarksData();
         }
+    } else {
+        // $this->setEmptyMarksData();
     }
+}
+
 
 }
