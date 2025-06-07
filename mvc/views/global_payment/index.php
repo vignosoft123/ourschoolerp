@@ -78,7 +78,7 @@
                                                 foreach ($classes as $classa) {
                                                     $classArray[$classa->classesID] = $classa->classes;
                                                 }
-                                                echo form_dropdown("classesID", $classArray, set_value("classesID", $set_classesID), "id='classesID' class='form-control select2'");
+                                                echo form_dropdown("classesID", $classArray, set_value("classesID", $set_classesID), "id='classesID' class='form-control select2'  ");
                                             ?>
                                         </div>
                                     </div>
@@ -613,8 +613,8 @@ if(customCompute($globalpayments)) {
                                     <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="Logo">
                                 </div>
                                 <div class="title-content">
-                                    <h3 class=" text-2xl font-bold text-center text-gray-800 my-6"><?=$siteinfos->sname?></h3>
-                                    <p class="title-desc text-center"><?=$siteinfos->address?></p>
+                                    <h3 class=" text-2xl font-bold text-center text-gray-800 my-6"><?=addslashes($siteinfos->sname)?></h3>
+                                    <p class="title-desc text-center"><?=nl2br(addslashes($siteinfos->address))?></p>
                                     <p class="title-desc text-center"> Phone : <?=$siteinfos->phone?></p>
                                 </div>
                             </div>
@@ -1077,8 +1077,8 @@ if(customCompute($globalpayments)) {
                                                 ?>
                                             </td>
                                             <td style="width:84%"> 
-                                                <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=$siteinfos->sname?></h2>
-                                                <h5><?=$siteinfos->address?> <?php //echo $siteinfos->email?></h5> 
+                                                <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=addslashes($siteinfos->sname)?></h2>
+                                                <h5><?=nl2br(addslashes($siteinfos->address))?> <?php //echo $siteinfos->email?></h5> 
                                                 <h5><?=$siteinfos->phone?></h5> <br/>
                                             </td>
                                             <td style="width:8%">
@@ -1377,8 +1377,8 @@ if(customCompute($globalpayments)) {
                                                 ?>
                                             </td>
                                             <td style="width:84%"> 
-                                                <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=$siteinfos->sname?></h2>
-                                                <h5><?=$siteinfos->address?>
+                                                <h2 style="color: green; margin-bottom: 0px;  font-weight: bold; font-family: serif;"><?=addslashes($siteinfos->sname)?></h2>
+                                                <h5><?=nl2br(addslashes($siteinfos->address))?>
                                                 <?php //echo $siteinfos->email?></h5> 
                                                 <h5><?=$siteinfos->phone?></h5> <br/>
                                             </td>
@@ -1603,15 +1603,15 @@ $("#classesID").change(function() {
                 }
             });
 
-            $.ajax({
-                type: 'POST',
-                url: "<?=base_url('global_payment/studentcall')?>",
-                data: {"classesID" : id},
-                dataType: "html",
-                success: function(data) {
-                   $('#studentID').html(data);
-                }
-            });
+            // $.ajax({
+            //     type: 'POST',
+            //     url: "<?=base_url('global_payment/studentcall')?>",
+            //     data: {"classesID" : id},
+            //     dataType: "html",
+            //     success: function(data) {
+            //        $('#studentID').html(data);
+            //     }
+            // });
         }
     }
 });
@@ -2286,11 +2286,18 @@ function printCopy(type) {
             '<div class="fee-receipt-title">Fee Receipt</div>');
 
         // Add institution info with text-center styling
-        studentCopy = studentCopy.replace('<div class="text-center flex-1">', 
-            '<div class="institution-info"><h1><?=$siteinfos->sname?></h1><p><?=$siteinfos->address?></p></div>');
+        studentCopy = studentCopy.replace( '<div class="text-center flex-1">',
+  `<div class="institution-info">
+    <h1><?= addslashes($siteinfos->sname) ?></h1>
+    <p><?= nl2br(addslashes($siteinfos->address)) ?></p>
+  </div>`
+);
         
-        officeCopy = officeCopy.replace('<div class="text-center flex-1">', 
-            '<div class="institution-info"><h1><?=$siteinfos->sname?></h1><p><?=$siteinfos->address?></p></div>');
+        officeCopy = officeCopy.replace('<div class="text-center flex-1">',
+  `<div class="institution-info">
+    <h1><?= addslashes($siteinfos->sname) ?></h1>
+    <p><?= nl2br(addslashes($siteinfos->address)) ?></p>
+  </div>`);
 
         // Print Both on One A4 page one after the other with a line divider
         printWindow.document.write(css + `

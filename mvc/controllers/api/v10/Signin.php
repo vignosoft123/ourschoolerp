@@ -27,9 +27,35 @@ class Signin extends REST_Controller
                 $tokenArray['iat']   	= time();
                 $tokenArray['userdata']	= (array) $userInfo;
                 $token                  = $this->jwt_encode($tokenArray);
+                $correspondent_phone = '';
+                $teacher_phone = '';
+                $teacher_name = ''; 
 
+                $c_phone_res = $this->db->query('select value from setting where fieldoption="phone" ')->row_array();
+                if(!empty($c_phone_res)){
+                    $correspondent_phone = $c_phone_res['value'];
+                }
                 $this->retdata['token'] = $token;
                 $this->retdata['profile'] = (array) $userInfo;
+                 
+                if($userInfo['usertypeID'] == 3){
+                    $studentID = $userInfo['loginuserID'];
+                    $this->db->select('t.phone,t.name as teacher_name');
+                    $this->db->from('student s');
+                    $this->db->join('classes c', 's.classesID = c.classesID', 'left');
+                    $this->db->join('teacher t', 'c.teacherID = t.teacherID', 'left');
+                    $this->db->where('s.studentID', $studentID);
+                    $query = $this->db->get();
+                    // echo $this->db->last_query();die;
+                    $result = $query->row_array();
+                    $teacher_phone =  $result['phone'];
+                    $teacher_name =  $result['teacher_name'];
+                }
+                
+                $this->retdata['teacher_phone'] = $teacher_phone;
+                $this->retdata['teacher_name'] = $teacher_name;
+                $this->retdata['correspondent_phone'] = $correspondent_phone;
+
                 $this->response([
                     'status'    => true,
                     'message'   => 'Success',

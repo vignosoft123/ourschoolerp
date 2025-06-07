@@ -192,5 +192,7 @@ $(document).ready(function(){
         $('#qrImage').attr('src', qrPath);
         $('#qrModal').modal('show');
     });
+
+
 });
 </script>
