@@ -217,11 +217,11 @@ $(document).ready(function(){
 
 $(document).ready(function () {
      $('#classesID').on('change', function () {
-        clear_dropdown('sectionID', 'subjectID', 'studentID'); // Example: clear two related dropdowns
+       // clear_dropdown('sectionID', 'subjectID', 'studentID'); // Example: clear two related dropdowns
     });
 
     $('#sectionID').on('change', function () {
-        clear_dropdown( 'subjectID', 'studentID'); // Example: clear two related dropdowns
+       // clear_dropdown( 'subjectID', 'studentID'); // Example: clear two related dropdowns
     });
 
 });
