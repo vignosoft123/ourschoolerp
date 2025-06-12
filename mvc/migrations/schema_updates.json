@@ -35,16 +35,71 @@
         "query": "ALTER TABLE `transport` ADD `year_id` INT NULL DEFAULT '0'",
         "type": "alter",
         "check_column": {
-            "table": "feetypes",
-            "column": "fee_amount"
+            "table": "transport",
+            "column": "year_id"
         }
     },
     {
         "query": "ALTER TABLE `pickup_points` ADD `year_id` INT NULL DEFAULT '0'",
         "type": "alter",
         "check_column": {
-            "table": "feetypes",
-            "column": "fee_amount"
+            "table": "pickup_points",
+            "column": "year_id"
+        }
+    },
+    {
+        "query": "ALTER TABLE mark ADD INDEX idx_schoolyearID_classesID (schoolyearID, classesID)",
+        "type": "alter",
+        "check_column": {
+            "table": "mark",
+            "column": "classesID"
+        }
+    },
+    {
+        "query": "ALTER TABLE markrelation ADD INDEX idx_markID (markID)",
+        "type": "alter",
+        "check_column": {
+            "table": "markrelation",
+            "column": "markID"
+        }
+    },{
+        "query": "ALTER TABLE invoice ADD INDEX idx_student_class_year (studentID, classesID, schoolyearID)",
+        "type": "alter",
+        "check_column": {
+            "table": "invoice",
+            "column": "studentID"
+        }
+    },
+    {
+        "query": "ALTER TABLE invoice ADD INDEX idx_create_date (create_date)",
+        "type": "alter",
+        "check_column": {
+            "table": "invoice",
+            "column": "create_date"
+        }
+    },
+    {
+        "query": "ALTER TABLE invoice ADD INDEX idx_paidstatus (paidstatus)",
+        "type": "alter",
+        "check_column": {
+            "table": "invoice",
+            "column": "paidstatus"
+        }
+    },
+    {
+        "query": "ALTER TABLE invoice ADD INDEX idx_deleted_at (deleted_at)",
+        "type": "alter",
+        "check_column": {
+            "table": "invoice",
+            "column": "deleted_at"
+        }
+    },
+    {
+        "query": "ALTER TABLE invoice ADD INDEX idx_schoolyear (schoolyearID)",
+        "type": "alter",
+        "check_column": {
+            "table": "invoice",
+            "column": "schoolyearID"
         }
     }
 ]

@@ -59,8 +59,14 @@
 
 <style>
 /* Style the table header */
+ .table-container {
+      max-height: 500px; /* Set scroll height */
+      overflow-y: auto;
+      border: 1px solid #ccc;
+    }
+
 #myTable thead th {
-    background-color: #4CAF50; /* Green background */
+    background-color: #4CAF50; Green background
     color: white;               /* White text */
     padding: 10px;              /* Padding inside headers */
     text-align: center;         /* Center the header text */
@@ -68,6 +74,25 @@
     border: 1px solid #ddd;     /* Light border */
     font-size: 14px;            /* Font size */
     white-space: nowrap;        /* Prevent headers from wrapping */
+
+     
+
+}
+
+#myTable thead tr:first-child th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background-color: #4CAF50;
+    color: white;
+}
+
+#myTable thead tr:nth-child(2) th {
+    position: sticky;
+    top: 40px; /* Adjust this to match your first row height */
+    z-index: 2;
+    background-color: #66BB6A; /* Slightly different green for clarity */
+    color: white;
 }
 
 /* Table rows */
@@ -91,12 +116,7 @@
     overflow-x: auto;
 }
 
-/* Optional: sticky headers when scrolling */
-#myTable thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
+ 
 </style>
 
 
@@ -182,7 +202,7 @@
     }
     $allFeeTypes = array_values($allFeeTypes);
 ?>
-            <div style="overflow-x: auto; margin-top: 20px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <div class="table-container" style="overflow-x: auto; margin-top: 20px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
 
                 <table class="table table-striped table-bordered" id="myTable" style="min-width: 1200px;">
                     <thead>

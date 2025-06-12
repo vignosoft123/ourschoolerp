@@ -79,13 +79,18 @@
                         <?php //echo 'aaaaaa'.$this->session->userdata('usertypeID');die;
                         if($this->session->userdata('usertypeID') != 3){?>
                         <li>
-                                <form name="g_search_form" action="<?= base_url('Student/global_student_search'); ?>" method="post">
+                                <form id="g_search_form"  name="g_search_form" action="<?= base_url('Student/global_student_search'); ?>" method="post">
         <div class="position-relative" style="max-width: 300px;    margin-top: 6px;">
             <input type="text" name="global_search" class="form-control search-box" placeholder="Global student search...">
-            <i class="fa fa-search search-icon"></i>
+           <!-- <i class="fa fa-search search-icon" ></i>  -->
+           
         </div>
     </form>
                         </li>
+
+                        <li>
+                            <button id="search_icon" style="margin-top: 45%;"><i class="fa fa-search" ></i> </button>
+                        </li> 
 
 
                         <li>
@@ -193,6 +198,11 @@ $(document).ready(function(){
         $('#qrModal').modal('show');
     });
 
+
+});
+
+$(document).on("click",'#search_icon',function(){
+        document.getElementById('g_search_form').submit();
 
 });
 </script>

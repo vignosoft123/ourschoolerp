@@ -1,5 +1,55 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
 <style>
     .pull-left{padding: top 45px!important;}
+</style>
+
+<style>
+/* Style the table header */
+ .table-container {
+      max-height: 400px; /* Set scroll height */
+      overflow-y: auto;
+      border: 1px solid #ccc;
+    }
+
+#myTable thead th {
+    background-color: #4CAF50; Green background
+    color: white;               /* White text */
+    padding: 10px;              /* Padding inside headers */
+    text-align: center;         /* Center the header text */
+    font-weight: bold;          /* Bold text */
+    border: 1px solid #ddd;     /* Light border */
+    font-size: 14px;            /* Font size */
+    white-space: nowrap;        /* Prevent headers from wrapping */
+
+     position: sticky;
+      top: 0; 
+      z-index: 2; /* Keep above scrolling content */
+
+}
+
+/* Table rows */
+#myTable tbody td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 13px;
+}
+
+/* Table overall */
+#myTable {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1200px; /* make sure table scrolls */
+}
+
+/* Scrollbar wrapping div */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+}
+
+ 
 </style>
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
@@ -17,10 +67,11 @@
             }
 
             echo btn_printReport('feesreport', $this->lang->line('report_print'), 'printablediv');
-            echo btn_pdfPreviewReport('feesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            echo btn_xmlReport('feesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
-            echo btn_sentToMailReport('feesreport', $this->lang->line('report_send_pdf_to_mail'));
+            // echo btn_pdfPreviewReport('feesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+            // echo btn_xmlReport('feesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
+            // echo btn_sentToMailReport('feesreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
+        <button id="exportButton" class="btn btn-default">Export to Excel</button>
     </div>
 </div>
 
@@ -66,8 +117,8 @@
                     if(customCompute($getFeesReports)) {
                            
                         ?>
-                    <div id="hide-table">
-                    <table class="table table-bordered">
+                    <div class="table-container" style="overflow-x: auto; margin-top: 20px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                    <table class="table table-bordered" id="myTable">
     <thead>
         <tr>
             <th><?=$this->lang->line('slno')?></th>
@@ -83,6 +134,7 @@
             <?php } ?>
             <th><?=$this->lang->line('feesreport_feetype')?></th>
             <th><?=$this->lang->line('feesreport_paid')?></th>
+            <th>Payment Type</th>
             <th><?=$this->lang->line('feesreport_weaver')?></th>
             <th><?=$this->lang->line('feesreport_fine')?></th>
         </tr>
@@ -153,6 +205,19 @@
                     echo number_format($getFeesReport->paymentamount,2);
                     $totalPaid += $getFeesReport->paymentamount;
                 ?>
+               
+            </td>
+            <td>
+                <?php 
+                if($getFeesReport->paymenttype == 'Cash'){
+                    $class="text-green";
+                    $p_type = 'Cash';
+                }else if($getFeesReport->paymenttype == 'Digita'){
+                    $class = "text-blue";
+                    $p_type = 'Digital';
+
+                }?>
+                <span class="<?= $class?>"> <?= $p_type?><span>
             </td>
 
             <td data-title="<?=$this->lang->line('feesreport_weaver')?>">
@@ -181,7 +246,7 @@
 
         <?php
             // Adjust colspan logic based on class/section columns
-            $colspan = 5; // base columns without phone/reg no
+            $colspan = 6; // base columns without phone/reg no
             if($classesID == 0) $colspan++;
             if($sectionID == 0) $colspan++;
         ?>
@@ -403,5 +468,22 @@
                 }
             });
         }
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#exportButton").click(function () {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const dd = String(today.getDate()).padStart(2, '0');
+
+            const todate = `${dd}-${mm}-${yyyy}`;
+            const filename = `fee_report_${todate}.xlsx`;
+
+            var table = document.getElementById("myTable");
+            var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+            XLSX.writeFile(wb, filename );
+        });
     });
 </script>

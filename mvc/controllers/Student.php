@@ -3332,10 +3332,12 @@ class Student extends Admin_Controller
 		$this->data['headerassets'] = array(
 			'css' => array(
 				'assets/select2/css/select2.css',
-				'assets/select2/css/select2-bootstrap.css'
+				'assets/select2/css/select2-bootstrap.css',
+				'assets/datepicker/datepicker.css'
 			),
 			'js' => array(
-				'assets/select2/select2.js'
+				'assets/select2/select2.js',
+				'assets/datepicker/datepicker.js',
 			)
 		);
 
