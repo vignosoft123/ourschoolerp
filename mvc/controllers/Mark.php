@@ -1194,6 +1194,7 @@ class Mark extends Admin_Controller
 							$this->db->where('markpercentageID',$value['markpercentageid']);
 							$this->db->where('markID',$data[1]);
 							$this->db->update('markrelation',array('mark' => abs($value['value']) ));
+							// echo $this->db->last_query();die;
 						// } else {
 							
 						// }
@@ -1804,4 +1805,438 @@ class Mark extends Admin_Controller
 		
 
 	}
+
+
+	
+
+// 	public function marks_bulkimport()
+// {
+//     if ($_FILES['csvMarks']['error'] == 0) {
+//         $filename = $_FILES['csvMarks']['name'];
+//         $temp_path = "./uploads/csv/" . $filename;
+
+//         if (!move_uploaded_file($_FILES['csvMarks']['tmp_name'], $temp_path)) {
+//             echo "❌ File upload failed."; die;
+//         }
+
+//         $csv_array = $this->csvimport->get_array_flexible($temp_path, TRUE);
+
+//         if (!customCompute($csv_array) || count($csv_array) < 3) {
+//             echo "❌ CSV format is invalid."; die;
+//         }
+
+//         echo "<pre>";
+
+//         // Extract metadata (first row)
+//         $metaRow = $csv_array[0];
+//         $metaString = implode("\t", $metaRow);
+//         preg_match_all('/(\w+ID):\s*(\d+)/', $metaString, $matches);
+//         $metaData = array_combine($matches[1], $matches[2]);
+//         print_r($metaData);
+
+//         // Extract headers (second row)
+//         $headers = $csv_array[1];
+//         echo "\nHEADERS:\n";
+//         print_r($headers);
+
+//         // Data rows start from 3rd row
+//         $updateData = [];
+//         for ($i = 2; $i < count($csv_array); $i++) {
+//             $row = $csv_array[$i];
+//             echo "\nRow #".($i-2)." studentID: ";
+//             $studentID = isset($row[0]) ? trim($row[0]) : '';
+
+//             echo $studentID . "\n";
+//             if (!is_numeric($studentID)) {
+//                 echo "⚠️ Skipping invalid studentID.\n";
+//                 continue;
+//             }
+
+//             for ($j = 2; $j < count($row); $j++) {
+//                 $subjectHeader = isset($headers[$j]) ? $headers[$j] : '';
+//                 if (preg_match('/\^(\d+)/', $subjectHeader, $sm)) {
+//                     $subjectID = $sm[1];
+//                     $mark = trim($row[$j]);
+//                     if ($mark !== '') {
+//                         $updateData[] = [
+//                             'studentID' => $studentID,
+//                             'subjectID' => $subjectID,
+//                             'mark'      => $mark,
+//                             'classID'   => $metaData['classID'] ?? 0,
+//                             'examID'    => $metaData['examID'] ?? 0,
+//                             'sectionID' => $metaData['sectionID'] ?? 0,
+//                         ];
+//                     }
+//                 }
+//             }
+//         }
+
+//         echo "\n✅ FINAL UPDATE DATA:\n";
+//         print_r($updateData);
+//         die;
+
+//     } else {
+//         echo "❌ No file selected or upload error."; die;
+//     }
+// }
+
+
+public function marks_bulkimport()
+{
+    if (isset($_FILES["csvMarks"])) {
+        $config['upload_path']   = "./uploads/csv/";
+        $config['allowed_types'] = 'csv|text/plain|text/csv';
+        $config['max_size']      = '2048';
+        $config['file_name']     = $_FILES["csvMarks"]['name'];
+        $config['overwrite']     = TRUE;
+
+        $this->load->library('upload', $config);
+
+        if (!$this->upload->do_upload("csvMarks")) {
+            $this->session->set_flashdata('error', "File upload failed: " . $this->upload->display_errors());
+            redirect(base_url("mark/add"));
+        }
+
+        $file_data = $this->upload->data();
+        $file_path = './uploads/csv/' . $file_data['file_name'];
+
+
+// 		$temp_path = './uploads/csv/temp_' . time() . '.csv';
+// file_put_contents($temp_path, implode("\n", $data_lines));
+
+
+        // Read the raw file contents to auto detect delimiter
+        $raw = file_get_contents($file_path);
+        $raw_lines = explode("\n", $raw);
+        $meta_line = isset($raw_lines[0]) ? $raw_lines[0] : '';
+
+        // Parse meta line (classID, examID, sectionID)
+        preg_match('/classID:\s*(\d+)/i', $meta_line, $m1);
+        preg_match('/examID:\s*(\d+)/i', $meta_line, $m2);
+        preg_match('/sectionID:\s*(\d+)/i', $meta_line, $m3);
+        $classID   = isset($m1[1]) ? (int) $m1[1] : 0;
+        $examID    = isset($m2[1]) ? (int) $m2[1] : 0;
+        $sectionID = isset($m3[1]) ? (int) $m3[1] : 0;
+
+        // Detect delimiter: tab (\t) or comma
+        $secondLine = $raw_lines[1] ?? '';
+        $delimiter = (substr_count($secondLine, "\t") > substr_count($secondLine, ",")) ? "\t" : ",";
+
+        // Parse CSV properly using detected delimiter
+        $csv_array = [];
+        $headers = [];
+        $handle = fopen($file_path, 'r');
+        if ($handle !== false) {
+            // Skip meta line
+            fgets($handle);
+
+            // Get headers
+            $headers = fgetcsv($handle, 0, $delimiter);
+
+            while (($data = fgetcsv($handle, 0, $delimiter)) !== false) {
+                if (count($data) != count($headers)) continue;
+                $csv_array[] = array_combine($headers, $data);
+            }
+            fclose($handle);
+        }
+
+        // Debug outputs
+        // echo "<pre>";
+        // echo "META INFO:\n";
+        // print_r(['classID' => $classID, 'examID' => $examID, 'sectionID' => $sectionID]);
+
+        // echo "\nHEADERS:\n";
+        // print_r($headers);
+
+        // echo "\nCSV ROWS:\n";
+        // print_r($csv_array);
+
+        // Identify subject columns
+        $subjectColumns = [];
+        foreach ($headers as $header) {
+            if (preg_match('/\^(\d+)$/', $header, $matches)) {
+                $subjectID = $matches[1];
+                $subjectColumns[$header] = $subjectID;
+            }
+        }
+
+        // echo "\nIdentified Subject Columns:\n";
+        // print_r($subjectColumns);
+
+        // Fetch existing marks
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+        $marks = $this->mark_m->get_order_by_mark_new([
+            'schoolyearID' => $schoolyearID,
+            'examID'       => $examID,
+            'classesID'    => $classID,
+        ]);
+
+        $existingMarks = [];
+        foreach ($marks as $m) {
+            $key = "{$m->studentID}_{$m->subjectID}_{$m->examID}";
+            $existingMarks[$key] = $m->markID;
+        }
+
+        // Build update data
+        $updateData = [];
+        foreach ($csv_array as $index => $row) {
+            $studentID = isset($row['studentID']) ? trim($row['studentID']) : null;
+            echo "\nRow #$index studentID: $studentID";
+
+            if (!$studentID || !is_numeric($studentID)) {
+                echo " ⚠️ Skipping invalid studentID.";
+                continue;
+            }
+
+            foreach ($subjectColumns as $columnName => $subjectID) {
+                if (!isset($row[$columnName])) continue;
+
+                $markValue = trim($row[$columnName]);
+                if ($markValue === '') continue;
+
+                $key = "{$studentID}_{$subjectID}_{$examID}";
+                if (isset($existingMarks[$key])) {
+                    $updateData[] = [
+                        'markID' => $existingMarks[$key],
+                        'mark'   => $markValue,
+                    ];
+                }
+            }
+        }
+
+        // echo "\n✅ FINAL UPDATE DATA:\n";
+        // print_r($updateData);
+        // exit;
+
+        // Final update
+        if (!empty($updateData)) {
+            $this->db->update_batch('markrelation', $updateData, 'markID');
+            $this->session->set_flashdata('success', "Marks updated successfully.");
+// Clean up both files
+@unlink($temp_path);    // delete temp CSV used for parsing
+@unlink($file_path);    // delete uploaded original CSV
+        } else {
+            $this->session->set_flashdata('error', "No matching marks found to update.");
+        }
+
+        redirect(base_url("mark/add"));
+    } else {
+        $this->session->set_flashdata('error', "No file selected.");
+        redirect(base_url("mark/add"));
+    }
+}
+
+
+// public function marks_bulkimport()
+// {
+//     if (isset($_FILES["csvMarks"])) {
+//         $config['upload_path']   = "./uploads/csv/";
+//         $config['allowed_types'] = 'csv|text/plain|text/csv';
+//         $config['max_size']      = '2048';
+//         $config['file_name']     = $_FILES["csvMarks"]['name'];
+//         $config['overwrite']     = TRUE;
+
+//         $this->load->library('upload', $config);
+
+//         if (!$this->upload->do_upload("csvMarks")) {
+//             $this->session->set_flashdata('error', "File upload failed: " . $this->upload->display_errors());
+//             redirect(base_url("mark/add"));
+//         }
+
+//         $file_data = $this->upload->data();
+//         $file_path = './uploads/csv/' . $file_data['file_name'];
+
+//         $raw_lines = file($file_path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+//         if (count($raw_lines) < 3) {
+//             $this->session->set_flashdata('error', "CSV data is too short or invalid.");
+//             redirect(base_url("mark/add"));
+//         }
+
+//         // Extract metadata
+//         preg_match('/classID:\s*(\d+)/i', $raw_lines[0], $m1);
+//         preg_match('/examID:\s*(\d+)/i', $raw_lines[0], $m2);
+//         preg_match('/sectionID:\s*(\d+)/i', $raw_lines[0], $m3);
+//         $classID = isset($m1[1]) ? (int) $m1[1] : 0;
+//         $examID = isset($m2[1]) ? (int) $m2[1] : 0;
+//         $sectionID = isset($m3[1]) ? (int) $m3[1] : 0;
+
+//         // Extract only the data portion
+//         $data_lines = array_slice($raw_lines, 2);
+//         $temp_path = './uploads/csv/temp_' . time() . '.csv';
+//         file_put_contents($temp_path, implode("\n", $data_lines));
+
+//         // Load csvimport and parse using new method
+//         $this->load->library('csvimport');
+//         $csv_array = $this->csvimport->get_array_flexible($temp_path);
+
+//         // Cleanup temp file
+//         @unlink($temp_path);
+
+//         if (!customCompute($csv_array)) {
+//             $this->session->set_flashdata('error', "CSV data not found or invalid format.");
+//             redirect(base_url("mark/add"));
+//         }
+
+//         // Extract subject columns
+//         $firstRow = reset($csv_array);
+//         $headers = array_keys($firstRow);
+//         $subjectColumns = [];
+//         foreach ($headers as $header) {
+//             if (preg_match('/\^(\d+)$/', $header, $matches)) {
+//                 $subjectID = $matches[1];
+//                 $subjectColumns[$header] = $subjectID;
+//             }
+//         }
+
+//         // Fetch existing marks
+//         $schoolyearID = $this->session->userdata('defaultschoolyearID');
+//         $marks = $this->mark_m->get_order_by_mark_new([
+//             'schoolyearID' => $schoolyearID,
+//             'examID'       => $examID,
+//             'classesID'    => $classID
+//         ]);
+
+//         $existingMarks = [];
+//         foreach ($marks as $m) {
+//             $existingMarks["{$m->studentID}_{$m->subjectID}_{$m->examID}"] = $m->markID;
+//         }
+
+//         $updateData = [];
+
+//         foreach ($csv_array as $row) {
+//             $studentID = isset($row['studentID']) ? trim($row['studentID']) : null;
+//             if (!$studentID || !is_numeric($studentID)) continue;
+
+//             foreach ($subjectColumns as $columnName => $subjectID) {
+//                 if (!isset($row[$columnName])) continue;
+
+//                 $markValue = trim($row[$columnName]);
+//                 if ($markValue === '') continue;
+
+//                 $key = "{$studentID}_{$subjectID}_{$examID}";
+//                 if (isset($existingMarks[$key])) {
+//                     $markID = $existingMarks[$key];
+//                     $updateData[] = [
+//                         'markID' => $markID,
+//                         'mark'   => $markValue,
+//                     ];
+//                 }
+//             }
+//         }
+
+//         // Debug print and stop here
+//         echo "<pre>";
+//         print_r($updateData);
+//         die;
+
+//         // Actual update (if needed)
+//         if (!empty($updateData)) {
+//             $this->db->update_batch('markrelation', $updateData, 'markID');
+//             $this->session->set_flashdata('success', "Marks updated successfully.");
+//         } else {
+//             $this->session->set_flashdata('error', "No matching marks found to update.");
+//         }
+
+//         redirect(base_url("mark/add"));
+//     } else {
+//         $this->session->set_flashdata('error', "No file selected.");
+//         redirect(base_url("mark/add"));
+//     }
+// }
+
+
+
+
+// public function marks_bulkimport()
+// {
+//     if (isset($_FILES["csvMarks"])) {
+//         $config['upload_path']   = "./uploads/csv/";
+//         $config['allowed_types'] = 'csv|text/plain|text/csv';
+//         $config['max_size']      = '2048';
+//         $config['file_name']     = $_FILES["csvMarks"]['name'];
+//         $config['overwrite']     = TRUE;
+
+//        $this->load->library('upload', $config);
+
+// 	if (!$this->upload->do_upload("csvMarks")) {
+// 		$errorMsg = $this->upload->display_errors(); // Get the detailed error
+// 		$this->session->set_flashdata('error', "File upload failed: " . $errorMsg);
+// 		redirect(base_url("mark/add"));
+// 	}
+
+//         $file_data = $this->upload->data();
+//         $file_path = './uploads/csv/' . $file_data['file_name'];
+
+//         // Load CSV content
+//         $csv_array = @$this->csvimport->get_array($file_path);
+//         if (!customCompute($csv_array)) {
+//             $this->session->set_flashdata('error', "CSV data not found or invalid format.");
+//             redirect(base_url("mark/add"));
+//         }
+
+//         // Extract classID, examID, sectionID from first few rows
+//         $firstRow = reset($csv_array);
+//         $classID = (int) str_replace('classID:', '', array_key_first(array_filter($firstRow, fn($v) => str_contains($v, 'classID:'))));
+//         $examID  = (int) str_replace('examID:', '', array_key_first(array_filter($firstRow, fn($v) => str_contains($v, 'examID:'))));
+//         $sectionID = (int) str_replace('sectionID:', '', array_key_first(array_filter($firstRow, fn($v) => str_contains($v, 'sectionID:'))));
+
+//         // Sanitize header row (remove blank or null keys)
+//         $headers = array_keys($firstRow);
+//         $subjectColumns = []; // column => subjectID
+//         foreach ($headers as $header) {
+//             if (preg_match('/\^(\d+)$/', $header, $matches)) {
+//                 $subjectID = $matches[1];
+//                 $subjectColumns[$header] = $subjectID;
+//             }
+//         }
+ 
+
+// 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+// 		$mark = $this->mark_m->get_order_by_mark_new(array('schoolyearID' => $schoolyearID, "examID" => $examID, "classesID" => $classID));
+
+//         $existingMarks = [];
+//         foreach ($marks as $m) {
+//             $existingMarks["{$m->studentID}_{$m->subjectID}_{$m->examID}"] = $m->markID;
+//         }
+
+//         $updateData = [];
+
+//         foreach ($csv_array as $row) {
+//             $studentID = isset($row['studentID']) ? trim($row['studentID']) : null;
+//             if (!$studentID || !is_numeric($studentID)) continue;
+
+//             foreach ($subjectColumns as $columnName => $subjectID) {
+//                 if (!isset($row[$columnName])) continue;
+
+//                 $markValue = trim($row[$columnName]);
+//                 if ($markValue === '') continue;
+
+//                 $key = "{$studentID}_{$subjectID}_{$examID}";
+//                 if (isset($existingMarks[$key])) {
+//                     $markID = $existingMarks[$key];
+//                     $updateData[] = [
+//                         'markID' => $markID,
+//                         'mark'   => $markValue,
+//                     ];
+//                 }
+//                 // Optional: add insert logic here if markID doesn't exist
+//             }
+//         }
+
+//         // Perform batch update
+// 		echo "<pre>";print_r($updateData);die;
+//         if (!empty($updateData)) {
+//             $this->db->update_batch('markrelation', $updateData, 'markID');
+//             $this->session->set_flashdata('success', "Marks updated successfully.");
+//         } else {
+//             $this->session->set_flashdata('error', "No matching marks found to update.");
+//         }
+
+//         redirect(base_url("mark/add"));
+//     } else {
+//         $this->session->set_flashdata('error', "No file selected.");
+//         redirect(base_url("mark/add"));
+//     }
+// }
+
 }

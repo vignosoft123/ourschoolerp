@@ -1,3 +1,6 @@
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
 <style>
     /* thead th {
         background: linear-gradient(90deg, #007bff, #3399ff);
@@ -7,6 +10,11 @@
         vertical-align: middle;
         padding: 10px;
     } */
+
+    .excel-only {
+    display: none;
+}
+
 
     .grade-label {
     padding: 3px 8px;
@@ -341,6 +349,29 @@
                 <br/>
                 <br/>
                 <button class="btn btn-black "   id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
+
+                
+<button id="exportButton" class="btn btn-info"><i class="fa fa-download"></i>  Download Marks Excel</button>
+
+<form enctype="multipart/form-data" style="" action="<?=base_url('Mark/marks_bulkimport');?>" class="form-horizontal" role="form" method="post">
+                    <div class="form-group">
+                        
+
+                        <div class="col-sm-4 col-xs-6 col-md-4">
+                            <div class="fileUpload btn btn-success form-control">
+                                <span class="fa fa-repeat"></span>
+                                <span>Upload Excel Marks</span>
+                                <input id="uploadBtn" type="file" class="upload questionUpload" name="csvMarks" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-1 rep-mar">
+                            <input type="submit" class="btn btn-success" value="Save Marks" >
+                        </div>
+ 
+                    </div>
+                </form>
+
             </div>       
              
         </div>
@@ -376,39 +407,29 @@
                         <table class="table table-striped table-bordered table-hover dataTable no-footer" id="myTable">
                             <thead>
                                 <tr>
-                                    <th><?= $this->lang->line('slno') ?></th>
-                                    <th><?= $this->lang->line('mark_photo') ?></th>
+                                    <th class="no-export"><?= $this->lang->line('slno') ?></th>
+                                    
+                                    <th class="no-export"><?= $this->lang->line('mark_photo') ?></th>
+                                    <th class="excel-only1">studentID</th>
                                     <th><?= $this->lang->line('mark_name') ?>(<?= $this->lang->line('mark_roll') ?>)</th>
 
+                                      
                                     
-                                    <!-- code for getting dynamic subjects start -->
-                                    <?php
-                                    //if (customCompute($subjects)) {
-                                           // foreach ($subjects as $subject) {?>
-                                                <!-- $subjectArray[$subject->subjectID] = $subject->subject; -->
-                                                <!-- <th> <?php //echo $subject->subject?></th> -->
-                                           <?php //}
-                                        //}
-                                    ?>
-                                    
-                                    <?php
-                                    $out_of = 0;
-                                    foreach ($subjects as $subject) { 
-                                            
-                                          //echo "<span class='dyn_sub'>".$subject->subject."</span>";
-                                        // foreach ($markpercentages as $data) {
-                                             
-                                        //     echo "<th>$data->markpercentagetype ($data->percentage)</th>";
-                                        // }
-                                             echo "<th>$subject->subject (".$subject->max_mark.") </th>";
+                                   <?php
+$out_of = 0;
+foreach ($subjects as $subject) {
+    // Visible column
+    echo "<th class='no-export'>{$subject->subject} ({$subject->max_mark})</th>";
 
-                                             $out_of += $subject->max_mark;
+    // Hidden column for Excel
+    echo "<th class='excel-only'>{$subject->subject}^{$subject->subjectID}</th>";
 
-                                    }
-                                    ?>
-                                   <th> Total (Out of <?php echo $out_of;?>)</th>
-                                   <th> Grade </th>
-                                   <th> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_marks"> </th>
+    $out_of += $subject->max_mark;
+}
+?>
+                                   <th class="no-export"> Total (Out of <?php echo $out_of;?>)</th>
+                                   <th class="no-export"> Grade </th>
+                                   <th class="no-export"> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_marks"> </th>
 
 
 
@@ -422,12 +443,15 @@
                                         // foreach ($marks as $mark) {
                                             // if ($student->studentID == $mark->studentID) {   ?>
                                                 <tr>
-                                                    <td data-title="<?= $this->lang->line('slno') ?>">
+                                                    <td class="no-export" data-title="<?= $this->lang->line('slno') ?>">
                                                         <?php echo $i; ?>
                                                     </td>
                                                     <td data-title="<?= $this->lang->line('mark_photo') ?>">
                                                         <?= profileproimage($student->photo) ?>
                                                     </td>
+                                                    <td  class='excel-only1'>
+                                                        <?php echo $student->studentID; ?>
+                                                    </td> 
                                                     <td data-title="<?= $this->lang->line('mark_name') ?>">
                                                         <?php echo $student->name; ?> ( <?php echo $student->roll; ?>)
                                                     </td>
@@ -913,4 +937,105 @@ $(document).on("click","#add_mark",function(){
     location.reload();
 });
 
+</script>
+
+<!--  
+<script>
+    $(document).ready(function () {
+        $("#exportButton").click(function () {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const todate = `${dd}-${mm}-${yyyy}`;
+            const filename = `fee_report_${todate}.xlsx`;
+
+            // Custom values (you can set these dynamically in PHP and inject via JS)
+            const classID = 9;
+            const examID = 4;
+            const subjectID = 2;
+
+            // 1. Create a metadata row (as array of arrays)
+            const metadata = [
+                [`classID: ${classID}`, `examID: ${examID}`, `subjectID: ${subjectID}`]
+            ];
+
+            // 2. Create worksheet from metadata
+            const ws = XLSX.utils.aoa_to_sheet(metadata);
+
+            // 3. Append the HTML table to the worksheet starting from row 3 (index 2)
+            const table = document.getElementById("myTable");
+            XLSX.utils.sheet_add_dom(ws, table, { origin: -1 }); // -1 appends below existing content
+
+            // 4. Create workbook and export
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            XLSX.writeFile(wb, filename);
+        });
+    });
+</script> -->
+ <script>
+$(document).ready(function () {
+    $("#exportButton").click(function () {
+        // const classID = <?= $set_classes ?? 0 ?>;
+        // const examID = <?= $set_exam ?? 0 ?>;
+        // const sectionID = <?= $set_section ?? 0 ?>;
+
+         const classID = $("#classesID").val();
+        const examID = $("#examID").val();
+        const sectionID = $("#sectionID").val();
+
+        const metadata = [
+            [`classID: ${classID}`, `examID: ${examID}`, `sectionID: ${sectionID}`],
+            [`studentID`]
+        ];
+
+        const table = document.getElementById("myTable");
+        const clone = table.cloneNode(true);
+
+        // Remove unwanted <th> and matching <td> columns
+        const removeColsByClass = (className) => {
+            const ths = clone.querySelectorAll("thead th");
+            let indexesToRemove = [];
+
+            ths.forEach((th, idx) => {
+                if (th.classList.contains(className)) {
+                    indexesToRemove.push(idx);
+                    th.remove();
+                }
+            });
+
+            // Remove matching <td> from each row
+            const rows = clone.querySelectorAll("tbody tr");
+            rows.forEach(row => {
+                const cells = Array.from(row.children);
+                indexesToRemove.forEach(i => {
+                    if (cells[i]) cells[i].remove();
+                });
+            });
+        };
+
+        // Remove .no-export columns (photo, total, grade, checkbox, etc.)
+        removeColsByClass("no-export");
+
+        // Show excel-only hidden columns
+        clone.querySelectorAll('.excel-only').forEach(el => el.style.display = '');
+
+        // Convert clean table to sheet
+        const sheet = XLSX.utils.table_to_sheet(clone, { origin: "A2" }); // <-- Start from A2
+
+        // Add metadata at top
+        XLSX.utils.sheet_add_aoa(sheet, metadata, { origin: "A1" }); // <-- Put metadata in A1
+
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, sheet, "Sheet1");
+
+        const today = new Date();
+        // const filename = `marks_${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}.xlsx`;
+        const filename = `marks_${today.getFullYear()}-${(today.getMonth()+1).toString().padStart(2,'0')}-${today.getDate().toString().padStart(2,'0')}.csv`;
+
+
+        XLSX.writeFile(wb, filename);
+    });
+});
 </script>

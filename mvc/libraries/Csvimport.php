@@ -79,6 +79,61 @@ class Csvimport {
         
     }
 
+    public function get_array_flexible($filepath = '', $detect_line_endings = FALSE)
+{
+    if ($detect_line_endings) {
+        ini_set("auto_detect_line_endings", TRUE);
+    }
+
+    if (!file_exists($filepath)) {
+        return FALSE;
+    }
+
+    $this->_set_filepath($filepath);
+    $this->_get_handle();
+
+    $result = [];
+    while (($data = fgetcsv($this->handle, 0, "\t")) !== FALSE) {
+        $result[] = $data;
+    }
+
+    $this->_close_csv();
+    return $result;
+}
+
+//     public function get_array_flexible($filepath = '', $detect_line_endings = FALSE)
+// {
+//     if ($detect_line_endings) {
+//         ini_set("auto_detect_line_endings", TRUE);
+//     }
+
+//     if (!file_exists($filepath)) {
+//         return FALSE;
+//     }
+
+//     $this->_set_filepath($filepath);
+//     $this->_get_handle();
+
+//     $headers = fgetcsv($this->handle, 0, ",");
+//     if (!$headers) return FALSE;
+
+//     // Trim header fields
+//     $headers = array_map('trim', $headers);
+
+//     $data = [];
+//     while (($row = fgetcsv($this->handle, 0, ",")) !== FALSE) {
+//         $entry = [];
+//         foreach ($headers as $i => $header) {
+//             $entry[$header] = isset($row[$i]) ? trim($row[$i]) : '';
+//         }
+//         $data[] = $entry;
+//     }
+
+//     $this->_close_csv();
+//     return $data;
+// }
+
+
    /**
      * Sets the filepath of a given CSV file
      *
