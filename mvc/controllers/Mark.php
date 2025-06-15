@@ -2012,9 +2012,9 @@ public function marks_bulkimport()
         if (!empty($updateData)) {
             $this->db->update_batch('markrelation', $updateData, 'markID');
             $this->session->set_flashdata('success', "Marks updated successfully.");
-// Clean up both files
-@unlink($temp_path);    // delete temp CSV used for parsing
-@unlink($file_path);    // delete uploaded original CSV
+			// Clean up both files
+			@unlink($temp_path);    // delete temp CSV used for parsing
+			@unlink($file_path);    // delete uploaded original CSV
         } else {
             $this->session->set_flashdata('error', "No matching marks found to update.");
         }

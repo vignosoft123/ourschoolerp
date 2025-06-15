@@ -348,16 +348,18 @@
                 <h5><center><?php echo $this->lang->line('mark_section') . ' : ' . $sendSection->section; ?></center></h5>   
                 <br/>
                 <br/>
-                <button class="btn btn-black "   id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
+               
+                <div class="form-group">
+ <button class="btn btn-black col-md-3 "   id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
 
                 
-<button id="exportButton" class="btn btn-info"><i class="fa fa-download"></i>  Download Marks Excel</button>
+                <button id="exportButton" class="btn btn-info col-md-3"><i class="fa fa-download"></i>  Download Sample</button>
 
-<form enctype="multipart/form-data" style="" action="<?=base_url('Mark/marks_bulkimport');?>" class="form-horizontal" role="form" method="post">
-                    <div class="form-group">
+<form enctype="multipart/form-data" style="padding:1%" action="<?=base_url('Mark/marks_bulkimport');?>" class="form-horizontal" role="form" method="post">
+                    
                         
 
-                        <div class="col-sm-4 col-xs-6 col-md-4">
+                        <div class="col-sm-4 col-xs-6 col-md-3">
                             <div class="fileUpload btn btn-success form-control">
                                 <span class="fa fa-repeat"></span>
                                 <span>Upload Excel Marks</span>
@@ -369,11 +371,11 @@
                             <input type="submit" class="btn btn-success" value="Save Marks" >
                         </div>
  
-                    </div>
+                 
                 </form>
 
             </div>       
-             
+                </div>
         </div>
     
 
@@ -416,17 +418,17 @@
                                       
                                     
                                    <?php
-$out_of = 0;
-foreach ($subjects as $subject) {
-    // Visible column
-    echo "<th class='no-export'>{$subject->subject} ({$subject->max_mark})</th>";
+                                        $out_of = 0;
+                                        foreach ($subjects as $subject) {
+                                            // Visible column
+                                            echo "<th class='no-export'>{$subject->subject} ({$subject->max_mark})</th>";
 
-    // Hidden column for Excel
-    echo "<th class='excel-only'>{$subject->subject}^{$subject->subjectID}</th>";
+                                            // Hidden column for Excel
+                                            echo "<th class='excel-only'>{$subject->subject}^{$subject->subjectID}</th>";
 
-    $out_of += $subject->max_mark;
-}
-?>
+                                            $out_of += $subject->max_mark;
+                                        }
+                                        ?>
                                    <th class="no-export"> Total (Out of <?php echo $out_of;?>)</th>
                                    <th class="no-export"> Grade </th>
                                    <th class="no-export"> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_marks"> </th>
@@ -438,10 +440,7 @@ foreach ($subjects as $subject) {
                             <tbody>
                                 <?php if (customCompute($students)) {
                                     $i = 1;
-                                    //  echo "<pre>"; print_r($students);
-                                    foreach ($students as $student) {
-                                        // foreach ($marks as $mark) {
-                                            // if ($student->studentID == $mark->studentID) {   ?>
+                                     foreach ($students as $student) {  ?>
                                                 <tr>
                                                     <td class="no-export" data-title="<?= $this->lang->line('slno') ?>">
                                                         <?php echo $i; ?>
@@ -455,37 +454,13 @@ foreach ($subjects as $subject) {
                                                     <td data-title="<?= $this->lang->line('mark_name') ?>">
                                                         <?php echo $student->name; ?> ( <?php echo $student->roll; ?>)
                                                     </td>
-                                                    <!-- <td data-title="<?= $this->lang->line('mark_roll') ?>">
-                                                        <?php echo $student->roll; ?>
-                                                    </td> -->
-                                                    <?php
-                                                        // echo "<pre>";print_r($marks);die;
-                                                        // foreach ($subjects as $data) {
-                                                        //     echo "<td data-title='$data1->subject'>";
-                                                        //     echo "<input class='form-control mark input_mark' type='number' name='mark1-" . $markwr[$student->studentID][$data1->markpercentageID] . "' id='" . $data1->markpercentageID . "' value='" . $markRelations[$student->studentID][$data1->markpercentageID] . "' min='0' max='" . $data1->percentage . "' />";
-                                                        //     echo "</td>";
-                                                        // }
-                                                      
-                                                        //    echo "<pre>"; print_r($sendExam->date);die;
-                                                            
+                                                   
+                                                    <?php 
                                                         foreach ($subjects as $subject) { 
 
-                                                    foreach ($markpercentages as $data) {
-
-
-                                                         
-                                                       
-
-
-                                                        // echo "<td data-title='$data->markpercentagetype'>";
-                                                        // echo "<input subj_id = '".$subject->subjectID."'  class='form-control mark input_mark' type='number' name='".$subject->subjectID."mark-" . $markwr[$student->studentID][$data->markpercentageID] . "' id='" . $data->markpercentageID . "' value='" . $mrk . "' min='0' max='" . $data->percentage . "' />";
-                                                        // echo "</td>";
-                                                        //  $zero_mark = 'no';
-                                                        // $zero_mark = 0;
+                                                    foreach ($markpercentages as $data) { 
                                                           
-                                                        foreach ($marks as $mark) {
-                                                            // $my_template = "aa";
-                                                            // $tot = 0;
+                                                        foreach ($marks as $mark) { 
                                                             if($subject->subjectID == $mark->subjectID && $student->studentID == $mark->studentID ){
 
                                                                  $sql = "SELECT mark,eattendance FROM `mark` LEFT JOIN `markrelation` ON `markrelation`.`markID` = `mark`.`markID` WHERE `mark`.`schoolyearID` = ".$mark->schoolyearID." AND `mark`.`examID` = ".$mark->examID." AND `mark`.`classesID` = ".$mark->classesID." and studentId= ".$student->studentID." and markpercentageID =".$data->markpercentageID." and subjectID=".$subject->subjectID;
@@ -529,59 +504,61 @@ foreach ($subjects as $subject) {
                                                         }
 
 
-                                                        echo "</td>";?>
+                                                        echo "</td>";
+                                                        
+                                                         ?>
 
 
 
-<!-- email modal starts here -->
-<form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAttendance');?>" method="post">
-    <div class="modal fade" id="attendance-modal_<?= $mark->markID?>">
-      <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">Add Attendance</h4>
-            </div>
-            <div class="modal-body">
-            
-                <?php 
-                    if(form_error('to')) 
-                        echo "<div class='form-group has-error' >";
-                    else     
-                        echo "<div class='form-group' >";
-                ?>
-                    <label for="to" class="col-sm-2 control-label">
-                        Attendance</span>
-                    </label>
-                    <div class="col-sm-6">
-                        <select name="attendance" id="attendance" class="form-control">
-                            <option value="Present">Present</option>
-                            <option value="Absent">Absent</option>
-                        </select>
-                    </div>
-                    <input type="hidden" name="examID" value="<?= $set_exam?>" class="form-control">
-                    <input type="hidden" name="classesID" value="<?= $set_classes?>" class="form-control">
-                    <input type="hidden" name="subjectID" value="<?= $subject->subjectID?>" class="form-control">
-                    <input type="hidden" name="sectionID" value="<?= $set_section?>" class="form-control">
-                    <input type="hidden" name="studentID" value="<?= $student->studentID?>" class="form-control">
-                    <input type="hidden" name="markID" value="<?= $mark->markID?>" class="form-control">
-                    <span class="col-sm-4 control-label" id="to_error">
-                    </span>
-                </div>
+                                                            <!-- email modal starts here -->
+                                                            <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAttendance');?>" method="post">
+                                                                <div class="modal fade" id="attendance-modal_<?= $mark->markID?>">
+                                                                <div class="modal-dialog">
+                                                                    <div class="modal-content">
+                                                                        <div class="modal-header">
+                                                                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                                                            <h4 class="modal-title">Add Attendance</h4>
+                                                                        </div>
+                                                                        <div class="modal-body">
+                                                                        
+                                                                            <?php 
+                                                                                if(form_error('to')) 
+                                                                                    echo "<div class='form-group has-error' >";
+                                                                                else     
+                                                                                    echo "<div class='form-group' >";
+                                                                            ?>
+                                                                                <label for="to" class="col-sm-2 control-label">
+                                                                                    Attendance</span>
+                                                                                </label>
+                                                                                <div class="col-sm-6">
+                                                                                    <select name="attendance" id="attendance" class="form-control">
+                                                                                        <option value="Present">Present</option>
+                                                                                        <option value="Absent">Absent</option>
+                                                                                    </select>
+                                                                                </div>
+                                                                                <input type="hidden" name="examID" value="<?= $set_exam?>" class="form-control">
+                                                                                <input type="hidden" name="classesID" value="<?= $set_classes?>" class="form-control">
+                                                                                <input type="hidden" name="subjectID" value="<?= $subject->subjectID?>" class="form-control">
+                                                                                <input type="hidden" name="sectionID" value="<?= $set_section?>" class="form-control">
+                                                                                <input type="hidden" name="studentID" value="<?= $student->studentID?>" class="form-control">
+                                                                                <input type="hidden" name="markID" value="<?= $mark->markID?>" class="form-control">
+                                                                                <span class="col-sm-4 control-label" id="to_error">
+                                                                                </span>
+                                                                            </div>
 
-               
+                                                                        
 
-            
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
-                <input type="submit" id="send_pdf" class="btn btn-success" value="Save" />
-            </div>
-        </div>
-      </div>
-    </div>
-</form>
-<!-- email end here -->
+                                                                        
+                                                                        </div>
+                                                                        <div class="modal-footer">
+                                                                            <button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
+                                                                            <input type="submit" id="send_pdf" class="btn btn-success" value="Save" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                </div>
+                                                            </form>
+                                                            <!-- email end here -->
                                                         
                                                             <?php 
                                                             $absent_or_mark = $mrk ? ($mrk."/".$subject->max_mark) : 'Ab';
@@ -590,35 +567,35 @@ foreach ($subjects as $subject) {
                                                         }
                                                     }
                                                 } 
-echo "<td>".$tot."</td>"; 
+                                            echo "<td>".$tot."</td>"; 
 
-$out_of = $out_of != 0 ? $out_of : 1;
-$percent_cal = ($tot / $out_of) * 100;
+                                            $out_of = $out_of != 0 ? $out_of : 1;
+                                            $percent_cal = ($tot / $out_of) * 100;
 
-if ($percent_cal >= 95 && $zero_mark == 0) {
-    $grade = "A+";
-    $gradeClass = "grade-a-plus";
-} else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
-    $grade = "A";
-    $gradeClass = "grade-a";
-} else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
-    $grade = "B+";
-    $gradeClass = "grade-b-plus";
-} else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
-    $grade = "B";
-    $gradeClass = "grade-b";
-} else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
-    $grade = "C+";
-    $gradeClass = "grade-c-plus";
-} else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
-    $grade = "C";
-    $gradeClass = "grade-c";
-} else {
-    $grade = "D";
-    $gradeClass = "grade-d";
-}
+                                            if ($percent_cal >= 95 && $zero_mark == 0) {
+                                                $grade = "A+";
+                                                $gradeClass = "grade-a-plus";
+                                            } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
+                                                $grade = "A";
+                                                $gradeClass = "grade-a";
+                                            } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
+                                                $grade = "B+";
+                                                $gradeClass = "grade-b-plus";
+                                            } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
+                                                $grade = "B";
+                                                $gradeClass = "grade-b";
+                                            } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
+                                                $grade = "C+";
+                                                $gradeClass = "grade-c-plus";
+                                            } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
+                                                $grade = "C";
+                                                $gradeClass = "grade-c";
+                                            } else {
+                                                $grade = "D";
+                                                $gradeClass = "grade-d";
+                                            }
 
-echo "<td><span class='grade-label {$gradeClass}'>$grade</span></td>";
+                                            echo "<td><span class='grade-label {$gradeClass}'>$grade</span></td>";
 
 
                                                     ?>
