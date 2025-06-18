@@ -406,6 +406,7 @@ class Studentrelation_m extends MY_Model {
 
 	public function get_order_by_studentrelation($array=NULL) {
 		$query = parent::get_order_by($array);
+		// echo $this->db->last_query();die;
 		return $query;
 	}
 

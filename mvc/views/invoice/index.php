@@ -31,13 +31,51 @@
                 if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) { ?>
                     <?php if(permissionChecker('invoice_add')) { ?>
                         <h5 class="page-header">
-                            <a href="<?php echo base_url('invoice/add') ?>">
+                            <a href="<?php echo base_url('invoice/add') ?>" class="btn btn-primary">
                                 <i class="fa fa-plus"></i> 
                                 <?=$this->lang->line('add_title')?>
                             </a>
+
+                                            <button type="button" id="openFeeFormBtn" class="btn btn-primary mb-3">Bulk Edit Amounts</button>
+
                         </h5>
                     <?php } ?>
                 <?php } ?>
+
+
+
+                
+                <div class="">
+<!-- Fee Update Form - Initially Hidden -->
+<form id="updateAmountForm" method="post" style="display: none;" action="<?= base_url('Invoice/update_bulk_amount') ?>">
+    <div class="row filter-box1">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Fee Type <span class="text-red">*</span></label>
+                <select name="feetypeID" id="feetypeID" class="form-control select2" required>
+                    <option value="">Select Fee Type</option>
+                    <?php foreach($allfee as $feetype): ?>
+                        <option value="<?= $feetype->feetypesID ?>"><?= $feetype->feetypes ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label>Amount <span class="text-red">*</span></label>
+                <input type="text" name="amount" class="form-control" required/>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden input for selected IDs (populated by JS) -->
+    <input type="hidden" name="selectedIDs" id="selectedIDs"/>
+
+    <button type="submit" class="btn btn-success">Update Amount</button>
+</form>
+                    </div>
+
+
 
                 <?php 
 
@@ -63,9 +101,16 @@
                         
 
                 <div id="hide-table">
+
+ 
+
+
+
                     <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
                         <thead>
                             <tr>
+                                            <th><input type="checkbox" id="selectAll"/></th>
+
                                 <th><?=$this->lang->line('slno')?></th>
                                 <th><?=$this->lang->line('invoice_student')?></th>
                                 <th><?=$this->lang->line('invoice_classesID')?></th>
@@ -89,6 +134,8 @@
                              if(customCompute($maininvoices)) {$i = 1; 
                              foreach($maininvoices as $maininvoice) { ?>
                                 <tr>
+                                    <td><input type="checkbox" class="invoice-checkbox" value="<?= $maininvoice->maininvoiceID ?>" name="maininvoiceIDs[]"/></td>
+
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
                                     </td>
@@ -368,4 +415,34 @@
     }
 
 
+</script>
+
+<!-- ✅ jQuery -->
+<script>
+    $(document).ready(function() {
+        // Show form when Open button is clicked
+        $('#openFeeFormBtn').click(function() {
+            $('#updateAmountForm').slideDown();
+        });
+
+        // Select all checkboxes
+        $('#selectAll').click(function() {
+            $('.invoice-checkbox').prop('checked', this.checked);
+        });
+
+        // On submit, validate checkboxes
+        $('#updateAmountForm').submit(function(e) {
+            const selected = $('.invoice-checkbox:checked').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (selected.length === 0) {
+                alert("⚠️ Please select at least 1 checkbox.");
+                e.preventDefault();
+                return false;
+            }
+
+            $('#selectedIDs').val(selected.join(','));
+        });
+    });
 </script>

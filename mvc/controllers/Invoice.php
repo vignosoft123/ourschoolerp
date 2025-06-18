@@ -139,13 +139,14 @@ class Invoice extends Admin_Controller
         $schoolyearID = $this->session->userdata("defaultschoolyearID");
         $this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(), 'feetypes', 'feetypesID');
         $this->data['all_classes'] = $this->db->get('classes')->result();
-
+        //echo "<pre>";print_r($this->data['feetypes']);die;
+        $this->data['allfee'] = $this->feetypes_m->get_feetypes();
         if($usertypeID == 3) {
             $username = $this->session->userdata("username");
             $student  = $this->student_m->get_single_student(["username" => $username]);
 
 
-            // echo "<pre>";print_r($student);die;
+           
 
             if(customCompute($student)) {
                 $this->data['maininvoices']         = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_studentID($student->studentID, $schoolyearID);
@@ -2609,4 +2610,28 @@ class Invoice extends Admin_Controller
         $this->session->set_flashdata('success', $this->lang->line('menu_success'));
         redirect(base_url('invoice/index'));
     }
+
+    public function update_bulk_amount() {
+    $selectedIDs = $this->input->post('selectedIDs');
+    $feetypeID   = $this->input->post('feetypeID');
+    $amount      = $this->input->post('amount');
+
+    if (!$selectedIDs || !$feetypeID || !$amount) {
+        $this->session->set_flashdata('error', 'Missing required fields.');
+        redirect(base_url('invoice/index/0'));
+    }
+
+    $idsArray = explode(',', $selectedIDs);
+
+    // Build the update query
+    foreach ($idsArray as $maininvoiceID) {
+        $this->db->where('maininvoiceID', $maininvoiceID);
+        $this->db->where('feetypeID', $feetypeID);
+        $this->db->update('invoice', ['amount' => $amount]);
+    }
+
+    $this->session->set_flashdata('success', 'Amount updated successfully.');
+    redirect(base_url('invoice/index/0'));
+}
+
 }

@@ -1,5 +1,5 @@
 <?php 
-    $redirect_param = $this->uri->segment(4);
+    $redirect_param = $this->uri->segment(4)??0;
 ?>
 <div class="row">
     <div class="col-sm-3">
@@ -48,7 +48,7 @@
                             <?php echo form_error('sectionID'); ?>
                         </span>
                     </div>
-
+<?php //echo "<pre>";print_r($students);die;?>
                     <div class="studentDiv form-group <?=form_error('studentID') ? 'has-error' : '' ?>" >
                         <label for="studentID">
                             <?=$this->lang->line("invoice_studentID")?> <span class="text-red">*</span>
@@ -59,6 +59,7 @@
                                     foreach ($students as $student) {
                                         $studentArray[$student->srstudentID] = $student->srname." - ".$this->lang->line('invoice_roll')." - ".$student->srroll . " (Father : " .  $student->parent_name . ")" ;
                                     }
+                                    // echo "<pre>".$maininvoice->maininvoicestudentID;print_r($studentArray);die;
                                 }
                                 echo form_dropdown("studentID", $studentArray, set_value("studentID", $maininvoice->maininvoicestudentID), "id='studentID' class='form-control select2' disabled");
                             ?>
