@@ -95,8 +95,10 @@ class Global_payment extends Admin_Controller
 
         $this->data['single_student'] = [];
         
-        // print_r($_POST);die;
         if ($_POST || (!empty($classesID) && !empty($studentID) ) ) {
+        // print_r($_POST);die;die('1111');
+
+            
             $rules = $this->rules();
             $this->form_validation->set_rules($rules);
             // if ($this->form_validation->run() == FALSE) { 
@@ -136,6 +138,9 @@ class Global_payment extends Admin_Controller
                     // $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(array('studentID' => $single_student->srstudentID, 'schoolyearID' => $schoolyearID, 'deleted_at' => 1));
                     $this->data['invoices'] = $this->invoice_m->get_order_by_invoice_join_maininvoice( $single_student->srstudentID, $schoolyearID, 1);
                     $this->data['invoicefeetype'] = pluck($this->data['invoices'], 'feetypeID', 'invoiceID');
+
+                     $this->data['schoolyears'] = $this->invoice_m->get_schoolyear();
+                    
 
                     $this->data['globalpayments'] = $this->globalpayment_m->get_order_by_globalpayment(array('schoolyearID' => $schoolyearID,  'studentID' => $single_student->srstudentID));
 
@@ -814,5 +819,32 @@ class Global_payment extends Admin_Controller
     
         echo "Invoice deleted successfully (only if no payments were found).";
     }
+
+    public function get_prev_year_data()
+{
+    $schoolyearID = $this->input->post('schoolyearID');
+    $studentID = $this->input->post('studentID');
+    $set_classesID = $this->input->post('set_classesID');
+    $this->data['inv_name'] =  $this->input->post('inv_name');
+
+    $this->data['set_classesID'] = $set_classesID;
+    $this->data['set_studentID'] = $studentID;
+    $this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(), 'feetypes', 'feetypesID');
+
+    
+     $this->payment_m->order_payment('paymentID asc');
+    $allPaymentList = $this->payment_m->get_order_by_payment(array('studentID' => $studentID, 'schoolyearID' => $schoolyearID));
+
+    $allWeaverList = $this->weaverandfine_m->get_order_by_weaverandfine(array('studentID' => $studentID, 'schoolyearID' => $schoolyearID));
+
+    $this->data['payments'] = $this->generateAllPaymentAmount($allPaymentList);
+    $this->data['weavers'] = $this->generateAllWeaverAmount($allWeaverList);
+    $this->data['schoolyearID'] = $schoolyearID;
+    $this->data['invoices'] = $this->invoice_m->get_order_by_invoice_join_maininvoice( $studentID, $schoolyearID, 1);
+
+    // Load and return view content
+    $this->load->view('global_payment/prev_year_data', $this->data); // this is the partial view
+}
+
 }
 

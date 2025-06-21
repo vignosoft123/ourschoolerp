@@ -289,5 +289,10 @@ class Invoice_m extends MY_Model {
         }
     }
 
+public function get_schoolyear()
+{
+    $this->db->order_by('schoolyearID', 'DESC');
+    return $this->db->get('schoolyear')->result();
+}
 
 }

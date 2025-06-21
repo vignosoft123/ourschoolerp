@@ -270,7 +270,9 @@
                                 <thead>
                                     <tr>
                                         <td style="border-bottom-width: 1px;"><?=$this->lang->line('global_invoice_name')?></td>
-                                        <td style="border-bottom-width: 1px;"><input class="form-control" id="invoicename" type="text" name="invoicename" value="<?=$single_student->srregisterNO.'-'.$single_student->srname?>"></td>
+                                        <td style="border-bottom-width: 1px;"><input class="form-control" id="invoicename" type="text" name="invoicename" value="<?=$single_student->srregisterNO.'-'.$single_student->srname?>">
+                                                    <input type="hidden" id="inv_name" value="<?= $single_student->srregisterNO.'-'.$single_student->srname?>">
+                                    </td>
 
                                         <td style="border-bottom-width: 1px;"><?=$this->lang->line('global_description')?></td>
                                         <td style="border-bottom-width: 1px;"><input class="form-control" id="invoicedescription" type="text" name="invoicedescription"></td>
@@ -474,13 +476,51 @@
                             </div>
 
                             <br/>
-                            <div>
+                            <div style="text-align:right;     "> 
                                 <h4>Send Whatsapp :
                                 <input type="checkbox" name="send_whatsapp" id="send_whatsapp"  checked> </h4>
                             </div>
 
-                            <button name="submit" value="sub" id="add_payment" type="submit" class="btn btn-success col-md-2" style="margin-top: 20px;"><?=$this->lang->line('global_submit')?></button>
+                            <button name="submit" value="sub" id="add_payment" type="submit" class="btn btn-success col-md-2" style="margin-top: 20px;margin-left:37%;"><?=$this->lang->line('global_submit')?></button>
                         <?php } ?>
+
+                        <br/>
+                        <br/>
+                        <div class="filter-box" style="margin-top:2%">
+                        <div id="schoolyearRadios">
+
+                        <h3 style="margin-left:37%"><u>Select School Year for Previous invoices</u></h3>
+
+                            <?php foreach ($schoolyears as $year): ?>
+                                <label style="margin-right: 15px;padding:5px;color: purple;
+    font-weight: bold;">
+                                    <input type="radio" name="schoolyear" value="<?= $year->schoolyearID ?>"> 
+                                    <?= $year->schoolyear ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </div>
+                        </div>
+ 
+
+                        <hr>
+
+                        <div id="prev_year_data">
+                            <!-- AJAX response will load here -->
+                        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     <?php } ?>
                 </div>
             </div>
@@ -2380,6 +2420,29 @@ $(document).ready(function() {
                 }
             });
         }
+    });
+});
+</script>
+
+<script>
+$(document).ready(function() {
+    $('input[name="schoolyear"]').change(function() {
+        var schoolyearID = $(this).val();
+        var studentID = '<?= $set_studentID?>';
+        var set_classesID = '<?= $set_classesID?>';
+        var inv_name = $("#inv_name").val();
+        // alert(studentID);return;
+        $.ajax({
+            url: "<?= base_url('Global_payment/get_prev_year_data') ?>",
+            method: "POST",
+            data: { schoolyearID: schoolyearID,studentID: studentID,set_classesID:set_classesID ,inv_name:inv_name},
+            success: function(response) {
+                $('#prev_year_data').html(response);
+            },
+            error: function() {
+                $('#prev_year_data').html("<div class='text-danger'>Failed to load data.</div>");
+            }
+        });
     });
 });
 </script>
