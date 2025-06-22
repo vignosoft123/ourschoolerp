@@ -1455,10 +1455,17 @@
 
     function profileproimage( $photoname, $srcpath = null )
     {
+        // $CI                = &get_instance();
+        // $subdomain = $CI->session->userdata('subdomain'); 
+
         if ( $srcpath == null ) {
             if ( $photoname != null ) {
+                // if ( file_exists(FCPATH . 'uploads/images/'.$subdomain.'/' . $photoname) ) {
+                //     $src = base_url('uploads/images/' .$subdomain.'/'. $photoname);
+
                 if ( file_exists(FCPATH . 'uploads/images/' . $photoname) ) {
                     $src = base_url('uploads/images/' . $photoname);
+
                 } else {
                     $src = base_url('uploads/images/default.png');
                 }

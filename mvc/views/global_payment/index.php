@@ -491,14 +491,16 @@
 
                         <h3 style="margin-left:37%"><u>Select School Year for Previous invoices</u></h3>
 
-                            <?php foreach ($schoolyears as $year): ?>
-                                <label style="margin-right: 15px;padding:5px;color: purple;
+                                 <label style="margin-right: 15px;padding:5px;color: purple;
     font-weight: bold;">
-                                    <input type="radio" name="schoolyear" value="<?= $year->schoolyearID ?>"> 
-                                    <?= $year->schoolyear ?>
+                                   <select id="schoolyearSelect" name="schoolyear" class="form-control" style="background-color: #f9f9f9;">
+                                    <option value="">-- Select School Year --</option>
+                                    <?php foreach ($schoolyears as $year): ?>
+                                        <option value="<?= $year->schoolyearID ?>"><?= $year->schoolyear ?></option>
+                                    <?php endforeach; ?>
+                                </select>
                                 </label>
-                            <?php endforeach; ?>
-                        </div>
+                         </div>
                         </div>
  
 
@@ -2423,26 +2425,40 @@ $(document).ready(function() {
     });
 });
 </script>
-
 <script>
 $(document).ready(function() {
-    $('input[name="schoolyear"]').change(function() {
+    $('#schoolyearSelect').change(function() {
+
+         var selectedText = $('#schoolyearSelect option:selected').text();
+        var startYear = selectedText.split('-')[0].trim(); // Extract 2024 from "2024-2025"
+        
         var schoolyearID = $(this).val();
-        var studentID = '<?= $set_studentID?>';
-        var set_classesID = '<?= $set_classesID?>';
+        var studentID = '<?= $set_studentID ?>';
+        var set_classesID = '<?= $set_classesID ?>';
         var inv_name = $("#inv_name").val();
-        // alert(studentID);return;
-        $.ajax({
-            url: "<?= base_url('Global_payment/get_prev_year_data') ?>",
-            method: "POST",
-            data: { schoolyearID: schoolyearID,studentID: studentID,set_classesID:set_classesID ,inv_name:inv_name},
-            success: function(response) {
-                $('#prev_year_data').html(response);
-            },
-            error: function() {
-                $('#prev_year_data').html("<div class='text-danger'>Failed to load data.</div>");
-            }
-        });
+
+        if (schoolyearID !== '') {
+            $.ajax({
+                url: "<?= base_url('Global_payment/get_prev_year_data') ?>",
+                method: "POST",
+                data: {
+                    schoolyearID: schoolyearID,
+                    studentID: studentID,
+                    set_classesID: set_classesID,
+                    inv_name: inv_name
+                },
+                success: function(response) {
+                    $('#prev_year_data').html(response);
+        $('#prev_paymentyear').val(startYear); // Set into input field
+
+                },
+                error: function() {
+                    $('#prev_year_data').html("<div class='text-danger'>Failed to load data.</div>");
+                }
+            });
+        } else {
+            $('#prev_year_data').empty(); // optional: clear data when no year selected
+        }
     });
 });
 </script>
