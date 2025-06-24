@@ -161,6 +161,22 @@
 <?php } ?>
  
 
+<?php 
+$prev_schoolyear = 0;
+
+if (!empty($schoolyearID)) {
+    $res = $this->db->query(
+        'SELECT schoolyear FROM schoolyear WHERE schoolyearID = ?',
+        [$schoolyearID]
+    )->row_array();
+
+    if (!empty($res)) {
+        $prev_schoolyear = $res['schoolyear'];
+    }
+}
+
+?>
+
 <script>
     $(document).ready(function () {
     let prevGlobalPaid = 0;
@@ -231,6 +247,11 @@
     });
 });
 
+$(document).ready(function () {
+      $('#prev_add_payment').on('click', function () {
+        $('#prev_add_payment').prop('disabled', true).text('Submitting...');
+      });
+    });
 
 $('#prev_add_payment').on('click', function(e){
     var error = 0;
@@ -303,11 +324,12 @@ $('#prev_add_payment').on('click', function(e){
 
     // Disable validation for now (enable if needed)
     error = 0;
+    var schoolyearID = '<?= $schoolyearID ?? 0?>';
 
     if(error == 0) {
         $.ajax({
             type: 'POST',
-            url: "<?=base_url('global_payment/paymentSend')?>",
+            url: "<?=base_url('global_payment/paymentSend')?>", 
             data: {
                 "classesID"        : classesID, 
                 "studentID"        : studentID, 
@@ -321,7 +343,9 @@ $('#prev_add_payment').on('click', function(e){
                 "weaver"           : weaver,
                 "fine"             : fine,
                 "created_date"     : created_date,
-                "send_whatsapp"    : isChecked_send_whatsapp
+                "send_whatsapp"    : isChecked_send_whatsapp,
+                "schoolyearID"     : '<?= $schoolyearID ?? 0?>',
+                "is_previous_year_amount" : '<?= $prev_schoolyear ?? 0?>'
             },
             dataType: "html",
             success: function(data) {
@@ -330,7 +354,7 @@ $('#prev_add_payment').on('click', function(e){
                     if(response.message){
                         alert(response.message);
                     }
-                   location.href = "<?=base_url();?>Global_payment/print_reciept/"+response.studentID+'/'+response.globalLastID;
+                   location.href = "<?=base_url();?>Global_payment/print_reciept/"+response.studentID+'/'+response.globalLastID + '/' + schoolyearID;
                 } else {
                     $('input[name^=prev_paid], input[name^=prev_weaver], input[name^=prev_fine]').toggleClass('errorClass', response.paid);
                     $('#prev_invoicename').toggleClass('errorClass', !!response.invoicename);

@@ -204,8 +204,10 @@
                 <?php 
                     echo number_format($getFeesReport->paymentamount,2);
                     $totalPaid += $getFeesReport->paymentamount;
+                    if(!empty($getFeesReport->is_previous_year_amount)){
                 ?>
-               
+                        <br/> <h6 class="text-purple" > Previous Year(<?= $getFeesReport->is_previous_year_amount?>)</h6>
+                <?php } ?>
             </td>
             <td>
                 <?php 

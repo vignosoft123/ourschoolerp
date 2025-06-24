@@ -176,7 +176,7 @@ ORDER BY i.invoiceID DESC
 	public function get_all_payment_for_report($queryArray) {
 		$this->db->select('*');
 		$this->db->from('payment');
-		$this->db->where('payment.schoolyearID',$queryArray['schoolyearID']);
+		// $this->db->where('payment.schoolyearID',$queryArray['schoolyearID']);
 
 		if((isset($queryArray['classesID']) && $queryArray['classesID'] != 0) || (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) || (isset($queryArray['studentID']) && $queryArray['studentID'] != 0)) {
 
@@ -222,6 +222,7 @@ ORDER BY i.invoiceID DESC
 		}
 
 		$query = $this->db->get();
+		// echo $this->db->last_query();die;
 		return $query->result();
 	}
 

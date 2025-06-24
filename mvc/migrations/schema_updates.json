@@ -1,5 +1,13 @@
 [
     {
+        "query": "ALTER TABLE `student` ADD `pickup_id` INT NULL DEFAULT '0' ",
+        "type": "alter",
+        "check_column": {
+            "table": "student",
+            "column": "pickup_id"
+        }
+    },
+    {
         "query": "ALTER TABLE `student` ADD `remarks` TEXT NULL DEFAULT NULL ",
         "type": "alter",
         "check_column": {
@@ -45,6 +53,14 @@
         "check_column": {
             "table": "pickup_points",
             "column": "year_id"
+        }
+    },
+    {
+        "query": "ALTER TABLE `payment` ADD `is_previous_year_amount` VARCHAR(255) NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "payment",
+            "column": "is_previous_year_amount"
         }
     },
     {

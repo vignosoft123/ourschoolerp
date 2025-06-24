@@ -425,7 +425,7 @@ class Global_payment extends Admin_Controller
                 exit;
             } else {
                 $schoolyearID       = $this->session->userdata('defaultschoolyearID');
-
+ 
                 $paids              = $this->input->post('paid');
                 $weavers            = $this->input->post('weaver');
                 $fines              = $this->input->post('fine');
@@ -446,7 +446,7 @@ class Global_payment extends Admin_Controller
                 $globalpayment['invoicename']       = $invoicename;
                 $globalpayment['invoicedescription']= $invoicedescription;
                 $globalpayment['paymentyear']       = $paymentyear;
-                $globalpayment['schoolyearID']      = $schoolyearID;
+                $globalpayment['schoolyearID']      =  !empty($this->input->post('schoolyearID')) ? $this->input->post('schoolyearID') : $schoolyearID;
 
                 $payment_date = $this->input->post('created_date') ? date("Y-m-d", strtotime($this->input->post('created_date'))) : date("Y-m-d");
 
@@ -474,7 +474,7 @@ class Global_payment extends Admin_Controller
                     for($i = 0; $i <= $j; $i++) {
                         $expPaidField = explode('-', $paids[$i]['paidFieldID']);
                         $payments[$i] = array(
-                            'schoolyearID' => $schoolyearID,
+                            'schoolyearID' =>  !empty($this->input->post('schoolyearID')) ? $this->input->post('schoolyearID') : $schoolyearID,
                             'invoiceID' => $expPaidField[1],                
                             'studentID' => $studentID,                
                             'paymentamount' => ($paids[$i]['value'] == '') ? NULL : $paids[$i]['value'],                
@@ -487,7 +487,8 @@ class Global_payment extends Admin_Controller
                             'usertypeID' => $this->session->userdata('usertypeID'),
                             'uname' => $this->session->userdata('name'),
                             'transactionID' => 'CASHANDCHEQUE'.random19(),      
-                            'globalpaymentID' => $globalLastID,                
+                            'globalpaymentID' => $globalLastID,    
+                            'is_previous_year_amount'  => $this->input->post('is_previous_year_amount') ?? 0         
                         );
 
                         if(isset($weavers[$i]['value']) || isset($fines[$i]['value'])) {
@@ -724,7 +725,7 @@ class Global_payment extends Admin_Controller
         return $res;
 	}
 
-    public function print_reciept($studentID,$globalpaymentID) {
+    public function print_reciept($studentID,$globalpaymentID,$prev_schoolyearID=0) {
         $this->data['headerassets'] = array(
             'css' => array(
                 'assets/datepicker/datepicker.css',
@@ -737,7 +738,12 @@ class Global_payment extends Admin_Controller
             )
         );
 
+        if(!empty($prev_schoolyearID)){
+        $schoolyearID   = $prev_schoolyearID;
+        }else{
         $schoolyearID   = $this->session->userdata('defaultschoolyearID'); 
+
+        }
         $this->data['single_student'] = [];
         $this->data['single_student'] = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
         $cnt = $this->db->query("select * from setting where fieldoption ='isrecieptphone' and value='1' ")->num_rows();
