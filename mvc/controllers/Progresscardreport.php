@@ -1056,7 +1056,20 @@ class Progresscardreport extends Admin_Controller {
 						// Dear parent, your children {#var#} marks are {#var#} and {#var#} and {#var#}. Total: {#var#}, From Sri Sadana Juniour College Markapur . SSEMRK
 	
 						
-					} else{
+					} else if($senderid=='SVJCPM'){ //srivenkateswara school - sender id is different 
+		        	$template1 = substr($marks_template[$key],0,-1);
+					$sndid = 'SVES';
+
+					$subs = explode(',',$template1);
+					// echo "<pre>";print_r($subs);die;
+					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
+				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
+					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
+					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
+					
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].', From '.$registered_school_name.$senderid;
+ 
+				} else{
 		        	$template1 = substr($marks_template[$key],0,-1);
 
 					$subs = explode(',',$template1);

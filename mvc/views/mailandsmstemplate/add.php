@@ -478,21 +478,21 @@
                                                 if(customCompute($usertypes)) {
                                                     foreach ($usertypes as $key => $usertype) {
                                                         if($usertype->usertypeID == 2) {
-                                                            echo '<div class="smstagdiv" id="'."sms_".$usertype->usertype.'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."sms_".$usertype->usertype.'">';
                                                                 echo $teachers;
                                                             echo '</div>';
 
                                                         } elseif($usertype->usertypeID == 3) {
-                                                            echo '<div class="smstagdiv" id="'."sms_".$usertype->usertype.'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."sms_".$usertype->usertype.'">';
                                                                 echo $students;
                                                             echo '</div>';
 
                                                         } elseif($usertype->usertypeID == 4) {
-                                                            echo '<div class="smstagdiv" id="'."sms_".$usertype->usertype.'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."sms_".$usertype->usertype.'">';
                                                                 echo $parents;
                                                             echo '</div>';
                                                         }  else {
-                                                            echo '<div class="smstagdiv" id="'."sms_".str_replace(' ', '', $usertype->usertype).'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."sms_".str_replace(' ', '', $usertype->usertype).'">';
                                                                 echo $users;
                                                             echo '</div>';
 
@@ -508,19 +508,19 @@
                                         </div>
 
                                         <?php
-                                            if(form_error('sms_template'))
+                                            if(form_error('whatsapp_template'))
                                                 echo "<div class='form-group has-error' >";
                                             else
                                                 echo "<div class='form-group' >";
                                         ?>
-                                            <label for="sms_template" class="col-sm-1 control-label">
+                                            <label for="whatsapp_template" class="col-sm-1 control-label">
                                                 <?=$this->lang->line("mailandsmstemplate_template")?><span class="text-red">*</span>
                                             </label>
                                             <div class="col-sm-8">
-                                                <textarea class="form-control" style="resize: vertical;" id="sms_template" name="sms_template" ><?=set_value('sms_template')?></textarea>
+                                                <textarea class="form-control" style="resize: vertical;" id="whatsapp_template" name="whatsapp_template" ><?=set_value('whatsapp_template')?></textarea>
                                             </div>
                                             <span class="col-sm-3 control-label">
-                                                <?php echo form_error('sms_template'); ?>
+                                                <?php echo form_error('whatsapp_template'); ?>
                                             </span>
                                         </div>
                                         
@@ -707,6 +707,11 @@
         insertAtCaret("sms_template", value, 'id');
     });
 
+    $('.whatsapptagdiv > .sms_alltag').click(function() {
+        var value = $(this).val();
+        insertAtCaret("whatsapp_template", value, 'wid');
+    });
+
     $('.voicetagdiv > .sms_alltag').click(function() {
         var value = $(this).val();
         insertAtCaret("voice_template", value, 'vid');
@@ -716,6 +721,8 @@
         if(type == 'id') {
             var txtarea = document.getElementById(areaClass);
         }else if(type == 'vid'){
+            var txtarea = document.getElementById(areaClass);
+        }else if(type == 'wid'){
             var txtarea = document.getElementById(areaClass);
         } else {
             var txtarea = document.querySelector('.'+areaClass);
