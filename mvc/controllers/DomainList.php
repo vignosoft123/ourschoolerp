@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Domainlist extends CI_Controller {
+class DomainList extends CI_Controller {
 
     public function index() {
         $file_path = FCPATH . 's.txt';
