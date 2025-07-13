@@ -420,29 +420,29 @@
                                     <form class="form-horizontal" role="form" method="post">
                                         <?php echo form_hidden('type', 'whatsapp'); ?>
                                         <?php
-                                            if(form_error('sms_name'))
+                                            if(form_error('whatsapp_name'))
                                                 echo "<div class='form-group has-error' >";
                                             else
                                                 echo "<div class='form-group' >";
                                         ?>
-                                            <label for="sms_name" class="col-sm-1 control-label">
+                                            <label for="whatsapp_name" class="col-sm-1 control-label">
                                                 <?=$this->lang->line("mailandsmstemplate_name")?> <span class="text-red">*</span>
                                             </label>
                                             <div class="col-sm-4">
-                                                <input type="text" class="form-control" id="sms_name" name="sms_name" value="<?=set_value('sms_name')?>" >
+                                                <input type="text" class="form-control" id="whatsapp_name" name="whatsapp_name" value="<?=set_value('whatsapp_name')?>" >
                                             </div>
                                             <span class="col-sm-4 control-label">
-                                                <?php echo form_error('sms_name'); ?>
+                                                <?php echo form_error('whatsapp_name'); ?>
                                             </span>
                                         </div>
 
                                         <?php
-                                            if(form_error('sms_user'))
+                                            if(form_error('whatsapp_user'))
                                                 echo "<div class='form-group has-error' >";
                                             else
                                                 echo "<div class='form-group' >";
                                         ?>
-                                            <label for="sms_user" class="col-sm-1 control-label">
+                                            <label for="whatsapp_user" class="col-sm-1 control-label">
                                                 <?=$this->lang->line("mailandsmstemplate_user")?> <span class="text-red">*</span>
                                             </label>
                                             <div class="col-sm-4">
@@ -455,44 +455,45 @@
                                                         }
                                                     }
 
-                                                    echo form_dropdown("sms_user", $array, set_value("sms_user"), "id='sms_user' class='form-control select2'");
+                                                    echo form_dropdown("whatsapp_user", $array, set_value("whatsapp_user"), "id='whatsapp_user' class='form-control select2'");
                                                 ?>
                                             </div>
                                             <span class="col-sm-4 control-label">
-                                                <?php echo form_error('sms_user'); ?>
+                                                <?php echo form_error('whatsapp_user'); ?>
                                             </span>
                                         </div>
 
                                         <?php
-                                            if(form_error('sms_tags'))
+                                            if(form_error('whatsapp_tags'))
                                                 echo "<div class='form-group has-error' >";
                                             else
                                                 echo "<div class='form-group' >";
                                         ?>
-                                            <label for="sms_tags" class="col-sm-1 control-label">
+                                            <label for="whatsapp_tags" class="col-sm-1 control-label">
                                                 <?=$this->lang->line("mailandsmstemplate_tags")?>
                                             </label>
                                             <div class="col-sm-8" >
-                                                <div class="col-sm-12 border" id="sms_tags">
+                                                <div class="col-sm-12 border" id="whatsapp_tags">
                                                 <?php
+                                            //    echo "<pre>"; print_r($usertypes);
                                                 if(customCompute($usertypes)) {
                                                     foreach ($usertypes as $key => $usertype) {
                                                         if($usertype->usertypeID == 2) {
-                                                            echo '<div class="whatsapptagdiv" id="'."sms_".$usertype->usertype.'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."whatsapp_".$usertype->usertype.'">';
                                                                 echo $teachers;
                                                             echo '</div>';
 
                                                         } elseif($usertype->usertypeID == 3) {
-                                                            echo '<div class="whatsapptagdiv" id="'."sms_".$usertype->usertype.'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."whatsapp_".$usertype->usertype.'">';
                                                                 echo $students;
                                                             echo '</div>';
 
                                                         } elseif($usertype->usertypeID == 4) {
-                                                            echo '<div class="whatsapptagdiv" id="'."sms_".$usertype->usertype.'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."whatsapp_".$usertype->usertype.'">';
                                                                 echo $parents;
                                                             echo '</div>';
                                                         }  else {
-                                                            echo '<div class="whatsapptagdiv" id="'."sms_".str_replace(' ', '', $usertype->usertype).'">';
+                                                            echo '<div class="whatsapptagdiv" id="'."whatsapp_".str_replace(' ', '', $usertype->usertype).'">';
                                                                 echo $users;
                                                             echo '</div>';
 
@@ -503,7 +504,7 @@
                                                 </div>
                                             </div>
                                             <span class="col-sm-3 control-label">
-                                                <?php echo form_error('sms_tags'); ?>
+                                                <?php echo form_error('whatsapp_tags'); ?>
                                             </span>
                                         </div>
 

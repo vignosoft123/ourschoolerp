@@ -127,7 +127,7 @@ class Global_payment extends Admin_Controller
                 $this->data['weavereds'] = $allWeaverList;
 
                 $this->data['globalpayment_max'] = $this->globalpayment_m->get_max_globalpayment();
-                // print_r($this->data['globalpayments']);
+                // echo "<pre>";print_r($allPaymentList);die;
                 if(customCompute($this->data['single_student'])) {
                     $single_student = $this->data['single_student'];
 
@@ -189,6 +189,22 @@ class Global_payment extends Admin_Controller
         $weaverandfine = pluck($this->weaverandfine_m->get_weaverandfine(), 'obj', 'paymentID');
 
         if(customCompute($payments)) {
+
+             $invoiceIDs = array_map(function($p) {
+                        return $p->invoiceID;
+                    }, $payments);
+
+                    $invoiceIDs = array_unique($invoiceIDs);
+                    $this->db->select('invoiceID, feetype');
+                    $this->db->from('invoice');
+                    $this->db->where_in('invoiceID', $invoiceIDs);
+                    $query = $this->db->get();
+                    $invoices = $query->result();
+                    $invoiceMap = [];
+                    foreach ($invoices as $inv) {
+                        $invoiceMap[$inv->invoiceID] = $inv->feetype;
+                    }
+
             foreach ($payments as $payment) {
                 $returnArray['paid'][$payment->globalpaymentID] = isset($returnArray['paid'][$payment->globalpaymentID]) ?  $returnArray['paid'][$payment->globalpaymentID] + $payment->paymentamount :  $payment->paymentamount;
 
@@ -210,6 +226,18 @@ class Global_payment extends Admin_Controller
                     if(!isset($returnArray['paiddate'][$payment->globalpaymentID])) {
                         $returnArray['paiddate'][$payment->globalpaymentID] = $payment->paymentdate;
                     }
+
+                    // if(!isset($returnArray['invoice_id'][$payment->globalpaymentID])) {
+                    //     $returnArray['invoice_id'][$payment->globalpaymentID] = $payment->invoiceID;
+                    // }
+
+                     if (!isset($returnArray['invoice_id'][$payment->globalpaymentID])) {
+                        // Get feetype from invoiceMap using invoiceID
+                        $feetypeName = isset($invoiceMap[$payment->invoiceID]) ? $invoiceMap[$payment->invoiceID] : '';
+                        $returnArray['invoice_id'][$payment->globalpaymentID] = $feetypeName;
+                    }
+                   
+
                 }
             }
         }

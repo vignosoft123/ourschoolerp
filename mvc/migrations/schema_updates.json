@@ -117,5 +117,29 @@
             "table": "invoice",
             "column": "schoolyearID"
         }
+    },
+        {
+        "query": "ALTER TABLE `section` CHANGE `category` `category` VARCHAR(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "section",
+            "column": "category"
+        }
+    },
+        {
+        "query": "ALTER TABLE `section` CHANGE `capacity` `capacity` INT(11) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "section",
+            "column": "capacity"
+        }
+    },
+        {
+        "query": "ALTER TABLE `section` CHANGE `teacherID` `teacherID` INT(11) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "section",
+            "column": "teacherID"
+        }
     }
 ]

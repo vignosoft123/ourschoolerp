@@ -147,6 +147,7 @@ foreach($getDueFeesReports as $report) {
             <th><?=$this->lang->line('slno')?></th>
             <th><?=$this->lang->line('duefeesreport_invoice_date')?></th>
             <th><?=$this->lang->line('duefeesreport_name')?></th>
+            <th>Phone</th>
             <th><?=$this->lang->line('duefeesreport_registerNO')?></th>
             <th><?=$this->lang->line('duefeesreport_roll')?></th>
 
@@ -166,6 +167,7 @@ foreach($getDueFeesReports as $report) {
                 <td><?=$i++?></td>
                 <td><?=date('d M Y', strtotime($entry['invoice_date']))?></td>
                 <td><?=$entry['student'] ? $entry['student']->srname : ''?></td>
+                <td><?=$entry['student'] ? $entry['student']->phone : ''?></td>
                 <td><?=$entry['student'] ? $entry['student']->srregisterNO : ''?></td>
                 <td><?=$entry['student'] ? $entry['student']->srroll : ''?></td>
 

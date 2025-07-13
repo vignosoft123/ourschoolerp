@@ -154,7 +154,10 @@
                                     </td>
 
                                     <td data-title="Fee Type">
-                                        <?php foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType){
+                                        <?php 
+                                        // echo "<pre>";print_r($grandtotalandpayment['fee_types']);
+                                        //   echo "<pre>=====";  print_r([$maininvoice->maininvoiceID]);
+                                        foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType){
                                             
                                             ?>
 

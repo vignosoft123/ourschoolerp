@@ -24,9 +24,40 @@ class Assignment extends Api_Controller
             $fetchClasses = pluck($this->retdata['classes'], 'classesID', 'classesID');
             if(isset($fetchClasses[$id])) {
                 $this->retdata['classesID'] = $id;
-                $this->retdata['sections'] = pluck($this->section_m->general_get_order_by_section(array('classesID' => $id)), 'section', 'sectionID');
-                $schoolyearID = $this->session->userdata('defaultschoolyearID');
-                $this->retdata['assignments'] = $this->assignment_m->join_get_assignment($id, $schoolyearID);
+                // $this->retdata['sections'] = pluck($this->section_m->general_get_order_by_section(array('classesID' => $id)), 'section', 'sectionID');
+                // $schoolyearID = $this->session->userdata('defaultschoolyearID');
+                // $this->retdata['assignments'] = $this->assignment_m->join_get_assignment($id, $schoolyearID);
+
+                $this->retdata['sections'] = pluck(
+                $this->section_m->general_get_order_by_section(['classesID' => $id]),
+                'section',   // value
+                'sectionID'  // key
+            );
+
+            $schoolyearID = $this->session->userdata('defaultschoolyearID');
+            $assignments = $this->assignment_m->join_get_assignment($id, $schoolyearID);
+
+            foreach ($assignments as &$assignment) {
+                // Decode sectionID JSON string
+                $sectionIDs = json_decode($assignment->sectionID, true);
+
+                $sectionNames = [];
+                if (is_array($sectionIDs)) {
+                    foreach ($sectionIDs as $sectionID) {
+                        if (isset($this->retdata['sections'][$sectionID])) {
+                            $sectionNames[] = $this->retdata['sections'][$sectionID];
+                        }
+                    }
+                }
+
+                // Add section names as new property
+                $assignment->section_names = $sectionNames;
+            }
+
+            $this->retdata['homework'] = $assignments;
+
+
+
             } else {
                 $this->retdata['classesID'] = 0;
                 $this->retdata['assignments'] = [];

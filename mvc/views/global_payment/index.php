@@ -186,6 +186,7 @@
                                         <thead>
                                             <tr>
                                                 <th><?=$this->lang->line('global_invoice_number')?></th>
+                                                <th>Fee Type</th>
                                                 <th><?=$this->lang->line('global_total_pay')?></th> 
                                                 <th>Discount</th>
                                                 <th><?=$this->lang->line('global_fine')?></th>
@@ -199,7 +200,9 @@
                                             <?php $invoice_total = 0; $invoice_weaver = 0; $invoice_fine = 0; $invoice_paid_fine = 0; if(customCompute($globalpayments)) { foreach ($globalpayments as $globalpayment) { ?>
 
                                                 <?php
+                                              
                                                 // echo '<pre>';print_r($paidpayments);die;
+
                                                     $tpaid = 0;
                                                     $tfine = 0;
                                                     if(isset($paidpayments['paid'][$globalpayment->globalpaymentID])) {
@@ -228,8 +231,10 @@
                                                 <tr>
                                                     <td><?='INV-G-'.$globalpayment->globalpaymentID?></td>
 
+                                                    <td class="text-green"><?=isset($paidpayments['invoice_id'][$globalpayment->globalpaymentID]) ? $paidpayments['invoice_id'][$globalpayment->globalpaymentID] : '' ?></td> 
+                                                    
 
-                                                    <td><?=isset($paidpayments['paid'][$globalpayment->globalpaymentID]) ? $paidpayments['paid'][$globalpayment->globalpaymentID] : 0 ?></td>
+                                                    <td class="text-blue"><?=isset($paidpayments['paid'][$globalpayment->globalpaymentID]) ? $paidpayments['paid'][$globalpayment->globalpaymentID] : 0 ?></td>
 
                                                     <td><?=isset($paidpayments['weaver'][$globalpayment->globalpaymentID]) ? $paidpayments['weaver'][$globalpayment->globalpaymentID] : 0 ?></td>
 
