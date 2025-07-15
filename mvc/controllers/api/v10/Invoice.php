@@ -23,62 +23,84 @@ class Invoice extends Api_Controller
     }
 
     public function index_get() 
-    {
-        $usertypeID = $this->session->userdata("usertypeID");
-        $schoolyearID = $this->session->userdata("defaultschoolyearID");
-        if($usertypeID == 3) {
-            $username = $this->session->userdata("username");
-            $student  = $this->student_m->get_single_student(array("username" => $username));
-            if(customCompute($student)) {
-                $this->retdata['maininvoices'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_studentID($student->studentID, $schoolyearID);
-                $this->retdata['grandtotalandpayment'] = $this->grandtotalandpaid($this->retdata['maininvoices'], $schoolyearID);
+{
+    $usertypeID    = $this->session->userdata("usertypeID");
+    $schoolyearID  = $this->session->userdata("defaultschoolyearID");
 
-                $this->response([
-                    'status'    => true,
-                    'message'   => 'Success',
-                    'data'      => $this->retdata
-                ], REST_Controller::HTTP_OK);
-            } else {
-                $this->response([
-                    'status' => false,
-                    'message' => 'Error 404',
-                    'data' => []
-                ], REST_Controller::HTTP_NOT_FOUND);
-            }
-        } elseif($usertypeID == 4) {
-            $parentID = $this->session->userdata("loginuserID");
-            $students = $this->studentrelation_m->get_order_by_student(array('parentID' => $parentID, 'srschoolyearID' => $schoolyearID));
-            if(customCompute($students)) {
-                $studentArray = pluck($students, 'srstudentID');
-                $this->retdata['maininvoices'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_multi_studentID($studentArray, $schoolyearID);
-                $this->retdata['grandtotalandpayment'] = $this->grandtotalandpaid($this->retdata['maininvoices'], $schoolyearID);
-                
-                $this->response([
-                    'status'    => true,
-                    'message'   => 'Success',
-                    'data'      => $this->retdata
-                ], REST_Controller::HTTP_OK);
-            } else {
-                $this->retdata['maininvoices'] = [];
-                $this->retdata['grandtotalandpayment'] = [];
+    if ($usertypeID == 3) {
+        $username = $this->session->userdata("username");
+        $student  = $this->student_m->get_single_student(array("username" => $username));
 
-                $this->response([
-                    'status'    => true,
-                    'message'   => 'Success',
-                    'data'      => $this->retdata
-                ], REST_Controller::HTTP_OK);
-            }
-        } else {
-            $this->retdata['maininvoices'] = $this->maininvoice_m->get_maininvoice_with_studentrelation($schoolyearID);
+        if (customCompute($student)) {
+            $this->retdata['maininvoices'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_studentID($student->studentID, $schoolyearID);
             $this->retdata['grandtotalandpayment'] = $this->grandtotalandpaid($this->retdata['maininvoices'], $schoolyearID);
-            
+        } else {
             $this->response([
-                'status'    => true,
-                'message'   => 'Success',
-                'data'      => $this->retdata
-            ], REST_Controller::HTTP_OK);
+                'status'  => false,
+                'message' => 'Error 404',
+                'data'    => []
+            ], REST_Controller::HTTP_NOT_FOUND);
+            return;
         }
+
+    } elseif ($usertypeID == 4) {
+        $parentID = $this->session->userdata("loginuserID");
+        $students = $this->studentrelation_m->get_order_by_student(array(
+            'parentID'       => $parentID,
+            'srschoolyearID' => $schoolyearID
+        ));
+
+        if (customCompute($students)) {
+            $studentArray = pluck($students, 'srstudentID');
+            $this->retdata['maininvoices'] = $this->maininvoice_m->get_maininvoice_with_studentrelation_by_multi_studentID($studentArray, $schoolyearID);
+            $this->retdata['grandtotalandpayment'] = $this->grandtotalandpaid($this->retdata['maininvoices'], $schoolyearID);
+        } else {
+            $this->retdata['maininvoices'] = [];
+            $this->retdata['grandtotalandpayment'] = [];
+        }
+
+    } else {
+        $this->retdata['maininvoices'] = $this->maininvoice_m->get_maininvoice_with_studentrelation($schoolyearID);
+        $this->retdata['grandtotalandpayment'] = $this->grandtotalandpaid($this->retdata['maininvoices'], $schoolyearID);
     }
+
+    // Extract each totals array
+    $grandTotals    = $this->retdata['grandtotalandpayment']['grandtotal']    ?? [];
+    $totalAmounts   = $this->retdata['grandtotalandpayment']['totalamount']   ?? [];
+    $totalDiscounts = $this->retdata['grandtotalandpayment']['totaldiscount'] ?? [];
+    $totalPayments  = $this->retdata['grandtotalandpayment']['totalpayment']  ?? [];
+    $totalWeavers   = $this->retdata['grandtotalandpayment']['totalweaver']   ?? [];
+    $totalFines     = $this->retdata['grandtotalandpayment']['totalfine']     ?? [];
+
+    // Attach all values to each invoice
+    foreach ($this->retdata['maininvoices'] as &$invoice) {
+        $id = $invoice->maininvoiceID;
+
+        $amount    = isset($totalAmounts[$id])   ? floatval($totalAmounts[$id])   : 0;
+        $discount  = isset($totalDiscounts[$id]) ? floatval($totalDiscounts[$id]) : 0;
+        $payment   = isset($totalPayments[$id])  ? floatval($totalPayments[$id])  : 0;
+        $weaver    = isset($totalWeavers[$id])   ? floatval($totalWeavers[$id])   : 0;
+        $fine      = isset($totalFines[$id])     ? floatval($totalFines[$id])     : 0;
+
+        $invoice->totalamount   = $amount;
+        $invoice->totaldiscount = $discount;
+        $invoice->totalpayment  = $payment;
+        $invoice->totalweaver   = $weaver;
+        $invoice->totalfine     = $fine;
+        $invoice->balance       = $amount - $discount - $payment - $weaver;
+    }
+    unset($invoice); // clean reference
+
+    // Remove separate totals from response
+    unset($this->retdata['grandtotalandpayment']);
+
+    $this->response([
+        'status'  => true,
+        'message' => 'Success',
+        'data'    => $this->retdata
+    ], REST_Controller::HTTP_OK);
+}
+
 
     public function view_get($id = null) 
     {
@@ -322,7 +344,9 @@ class Invoice extends Api_Controller
                     }
                 }
 
-                $this->retdata['paymentlists'] = $paymentlists;
+                // $this->retdata['paymentlists'] = $paymentlists;
+                $this->retdata['paymentlists'] = array_values($paymentlists);
+
                 $this->response([
                     'status'    => true,
                     'message'   => 'Success',
