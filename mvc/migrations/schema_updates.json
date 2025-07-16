@@ -1,5 +1,21 @@
 [
     {
+        "query": "ALTER TABLE `student` ADD COLUMN `device_token` VARCHAR(255) DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "student",
+            "column": "device_token"
+        }
+    },
+    {
+        "query": "ALTER TABLE `student` ADD COLUMN `platform` VARCHAR(255) DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "student",
+            "column": "platform"
+        }
+    },
+    {
         "query": "ALTER TABLE `student` ADD `pickup_id` INT NULL DEFAULT '0' ",
         "type": "alter",
         "check_column": {

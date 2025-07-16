@@ -220,4 +220,15 @@ class student_m extends MY_Model {
 		$this->db->update('parents', $data, "parentsID = '".$id."'");
 		return TRUE;
 	}
+
+	public function get_tokens_by_studentIDs($studentIDs) {
+    $this->db->select('studentID, device_token');
+    $this->db->from('student');
+    $this->db->where_in('studentID', $studentIDs);
+    $this->db->where('device_token !=', NULL);
+    $query = $this->db->get();
+    return $query->result();
+}
+
+
 }
