@@ -29,6 +29,12 @@ class Mailandsmstemplate extends Admin_Controller {
 		$this->load->view('_layout_main', $this->data);
 	}
 
+	public function whatsapp_index() {
+		$this->data['mailandsmstemplates'] = $this->mailandsmstemplate_m->get_order_by_whatsapptemplate_with_usertypeID();
+		$this->data["subview"] = "mailandsmstemplate/whatsapp_index";
+		$this->load->view('_layout_main', $this->data);
+	}
+
 	protected function rules_email() {
 		$rules = array(
 				array(
@@ -201,6 +207,35 @@ class Mailandsmstemplate extends Admin_Controller {
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 					redirect(base_url('mailandsmstemplate/index'));
 				}
+			} elseif($type == "whatsapp") {
+				$this->data["email"] = 0;
+				$this->data["sms"] = 0;
+				$this->data["whatsapp"] = 1;
+				$this->data["email_user"] = 'select';
+				$this->data["sms_user"] = $this->input->post('sms_user');
+				//$rules = $this->rules_sms();
+				// $this->form_validation->set_rules($rules);
+				// if ($this->form_validation->run() == FALSE) {
+				// 	$this->data['form_validation'] = validation_errors();
+				// 	$this->data["subview"] = "mailandsmstemplate/add";
+				// 	$this->load->view('_layout_main', $this->data);
+				// } else {
+					$array = array(
+						'template_name' => $this->input->post('whatsapp_name'),
+						'usertypeID' => $this->input->post('whatsapp_user'),
+						'type' => $this->input->post('type'),
+						'template' => $this->input->post('whatsapp_temp_name'),
+						'templ_id' => $this->input->post('template_id'),
+						'params' => $this->input->post('params'),
+						'short_name' => $this->input->post('short_name'),
+					);
+
+					// $this->mailandsmstemplate_m->insert_mailandsmstemplate($array);
+
+					$this->db->insert('whatapp_templates',$array);
+					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+					redirect(base_url('mailandsmstemplate/index'));
+				//}
 			}
 		} else {
 			$this->data["email"] = 1;
@@ -374,7 +409,14 @@ class Mailandsmstemplate extends Admin_Controller {
 
 	public function delete() {
 		$id = htmlentities(escapeString($this->uri->segment(3)));
+		$whatsapp = htmlentities(escapeString($this->uri->segment(4)));
 		if((int)$id) {
+			if($whatsapp == 'whatsapp'){
+				$this->db->where('mailandsmstemplateID',$id);
+				$this->db->delete('whatapp_templates');
+				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+				redirect(base_url("mailandsmstemplate/whatsapp_index"));
+			}else{
 			$this->data['mailandsmstemplate'] = $this->mailandsmstemplate_m->get_mailandsmstemplate($id);
 			if($this->data['mailandsmstemplate']) {
 				$this->mailandsmstemplate_m->delete_mailandsmstemplate($id);
@@ -383,10 +425,13 @@ class Mailandsmstemplate extends Admin_Controller {
 			} else {
 				redirect(base_url("mailandsmstemplate/index"));
 			}
+		}
 		} else {
 			redirect(base_url("mailandsmstemplate/index"));
 		}
 	}
+
+ 
 
 	public function all_tag($usertypes) {
 		if(is_array($usertypes)) {

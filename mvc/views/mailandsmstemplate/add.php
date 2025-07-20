@@ -509,19 +509,36 @@
                                         </div>
 
                                         <?php
-                                            if(form_error('whatsapp_template'))
+                                            if(form_error('params'))
                                                 echo "<div class='form-group has-error' >";
                                             else
                                                 echo "<div class='form-group' >";
                                         ?>
-                                            <label for="whatsapp_template" class="col-sm-1 control-label">
-                                                <?=$this->lang->line("mailandsmstemplate_template")?><span class="text-red">*</span>
+                                            <label for="params" class="col-sm-1 control-label">
+                                                Params <span class="text-red">*</span>
                                             </label>
                                             <div class="col-sm-8">
-                                                <textarea class="form-control" style="resize: vertical;" id="whatsapp_template" name="whatsapp_template" ><?=set_value('whatsapp_template')?></textarea>
+                                                <textarea class="form-control" style="resize: vertical;" id="whatsapp_template" name="params" ><?=set_value('params')?></textarea>
                                             </div>
                                             <span class="col-sm-3 control-label">
                                                 <?php echo form_error('whatsapp_template'); ?>
+                                            </span>
+                                        </div>
+
+                                        <?php
+                                            if(form_error('whatsapp_temp_name'))
+                                                echo "<div class='form-group has-error' >";
+                                            else
+                                                echo "<div class='form-group' >";
+                                        ?>
+                                            <label for="whatsapp_temp_name" class="col-sm-1 control-label">
+                                                Whatsap Template <span class="text-red">*</span>
+                                            </label>
+                                            <div class="col-sm-8">
+                                                <textarea class="form-control" style="resize: vertical;" id="whatsapp_temp_name" name="whatsapp_temp_name" ><?=set_value('template')?></textarea>
+                                            </div>
+                                            <span class="col-sm-3 control-label">
+                                                <?php echo form_error('whatsapp_temp_name'); ?>
                                             </span>
                                         </div>
                                         

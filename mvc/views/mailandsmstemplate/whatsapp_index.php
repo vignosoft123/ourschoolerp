@@ -1,14 +1,15 @@
 
 <div class="box">
     <div class="box-header">
-       <a href="<?php echo base_url('mailandsmstemplate/index');?>"> <h3 class="box-title"><i class="fa icon-template"></i> <?=$this->lang->line('panel_title')?></h3></a>
 
+    <a href="<?php echo base_url('mailandsmstemplate/index');?>"> <h3 class="box-title"><i class="fa icon-template"></i> <?=$this->lang->line('panel_title')?></h3></a>
+    
         <a href="<?php echo base_url('mailandsmstemplate/whatsapp_index');?>"> <h3 class="box-title"><i class="fa icon-template"></i> Whatsapp Templates</h3></a>
 
        
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
-            <li class="active"><?=$this->lang->line('menu_mailandsmstemplate')?></li>
+            <li class="active">Whatsapp Templates</li>
         </ol>
     </div><!-- /.box-header -->
     <!-- form start -->
@@ -32,8 +33,8 @@
                         <thead>
                             <tr>
                                 <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
-                                <th class="col-sm-2"><?=$this->lang->line('mailandsmstemplate_name')?></th>
-                                <th class="col-sm-2"><?=$this->lang->line('mailandsmstemplate_type')?></th>
+                                <th class="col-sm-2">Temaplate Name</th>
+                                <th class="col-sm-2">Params</th>
                                 <th class="col-sm-2"><?=$this->lang->line('mailandsmstemplate_user')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('mailandsmstemplate_template')?></th>
                                 <th class="col-sm-1">Template ID</th>
@@ -49,12 +50,12 @@
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
                                     </td>
-                                    <td data-title="<?=$this->lang->line('mailandsmstemplate_name')?>">
+                                    <td data-title="<?=$this->lang->line('template_name')?>">
                                         <?php 
-                                            if(strlen($mailandsmstemplate->name) > 25)
-                                                echo substr($mailandsmstemplate->name, 0, 25)."...";
+                                            if(strlen($mailandsmstemplate->template_name) > 25)
+                                                echo substr($mailandsmstemplate->template_name, 0, 25)."...";
                                             else 
-                                                echo substr($mailandsmstemplate->name, 0, 25);
+                                                echo substr($mailandsmstemplate->template_name, 0, 25);
                                         ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('mailandsmstemplate_type')?>">
@@ -76,14 +77,14 @@
                                     <td data-title="Template ID">
                                         <?php echo $mailandsmstemplate->templ_id; ?>
                                     </td>
-                                    <?php if(permissionChecker('mailandsmstemplate_edit') || permissionChecker('mailandsmstemplate_delete') || permissionChecker('mailandsmstemplate_view')) {
+                                    <?php //if(permissionChecker('mailandsmstemplate_edit') || permissionChecker('mailandsmstemplate_delete') || permissionChecker('mailandsmstemplate_view')) {
                                     ?>
                                     <td data-title="<?=$this->lang->line('action')?>">
-                                        <?php echo btn_view('mailandsmstemplate/view/'.$mailandsmstemplate->mailandsmstemplateID, $this->lang->line('view')) ?>
-                                        <?php echo btn_edit('mailandsmstemplate/edit/'.$mailandsmstemplate->mailandsmstemplateID, $this->lang->line('edit')) ?>
-                                        <?php echo btn_delete('mailandsmstemplate/delete/'.$mailandsmstemplate->mailandsmstemplateID, $this->lang->line('delete')) ?>
+                                        <?php //echo btn_view('mailandsmstemplate/view/'.$mailandsmstemplate->mailandsmstemplateID, $this->lang->line('view')) ?>
+                                        <?php //echo btn_edit('mailandsmstemplate/edit/'.$mailandsmstemplate->mailandsmstemplateID, $this->lang->line('edit')) ?>
+                                        <?php echo btn_delete('mailandsmstemplate/delete/'.$mailandsmstemplate->mailandsmstemplateID.'/whatsapp', $this->lang->line('delete')) ?>
                                     </td>
-                                    <?php } ?>
+                                    <?php //} ?>
                                 </tr>
                             <?php $i++; }} ?>
                         </tbody>

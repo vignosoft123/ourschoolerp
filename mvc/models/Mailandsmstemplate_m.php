@@ -44,6 +44,15 @@ class Mailandsmstemplate_m extends MY_Model {
 		$query = $this->db->get();
 		return $query->result();
 	}
+
+	function get_order_by_whatsapptemplate_with_usertypeID() {
+		$this->db->select('*');
+		$this->db->from('whatapp_templates');
+		$this->db->join('usertype', 'usertype.usertypeID = whatapp_templates.usertypeID', 'LEFT');
+		$this->db->order_by('mailandsmstemplateID','DESC');
+		$query = $this->db->get();
+		return $query->result();
+	}
 }
 
 /* End of file notice_m.php */
