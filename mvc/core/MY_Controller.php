@@ -29,7 +29,7 @@ class MY_Controller extends CI_Controller {
         $this->load->library('session');
 
          // 1. Get subdomain
-        /* $subdomain = get_subdomain(); // defined in helper below
+         /*$subdomain = get_subdomain(); // defined in helper below
          if (!$subdomain) {
              show_error("Invalid subdomain.");
          }

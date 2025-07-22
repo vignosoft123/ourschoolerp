@@ -71,6 +71,7 @@
                             </thead>
                             <tbody>
                                 <?php
+                                // echo "<pre>";print_r($students);die;
                                     $i = 1;
                                     $flag = 0;
                                     foreach($students as $student) {
