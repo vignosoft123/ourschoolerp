@@ -490,4 +490,16 @@ class Profile extends Api_Controller {
 		}
 		return $retArray;
 	}
+
+	public function get_mobile_menus_get() {
+		$this->db->where('status',1);
+		$menus =$this->db->get('mobile_menu')->result();
+		 
+		$this->response([
+			'status' => true,
+			'message' => 'Success',
+			'data' => $menus
+		], REST_Controller::HTTP_OK);
+	}
+
 }

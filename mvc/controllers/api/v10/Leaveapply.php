@@ -13,18 +13,44 @@ class Leaveapply extends Api_Controller
         $this->load->model('leaveassign_m');
     }
 
-    public function index_get() 
-    {
-        $schoolyearID = $this->session->userdata('defaultschoolyearID');
-        $this->retdata['leaveapplications'] = $this->leaveapplication_m->get_order_by_leaveapply_with_user(array('leaveapplications.schoolyearID' => $schoolyearID, 'leaveapplications.create_usertypeID' => $this->session->userdata('usertypeID'), 'leaveapplications.create_userID' => $this->session->userdata('loginuserID')));
-        $this->retdata['leavecategorys'] = pluck($this->leavecategory_m->get_leavecategory(), 'leavecategory', 'leavecategoryID');
+    // public function index_get() 
+    // {
+    //     $schoolyearID = $this->session->userdata('defaultschoolyearID');
+    //     $this->retdata['leaveapplications'] = $this->leaveapplication_m->get_order_by_leaveapply_with_user(array('leaveapplications.schoolyearID' => $schoolyearID, 'leaveapplications.create_usertypeID' => $this->session->userdata('usertypeID'), 'leaveapplications.create_userID' => $this->session->userdata('loginuserID')));
+    //     $this->retdata['leavecategorys'] = pluck($this->leavecategory_m->get_leavecategory(), 'leavecategory', 'leavecategoryID');
 
-        $this->response([
-            'status'    => true,
-            'message'   => 'Success',
-            'data'      => $this->retdata
-        ], REST_Controller::HTTP_OK);
+    //     $this->response([
+    //         'status'    => true,
+    //         'message'   => 'Success',
+    //         'data'      => $this->retdata
+    //     ], REST_Controller::HTTP_OK);
+    // }
+
+public function index_get() 
+{
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    $this->retdata['leaveapplications'] = $this->leaveapplication_m->get_order_by_leaveapply_with_user([
+        'leaveapplications.schoolyearID'        => $schoolyearID,
+        'leaveapplications.create_usertypeID'   => $this->session->userdata('usertypeID'),
+        'leaveapplications.create_userID'       => $this->session->userdata('loginuserID')
+    ]);
+
+    $leavecategories = pluck($this->leavecategory_m->get_leavecategory(), 'leavecategory', 'leavecategoryID');
+
+    foreach ($this->retdata['leaveapplications'] as &$leave) {
+        $leave->leavecategory_name = isset($leavecategories[$leave->leavecategoryID]) ? $leavecategories[$leave->leavecategoryID] : '';
     }
+    unset($leave);
+
+    $this->response([
+        'status'  => true,
+        'message' => 'Success',
+        'data'    => $this->retdata
+    ], REST_Controller::HTTP_OK);
+}
+
+
 
     public function view_get($id = null) 
     {
