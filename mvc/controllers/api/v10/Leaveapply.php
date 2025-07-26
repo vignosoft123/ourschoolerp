@@ -147,4 +147,87 @@ public function index_get()
         $retArray['totaldayCount']   = $totaldayCount;
         return $retArray;
     }
-}
+
+ 
+    // ✅ Add Leave (POST)
+    public function add_leave_post() {
+     $input = json_decode(trim(file_get_contents('php://input')), true);
+
+        if (!isset($input['leave_schedule']) || !isset($input['leavecategoryID'])) {
+            return $this->response(['status' => false, 'message' => 'Missing required fields'], REST_Controller::HTTP_BAD_REQUEST);
+        }
+
+        $explode = explode('-', $input['leave_schedule']);
+        $from_date = date("Y-m-d", strtotime(trim($explode[0])));
+        $to_date   = date("Y-m-d", strtotime(trim($explode[1])));
+        $leave_days = $this->leavedayscustomCompute(trim($explode[0]), trim($explode[1]));
+        $leave_days = isset($leave_days['totaldayCount']) ? $leave_days['totaldayCount'] : 0;
+
+        $data = [
+            'from_date'               => $from_date,
+            'to_date'                 => $to_date,
+            'leave_days'             => $leave_days,
+            'leavecategoryID'        => $input['leavecategoryID'],
+            'applicationto_usertypeID' => $input['applicationto_usertypeID'] ?? 0,
+            'applicationto_userID'   => $input['applicationto_userID'] ?? 0,
+            'reason'                 => $input['reason'] ?? '',
+            'attachment'             => '', // file upload logic needed
+            'attachmentorginalname'  => '',
+            'from_time'              => date('H:i:s'),
+            'to_time'                => date('H:i:s'),
+            'create_date'            => date('Y-m-d H:i:s'),
+            'modify_date'            => date('Y-m-d H:i:s'),
+            'create_userID'          => $this->session->userdata('loginuserID'),
+            'create_usertypeID'      => $this->session->userdata('usertypeID'),
+            'schoolyearID'           => $this->session->userdata('defaultschoolyearID'),
+            'od_status'              => $input['od_status'] ?? 0
+        ];
+
+        $this->leaveapplication_m->insert_leaveapplication($data);
+         return $this->response(['status' => true, 'message' => 'Leave application added successfully'], REST_Controller::HTTP_OK);
+    }
+
+    // ✅ Edit Leave (PUT)
+    public function edit_leave_put($id) {
+        $input = $this->put();
+
+        if (!$id || empty($input['leave_schedule'])) {
+            return $this->response(['status' => false, 'message' => 'Invalid input'], REST_Controller::HTTP_BAD_REQUEST);
+        }
+
+        $explode = explode('-', $input['leave_schedule']);
+        $from_date = date("Y-m-d", strtotime(trim($explode[0])));
+        $to_date   = date("Y-m-d", strtotime(trim($explode[1])));
+        $leave_days = $this->leavedayscustomCompute(trim($explode[0]), trim($explode[1]));
+        $leave_days = isset($leave_days['totaldayCount']) ? $leave_days['totaldayCount'] : 0;
+
+        $data = [
+            'from_date'               => $from_date,
+            'to_date'                 => $to_date,
+            'leave_days'              => $leave_days,
+            'leavecategoryID'         => $input['leavecategoryID'] ?? 0,
+            'applicationto_usertypeID'=> $input['applicationto_usertypeID'] ?? 0,
+            'applicationto_userID'    => $input['applicationto_userID'] ?? 0,
+            'reason'                  => $input['reason'] ?? '',
+            'modify_date'             => date('Y-m-d H:i:s'),
+            'od_status'               => $input['od_status'] ?? 0
+        ];
+
+        $this->leaveapplication_m->update_leaveapplication($data, $id);
+
+        return $this->response(['status' => true, 'message' => 'Leave application updated'], REST_Controller::HTTP_OK);
+    }
+
+    // ✅ Delete Leave (DELETE)
+    public function delete_leave_delete($id) {
+        if (!$id) {
+            return $this->response(['status' => false, 'message' => 'Invalid ID'], REST_Controller::HTTP_BAD_REQUEST);
+        }
+
+        $this->leaveapplication_m->delete_leaveapplication($id);
+
+        return $this->response(['status' => true, 'message' => 'Leave application deleted'], REST_Controller::HTTP_OK);
+    }
+
+ 
+} 

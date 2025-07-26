@@ -607,14 +607,24 @@ class Promotion extends Admin_Controller
                         $prev_res = $this->db->query($sql)->row_array();
                         $prev_sec_name = $prev_res['srsection'];
 
+                       
+
                         $new_sec_id_res = $this->db->query("select sectionID from section where section = '$prev_sec_name' and classesID= $setClassesID ")->row_array();
                         if(is_array($new_sec_id_res) && count($new_sec_id_res) > 0){
                             $new_sec_id = $new_sec_id_res['sectionID'];
                         }else{  //create new section if not exists in new academic year
 
+                              if(empty($prev_sec_name)){
+                                $s = "select s.sectionID,sec.section from student s left join section sec on sec.sectionID=s.sectionID where studentID = $studentID and s.classesID = $previousClasseID and schoolyearID = $previousYearID";
+                               $r = $this->db->query($s)->row_array();
+                               $prev_sec_name= $r['section'];
+                            }
+
                             $s_sql = "select * from section where section = '$prev_sec_name' ";
                             $section_res = $this->db->query($s_sql)->row_array();
 
+                           
+                            
                             $array1 = array(
                                 "section" => $prev_sec_name,
                                 "category" => $section_res['category'],
