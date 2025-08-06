@@ -658,7 +658,7 @@ class Global_payment extends Admin_Controller
 
                 // print_r($entered_payment);die;
                 $student->paidamount = $entered_payment;
-                $student->category = $invoice->feetype;
+                // $student->category = $invoice->feetype;
                 $student->date = date("d-m-Y");
                 // $student->phone = $student_info->phone;
                 // echo "<pre>";print_r($student);die;
@@ -690,6 +690,8 @@ class Global_payment extends Admin_Controller
         }
     }
 
+
+    
 
     
     private function userConfigSMS($user, $getway='msg91') { 
