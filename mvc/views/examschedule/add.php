@@ -16,7 +16,7 @@ function initializeDatepickers() {//alert();
         format: 'dd-mm-yyyy',
         startDate: '01-04-2025',
         endDate: '31-03-2026',
-        daysOfWeekDisabled: "0,6",
+        daysOfWeekDisabled: "0",
         datesDisabled: ["15-08-2025", "02-10-2025"]
     });
         $('.examfrom').timepicker();

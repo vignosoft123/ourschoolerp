@@ -197,7 +197,7 @@ class Balancefeesreport extends Admin_Controller{
 
 					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new($schoolyearID,$feetypeID));
 
-				// 	echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
+					// echo "<pre>";print_r($this->data['totalPayment_split']);die;
 
 					$this->data['totalweavar'] = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
 
@@ -882,7 +882,7 @@ class Balancefeesreport extends Admin_Controller{
 	// }
 	
 
-	private function totalPaymentAndWeaver_split_original($arrays) {
+	/*private function totalPaymentAndWeaver_split($arrays) {
 		// Initialize the array to hold the total payments and remaining amounts by student ID
 		$totalPaymentByStudent = [];
 	
@@ -915,33 +915,10 @@ class Balancefeesreport extends Admin_Controller{
 	
 		// Return the total payments and remaining amounts by student ID and fee type
 		return $totalPaymentByStudent;
-	}
-
-private function totalPaymentAndWeaver_split($arrays) {
-    $totalPaymentByStudent = [];
-
-    if (customCompute($arrays)) {
-        foreach ($arrays as $array) {
-            if (isset($totalPaymentByStudent[$array->studentID][$array->feetype])) {
-                $totalPaymentByStudent[$array->studentID][$array->feetype]['paid'] += $array->total_paid;
-            } else {
-                $totalPaymentByStudent[$array->studentID][$array->feetype] = [
-                    'paid' => $array->total_paid,
-                    'total' => $array->amount,
-                    'remaining' => $array->amount - $array->total_paid
-                ];
-            }
-
-            $totalPaymentByStudent[$array->studentID][$array->feetype]['remaining'] -= $array->weaver;
-        }
-    }
-
-    return $totalPaymentByStudent;
-}
+	}*/
 
 
-
-/*	private function totalPaymentAndWeaver_split($arrays) {
+	private function totalPaymentAndWeaver_split($arrays) {
 		$totalPaymentByStudent = [];
 	
 		if (customCompute($arrays)) {
@@ -970,7 +947,7 @@ private function totalPaymentAndWeaver_split($arrays) {
 		return $totalPaymentByStudent;
 	}
 
-	*/
+	
 	
 	
     public function all_class_wise() {

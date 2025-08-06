@@ -1206,7 +1206,14 @@ class Progresscardreport extends Admin_Controller {
 			$user['dynnamic_term'] = $dynamic_term;
 			$user['srname'] = $student;
 			// print_r((object)($user));die;
-			echo $template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');
+			// echo $template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');
+
+			// Sanitize message before sending
+$template = $this->tagConvertor($userTags, (object)$user, $message, 'SMS');
+
+// Replace non-breaking spaces with regular spaces
+$template = str_replace("\xC2\xA0", ' ', $template); // UTF-8 encoded nbsp
+$template = preg_replace('/\x{00A0}/u', ' ', $template); // Unicode nbsp just in case
 
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
 		    { 	

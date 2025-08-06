@@ -130,7 +130,7 @@
                         </thead>
                         <tbody>
                             <?php
-                        //    echo "<pre>"; print_r($maininvoices);
+                        //    echo "<pre>"; print_r($maininvoices);die;
                              if(customCompute($maininvoices)) {$i = 1; 
                              foreach($maininvoices as $maininvoice) { ?>
                                 <tr>
@@ -170,7 +170,7 @@
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_total')?>">
-                                        <?php if(isset($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID])) { echo number_format($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID], 2); } else { echo '0.00'; } ?>
+                                        <?php if(isset($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID])) { echo $totl = number_format($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID], 2); } else { echo '0.00'; } ?>
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_discount')?>">
@@ -234,8 +234,18 @@
                                             $status = $maininvoice->maininvoicestatus;
                                             $setButton = ''; 
                                             if($status == 0) {
-                                                $status = $this->lang->line('invoice_notpaid');
-                                                $setButton = 'btn-danger';
+                                                // $status = $this->lang->line('invoice_notpaid');
+                                                // $setButton = 'btn-danger';
+
+                                                //  if($balance != '' || $balance != 0.00){
+                                                 if( $totl != $balance ){
+                                                        $status = $this->lang->line('invoice_partially_paid');
+                                                        $setButton = 'btn-warning';
+                                                    }else{
+                                                       $status = $this->lang->line('invoice_notpaid');
+                                                        $setButton = 'btn-danger';
+                                                    }
+
                                             } elseif(($status == 1) ) {
                                                 $status = $this->lang->line('invoice_partially_paid');
                                                 $setButton = 'btn-warning';

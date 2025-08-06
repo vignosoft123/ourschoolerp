@@ -94,7 +94,7 @@ class Payment_m extends MY_Model {
 		return $query;
 	}
 
-	public function get_order_by_payment_new_original($schoolyearID="",$fee_type=""){
+	public function get_order_by_payment_new($schoolyearID="",$fee_type=""){
 
 		$invoice_ids =array();
 		$sql = "SELECT invoiceID FROM `invoice` i where 1 ";
@@ -119,131 +119,27 @@ class Payment_m extends MY_Model {
     IFNULL(w.weaver, 0) AS weaver,
     SUM(p.paymentamount) AS paymentamount,
     p.studentID
-    FROM payment p
-    LEFT JOIN invoice i ON i.invoiceID = p.invoiceID
-    LEFT JOIN (
-        SELECT invoiceID, SUM(weaver) AS weaver
-        FROM weaverandfine
-        GROUP BY invoiceID
-    ) w ON w.invoiceID = p.invoiceID
-    WHERE p.schoolyearID = '$schoolyearID'
-    AND p.invoiceID IN ($invoiceID)
-    GROUP BY i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, p.studentID
-    ORDER BY i.invoiceID DESC
-    
-    
-    
-    ")->result();
+FROM payment p
+LEFT JOIN invoice i ON i.invoiceID = p.invoiceID
+LEFT JOIN (
+    SELECT invoiceID, SUM(weaver) AS weaver
+    FROM weaverandfine
+    GROUP BY invoiceID
+) w ON w.invoiceID = p.invoiceID
+WHERE p.schoolyearID = '$schoolyearID'
+AND p.invoiceID IN ($invoiceID)
+GROUP BY i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, p.studentID
+ORDER BY i.invoiceID DESC
 
-    echo $this->db->last_query();die;
+
+
+")->result();
+
+
 		
 		// echo "<pre>";print_r($query);die;
 		return $query;
 	}
-	
-	
-	public function get_order_by_payment_new($schoolyearID, $fee_type = null) {
-    $this->db->select('
-        s.studentID,
-        s.name AS student_name,
-        i.invoiceID,
-        i.feetype,
-        i.amount,
-        IFNULL(i.discount, 0) AS discount,
-        IFNULL(w.weaver, 0) AS weaver,
-        IFNULL(SUM(p.paymentamount), 0) AS total_paid
-    ');
-    $this->db->from('invoice i');
-    $this->db->join('student s', 's.studentID = i.studentID', 'LEFT');
-    $this->db->join(
-        '(SELECT invoiceID, SUM(weaver) AS weaver FROM weaverandfine GROUP BY invoiceID) w',
-        'w.invoiceID = i.invoiceID',
-        'LEFT'
-    );
-    $this->db->join('payment p', 'p.invoiceID = i.invoiceID AND p.schoolyearID = ' . $this->db->escape($schoolyearID), 'LEFT');
-
-    $this->db->where('i.schoolyearID', $schoolyearID);
-
-    if (!empty($fee_type)) {
-        $this->db->where('i.feetypeID', $fee_type);
-    }
-
-    $this->db->group_by('i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, s.studentID, s.name');
-    $this->db->order_by('i.invoiceID', 'DESC');
-
-    $query = $this->db->get();
-    return $query->result();
-}
-
-	
-public function get_order_by_payment_new_new($schoolyearID, $fee_type = null) {
-    $this->db->select('
-        s.studentID,
-        s.name AS student_name,
-        i.invoiceID,
-        i.feetype,
-        i.amount,
-        IFNULL(i.discount,0) AS discount,
-        IFNULL(w.weaver,0) AS weaver,
-        IFNULL(SUM(p.paymentamount),0) AS total_paid
-    ');
-    $this->db->from('invoice i');
-    $this->db->join('student s', 's.studentID = i.studentID', 'LEFT'); // adjust if student relation differs
-    $this->db->join(
-        '(SELECT invoiceID, SUM(weaver) AS weaver FROM weaverandfine GROUP BY invoiceID) w',
-        'w.invoiceID = i.invoiceID',
-        'LEFT'
-    );
-    $this->db->join('payment p', 'p.invoiceID = i.invoiceID AND p.schoolyearID = ' . $this->db->escape($schoolyearID), 'LEFT');
-    
-    if (!empty($fee_type)) {
-        $this->db->where('i.feetypeID', $fee_type);
-    }
-    $this->db->where('i.schoolyearID', $schoolyearID);
-    
-    $this->db->group_by('i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, s.studentID, s.name');
-    // Keep only invoices with no payment or zero payment
-    $this->db->having('total_paid = 0');
-
-    $query = $this->db->get();
-    return $query->result();
-}
-
-
-public function get_order_by_payment_new_summary($schoolyearID, $fee_type = null) {
-    $this->db->select('
-        s.studentID,
-        s.name AS student_name,
-        i.invoiceID,
-        i.feetype,
-        i.amount,
-        IFNULL(i.discount,0) AS discount,
-        IFNULL(w.weaver,0) AS weaver,
-        IFNULL(SUM(p.paymentamount),0) AS total_paid
-    ');
-    $this->db->from('invoice i');
-    $this->db->join('student s', 's.studentID = i.studentID', 'LEFT');
-    $this->db->join(
-        '(SELECT invoiceID, SUM(weaver) AS weaver FROM weaverandfine GROUP BY invoiceID) w',
-        'w.invoiceID = i.invoiceID',
-        'LEFT'
-    );
-    $this->db->join('payment p', 'p.invoiceID = i.invoiceID AND p.schoolyearID = ' . $this->db->escape($schoolyearID), 'LEFT');
-
-    $this->db->where('i.schoolyearID', $schoolyearID);
-    if (!empty($fee_type)) {
-        $this->db->where('i.feetypeID', $fee_type);
-    }
-
-    $this->db->group_by('i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, s.studentID, s.name');
-    $this->db->order_by('i.invoiceID', 'DESC');
-
-    $query = $this->db->get();
-    return $query->result();
-}
-
-
-
 	public function get_single_payment($array=NULL) {
 		$query = parent::get_single($array);
 		return $query;
