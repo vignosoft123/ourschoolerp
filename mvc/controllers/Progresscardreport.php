@@ -1184,6 +1184,8 @@ class Progresscardreport extends Admin_Controller {
 		$template_id = 0;
         $template = $this->mailandsmstemplate_m->get_order_by_mailandsmstemplate(array('name'=>'balance_sms'));
         $message = $template[0]->template;  
+        $templ_id = $template[0]->templ_id;  
+
 		$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
 			 
 
@@ -1215,7 +1217,7 @@ class Progresscardreport extends Admin_Controller {
 				 //$template = "Dear parent your children ".$st_names[$key]." please pay Rs ".$balance[$key]."/- on or before this month -Geethanjali School Vnk";
 			
 
-		       $campid = $res = $this->userConfigSMS($template,$mobile_no[$key]);
+		       $campid = $res = $this->userConfigSMS_balance_sms($template,$mobile_no[$key],$templ_id);
 		        // if($res==TRUE)
 		        if((int)$campid)
 		        {
@@ -1251,6 +1253,28 @@ class Progresscardreport extends Admin_Controller {
 	    $template_id = 0;
         $template = $this->mailandsmstemplate_m->get_mailandsmstemplate(9);
         $template_id = $template->templ_id;
+		if($user) {
+
+			$obj = $this->msg91->send($user, $message, $template_id); 
+				$campid = explode(":",$obj); 
+				 $campid = rtrim($campid[1],'}"');
+				 $campid = trim($campid,"'");
+				
+				if ($campid) {
+    		//if($this->msg91->send($user, $message, $template_id) == TRUE){
+    			// return TRUE;
+				return $campid;
+    		}
+		}
+	}
+
+	private function userConfigSMS_balance_sms($message, $user,$templ_id)
+	{
+	    $this->load->model('mailandsmstemplate_m');
+	    $this->load->library('msg91');
+	    $template_id = 0;
+        // $templ_id = $this->mailandsmstemplate_m->get_mailandsmstemplate(9);
+        $template_id = $templ_id;
 		if($user) {
 
 			$obj = $this->msg91->send($user, $message, $template_id); 

@@ -32,6 +32,7 @@
                         <thead>
                             <tr>
                                 <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
+                                <th class="col-sm-1">DB ID</th>
                                 <th class="col-sm-2"><?=$this->lang->line('mailandsmstemplate_name')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('mailandsmstemplate_type')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('mailandsmstemplate_user')?></th>
@@ -44,10 +45,15 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if(customCompute($mailandsmstemplates)) {$i = 1; foreach($mailandsmstemplates as $mailandsmstemplate) { ?>
+                            <?php if(customCompute($mailandsmstemplates)) {$i = 1; foreach($mailandsmstemplates as $mailandsmstemplate) { 
+                            //   echo "<pre>";  var_dump($mailandsmstemplate);die;
+                                ?>
                                 <tr>
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
+                                    </td>
+                                    <td data-title="DB ID">
+                                        <?php echo $mailandsmstemplate->mailandsmstemplateID; ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('mailandsmstemplate_name')?>">
                                         <?php 
