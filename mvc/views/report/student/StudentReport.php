@@ -43,6 +43,7 @@
                                     <th><?=$this->lang->line('studentreport_name')?></th>
                                     <th><?php echo "Father Name";?></th>
                                     <th><?=$this->lang->line('studentreport_register')?></th>
+                                    <th>Gender</th>
                                     <?php if($classesID == 0) { ?>
                                         <th><?=$this->lang->line('studentreport_class')?></th>
                                     <?php } if($sectionID == 0 || $sectionID == '') { ?>
@@ -57,6 +58,7 @@
                                 <?php
                                     $i = 1;
                                     $flag = 0;
+                                    // echo "<pre>";print_r($students);die;
                                     foreach($students as $student) {
                                 ?>
                                     <tr>
@@ -76,6 +78,10 @@
                                         <td data-title="<?=$this->lang->line('studentreport_register')?>">
                                             <?php echo $student->srregisterNO; ?>
                                         </td>
+                                        <td data-title="<?=$this->lang->line('studentreport_register')?>">
+                                            <?php echo $student->sex; ?>
+                                        </td>
+
                                         <?php if($classesID == 0) { ?>
                                             <td data-title="<?=$this->lang->line('studentreport_class')?>">
                                                 <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID]->classes : '' ?>

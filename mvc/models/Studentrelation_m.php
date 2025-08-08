@@ -353,16 +353,17 @@ class Studentrelation_m extends MY_Model {
         // $this->db->from('studentrelation');
         // $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
 
-		$this->db->select('*');
+		$this->db->select('student.*,studentrelation.*,parents.father_name as father_name');
         $this->db->from('student');
         $this->db->join('studentrelation', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+		$this->db->join('parents', 'student.parentID = parents.parentsID','left');
         // $this->db->join('villages', 'student.villageID = villages.villageID', 'LEFT');
 		
 
         if(customCompute($arrays)) {
             $this->db->where($arrays);
         }
-		$this->db->where('active',1);
+		$this->db->where('student.active',1);
         $this->db->order_by('srroll asc');
         $query = $this->db->get();
 

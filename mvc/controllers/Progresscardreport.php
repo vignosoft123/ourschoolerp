@@ -1238,7 +1238,7 @@ class Progresscardreport extends Admin_Controller {
 		    }
 		}
 		// echo $j;die;
-		if($total>0)
+		if($total>=0)
 		{
 		    $this->session->set_flashdata('success', 'Balance SMS Sent successfully.');
 		}
@@ -1323,7 +1323,12 @@ class Progresscardreport extends Admin_Controller {
 				elseif($userTag->tagname == '{{fee_amount}}') {
 					$message = str_replace("{{fee_amount}}",$user->fee_amount, $message);
 				}elseif($userTag->tagname == '{{date}}') {
-					$message = str_replace("{{date}}",$user->date, $message);
+					// Ensure we always return in d-m-Y format
+					$formattedDate = '';
+					if(!empty($user->date)) {
+						$formattedDate = date('d-m-Y', strtotime($user->date));
+					}
+					$message = str_replace("{{date}}", $formattedDate, $message);
 				}
 			}
 		}

@@ -671,7 +671,7 @@ class Studentreport extends Admin_Controller {
 		}
 	}
 
-	private function generateXML($data) {
+	private function generateXML_bkp($data) {
 		extract($data);
 		if($students) {
 			$sheet = $this->phpspreadsheet->spreadsheet->getActiveSheet();
@@ -810,6 +810,142 @@ class Studentreport extends Admin_Controller {
 			redirect('studentreport');
 		}
 	}
+
+	private function generateXML($data) {
+    extract($data);
+    if ($students) {
+        $sheet = $this->phpspreadsheet->spreadsheet->getActiveSheet();
+
+        if ($classesID == '0' && ($sectionID == '' || $sectionID == '0')) {
+            $countColumn = 10; // reduced by 1 since photo removed
+        } elseif ($classesID > 0 && $sectionID == 0) {
+            $countColumn = 7;
+        } elseif ($classesID > 0 && $sectionID > 0) {
+            $countColumn = 6;
+        }
+
+        $headerColumn = 'A';
+        $row = 1;
+        for ($j = 1; $j < $countColumn; $j++) {
+            $headerColumn++;
+        }
+
+        $className  = $this->lang->line('studentreport_class');
+        $className .= ' : ';
+        $className .= isset($classes[$classesID]) ? $classes[$classesID]->classes : $this->lang->line('studentreport_select_all_class');
+
+        $sectionName  = $this->lang->line('studentreport_section');
+        $sectionName .= ' . ';
+        $sectionName .= isset($sections[$sectionID]) ? $sections[$sectionID]->section : $this->lang->line('studentreport_select_all_section');
+
+        $sheet->setCellValue('A' . $row, $className);
+        $sheet->setCellValue($headerColumn . $row, $sectionName);
+
+        // ===== HEADERS =====
+        $headers = array();
+        $headers['slno'] = $this->lang->line('studentreport_slno');
+        $headers['name'] = $this->lang->line('studentreport_name');
+        $headers['registerNO'] = $this->lang->line('studentreport_register');
+
+        if ($classesID == 0) {
+            $headers['class'] = $this->lang->line('studentreport_class');
+        }
+        if ($sectionID == 0 || $sectionID == '') {
+            $headers['section'] = $this->lang->line('studentreport_section');
+        }
+
+        $headers['roll'] = $this->lang->line('studentreport_roll');
+        $headers['email'] = $this->lang->line('studentreport_email');
+        $headers['phone'] = $this->lang->line('studentreport_phone');
+        $headers['father_name'] = 'Father Name';
+        $headers['address'] = 'Village';
+
+        $column = 'A';
+        $row = 2;
+        foreach ($headers as $headerKey => $header) {
+            if ($headerKey == 'slno') {
+                $sheet->getColumnDimension('A')->setWidth(15);
+            } elseif ($headerKey == 'name') {
+                $sheet->getColumnDimension('B')->setWidth(25);
+            }
+            $sheet->setCellValue($column . $row, $header);
+            $column++;
+        }
+
+        // ===== BODY =====
+        $bodys = [];
+        $i = 1;
+        foreach ($students as $student) {
+            $bodys[$i]['slno'] = $i;
+            $bodys[$i]['name'] = $student->srname;
+            $bodys[$i]['registerNO'] = $student->srregisterNO;
+
+            if ($classesID == 0) {
+                $bodys[$i]['class'] = (isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID]->classes : '');
+            }
+            if ($sectionID == 0 || $sectionID == '') {
+                $bodys[$i]['section'] = (isset($sections[$student->srsectionID])) ? $sections[$student->srsectionID]->section : '';
+            }
+
+            $bodys[$i]['roll'] = $student->srroll;
+            $bodys[$i]['email'] = $student->email;
+            $bodys[$i]['phone'] = $student->phone;
+            $bodys[$i]['father_name'] = $student->father_name;
+            $bodys[$i]['address'] = $student->address;
+            $i++;
+        }
+
+        $row = 3;
+        foreach ($bodys as $single_bodys) {
+            $column = 'A';
+            foreach ($single_bodys as $single_body) {
+                $sheet->setCellValue($column . $row, $single_body);
+                $column++;
+            }
+            $row++;
+        }
+
+        // ===== HEADER STYLE =====
+        $styleArray = [
+            'font' => ['bold' => TRUE],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ]
+            ]
+        ];
+        $sheet->getStyle('A1:' . $headerColumn . '2')->applyFromArray($styleArray);
+
+        // ===== BODY STYLE =====
+        $styleArray = [
+            'font' => ['bold' => FALSE],
+            'alignment' => [
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+            ],
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                ]
+            ]
+        ];
+        $row = $row - 1;
+        $sheet->getStyle('A3:' . $headerColumn . $row)->applyFromArray($styleArray);
+
+        // ===== MERGE =====
+        $headerColumn = chr(ord($headerColumn) - 1); // Decrement Header Section Column
+        $mergeCellsColumn = $headerColumn . '1';
+        $sheet->mergeCells("B1:$mergeCellsColumn");
+
+    } else {
+        redirect('studentreport');
+    }
+}
+
 
 	private function uriChecker() {
 		$totalUri = customCompute($this->uri->segment_array());

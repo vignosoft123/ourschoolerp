@@ -209,6 +209,7 @@
                         <tr>
                             <th rowspan="2"><?=$this->lang->line('slno')?></th>
                             <th rowspan="2"><?=$this->lang->line('balancefeesreport_name')?></th>
+                            <th rowspan="2">Father Name </th>
                             <th rowspan="2"><?=$this->lang->line('balancefeesreport_registerNO')?></th>
                             <th rowspan="2">Village</th>
                             <?php if($classesID == 0) { ?>
@@ -224,10 +225,10 @@
                                 <th colspan="4"><?=htmlspecialchars($feeType)?></th>
                             <?php } ?>
 
-                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_fees_amount')?></th>
-                            <th rowspan="2">Discount/Weaver</th>
-                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_paid')?></th>
-                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_balance')?></th>
+                            <th rowspan="2">Total Fees</th>
+                            <th rowspan="2">Total Discount</th>
+                            <th rowspan="2">Total Paid</th>
+                            <th rowspan="2">Total Balance</th>
                             <th rowspan="2">
                                 Send SMS <input type="checkbox" id="checkAll" name="send_sms_balance"><br/>
                                 <input type="date" name="date" id="date">
@@ -254,6 +255,7 @@
                         $totalBalance = 0;
                         $i = 0;
 
+                        // echo "<pre>";print_r($students);die;
                         foreach($students as $student) {
                             if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
                                 $i++;
@@ -261,6 +263,7 @@
                         <tr>
                             <td><?=$i?></td>
                             <td><?=$student->srname?></td>
+                            <td><?=$student->father_name?></td>
                             <td><?=$student->srregisterNO?></td>
                             <td><?=$student->village_name?></td>
 
@@ -606,11 +609,33 @@ $.ajax({
 </script>
 
 <script>
-        $(document).ready(function () {
-            $("#exportButton").click(function () {
-                var table = document.getElementById("myTable");
-                var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-                XLSX.writeFile(wb, "table_data.xlsx");
-            });
-        });
+        // $(document).ready(function () {
+        //     $("#exportButton").click(function () {
+        //         var table = document.getElementById("myTable");
+        //         var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+        //         XLSX.writeFile(wb, "table_data.xlsx");
+        //     });
+        // });
     </script>
+
+    <script>
+    $(document).ready(function () {
+        $("#exportButton").click(function () {
+            var table = document.getElementById("myTable");
+
+            // Clone the table so we can modify without affecting the original
+            var clonedTable = table.cloneNode(true);
+
+            // Remove last 5 columns from each row
+            for (var i = 0; i < clonedTable.rows.length; i++) {
+                for (var j = 0; j < 5; j++) {
+                    clonedTable.rows[i].deleteCell(clonedTable.rows[i].cells.length - 1);
+                }
+            }
+
+            // Convert modified table to Excel
+            var wb = XLSX.utils.table_to_book(clonedTable, { sheet: "Sheet1" });
+            XLSX.writeFile(wb, "table_data.xlsx");
+        });
+    });
+</script>
