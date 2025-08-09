@@ -54,6 +54,11 @@ class Progresscardreport extends Admin_Controller {
 				'label' => $this->lang->line("progresscardreport_student"),
 				'rules' => 'trim|xss_clean'
 			),
+			array(
+				'field' => 'examID',
+				'label' => $this->lang->line("progresscardreport_class"),
+				'rules' => 'trim|required|xss_clean|callback_unique_data'
+			),
 		);
 		return $rules;
 	} 

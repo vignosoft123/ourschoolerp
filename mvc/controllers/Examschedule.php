@@ -488,6 +488,10 @@ class Examschedule extends Admin_Controller {
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
 			$id = htmlentities(escapeString($this->uri->segment(3)));
 			$classesID = htmlentities(escapeString($this->uri->segment(4)));
+
+			$exam_id = htmlentities(escapeString($this->uri->segment(5)));
+			$section_id = htmlentities(escapeString($this->uri->segment(6)));
+
 			$schoolyearID = $this->session->userdata('defaultschoolyearID');
 			if((int)$id && (int)$classesID) {
 				$fetchClass = pluck($this->classes_m->get_classes(), 'classesID', 'classesID');
@@ -497,9 +501,9 @@ class Examschedule extends Admin_Controller {
 					if(customCompute($this->data['examschedule'])) {
 						$this->examschedule_m->delete_examschedule($id);
 						$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-						redirect(base_url("examschedule/index/$classesID"));
+						redirect(base_url("examschedule/index/$classesID/$exam_id/$section_id"));
 					} else {
-						redirect(base_url("examschedule/index/$classesID"));
+						redirect(base_url("examschedule/index/$classesID/$exam_id/$section_id"));
 					}
 				} else {
 					redirect(base_url("examschedule/index"));

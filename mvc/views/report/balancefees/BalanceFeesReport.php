@@ -225,10 +225,10 @@
                                 <th colspan="4"><?=htmlspecialchars($feeType)?></th>
                             <?php } ?>
 
-                            <th rowspan="2">Total Fees</th>
-                            <th rowspan="2">Total Discount</th>
-                            <th rowspan="2">Total Paid</th>
-                            <th rowspan="2">Total Balance</th>
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_fees_amount')?></th>
+                            <th rowspan="2">Discount/Weaver</th>
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_paid')?></th>
+                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_balance')?></th>
                             <th rowspan="2">
                                 Send SMS <input type="checkbox" id="checkAll" name="send_sms_balance"><br/>
                                 <input type="date" name="date" id="date">
@@ -255,7 +255,6 @@
                         $totalBalance = 0;
                         $i = 0;
 
-                        // echo "<pre>";print_r($students);die;
                         foreach($students as $student) {
                             if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
                                 $i++;
@@ -618,7 +617,7 @@ $.ajax({
         // });
     </script>
 
-    <script>
+     <script>
     $(document).ready(function () {
         $("#exportButton").click(function () {
             var table = document.getElementById("myTable");
@@ -639,3 +638,26 @@ $.ajax({
         });
     });
 </script>
+
+<script>
+    // $(document).ready(function () {
+    //     $("#exportButton").click(function () {
+    //         var table = document.getElementById("myTable");
+    //         var ws = XLSX.utils.table_to_sheet(table);
+
+    //         // Convert sheet to array
+    //         var data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+
+    //         // Remove last 5 columns from each row (without touching the HTML table)
+    //         var filteredData = data.map(row => row.slice(0, row.length - 5));
+
+    //         // Create workbook from filtered data
+    //         var newWs = XLSX.utils.aoa_to_sheet(filteredData);
+    //         var wb = XLSX.utils.book_new();
+    //         XLSX.utils.book_append_sheet(wb, newWs, "Sheet1");
+
+    //         XLSX.writeFile(wb, "table_data.xlsx");
+    //     });
+    // });
+</script>
+

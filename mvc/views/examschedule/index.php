@@ -1,3 +1,10 @@
+<?php 
+    
+    $exam_Id = htmlentities(escapeString($this->uri->segment(4)));
+    $section_ID = htmlentities(escapeString($this->uri->segment(5)));
+?>
+
+
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa fa-puzzle-piece"></i> <?=$this->lang->line('panel_title')?></h3>
@@ -146,7 +153,7 @@
                                                         <?php if(permissionChecker('examschedule_edit') || permissionChecker('examschedule_delete')) { ?>
                                                         <td data-title="<?=$this->lang->line('action')?>">
                                                             <?php echo btn_edit('examschedule/edit/'.$examschedule->examscheduleID."/".$set, $this->lang->line('edit')) ?>
-                                                            <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set, $this->lang->line('delete')) ?>
+                                                            <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set.'/'.$exam_Id.'/'.$section_ID, $this->lang->line('delete')) ?>
 
                                                             <a href="<?php echo base_url('examschedule/copy/'.$examschedule->examscheduleID."/".$set ) ?>" >  Copy </a>
 
@@ -216,7 +223,7 @@
                                                                     <td data-title="<?=$this->lang->line('action')?>">
                                                                         <?php echo btn_edit('examschedule/edit/'.$examschedule->examscheduleID."/".$set, $this->lang->line('edit')) ?>
                                                                         
-                                                                        <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set, $this->lang->line('delete')) ?>
+                                                                        <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set.'/'.$exam_Id.'/'.$section_ID, $this->lang->line('delete')) ?>
 
                                                                        <a href="<?php echo base_url('examschedule/copy/'.$examschedule->examscheduleID."/".$set ) ?>" >  Copy </a>
 
@@ -294,7 +301,7 @@
                                                     <?php if(permissionChecker('examschedule_edit') || permissionChecker('examschedule_delete')) { ?>
                                                     <td data-title="<?=$this->lang->line('action')?>">
                                                         <?php echo btn_edit('examschedule/edit/'.$examschedule->examscheduleID."/".$set, $this->lang->line('edit')) ?>
-                                                        <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set, $this->lang->line('delete')) ?>
+                                                        <?php echo btn_delete('examschedule/delete/'.$examschedule->examscheduleID."/".$set.'/'.$exam_Id.'/'.$section_ID, $this->lang->line('delete')) ?>
 
                                                         <a href="<?php echo base_url('examschedule/copy/'.$examschedule->examscheduleID."/".$set ) ?>" >  Copy </a>
 

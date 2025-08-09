@@ -25,7 +25,9 @@ class Whatsapp_m extends MY_Model {
             {
                 $user_name = $get_msg91s[1]->field_values;
                 $password = $get_msg91s[2]->field_values; 
-               $url = "http://bwa.mindwhile.com/api/checkbalance.php?user=$user_name&pass=$password";
+            //    $url = "http://bwa.mindwhile.com/api/checkbalance.php?user=$user_name&pass=$password";
+               $url = "http://bwa.mindwhile.com/api/checkbalancewamu.php?user=$user_name&pass=$password"; 
+
                $result = file_get_contents($url); 
                 if(!empty($result))
                 {

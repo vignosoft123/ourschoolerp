@@ -445,7 +445,8 @@
                             <?php foreach ($sections as $key => $section) { ?>
                                 <div id="tab<?= $section->classesID . $section->sectionID ?>" class="tab-pane">
                                     <div id="hide-table">
-                                        <table class="table table-bordered table-hover dataTable no-footer">
+                                        <table id="example1" class="table table-bordered   tableBorder dataTable no-footer" style="width:100%">
+                                        
                                             <thead>
                                                 <tr>
                                                 <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
@@ -456,9 +457,17 @@
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
-                                                    <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                        <th class="col-sm-3"><?= $this->lang->line('action') ?></th>
-                                                    <?php } ?>
+
+                                                 <th>Class</th>
+                                                <th>Section</th>
+                                                <th>RFID</th>
+                                                <th>Invoice</th>
+                                                <?php if (permissionChecker('student_edit')) { ?>
+                                                    <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
+                                                <?php } ?>
+                                                <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
+                                                    <th class="col-sm-2"><?= $this->lang->line('action') ?></th>
+                                                <?php } ?>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -495,17 +504,53 @@
                                                         <td data-title="<?= $this->lang->line('studentType') ?>">
                                                             <?php echo  ($studentType[$student->studentType]) ?  $studentType[$student->studentType] : 'DAY SCHOLAR'; ?>
                                                         </td>
-                                                                <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                                    <td class="action-btns" data-title="<?= $this->lang->line('action') ?>">
-                                                                        <?php
-                                                                        echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
-                                                                        if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
-                                                                            echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
-                                                                            echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
-                                                                        }
-                                                                        ?>
-                                                                    </td>
-                                                                <?php } ?>
+                                                             <td data-title="<?= $this->lang->line('student_class') ?>">
+                                                            <?php echo $student->srclasses; ?>
+                                                        </td>
+                                                        <td data-title="<?= $this->lang->line('student_section') ?>">
+                                                            <?php echo $student->srsection; ?>
+                                                        </td>
+                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
+                                                            <?php echo $student->rf_id; ?>
+                                                        </td>
+                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
+                                                            <a href="<?php echo base_url('student/view/'). $student->srstudentID . '/' . $set.'/inv'?>"> invoice </a>
+                                                             
+
+                                                        </td>
+
+                                                        <?php if (permissionChecker('student_edit')) { ?>
+                                                            <td data-title="<?= $this->lang->line('student_status') ?>">
+                                                                <div class="onoffswitch-small" id="<?= $student->srstudentID ?>">
+                                                                    <input type="checkbox" id="myonoffswitch<?= $student->srstudentID ?>" class="onoffswitch-small-checkbox" name="paypal_demo" <?php if ($student->active === '1') echo "checked='checked'"; ?>>
+                                                                    <label for="myonoffswitch<?= $student->srstudentID ?>" class="onoffswitch-small-label">
+                                                                        <span class="onoffswitch-small-inner"></span>
+                                                                        <span class="onoffswitch-small-switch"></span>
+                                                                    </label>
+                                                                </div>
+                                                            </td>
+                                                        <?php } ?>
+                                                        <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { 
+                                                            if(!empty($set)){$set = $set;}else{
+                                                                $set = $student->srclassesID;
+                                                            }
+                                                            ?>
+                                                            <td class="action-btns" data-title="<?= $this->lang->line('action') ?>">
+                                                                <?php
+                                                                echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
+                                                                if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
+                                                                    echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
+                                                                        echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
+                                                                }
+
+                                                                // print_r($student);die;
+                                                                ?>
+
+                                                                <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
+
+
+                                                            </td>
+                                                        <?php } ?>
                                                             </tr>
 
 
@@ -540,6 +585,10 @@
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
+                                                 <th>Class</th>
+                                                <th>Section</th>
+                                                <th>RFID</th>
+                                                <th>Invoice</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>

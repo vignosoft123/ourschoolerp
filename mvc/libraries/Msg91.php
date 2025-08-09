@@ -55,14 +55,14 @@ class Msg91
        "&apikey=" . $this->password .
        "&senderid=" . $this->senderID .
        "&mobile=" . $to .
-       "&message=" . urlencode($message);
+       "&message=" . $message;
 
         if (!empty($template_id)) {
             $url .= "&templateid=" . $template_id;
         }
 
 
-        echo ($url);//exit;
+       // echo ($url);//exit;
         // init the resource
         $ch = curl_init();
         curl_setopt_array($ch, [
