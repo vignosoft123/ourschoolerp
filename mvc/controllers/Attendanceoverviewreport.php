@@ -1074,19 +1074,82 @@ public function get_biomatric_report(){
 		$sql .= " and date ='".$fdate."' ";
 	}
 	$sql .= " group by b.rfid, date ";
-		//echo $sql;die;
-	//$result = $this->db->query($sql);
-
-// if ($result !== false) { 
-//     $result_array = $result->result_array();
-//     print_r($result_array);
-// } else {
-//     print_r($this->db->error());  // Output the database error for debugging
-// }
+ 
 
 	$data['result'] = $this->db->query($sql)->result_array();
 	$html = $this->load->view('report/biomatric_report',$data,true);
 	echo $html;
 }
+
+
+public function get_late_absent_report1(){
+    $sql = "SELECT t.teacherID, t.name, t.designation, t.phone, b.rfid, date, 
+                   MIN(time) AS min, NULLIF(MAX(time), MIN(time)) AS max, t.default_login_time
+            FROM biometric b
+            LEFT JOIN teacher t ON t.rfid = b.rfid
+            WHERE 1";
+
+    if(!empty($_POST['teacher_id'])){
+        $sql .= " AND t.teacherID = ".$_POST['teacher_id'];
+    }
+
+    if(!empty($_POST['fromdate']) && !empty($_POST['todate'])){
+        $fdate = date("Y-m-d",strtotime($_POST['fromdate']));
+        $tdate = date("Y-m-d",strtotime($_POST['todate']));
+        $sql .= " AND date >= '".$fdate."' AND date <= '".$tdate."'";
+    } else if(!empty($_POST['fromdate']) && empty($_POST['todate'])){
+        $fdate = date("Y-m-d",strtotime($_POST['fromdate']));
+        $sql .= " AND date = '".$fdate."'";
+    } else if(empty($_POST['fromdate']) && !empty($_POST['todate'])){
+        $tdate = date("Y-m-d",strtotime($_POST['todate']));
+        $sql .= " AND date = '".$tdate."'";
+    }
+
+    $sql .= " GROUP BY b.rfid, date
+              HAVING min > t.default_login_time
+              ORDER BY date ASC";
+
+    $data['result'] = $this->db->query($sql)->result_array();
+    $html = $this->load->view('report/late_absent_report', $data, true);
+    echo $html;
+}
+
+
+public function get_late_absent_report() {
+    $sql = "SELECT 
+                t.teacherID,
+                t.name,
+                t.designation,
+                t.phone,
+                t.rfid,
+                b.date,
+                MIN(b.time) AS first_in,
+                t.default_login_time
+            FROM teacher t
+            LEFT JOIN biometric b 
+                ON t.rfid = b.rfid 
+            WHERE 1";
+
+    // Date filters
+    if (!empty($_POST['fromdate']) && !empty($_POST['todate'])) {
+        $fdate = date("Y-m-d", strtotime($_POST['fromdate']));
+        $tdate = date("Y-m-d", strtotime($_POST['todate']));
+        $sql .= " AND b.date BETWEEN '".$fdate."' AND '".$tdate."'";
+    }
+
+    // Teacher filter
+    if (!empty($_POST['teacher_id'])) {
+        $sql .= " AND t.teacherID = ".$this->db->escape($_POST['teacher_id']);
+    }
+
+    $sql .= " GROUP BY t.teacherID, b.date 
+              HAVING first_in IS NULL OR first_in > t.default_login_time";
+
+    $data['result'] = $this->db->query($sql)->result_array();
+
+    $html = $this->load->view('report/late_absent_report', $data, true);
+    echo $html;
+}
+
 
 }

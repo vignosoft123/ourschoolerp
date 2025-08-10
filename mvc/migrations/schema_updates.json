@@ -8,6 +8,14 @@
         }
     },
     {
+        "query": "ALTER TABLE `teacher` ADD `default_login_time` TIME NULL DEFAULT '0.00' ",
+        "type": "alter",
+        "check_column": {
+            "table": "teacher",
+            "column": "default_login_time"
+        }
+    },
+    {
         "query": "ALTER TABLE `student` ADD COLUMN `platform` VARCHAR(255) DEFAULT NULL",
         "type": "alter",
         "check_column": {

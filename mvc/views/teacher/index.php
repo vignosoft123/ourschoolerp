@@ -34,6 +34,7 @@
                                 <th class="col-sm-2"><?="Designation"?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('teacher_email')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('teacher_phone')?></th>
+                                <th class="col-sm-2">Default Login Time</th>
                                 <?php if(permissionChecker('teacher_edit')){ ?>
                                 <th class="col-sm-1"><?=$this->lang->line('teacher_status')?></th>
                                 <?php } ?>
@@ -65,6 +66,9 @@
                                     </td>
                                     <td data-title="<?=$this->lang->line('teacher_phone')?>">
                                         <?php echo $teacher->phone; ?>
+                                    </td>
+                                    <td data-title="<?=$this->lang->line('teacher_phone')?>">
+                                        <?php echo $teacher->default_login_time; ?>
                                     </td>
                                     <?php if(permissionChecker('teacher_edit')){ ?>
                                     <td data-title="<?=$this->lang->line('teacher_status')?>">

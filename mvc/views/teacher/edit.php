@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <div class="box">
     <div class="box-header">
@@ -68,6 +70,26 @@
                             <?php echo form_error('designation'); ?>
                         </span>
                     </div>
+
+                     <?php 
+                        if(form_error('default_login_time')) 
+                            echo "<div class='form-group has-error' >";
+                        else     
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="default_login_time" class=" control-label">
+                           Default Login Time <span class="text-red">*</span>
+                        </label>
+                        <div class="input-field">
+                            <input type="text" class="form-control" id="default_login_time" name="default_login_time" value="<?=set_value('default_login_time', $teacher->default_login_time)?>" >
+                        </div>
+                        <span class="control-label">
+                            <?php echo form_error('default_login_time'); ?>
+                        </span>
+                    </div>
+
+
+                      
 
                     <?php 
                         if(form_error('dob')) 
@@ -323,5 +345,13 @@ $(function() {
         }        
         reader.readAsDataURL(file);
     });  
+});
+</script>
+
+<script>
+flatpickr("#default_login_time", {
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: "H:i", // 24-hour format
 });
 </script>

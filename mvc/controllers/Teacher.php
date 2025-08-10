@@ -102,6 +102,11 @@ class Teacher extends Admin_Controller {
                 'field' => 'password',
                 'label' => $this->lang->line("teacher_password"),
                 'rules' => 'trim|required|min_length[4]|max_length[40]|xss_clean'
+            ],
+            [
+                'field' => 'default_login_time',
+                'label' => $this->lang->line("default_login_time"),
+                'rules' => 'trim|required|xss_clean'
             ]
         ];
         return $rules;
@@ -287,6 +292,7 @@ class Teacher extends Admin_Controller {
                 $array["rfid"]          = $this->input->post("rfid");
                 $array['name']            = $this->input->post("name");
                 $array['designation']     = $this->input->post("designation");
+                $array['default_login_time']     = $this->input->post("default_login_time");
                 $array["dob"]             = date("Y-m-d", strtotime($this->input->post("dob")));
                 $array["sex"]             = $this->input->post("sex");
                 $array['religion']        = $this->input->post("religion");
@@ -332,20 +338,24 @@ class Teacher extends Admin_Controller {
         ];
         $id                         = htmlentities(escapeString($this->uri->segment(3)));
         if ( (int) $id ) {
+
             $this->data['teacher'] = $this->teacher_m->get_single_teacher([ 'teacherID' => $id ]);
             if ( $this->data['teacher'] ) {
                 if ( $_POST ) {
                     $rules = $this->rules();
                     unset($rules[11]);
                     $this->form_validation->set_rules($rules);
-                    if ( $this->form_validation->run() == false ) {
+                    if ( $this->form_validation->run() == false ) {//echo 'if';die;
                         $this->data["subview"] = "teacher/edit";
                         $this->load->view('_layout_main', $this->data);
                     } else {
+         
+
                         $array                = [];
                         $array["rfid"]          = $this->input->post("rfid");
                         $array['name']        = $this->input->post("name");
                         $array['designation'] = $this->input->post("designation");
+                        $array['default_login_time'] = $this->input->post("default_login_time");
                         $array["dob"]         = date("Y-m-d", strtotime($this->input->post("dob")));
                         $array["sex"]         = $this->input->post("sex");
                         $array['religion']    = $this->input->post("religion");
@@ -357,7 +367,7 @@ class Teacher extends Admin_Controller {
                         $array["modify_date"] = date("Y-m-d h:i:s");
                         $array['photo']       = $this->upload_data['file']['file_name'];
                         // $array['signature']       = $this->upload_data['file']['file_name'];
-
+                        // echo "<pre>";print_r($array);die;
                         $this->teacher_m->update_teacher($array, $id);
                         $this->session->set_flashdata('success', $this->lang->line('menu_success'));
                         redirect(base_url("teacher/index"));

@@ -13,6 +13,7 @@
         <div class="col-sm-12">
             <button id="at_rpt"> Attendance Report</button>              
             <button id="bio_rpt">Biomatric Report</button> 
+            <button id="late_comers_rpt">Late comers Report</button> 
         </div>
             <div class="col-sm-12" id="attendance_report">
                 <div class="form-group col-sm-4" id="usertypeDiv">
@@ -74,6 +75,8 @@
             </div>
 
             <div class="col-sm-12" id="biomatric_report">
+            <h3>Biomatric Report</h3>
+
                 <div class="form-group col-sm-4" id="usertypeDiv">
                     <label>Teacher</label>
                     <?php
@@ -100,6 +103,39 @@
 
                 <div class="col-sm-4">
                     <button id="get_biomatric" class="btn btn-success" style="margin-top:23px;"> Get Biomatric Report</button>
+                </div>
+
+            </div>
+
+            <div class="col-sm-12" id="late_comers_report">
+
+            <h3>Late Comers Report</h3>
+                <div class="form-group col-sm-4" id="usertypeDiv">
+                    <label>Teacher</label>
+                    <?php
+                       $teachers = $this->db->get('teacher')->result_array();
+                         
+                     ?>
+                     <select name="teacher_id" id="teacher_id_late" class='form-control select2'>
+                        <option value="">Select</option>
+                        <?php foreach($teachers as $t){?>
+                            <option value="<?= $t['teacherID']?>"><?= $t['name']?></option>
+                         <?php }?>   
+                    </select>
+                </div>
+
+                <div class="form-group col-sm-4" id="fromdateDiv">
+                    <label for="fromdate" >From</label>
+                    <input type="text" name="fromdate" class="form-control" id="fromdate_late">
+                </div>
+                
+                <div class="form-group col-sm-4" id="todateDiv">
+                    <label>To</label>
+                    <input type="text" name="todate" class="form-control" id="todate_late">
+                </div>
+
+                <div class="col-sm-4">
+                    <button id="get_late_comers" class="btn btn-success" style="margin-top:23px;"> Get Late Comers Report</button>
                 </div>
 
             </div>
@@ -159,11 +195,13 @@
 
         $("#biomatric_report").hide();
         $("#attendance_report").hide();
+        $("#late_comers_report").hide();
 
         
     $("#at_rpt").click(function(){
          
         $("#biomatric_report").hide();
+        $("#late_comers_report").hide();
         $("#attendance_report").show();
     })
 
@@ -171,6 +209,16 @@
          
         $("#biomatric_report").show();
         $("#attendance_report").hide();
+        $("#late_comers_report").hide();
+
+    })
+
+    $("#late_comers_rpt").click(function(){
+         
+        $("#biomatric_report").hide();
+        $("#attendance_report").hide();
+        $("#late_comers_report").show();
+
     })
 
     });
@@ -415,6 +463,24 @@
             endDate:'<?=$schoolyearsessionobj->endingdate?>',
         });
     });
+
+      $(document).bind('click', '#fromdate_late, #todate_late', function() {
+        
+        $('#fromdate_late').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+
+        $('#todate_late').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+    });
+
     
 
     $(document).on("click","#get_biomatric",function(){
@@ -437,5 +503,28 @@
             }
         });
     });
+
+
+ $(document).on("click","#get_late_comers",function(){
+        var field = {
+            'teacher_id'  : $('#teacher_id_late').val(),
+            'fromdate' : $('#fromdate_late').val(),
+            'todate' : $('#todate_late').val(), 
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('attendanceoverviewreport/get_late_absent_report')?>",
+            data: field,
+            dataType: "html",
+            success: function(data) {
+
+                $("#load_attendanceoverview_report").html(data);
+                // var response = JSON.parse(data);
+                // renderLoder(response, passData);
+            }
+        });
+    });
+
 
 </script>

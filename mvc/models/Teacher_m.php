@@ -94,6 +94,7 @@ class Teacher_m extends MY_Model {
 
 	public function update_teacher($data, $id = NULL) {
 		parent::update($data, $id);
+		// echo $this->db->last_query();die;
 		return $id;
 	}
 
