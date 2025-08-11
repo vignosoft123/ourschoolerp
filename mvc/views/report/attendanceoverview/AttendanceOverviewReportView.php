@@ -11,9 +11,9 @@
         <div class="row">
 
         <div class="col-sm-12">
-            <button id="at_rpt"> Attendance Report</button>              
-            <button id="bio_rpt">Biomatric Report</button> 
-            <button id="late_comers_rpt">Late comers Report</button> 
+            <button class="btn btn-primary" id="at_rpt"> Attendance Report</button>              
+            <button class="btn btn-primary" id="bio_rpt">Biomatric Report</button> 
+            <button class="btn btn-primary" id="late_comers_rpt">Late Comers Report</button> 
         </div>
             <div class="col-sm-12" id="attendance_report">
                 <div class="form-group col-sm-4" id="usertypeDiv">
@@ -109,7 +109,7 @@
 
             <div class="col-sm-12" id="late_comers_report">
 
-            <h3>Late Comers Report</h3>
+            <h3 class="text-purple">Late Comers Report</h3>
                 <div class="form-group col-sm-4" id="usertypeDiv">
                     <label>Teacher</label>
                     <?php

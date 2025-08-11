@@ -293,6 +293,7 @@ class Teacher extends Admin_Controller {
                 $array['name']            = $this->input->post("name");
                 $array['designation']     = $this->input->post("designation");
                 $array['default_login_time']     = $this->input->post("default_login_time");
+                $array['default_logout_time']     = $this->input->post("default_logout_time");
                 $array["dob"]             = date("Y-m-d", strtotime($this->input->post("dob")));
                 $array["sex"]             = $this->input->post("sex");
                 $array['religion']        = $this->input->post("religion");
@@ -356,6 +357,7 @@ class Teacher extends Admin_Controller {
                         $array['name']        = $this->input->post("name");
                         $array['designation'] = $this->input->post("designation");
                         $array['default_login_time'] = $this->input->post("default_login_time");
+                        $array['default_logout_time'] = $this->input->post("default_logout_time");
                         $array["dob"]         = date("Y-m-d", strtotime($this->input->post("dob")));
                         $array["sex"]         = $this->input->post("sex");
                         $array['religion']    = $this->input->post("religion");

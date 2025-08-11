@@ -16,6 +16,14 @@
         }
     },
     {
+        "query": "ALTER TABLE `teacher` ADD `default_logout_time` TIME NULL DEFAULT '17:00:00' ",
+        "type": "alter",
+        "check_column": {
+            "table": "teacher",
+            "column": "default_logout_time"
+        }
+    },
+    {
         "query": "ALTER TABLE `student` ADD COLUMN `platform` VARCHAR(255) DEFAULT NULL",
         "type": "alter",
         "check_column": {

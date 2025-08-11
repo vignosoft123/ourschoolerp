@@ -88,6 +88,23 @@
                         </span>
                     </div>
 
+                     <?php 
+                        if(form_error('default_logout_time')) 
+                            echo "<div class='form-group has-error' >";
+                        else     
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="default_logout_time" class=" control-label">
+                           Default Login Time <span class="text-red">*</span>
+                        </label>
+                        <div class="input-field">
+                            <input type="text" class="form-control" id="default_logout_time" name="default_logout_time" value="<?=set_value('default_logout_time', $teacher->default_logout_time)?>" >
+                        </div>
+                        <span class="control-label">
+                            <?php echo form_error('default_logout_time'); ?>
+                        </span>
+                    </div>
+
 
                       
 
@@ -350,6 +367,12 @@ $(function() {
 
 <script>
 flatpickr("#default_login_time", {
+    enableTime: true,
+    noCalendar: true,
+    dateFormat: "H:i", // 24-hour format
+});
+
+flatpickr("#default_logout_time", {
     enableTime: true,
     noCalendar: true,
     dateFormat: "H:i", // 24-hour format

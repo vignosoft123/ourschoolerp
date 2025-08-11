@@ -1115,7 +1115,7 @@ public function get_late_absent_report1(){
 }
 
 
-public function get_late_absent_report() {
+public function get_late_absent_report_bkp() {
     $sql = "SELECT 
                 t.teacherID,
                 t.name,
@@ -1150,6 +1150,55 @@ public function get_late_absent_report() {
     $html = $this->load->view('report/late_absent_report', $data, true);
     echo $html;
 }
+
+public function get_late_absent_report() {
+    $grace_minutes = 15;
+
+    $sql = "SELECT 
+                t.teacherID,
+                t.name,
+                t.designation,
+                t.phone,
+                t.rfid,
+                b.date,
+                MIN(b.time) AS first_in,
+                MAX(b.time) AS last_out,
+                t.default_login_time,
+                t.default_logout_time,
+                CASE
+                    WHEN MIN(b.time) IS NULL THEN 'Absent'
+                    WHEN MIN(b.time) > ADDTIME(t.default_login_time, SEC_TO_TIME($grace_minutes*60))
+                         OR MAX(b.time) < SUBTIME(t.default_logout_time, SEC_TO_TIME($grace_minutes*60))
+                    THEN 'Late'
+                    ELSE 'On Time'
+                END AS status
+            FROM teacher t
+            LEFT JOIN biometric b 
+                ON t.rfid = b.rfid 
+            WHERE 1";
+
+    // Date filters
+    if (!empty($_POST['fromdate']) && !empty($_POST['todate'])) {
+        $fdate = date("Y-m-d", strtotime($_POST['fromdate']));
+        $tdate = date("Y-m-d", strtotime($_POST['todate']));
+        $sql .= " AND b.date BETWEEN '".$fdate."' AND '".$tdate."'";
+    }
+
+    // Teacher filter
+    if (!empty($_POST['teacher_id'])) {
+        $sql .= " AND t.teacherID = ".$this->db->escape($_POST['teacher_id']);
+    }
+
+    $sql .= " GROUP BY t.teacherID, b.date 
+              HAVING status = 'Late' OR status = 'Absent'
+              ORDER BY b.date ASC";
+
+    $data['result'] = $this->db->query($sql)->result_array();
+
+    $html = $this->load->view('report/late_absent_report', $data, true);
+    echo $html;
+}
+
 
 
 }
