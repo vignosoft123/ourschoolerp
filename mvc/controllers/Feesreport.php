@@ -125,6 +125,26 @@ class Feesreport extends Admin_Controller{
 		$this->load->view('_layout_main', $this->data);
 	}
 
+	public function date_wise_fee() {
+		$this->data['headerassets'] = array(
+			'css' => array(
+				'assets/datepicker/datepicker.css',
+				'assets/select2/css/select2.css',
+				'assets/select2/css/select2-bootstrap.css'
+			),
+			'js' => array(
+				'assets/datepicker/datepicker.js',
+				'assets/select2/select2.js'
+			)
+		);
+
+		$this->data['classes'] = $this->classes_m->general_get_classes();
+		$this->data['feetypes'] = $this->feetypes_m->get_feetypes();
+		$this->data['users'] = $this->user_m->get_all_user('user', array('usertypeID' => 5));
+		$this->data["subview"] = "report/fees/date_wise_fee";
+		$this->load->view('_layout_main', $this->data);
+	}
+
 	public function getSection() {
 		$classesID = $this->input->post('classesID');
 		if((int)$classesID) {
@@ -229,6 +249,71 @@ class Feesreport extends Admin_Controller{
 			exit;
 		}
 	}
+
+
+public function getFeesReport_date_wise() {
+    $retArray['status'] = FALSE;
+    $retArray['render'] = '';
+
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    $classesID = $this->input->post('classesID');
+    $sectionID = $this->input->post('sectionID');
+    $studentID = $this->input->post('studentID');
+    $feetypeID = $this->input->post('feetypeID');
+    $fromdate  = $this->input->post('fromdate');
+    $todate    = $this->input->post('todate');
+    $userID    = $this->input->post('userID');
+
+    $this->data['classesID']    = $classesID;
+    $this->data['sectionID']    = $sectionID;
+    $this->data['studentID']    = $studentID;
+    $this->data['feetypeID']    = $feetypeID;
+    $this->data['fromdate']     = $fromdate;
+    $this->data['todate']       = $todate;
+    $this->data['schoolyearID'] = $schoolyearID;
+
+    // Build query
+   $this->db->select("
+    payment.paymentdate,
+    SUM(CASE WHEN payment.paymenttype = 'Cash' THEN payment.paymentamount ELSE 0 END) AS cash_amount,
+    SUM(CASE WHEN payment.paymenttype = 'Digita' THEN payment.paymentamount ELSE 0 END) AS digital_amount,
+    SUM(CASE WHEN payment.paymenttype = 'Cheque' THEN payment.paymentamount ELSE 0 END) AS cheque_amount
+");
+$this->db->from('payment');
+$this->db->join('globalpayment g', 'g.globalpaymentID = payment.globalpaymentID', 'left');
+$this->db->where('payment.schoolyearID', $schoolyearID);
+
+if (!empty($fromdate) && !empty($todate)) {
+    $this->db->where('payment.paymentdate >=', $fromdate);
+    $this->db->where('payment.paymentdate <=', $todate);
+}
+if (!empty($classesID)) {
+    $this->db->where('g.classesID', $classesID);
+}
+if (!empty($sectionID)) {
+    $this->db->where('g.sectionID', $sectionID);
+}
+if (!empty($studentID)) {
+    $this->db->where('g.studentID', $studentID);
+}
+
+$this->db->group_by('payment.paymentdate');
+$this->db->order_by('payment.paymentdate', 'ASC');
+
+$this->data['getFeesReports'] = $this->db->get()->result();
+
+
+    // Load view
+    $retArray['render'] = $this->load->view('report/FeesReport_date_wis', $this->data, true);
+    $retArray['status'] = TRUE;
+
+    echo json_encode($retArray);
+    exit;
+}
+
+ 
+
 
 	public function pdf() {
 		if(permissionChecker('feesreport')) { 

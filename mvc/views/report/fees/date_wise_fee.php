@@ -1,8 +1,9 @@
- <?php 
+<?php 
 $current_url = current_url(); 
 ?>
-
+ 
 <div class="text-right">
+    
 <a href="<?= base_url('feesreport'); ?>" 
    class="btn <?= ($current_url == base_url('feesreport')) ? 'btn-success' : 'btn-primary'; ?>">
    Detailed Fee Report
@@ -12,13 +13,14 @@ $current_url = current_url();
    class="btn <?= ($current_url == base_url('feesreport/date_wise_fee')) ? 'btn-success' : 'btn-primary'; ?>">
    Date Wise Fee Report
 </a>
-
-</div> <br/>
+ 
+</div><br/>
 
 
 <div class="box">
+
     <div class="box-header">
-        <h3 class="box-title"><i class="fa iniicon-feesreport"></i> <?= $this->lang->line('panel_title') ?></h3>
+        <h3 class="box-title"><i class="fa iniicon-feesreport"></i> Date Wise Fee Report</h3>
         <ol class="breadcrumb">
             <li><a href="<?= base_url("dashboard/index") ?>"><i class="fa fa-laptop"></i> <?= $this->lang->line('menu_dashboard') ?></a></li>
             <li class="active"> <?= $this->lang->line('menu_feesreport') ?></li>
@@ -280,7 +282,7 @@ $current_url = current_url();
     function ajaxCall(passData) {
         $.ajax({
             type: 'POST',
-            url: "<?= base_url('feesreport/getFeesReport') ?>",
+            url: "<?= base_url('Feesreport/getFeesReport_date_wise') ?>",
             data: passData,
             dataType: "html",
             success: function(data) {
