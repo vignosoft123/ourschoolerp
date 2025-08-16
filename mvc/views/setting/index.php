@@ -871,6 +871,39 @@
                
             </fieldset>
 
+         <fieldset class="setting-fieldset">
+    <legend class="setting-legend">ID Card Template</legend>
+    <div class="col-sm-6">
+        <div class="form-group <?php if (form_error('id_card_template')) { echo 'has-error'; } ?>">
+            <div class="col-sm-12">
+                <span>
+                    <b style="color:red">Note : </b> Template size should match ID card dimensions and be less than 2MB.
+                </span>
+                <div class="btn btn-info image-preview-input1"> 
+                    <!-- Keep old filename -->
+                    <input type="hidden" name="id_card_template" value="<?= $setting->id_card_template ?>">
+                    
+                    <!-- File input (different name) -->
+                    <input type="file" name="id_card_template_file" accept="image/*">
+                </div>
+
+                <!-- Preview -->
+                <?php if(!empty($setting->id_card_template)) { ?>
+                    <span>
+                        <img src="<?php echo base_url('uploads/idcard_templates/').$setting->id_card_template ?>" style="width:250px;height:150px; border:1px solid #ddd; margin-top:10px;">
+                    </span>
+                <?php } ?>
+
+                <span class="control-label">
+                    <?php echo form_error('id_card_template'); ?>
+                </span>
+            </div>
+        </div>
+    </div>
+</fieldset>
+
+
+
 
 
             <div class="form-group">

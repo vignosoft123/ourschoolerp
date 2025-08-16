@@ -24,6 +24,8 @@ class Idcardreport extends Admin_Controller {
         $this->load->model('studentrelation_m');
         $this->load->model('teacher_m');
         $this->load->model('schoolyear_m');
+		$this->load->model('Setting_m');
+
 		$language = $this->session->userdata('lang');
 		$this->lang->load('idcardreport', $language);
 	}
@@ -38,15 +40,16 @@ class Idcardreport extends Admin_Controller {
                 'field' => 'userID',
                 'label' => $this->lang->line('idcardreport_user'),
                 'rules' => 'trim|xss_clean|numeric'
-            ), array(
-                'field' => 'type',
-                'label' => $this->lang->line('idcardreport_type'),
-                'rules' => 'trim|required|xss_clean|numeric|callback_unique_data'
-            ), array(
-                'field' => 'background',
-                'label' => $this->lang->line('idcardreport_background'),
-                'rules' => 'trim|required|xss_clean|numeric|callback_unique_data'
-            )
+            ), 
+            // array(
+            //     'field' => 'type',
+            //     'label' => $this->lang->line('idcardreport_type'),
+            //     'rules' => 'trim|required|xss_clean|numeric|callback_unique_data'
+            // ), array(
+            //     'field' => 'background',
+            //     'label' => $this->lang->line('idcardreport_background'),
+            //     'rules' => 'trim|required|xss_clean|numeric|callback_unique_data'
+            // )
         );
 
         if($usertypeID == 3) {
@@ -248,7 +251,7 @@ class Idcardreport extends Admin_Controller {
         return $users;
     }
 
-    public function index() {
+    public function index_bkp() {
         $this->data['headerassets'] = array(
             'css' => array(
                 'assets/select2/css/select2.css',
@@ -261,6 +264,22 @@ class Idcardreport extends Admin_Controller {
         $this->data['usertypes'] = $this->usertype_m->get_usertype();
         $this->data['classes'] = $this->classes_m->general_get_classes();
         $this->data["subview"] = "report/idcard/IdcardReportView";
+        $this->load->view('_layout_main', $this->data);
+    }
+
+    public function index() {
+        $this->data['headerassets'] = array(
+            'css' => array(
+                'assets/select2/css/select2.css',
+                'assets/select2/css/select2-bootstrap.css',
+            ),
+            'js' => array(
+                'assets/select2/select2.js',
+            )
+        );
+        $this->data['usertypes'] = $this->usertype_m->get_usertype();
+        $this->data['classes'] = $this->classes_m->general_get_classes();
+        $this->data["subview"] = "report/idcard/IdcardReportView_new";
         $this->load->view('_layout_main', $this->data);
     }
 
@@ -291,7 +310,13 @@ class Idcardreport extends Admin_Controller {
                     $this->data['usertypes']   = pluck($this->usertype_m->get_usertype(),'usertype','usertypeID');
                     $this->data['idcards']     = $this->queryArray($this->input->post());
                     $retArray['status'] = TRUE;
-                    $retArray['render'] = $this->load->view('report/idcard/IdcardReport', $this->data,true);
+
+					 $this->data['id_card_template'] = $this->Setting_m->get_setting_where('id_card_template');
+
+// print_r($this->data['id_card_template']);die;
+                    // $retArray['render'] = $this->load->view('report/idcard/IdcardReport', $this->data,true);
+                $retArray['render'] = $this->load->view('report/idcard/IdcardReport_new', $this->data,true);
+
                     echo json_encode($retArray);
                     exit;
                 }
@@ -308,6 +333,69 @@ class Idcardreport extends Admin_Controller {
             exit;
         }
     }
+
+    public function getIdcardReport_new()
+{
+    $retArray['status'] = FALSE;
+    $retArray['render'] = '';
+
+    if(permissionChecker('idcardreport')) {
+        if($_POST) {
+            $usertypeID = $this->input->post('usertypeID');
+            $rules      = $this->rules($usertypeID);
+            $this->form_validation->set_rules($rules);
+
+            if ($this->form_validation->run() == FALSE) {
+                $retArray = $this->form_validation->error_array();
+                $retArray['status'] = FALSE;
+                echo json_encode($retArray);
+                exit;
+            } else {
+                $schoolyearID           = $this->session->userdata('defaultschoolyearID');
+                $this->data['usertypeID']  = $usertypeID;
+                $this->data['classesID']   = $this->input->post('classesID');
+                $this->data['sectionID']   = $this->input->post('sectionID');
+                $this->data['userID']      = $this->input->post('userID'); // optional
+                $this->data['type']        = $this->input->post('type');
+                $this->data['background']  = $this->input->post('background');
+
+                $this->data['schoolyear']  = $this->schoolyear_m->get_single_schoolyear([
+                    'schoolyearID'=>$schoolyearID
+                ]);
+
+                $this->data['classes']     = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+                $this->data['sections']    = pluck($this->section_m->general_get_section(),'section','sectionID');
+                $this->data['usertypes']   = pluck($this->usertype_m->get_usertype(),'usertype','usertypeID');
+
+                // ✅ Fetch students of given class & section
+                $this->load->model('student_m');
+                $this->data['idcards']     = $this->queryArray($this->input->post());
+                
+            //  $this->data['idcards'] = $this->student_m->get_order_by_student([
+                //     'classesID'   => $this->data['classesID'],
+                //     'sectionID'   => $this->data['sectionID'],
+                //     'schoolyearID'=> $schoolyearID
+                // ]);
+
+                $retArray['status'] = TRUE;
+                $retArray['render'] = $this->load->view('report/idcard/IdcardReport_new', $this->data,true);
+                echo json_encode($retArray);
+                exit;
+            }
+        } else {
+            $retArray['status'] = TRUE;
+            $retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+            echo json_encode($retArray);
+            exit;
+        }
+    } else {
+        $retArray['status'] = TRUE;
+        $retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+        echo json_encode($retArray);
+        exit;
+    }
+}
+
 
     public function pdf() {
         if(permissionChecker('idcardreport')) {

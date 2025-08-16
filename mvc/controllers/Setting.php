@@ -365,9 +365,115 @@ Class Setting extends Admin_Controller {
                       $array['correspondent_signature'] = $_POST['correspondent_signature'];
                 }
 
-                
+                // ID CARD BACKGROUND TEMPLATE UPLOAD START
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['id_card_template_file']) && !empty($_FILES['id_card_template_file']['name'])) {
 
-                   
+    $targetDir = "uploads/idcard_templates/";
+
+    // Create directory if not exists
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+
+    // Extract extension
+    $imageFileType = strtolower(pathinfo($_FILES["id_card_template_file"]["name"], PATHINFO_EXTENSION));
+
+    // Create unique name
+    $newFileName = pathinfo($_FILES["id_card_template_file"]["name"], PATHINFO_FILENAME) . "_" . time() . "." . $imageFileType;
+    $targetFile = $targetDir . $newFileName;
+
+    $uploadOk = 1;
+
+    // Validate image
+    $check = getimagesize($_FILES["id_card_template_file"]["tmp_name"]);
+    if ($check !== false) {
+        $width  = $check[0];
+        $height = $check[1];
+    } else {
+        echo "File is not an image.<br>";
+        $uploadOk = 0;
+    }
+
+    // File size validation (5MB max)
+    if ($_FILES["id_card_template_file"]["size"] > 5000000) {
+        echo "Sorry, your file is too large.";
+        $uploadOk = 0;
+    }
+
+    // Allow only image types
+    if (!in_array($imageFileType, ["jpg", "jpeg", "png", "gif"])) {
+        echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
+        $uploadOk = 0;
+    }
+
+    // Final upload
+    if ($uploadOk == 1) {
+        // Resize to 750x1100 before saving
+        list($srcWidth, $srcHeight) = getimagesize($_FILES["id_card_template_file"]["tmp_name"]);
+
+        // Create source image based on file type
+        switch ($imageFileType) {
+            case 'jpg':
+            case 'jpeg':
+                $srcImage = imagecreatefromjpeg($_FILES["id_card_template_file"]["tmp_name"]);
+                break;
+            case 'png':
+                $srcImage = imagecreatefrompng($_FILES["id_card_template_file"]["tmp_name"]);
+                break;
+            case 'gif':
+                $srcImage = imagecreatefromgif($_FILES["id_card_template_file"]["tmp_name"]);
+                break;
+            default:
+                $srcImage = null;
+        }
+
+        if ($srcImage) {
+            $dstWidth = 750;
+            $dstHeight = 1100;
+            $dstImage = imagecreatetruecolor($dstWidth, $dstHeight);
+
+            // Preserve PNG/GIF transparency
+            if ($imageFileType == 'png' || $imageFileType == 'gif') {
+                imagecolortransparent($dstImage, imagecolorallocatealpha($dstImage, 0, 0, 0, 127));
+                imagealphablending($dstImage, false);
+                imagesavealpha($dstImage, true);
+            }
+
+            // Resize
+            imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $dstWidth, $dstHeight, $srcWidth, $srcHeight);
+
+            // Save resized image
+            switch ($imageFileType) {
+                case 'jpg':
+                case 'jpeg':
+                    imagejpeg($dstImage, $targetFile, 90);
+                    break;
+                case 'png':
+                    imagepng($dstImage, $targetFile);
+                    break;
+                case 'gif':
+                    imagegif($dstImage, $targetFile);
+                    break;
+            }
+
+            imagedestroy($srcImage);
+            imagedestroy($dstImage);
+
+            $array['id_card_template'] = $newFileName;
+        } else {
+            $array['id_card_template'] = $_POST['id_card_template']; // fallback
+        }
+
+    } else {
+        $array['id_card_template'] = $_POST['id_card_template']; // keep old if failed
+    }
+
+} else {
+    $array['id_card_template'] = $_POST['id_card_template'];
+}
+// ID CARD BACKGROUND TEMPLATE UPLOAD END
+
+
                     
 
                     if ( isset($array['language']) ) {
