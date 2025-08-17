@@ -57,6 +57,21 @@
                         echo form_dropdown("userID", $userArray, set_value("userID"), "id='userID' class='form-control select2'");
                      ?>
                 </div>
+
+                 <div class="form-group col-sm-4" id="typeDiv">
+                   With or without photo <span class="text-red">*</span></label>
+                    <?php
+                        $typeArray = array(
+                          
+                            '0' => "Select",
+                            '1' => "With Photo ID Cards",
+                            '2' => "Without Photo ID Cards"
+                        );
+                        echo form_dropdown("photo_type", $typeArray, set_value("photo_type"), "id='photo_type' class='form-control select2'");
+                     ?>
+                </div>
+
+
 <!-- 
                 <div class="form-group col-sm-4" id="typeDiv">
                     <label for="type"><?=$this->lang->line("idcardreport_type")?> <span class="text-red">*</span></label>
@@ -237,6 +252,7 @@
         var userID    = $('#userID').val();
         var type      = $('#type').val();
         var background= $('#background').val();
+        var photo_type= $('#photo_type').val();
         var error = 0;
         var field = {
             'usertypeID': usertypeID,
@@ -245,6 +261,7 @@
             'userID'    : userID,
             'type'      : type,
             'background': background,
+            'photo_type': photo_type,
         }
 
         if(usertypeID == 0 ) {

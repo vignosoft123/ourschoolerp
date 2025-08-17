@@ -122,7 +122,42 @@ class Studentrelation_m extends MY_Model {
         return $query->row();
     }
 
-	public function general_get_order_by_student($arrays = [], $studentExtend = FALSE) {
+
+	public function general_get_order_by_student($arrays = [], $studentExtend = FALSE, $photo_type = 0) {
+		// echo $photo_type;die;
+    $arrays = $this->prefixLoad($arrays);
+    $this->db->select('*, (SELECT father_name FROM parents WHERE parentsID = student.parentID) as father_name');
+    $this->db->from('studentrelation');
+    $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+    $this->db->order_by('student.classesID','asc');
+
+    if ($studentExtend) {
+        $this->db->join('studentextend', 'studentextend.studentID = studentrelation.srstudentID', 'LEFT');
+    }
+
+    if (customCompute($arrays)) {
+        $this->db->where($arrays);
+    }
+
+    // ✅ Apply filter based on photo_type
+    if ($photo_type == 1) {
+        // With photo (exclude default.png)
+        $this->db->where('student.photo !=', 'default.png');
+    } elseif ($photo_type == 2) {
+        // Without photo (only default.png)
+        $this->db->where('student.photo', 'default.png');
+    }
+    // if $photo_type == 0, no extra condition (all students)
+
+    $this->db->where('student.studentID !=', NULL);
+
+    $query = $this->db->get();
+    // echo $this->db->last_query(); die;
+    return $query->result();
+}
+
+
+	public function general_get_order_by_student_bkp($arrays = [], $studentExtend = FALSE) {
 		$arrays = $this->prefixLoad($arrays);
         $this->db->select('*,(select father_name from parents where parentsID=student.parentID) as father_name');
         $this->db->from('studentrelation');

@@ -213,10 +213,12 @@ class Idcardreport extends Admin_Controller {
     }
 
     private function queryArray($posts) {
+        // echo "<pre>";print_r($posts);die;
         $usertypeID = $posts['usertypeID'];
         $classesID  = $posts['classesID'];
         $sectionID  = $posts['sectionID'];
         $userID     = $posts['userID'];
+         $photo_type     = $posts['photo_type'] ?? 0;
 
         $queryArray = [];
         if($usertypeID == 1) {
@@ -237,8 +239,8 @@ class Idcardreport extends Admin_Controller {
             }
             if($userID > 0) {
                 $queryArray['srstudentID'] = $userID;
-            }
-            $users = $this->studentrelation_m->general_get_order_by_student($queryArray);
+            } 
+            $users = $this->studentrelation_m->general_get_order_by_student($queryArray,$studentExtend = FALSE,$photo_type);
         } elseif($usertypeID == 4) {
             $users = [];
         } else {
@@ -288,6 +290,7 @@ class Idcardreport extends Admin_Controller {
         $retArray['render'] = '';
         if(permissionChecker('idcardreport')) {
             if($_POST) {
+                // echo "<PRE>aaaa";print_r($_POST);die;
                 $usertypeID = $this->input->post('usertypeID');
                 $rules = $this->rules($usertypeID);
                 $this->form_validation->set_rules($rules);
@@ -304,6 +307,7 @@ class Idcardreport extends Admin_Controller {
                     $this->data['userID']      = $this->input->post('userID');
                     $this->data['type']        = $this->input->post('type');
                     $this->data['background']  = $this->input->post('background');
+                    $this->data['photo_type']  = $this->input->post('photo_type');
                     $this->data['schoolyear'] = $this->schoolyear_m->get_single_schoolyear(array('schoolyearID'=>$schoolyearID));
                     $this->data['classes']     = pluck($this->classes_m->general_get_classes(),'classes','classesID');
                     $this->data['sections']    = pluck($this->section_m->general_get_section(),'section','sectionID');
@@ -313,7 +317,7 @@ class Idcardreport extends Admin_Controller {
 
 					 $this->data['id_card_template'] = $this->Setting_m->get_setting_where('id_card_template');
 
-// print_r($this->data['id_card_template']);die;
+                    //echo "<pre>";print_r($this->data['idcards']);die;
                     // $retArray['render'] = $this->load->view('report/idcard/IdcardReport', $this->data,true);
                 $retArray['render'] = $this->load->view('report/idcard/IdcardReport_new', $this->data,true);
 
