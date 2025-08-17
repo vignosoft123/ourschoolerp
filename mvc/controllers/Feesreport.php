@@ -250,8 +250,74 @@ class Feesreport extends Admin_Controller{
 		}
 	}
 
-
 public function getFeesReport_date_wise() {
+    $retArray['status'] = FALSE;
+    $retArray['render'] = '';
+
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    $classesID = $this->input->post('classesID');
+    $sectionID = $this->input->post('sectionID');
+    $studentID = $this->input->post('studentID');
+    $feetypeID = $this->input->post('feetypeID');
+    $fromdate  = $this->input->post('fromdate');
+    $todate    = $this->input->post('todate');
+    $userID    = $this->input->post('userID');
+
+    // Normalize dates
+    if (!empty($fromdate)) $fromdate = date('Y-m-d', strtotime($fromdate));
+    if (!empty($todate))   $todate   = date('Y-m-d', strtotime($todate));
+
+    $this->data = compact(
+        'classesID','sectionID','studentID','feetypeID','fromdate','todate','schoolyearID'
+    );
+
+    // Build query
+    $this->db->select("
+        p.paymentdate,
+        SUM(CASE WHEN p.paymenttype = 'Cash' THEN p.paymentamount ELSE 0 END) AS cash_amount,
+        SUM(CASE WHEN p.paymenttype = 'Digital' THEN p.paymentamount ELSE 0 END) AS digital_amount,
+        SUM(CASE WHEN p.paymenttype = 'Cheque' THEN p.paymentamount ELSE 0 END) AS cheque_amount
+    ");
+    $this->db->from('payment p');
+    $this->db->join('globalpayment g', 'g.globalpaymentID = p.globalpaymentID', 'left');
+    $this->db->where('p.schoolyearID', $schoolyearID);
+
+    if (!empty($fromdate) && !empty($todate)) {
+        $this->db->where('p.paymentdate >=', $fromdate);
+        $this->db->where('p.paymentdate <=', $todate);
+    }
+    if (!empty($classesID)) {
+        $this->db->where('g.classesID', $classesID);
+    }
+    if (!empty($sectionID)) {
+        $this->db->where('g.sectionID', $sectionID);
+    }
+    if (!empty($studentID)) {
+        $this->db->where('g.studentID', $studentID);
+    }
+    if (!empty($feetypeID)) {
+        $this->db->where('p.feetypeID', $feetypeID);
+    }
+    if (!empty($userID)) {
+        $this->db->where('p.userID', $userID);
+    }
+
+    $this->db->group_by('p.paymentdate');
+    $this->db->order_by('p.paymentdate', 'ASC');
+
+    $this->data['getFeesReports'] = $this->db->get()->result();
+
+    // Render view
+    $retArray['render'] = $this->load->view('report/FeesReport_date_wis', $this->data, true);
+    $retArray['status'] = TRUE;
+
+    echo json_encode($retArray);
+    exit;
+}
+
+
+public function getFeesReport_date_wise_bkp() {
     $retArray['status'] = FALSE;
     $retArray['render'] = '';
 
@@ -302,7 +368,7 @@ $this->db->group_by('payment.paymentdate');
 $this->db->order_by('payment.paymentdate', 'ASC');
 
 $this->data['getFeesReports'] = $this->db->get()->result();
-
+// echo $this->db->last_query();die;
 
     // Load view
     $retArray['render'] = $this->load->view('report/FeesReport_date_wis', $this->data, true);
