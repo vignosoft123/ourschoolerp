@@ -30,14 +30,14 @@
         }
         .idcard-name {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 0px;
             font-size: 20px;
             font-weight: bold;
             color: #c70039;
         }
         .idcard-details {
-            margin-top: 20px;
-            font-size: 16px;
+            margin-top: 0px;
+            font-size: 15px;
             line-height: 1.6;
         }
         .idcard-details b {
@@ -60,7 +60,7 @@
             <div class="idcard-box">
 
                 <!-- Student Photo -->
-                <div class="idcard-photo" style="margin-top : 49%;width:49%">
+                <div class="idcard-photo" style="margin-top : 50%;width:40% ; height:30%">
                     <img src="<?=imagelink($student->photo)?>" alt="Student Photo">
                 </div>
 
@@ -70,8 +70,9 @@
                 </div>
 
                 <!-- Student Details -->
+                 <?php //echo "<pre>"; print_r($student);die;?>
                 <div class="idcard-details">
-                    <!-- <b>Department</b>: <?=$student->department ?? ''?><br> -->
+                    <b class="text-black">Village</b>: <?=$student->address ?? ''?><br>
                     <b class="text-black">Medium</b>: <?=$student->medium ?? 'English'?><br>
                     <b class="text-black">C'ass/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
                     <b class="text-black">F'Name</b>: <?=$student->father_name ?? ''?><br>
