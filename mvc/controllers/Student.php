@@ -195,11 +195,14 @@ class Student extends Admin_Controller
 				];
 
 				$exams             = pluck($this->exam_m->get_exam(), 'exam', 'examID');
+				// echo "<pre>";print_r($subjects);die;
 				$grades            = $this->grade_m->get_grade();
 				$marks             = $this->mark_m->student_all_mark_array($queryArray);
 				$markpercentages   = $this->markpercentage_m->get_markpercentage();
 
 				$subjects          = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID));
+				//  echo "<pre>";print_r($subjects);die;
+
 				$subjectArr        = [];
 				$optionalsubjectArr = [];
 				if (customCompute($subjects)) {
@@ -230,6 +233,7 @@ class Student extends Admin_Controller
 
 				$this->data['settingmarktypeID'] = $this->data['siteinfos']->marktypeID;
 				$this->data['subjects']          = $subjectArr;
+				$this->data['all_subjects']          = $subjects;
 				$this->data['exams']             = $exams;
 				$this->data['grades']            = $grades;
 				$this->data['markpercentages']   = pluck($markpercentages, 'obj', 'markpercentageID');

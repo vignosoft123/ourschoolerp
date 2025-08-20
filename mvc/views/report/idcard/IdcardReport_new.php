@@ -30,7 +30,7 @@
         }
         .idcard-name {
             text-align: center;
-            margin-top: 0px;
+            margin-top: 6px;
             font-size: 20px;
             font-weight: bold;
             color: #c70039;
@@ -60,7 +60,7 @@
             <div class="idcard-box">
 
                 <!-- Student Photo -->
-                <div class="idcard-photo" style="margin-top : 50%;width:40% ; height:30%">
+                <div class="idcard-photo" style="margin-top : 40%;width:40% ; height:30%">
                     <img src="<?=imagelink($student->photo)?>" alt="Student Photo">
                 </div>
 
@@ -71,13 +71,14 @@
 
                 <!-- Student Details -->
                  <?php //echo "<pre>"; print_r($student);die;?>
-                <div class="idcard-details">
-                    <b class="text-black">Village</b>: <?=$student->address ?? ''?><br>
+               <b> <div class="idcard-details text-black" style="">
                     <b class="text-black">Medium</b>: <?=$student->medium ?? 'English'?><br>
                     <b class="text-black">C'ass/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
                     <b class="text-black">F'Name</b>: <?=$student->father_name ?? ''?><br>
-                    <b class="text-black" >Contact No.</b>: <?=$student->phone ?? ''?><br><br>
-                </div>
+                    <b class="text-black" >Contact No.</b>: <?=$student->phone ?? ''?><br>
+                    <b class="text-black">Village</b>: <?=$student->address ?? ''?><br>
+
+                </div></b>
 
             </div>
         <?php } ?>

@@ -41,7 +41,27 @@ class Subject_m extends MY_Model {
         return $query;
     }
     
-	public function general_get_order_by_subject($array=NULL) {
+
+public function general_get_order_by_subject($array = NULL) {
+    $this->db->select('subject.*, examschedule.max_mark,examschedule.examID');
+    $this->db->from('subject');
+    $this->db->join('examschedule', 'examschedule.subjectID = subject.subjectID', 'LEFT');
+
+    if($array != NULL) {
+        // this will apply condition on subject table only
+        foreach ($array as $key => $value) {
+            $this->db->where('subject.'.$key, $value);
+        }
+    }
+
+    $this->db->order_by('subject.subjectID', 'ASC');
+    $query = $this->db->get();
+    return $query->result();
+}
+
+
+
+	public function general_get_order_by_subject_bkp($array=NULL) {
 
 		// public function general_get_order_by_subject($array1=NULL) {
 	// 	$array = array();

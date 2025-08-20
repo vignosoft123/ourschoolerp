@@ -83,7 +83,9 @@ if (customCompute($profile)) { ?>
 							</li>
 
 							<li class="list-group-item">
-								<span class="h5-title">Joined Date</span> <span class="h6-title pull-right"><?= date("d-M-Y",strtotime($profile->admission_date))?></span>
+								<span class="h5-title">Joined Date</span> <span class="h6-title pull-right">
+									<?= date("d-M-Y",strtotime($profile->admission_date ?? $profile->create_date))?>
+								</span>
 							</li>
 
 							<!-- 
@@ -947,7 +949,7 @@ if (customCompute($profile)) { ?>
 										echo "<table class=\"table table-striped table-bordered\" >";
 										echo "<thead>";
 										echo "<tr>";
-										echo "<th class='text-center' rowspan='2' style='background-color:#016bd6;color:#fff; vertical-align:middle;' data-title='" . $this->lang->line("student_subject") . "'>";
+										echo "<th class='text-center' style='background-color:#016bd6;color:#fff; vertical-align:middle;' data-title='" . $this->lang->line("student_subject") . "'>";
 										echo $this->lang->line("student_subject");
 										echo "</th>";
 
@@ -960,9 +962,9 @@ if (customCompute($profile)) { ?>
 											}
 											break;
 										}
-										echo "<th colspan='' class='text-center' style='background-color:#016bd6;color:#fff;' data-title='" . $this->lang->line("student_total") . "'>";
-										echo $this->lang->line("student_total");
-										echo "</th>";
+										// echo "<th colspan='' class='text-center' style='background-color:#016bd6;color:#fff;' data-title='" . $this->lang->line("student_total") . "'>";
+										// echo $this->lang->line("student_total");
+										// echo "</th>";
 										echo "</tr>";
 										foreach ($marksetting as $subjectID => $markpercentageArr) {
 											echo "<tr>";
@@ -975,15 +977,18 @@ if (customCompute($profile)) { ?>
 												// echo $this->lang->line("student_highest_mark");
 												// echo "</th>";
 											}
-											echo "<th class='text-center' data-title='" . $this->lang->line('student_mark') . "'>";
-											echo $this->lang->line("student_mark");
+											// echo "<th class='text-center' data-title='" . $this->lang->line('student_mark') . "'>";
+											// echo $this->lang->line("student_mark");
 											echo "</th>";
 											// echo "<th class='text-center' data-title='" . $this->lang->line('student_point') . "'>";
 											// echo $this->lang->line("student_point");
 											// echo "</th>";
-											echo "<th class='text-center' data-title='" . $this->lang->line('student_grade') . "'>";
-											echo $this->lang->line("student_grade");
-											echo "</th>";
+
+											// echo "<th class='text-center' data-title='" . $this->lang->line('student_grade') . "'>";
+											// echo $this->lang->line("student_grade");
+											// echo "</th>";
+
+
 											echo "</tr>";
 											break;
 										}
@@ -1000,6 +1005,8 @@ if (customCompute($profile)) { ?>
 											}
 											if (!in_array($subjectID, $optionalsubjectArr)) {
 												$totalSubject++;
+
+
 												echo "<tr>";
 												echo "<td class='text-black' data-title='" . $this->lang->line('student_subject') . "'>";
 												echo isset($subjects[$subjectID]) ? $subjects[$subjectID]->subject : '';
@@ -1043,14 +1050,17 @@ if (customCompute($profile)) { ?>
 												echo "<td class='text-black' data-title='" . $this->lang->line('student_mark') . "'>";
 
 												//code for checking absent or present
-												$sql = "select eattendance from eattendance where studentID = $profile->srstudentID and examID = $examID and subjectID = $subjectID"; 
+												//  $sql = "select eattendance from eattendance where studentID = $profile->srstudentID and examID = $examID and subjectID = $subjectID"; 
+
+
+												 $sql = "select eattendance from mark where studentID = $profile->srstudentID and examID = $examID and subjectID = $subjectID"; 
 												$exam_status = $this->db->query($sql)->row()->eattendance;
 												$absent = 0;
-											  if($exam_status == 'Absent'){
+											  if($exam_status == 'Absent'){//echo 'if';
 												$totalSubjectMark = 0;
 												  echo 'Absent';
 												  $absent = 1;
-											  }else{
+											  }else{// echo 'else';
 												$absent = 0;
 												  echo $totalSubjectMark = $totalSubjectMark;
 											  }
@@ -1061,40 +1071,40 @@ if (customCompute($profile)) { ?>
 												$totalSubjectMark  = markCalculationView($totalSubjectMark, $subjectfinalmark, $percentageMark);
 												echo "</td>";
 
-												if (customCompute($grades)) {
-													foreach ($grades as $grade) {
-														if (($grade->gradefrom <= $totalSubjectMark) && ($grade->gradeupto >= $totalSubjectMark)) {
-															echo "<td class='text-black' data-title='" . $this->lang->line('student_point') . "'>";
+											// 	if (customCompute($grades)) {
+											// 		foreach ($grades as $grade) {
+											// 			if (($grade->gradefrom <= $totalSubjectMark) && ($grade->gradeupto >= $totalSubjectMark)) {
+											// 				echo "<td class='text-black' data-title='" . $this->lang->line('student_point') . "'>";
 
 															//code for checking absent or present
-												$sql = "select eattendance from eattendance where studentID = $profile->srstudentID and examID = $examID and subjectID = $subjectID"; 
-												$exam_status = $this->db->query($sql)->row()->eattendance;
+											// 	$sql = "select eattendance from mark where studentID = $profile->srstudentID and examID = $examID and subjectID = $subjectID"; 
+											// 	$exam_status = $this->db->query($sql)->row()->eattendance;
 
-											  if($absent){
-												$grade->point = 0;
-												  echo '0';
-											  }else{
+											//   if($absent){
+											// 	$grade->point = 0;
+											// 	  echo '0';
+											//   }else{
 												 
-												echo $grade->point;
-											  }
+											// 	echo $grade->point;
+											//   }
 															
 
 
-															$averagePoint += $grade->point;
-															echo "</td>";
-															echo "<td class='text-black' data-title='" . $this->lang->line('student_grade') . "'>";
-															echo $grade->grade;
-															echo "</td>";
-														}
-													}
-												} else {
-													echo "<td class='text-black' data-title='" . $this->lang->line('student_point') . "'>";
-													echo 'N/A';
-													echo '</td>';
-													echo "<td class='text-black' data-title='" . $this->lang->line('student_grade') . "'>";
-													echo 'N/A';
-													echo '</td>';
-												}
+											// 				$averagePoint += $grade->point;
+											// 				echo "</td>";
+											// 				echo "<td class='text-black' data-title='" . $this->lang->line('student_grade') . "'>";
+											// 				echo $grade->grade;
+											// 				echo "</td>";
+											// 			}
+											// 		}
+											// 	} else {
+											// 		echo "<td class='text-black' data-title='" . $this->lang->line('student_point') . "'>";
+											// 		echo 'N/A';
+											// 		echo '</td>';
+											// 		echo "<td class='text-black' data-title='" . $this->lang->line('student_grade') . "'>";
+											// 		echo 'N/A';
+											// 		echo '</td>';
+											// 	}
 												echo "</tr>";
 											}
 										}
@@ -1142,9 +1152,12 @@ if (customCompute($profile)) { ?>
 
 
 											echo "<td class='text-black' data-title='" . $this->lang->line('student_mark') . "'>";
-											echo $totalSubjectMark;
+											echo $totalSubjectMark; 
 											$totalMark        += $totalSubjectMark;
 											$totalFinalMark   += $finalpercentageMark;
+
+
+
 
 											$totalSubjectMark  = markCalculationView($totalSubjectMark, $subjectfinalmark, $percentageMark);
 											echo "</td>";
@@ -1174,8 +1187,20 @@ if (customCompute($profile)) { ?>
 										echo "</tbody>";
 										echo "</table>";
 
+										// echo "<pre>";print_r($all_subjects);
+										// echo '&&&&'.$examID;
+										$out_of = array_sum(
+											array_map(function($row) use ($examID) {
+												return ((int)$row->examID === (int)$examID) ? (int)$row->max_mark : 0;
+											}, $all_subjects)
+										);
+
+										// echo '@@@@@@@@@@@@'.$sum_max_mark;
+
+											
+
 										echo '<div class="box-footer st-attendance-info">';
-										echo '<div class="footer-item">' . $this->lang->line('student_total_marks') . ' : <span class="text-red text-bold">' . ini_round($totalFinalMark) . '</span>' . ',' . '</div>';
+										echo '<div class="footer-item">' . $this->lang->line('student_total_marks') . ' : <span class="text-red text-bold">' . ini_round($out_of) . '</span>' . ',' . '</div>';
 										echo '<div class="footer-item">' . $this->lang->line('student_total_obtained_marks') . ' : <span class="text-red text-bold">' . ini_round($totalMark) . '</span>' . ',' . '</div>'; 
 										// $totalAverageMark = $totalMark / $totalSubject;
 										// echo '<div class="footer-item">' . $this->lang->line('student_total_average_marks') . ' : <span class="text-red text-bold">' . ini_round($totalAverageMark) . '</span>' . ',' . '</div>';
@@ -1183,8 +1208,40 @@ if (customCompute($profile)) { ?>
 										// $totalmarkpercentage  = markCalculationView($totalMark, $totalFinalMark);
 										// echo '<div class="footer-item">' . $this->lang->line('student_total_average_marks_percetage') . ' : <span class="text-red text-bold">' . ini_round($totalmarkpercentage) . '</span>' . ',' . '</div>';
 
-										$gpaAveragePoint = $averagePoint / $totalSubject;
-										echo '<div class="footer-item">' . $this->lang->line('student_gpa') . ' : <span class="text-red text-bold">' . ini_round($gpaAveragePoint) . '</span>' . ',' . '</div>';
+										// $gpaAveragePoint = $averagePoint / $totalSubject;
+										// echo '<div class="footer-item">' . $this->lang->line('student_gpa') . ' : <span class="text-red text-bold">' . ini_round($gpaAveragePoint) . '</span>' . ',' . '</div>';
+
+										 $out_of = $out_of != 0 ? $out_of : 1;
+                                            $percent_cal = ($tot / $out_of) * 100;
+
+                                            if ($percent_cal >= 95 && $zero_mark == 0) {
+                                                $grade = "A+";
+                                                $gradeClass = "grade-a-plus";
+                                            } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
+                                                $grade = "A";
+                                                $gradeClass = "grade-a";
+                                            } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
+                                                $grade = "B+";
+                                                $gradeClass = "grade-b-plus";
+                                            } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
+                                                $grade = "B";
+                                                $gradeClass = "grade-b";
+                                            } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
+                                                $grade = "C+";
+                                                $gradeClass = "grade-c-plus";
+                                            } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
+                                                $grade = "C";
+                                                $gradeClass = "grade-c";
+                                            } else {
+                                                $grade = "D";
+                                                $gradeClass = "grade-d";
+
+											$out_of = 0;
+
+                                            }
+
+
+										echo '<div class="footer-item"> Grade : <span class="text-red text-bold grade-label {$gradeClass}">' . $grade . '</span>' . ',' . '</div>';
 										
 										echo '</div>';
 
