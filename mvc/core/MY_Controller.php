@@ -29,7 +29,7 @@ class MY_Controller extends CI_Controller {
         $this->load->library('session');
 
          // 1. Get subdomain
-         $subdomain = get_subdomain(); // defined in helper below
+         /*$subdomain = get_subdomain(); // defined in helper below
          if (!$subdomain) {
              show_error("Invalid subdomain.");
          }
@@ -65,7 +65,7 @@ class MY_Controller extends CI_Controller {
          );
  
          // 🔁 This replaces the default DB connection globally
-         $this->db = $this->load->database($db_config, TRUE);
+         $this->db = $this->load->database($db_config, TRUE);*/
 
 
         if ( !$this->config->config_install() ) {
