@@ -65,12 +65,14 @@
 
 
                    
-                </form>
+              
                 <div class="col-sm-12">
                         <div class="btn-center">
                             <input type="submit" class="ose-btn" value="<?=$this->lang->line("update_exam")?>" >
                         </div>
                     </div>
+
+                      </form>
             </div>    
         </div>
     </div>

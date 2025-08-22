@@ -170,6 +170,44 @@ class Invoice_m extends MY_Model {
 		return $query->result();
 	}
 
+	public function get_all_balancefees_for_report_multi($queryArray) { 
+    $this->db->select('*');
+    $this->db->from('invoice');
+    $this->db->join('maininvoice m','m.maininvoiceID = invoice.maininvoiceID','inner'); // condition for duplicate transport fee
+    $this->db->where('invoice.schoolyearID', $queryArray['schoolyearID']);
+
+    if (
+        (isset($queryArray['classesID']) && $queryArray['classesID'] != 0) ||
+        (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) ||
+        (isset($queryArray['studentID']) && $queryArray['studentID'] != 0) ||
+        (isset($queryArray['feetypeID']) && !empty($queryArray['feetypeID']))
+    ) {
+        if (isset($queryArray['classesID']) && $queryArray['classesID'] != 0) {
+            $this->db->where('invoice.classesID', $queryArray['classesID']);
+        }
+
+        if (isset($queryArray['studentID']) && $queryArray['studentID'] != 0) {
+            $this->db->where('invoice.studentID', $queryArray['studentID']);
+            // $this->db->where('m.maininvoicestudentID', $queryArray['studentID']);
+        }
+
+        if (isset($queryArray['feetypeID']) && !empty($queryArray['feetypeID'])) {
+            if (is_array($queryArray['feetypeID'])) {
+                $this->db->where_in('invoice.feetypeID', $queryArray['feetypeID']);
+            } else {
+                $this->db->where('invoice.feetypeID', $queryArray['feetypeID']);
+            }
+        }
+    }
+
+    $this->db->where('invoice.deleted_at', 1);
+
+    $query = $this->db->get();
+    // echo $this->db->last_query();die;
+    return $query->result();
+}
+
+
 	public function get_dueamount($array) {
 		$this->db->select('invoice.*,weaverandfine.weaver,weaverandfine.fine');
 		$this->db->from('invoice');

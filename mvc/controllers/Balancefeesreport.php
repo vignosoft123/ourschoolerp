@@ -148,14 +148,18 @@ class Balancefeesreport extends Admin_Controller{
 					$classesID    = $this->input->post('classesID'); 
 					$sectionID    = $this->input->post('sectionID'); 
 					$studentID    = $this->input->post('studentID'); 
-					$feetypeID    = $this->input->post('feetypeID'); 
+					// $feetypeID    = $this->input->post('feetypeID'); 
 
 					$this->data['classesID']    = $classesID;
 					$this->data['villageID']    = $villageID;
 					$this->data['sectionID']    = $sectionID;
 					$this->data['studentID']    = $studentID;
 					$this->data['schoolyearID'] = $schoolyearID; 
-					$this->data['feetypeID'] = $feetypeID; 
+					// $this->data['feetypeID'] = $feetypeID; 
+
+					$feetypeIDs = $this->input->post('feetypeID'); // this will now be an array
+
+					$this->data['feetypeIDs'] = $feetypeIDs;
 
 					$studentArray = [];
 					if((int)$classesID) {
@@ -183,19 +187,19 @@ class Balancefeesreport extends Admin_Controller{
 
 					$this->data['classes'] = pluck($this->classes_m->general_get_classes(),'classes','classesID');
 					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
-					$this->data['feetypes'] = ($this->feetypes_m->general_get_fee($feetypeID));
+					$this->data['feetypes'] = ($this->feetypes_m->general_get_fee_multi($feetypeIDs));
 					// dd($this->data['feetypes']);
 		
-					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report($this->input->post()));
+					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
 
 					// echo "<pre>";print_r($this->data['totalAmountAndDiscount']);die;
 
 					// $this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment(array('schoolyearID' => $schoolyearID)));
 
 					
-					$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new($schoolyearID,$feetypeID));
+					$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
 
-					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new($schoolyearID,$feetypeID));
+					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs));
 
 				// 	echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
 
@@ -247,18 +251,18 @@ class Balancefeesreport extends Admin_Controller{
 	}
 
 	private function totalPaymentAndWeaver($arrays) {
-		// echo "<pre>"; print_r($arrays);die;
+		// echo "<pre>"; print_r($arrays);
 		$totalPayment = [];
 		if(customCompute($arrays)) {
 			foreach($arrays as $key => $array) {
 				if(isset($totalPayment[$array->studentID]['payment'])) {
-					$totalPayment[$array->studentID]['payment'] += $array->paymentamount;
+					$totalPayment[$array->studentID]['payment'] += $array->total_paid;
 				} else {
-					$totalPayment[$array->studentID]['payment'] = $array->paymentamount;
+					$totalPayment[$array->studentID]['payment'] = $array->total_paid;
 				}
 			}
 		}
-		return $totalPayment;
+		return ($totalPayment);
 	}
 
 	private function totalWeaver($arrays) {

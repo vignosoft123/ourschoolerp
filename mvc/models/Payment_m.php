@@ -91,6 +91,7 @@ class Payment_m extends MY_Model {
 
 	public function get_order_by_payment($array=NULL) {
 		$query = parent::get_order_by($array);
+		// echo $this->db->last_query();die;
 		return $query;
 	}
 
@@ -142,7 +143,53 @@ class Payment_m extends MY_Model {
 	}
 	
 	
-	public function get_order_by_payment_new($schoolyearID, $fee_type = null) {
+	public function get_order_by_payment_new_multi($schoolyearID, $fee_types = null, $studentID = "") {
+    $this->db->select('
+        s.studentID,
+        s.name AS student_name,
+        i.invoiceID,
+        i.feetype,
+        i.amount,
+        IFNULL(i.discount, 0) AS discount,
+        IFNULL(w.weaver, 0) AS weaver,
+        IFNULL(SUM(p.paymentamount), 0) AS total_paid
+    ');
+    $this->db->from('invoice i');
+    $this->db->join('student s', 's.studentID = i.studentID', 'LEFT');
+    $this->db->join(
+        '(SELECT invoiceID, SUM(weaver) AS weaver FROM weaverandfine GROUP BY invoiceID) w',
+        'w.invoiceID = i.invoiceID',
+        'LEFT'
+    );
+    $this->db->join(
+        'payment p',
+        'p.invoiceID = i.invoiceID AND p.schoolyearID = ' . $this->db->escape($schoolyearID),
+        'LEFT'
+    );
+
+    $this->db->where('i.schoolyearID', $schoolyearID);
+
+    if (!empty($fee_types)) {
+        if (is_array($fee_types)) {
+            $this->db->where_in('i.feetypeID', $fee_types);
+        } else {
+            $this->db->where('i.feetypeID', $fee_types);
+        }
+    }
+
+    if (!empty($studentID)) {
+        $this->db->where('i.studentID', $studentID);
+    }
+
+    $this->db->group_by('i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, s.studentID, s.name');
+    $this->db->order_by('i.invoiceID', 'DESC');
+
+    $query = $this->db->get();
+    return $query->result();
+}
+
+
+public function get_order_by_payment_new($schoolyearID, $fee_type = null,$studentID="") {
     $this->db->select('
         s.studentID,
         s.name AS student_name,
@@ -166,6 +213,10 @@ class Payment_m extends MY_Model {
 
     if (!empty($fee_type)) {
         $this->db->where('i.feetypeID', $fee_type);
+    }
+
+	 if (!empty($studentID)) {
+        $this->db->where('i.studentID', $studentID);
     }
 
     $this->db->group_by('i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, s.studentID, s.name');

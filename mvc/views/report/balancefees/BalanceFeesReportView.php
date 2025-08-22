@@ -44,21 +44,41 @@
                      ?>
                 </div>
 
-                
+
                 <div class="form-group col-sm-4" id="feetypeDiv">
+    <label>Fee Report</label>
+    <?php
+        $feetypeArray = [];
+        if (customCompute($feetypes)) {
+            foreach ($feetypes as $feetype) {
+                $feetypeArray[$feetype->feetypesID] = $feetype->feetypes;
+            }
+        }
+
+        echo form_dropdown(
+            "feetypeID[]", // <-- make it an array
+            $feetypeArray,
+            set_value("feetypeID[]"),
+            "id='feetypeID' class='form-control select2' multiple='multiple'"
+        );
+    ?>
+</div>
+
+                
+                <!-- <div class="form-group col-sm-4" id="feetypeDiv">
                 <label>Fee Report</label>
                 <?php
-                    $feetypeArray = array(
-                        "0" => "Please Select",
-                    );
-                    if (customCompute($feetypes)) {
-                        foreach ($feetypes as $feetype) {
-                            $feetypeArray[$feetype->feetypesID] = $feetype->feetypes;
-                        }
-                    }
-                    echo form_dropdown("feetypeID", $feetypeArray, set_value("feetypeID"), "id='feetypeID' class='form-control select2'");
+                    // $feetypeArray = array(
+                    //     "0" => "Please Select",
+                    // );
+                    // if (customCompute($feetypes)) {
+                    //     foreach ($feetypes as $feetype) {
+                    //         $feetypeArray[$feetype->feetypesID] = $feetype->feetypes;
+                    //     }
+                    // }
+                   // echo form_dropdown("feetypeID", $feetypeArray, set_value("feetypeID"), "id='feetypeID' class='form-control select2'");
                     ?>
-                </div>
+                </div> -->
 
                 <div class="form-group col-sm-4" id="sectionDiv">
                     <label><?=$this->lang->line("balancefeesreport_section")?></label>

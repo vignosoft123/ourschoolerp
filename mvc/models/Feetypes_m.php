@@ -21,6 +21,19 @@ class feetypes_m extends MY_Model {
 		return $query;
 	}
 
+	public function general_get_fee_multi($ids = NULL, $single = FALSE) {
+    if (is_array($ids) && !empty($ids)) {
+        $this->db->where_in('feetypesID', $ids);
+        $query = $this->db->get('feetypes');
+        return $query->result();
+    } elseif ($ids !== NULL) {
+        return parent::get($ids, $single);
+    } else {
+        return parent::get(); // all
+    }
+}
+
+
 	function get_order_by_feetypes($array=NULL) {
 		$query = parent::get_order_by($array);
 		return $query;
