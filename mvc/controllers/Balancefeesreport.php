@@ -199,7 +199,7 @@ class Balancefeesreport extends Admin_Controller{
 					
 					$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
 
-					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs));
+					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
 
 				// 	echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
 
@@ -921,14 +921,51 @@ class Balancefeesreport extends Admin_Controller{
 		return $totalPaymentByStudent;
 	}
 
-private function totalPaymentAndWeaver_split($arrays) {
+	private function totalPaymentAndWeaver_split($arrays) {
     $totalPaymentByStudent = [];
 
     if (customCompute($arrays)) {
         foreach ($arrays as $array) {
             if (isset($totalPaymentByStudent[$array->studentID][$array->feetype])) {
+                // already exists, update
                 $totalPaymentByStudent[$array->studentID][$array->feetype]['paid'] += $array->total_paid;
+                $totalPaymentByStudent[$array->studentID][$array->feetype]['discount_plus_weaver'] += ($array->discount + $array->weaver);
+
+                $totalPaymentByStudent[$array->studentID][$array->feetype]['remaining'] = 
+                    $totalPaymentByStudent[$array->studentID][$array->feetype]['total'] 
+                    - $totalPaymentByStudent[$array->studentID][$array->feetype]['paid'] 
+                    - $totalPaymentByStudent[$array->studentID][$array->feetype]['discount_plus_weaver'];
+
             } else {
+                // first time insert
+                $totalPaymentByStudent[$array->studentID][$array->feetype] = [
+                    'paid' => $array->total_paid,
+                    'total' => $array->amount,
+                    'discount_plus_weaver' => $array->discount + $array->weaver,
+                    'remaining' => $array->amount - $array->total_paid - ($array->discount + $array->weaver)
+                ];
+            }
+        }
+    }
+
+    return $totalPaymentByStudent;
+}
+
+
+private function totalPaymentAndWeaver_split_working($arrays) {
+    $totalPaymentByStudent = [];
+
+    if (customCompute($arrays)) {
+		echo "<pre>";print_r($arrays);die;
+        foreach ($arrays as $array) {
+            if (isset($totalPaymentByStudent[$array->studentID][$array->feetype])) {
+                // already exists, update
+                $totalPaymentByStudent[$array->studentID][$array->feetype]['paid'] += $array->total_paid;
+                $totalPaymentByStudent[$array->studentID][$array->feetype]['remaining'] = 
+                    $totalPaymentByStudent[$array->studentID][$array->feetype]['total'] 
+                    - $totalPaymentByStudent[$array->studentID][$array->feetype]['paid'];
+            } else {
+                // first time insert
                 $totalPaymentByStudent[$array->studentID][$array->feetype] = [
                     'paid' => $array->total_paid,
                     'total' => $array->amount,
@@ -936,12 +973,14 @@ private function totalPaymentAndWeaver_split($arrays) {
                 ];
             }
 
+            // apply weaver after calculation
             $totalPaymentByStudent[$array->studentID][$array->feetype]['remaining'] -= $array->weaver;
         }
     }
 
     return $totalPaymentByStudent;
 }
+
 
 
 

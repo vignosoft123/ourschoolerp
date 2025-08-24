@@ -285,7 +285,7 @@
                                     $feeData = $totalPayment_split[$student->srstudentID][$feeType];
                                     $total = $feeData['total'];
                                     $paid = $feeData['paid'];
-                                    $discount = $feeData['total_discount_weaver'];
+                                    $discount = $feeData['discount_plus_weaver'];
                                     $remaining = isset($feeData['remaining']) ? max(0, $feeData['remaining']) : 0;
                                 }
                             ?>

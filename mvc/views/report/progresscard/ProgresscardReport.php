@@ -2,7 +2,66 @@
 //print_r($attendance);die;
 ?>
 
-<style>
+<style> 
+
+.grade-label {
+padding: 3px 8px;
+border-radius: 4px;
+font-weight: bold;
+display: inline-block;
+font-size: 13px;
+}
+
+.grade-a-plus { background-color: #e6f4ea; color: #2e7d32; }
+.grade-a      { background-color: #e8f5e9; color: #388e3c; }
+.grade-b-plus { background-color: #e3f2fd; color: #0288d1; }
+.grade-b      { background-color: #e1f5fe; color: #039be5; }
+.grade-c-plus { background-color: #fff9c4; color: #fbc02d; }
+.grade-c      { background-color: #ffe0b2; color: #f57c00; }
+.grade-d      { background-color: #ffcdd2; color: #d32f2f; }
+
+
+
+
+   .grade-label {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 13px;
+}
+
+/* Light backgrounds with readable text */
+.grade-a-plus {
+    background-color: #e6f4ea; /* Light green */
+    color: #2e7d32;
+}
+.grade-a {
+    background-color: #e8f5e9;
+    color: #388e3c;
+}
+.grade-b-plus {
+    background-color: #e3f2fd; /* Light blue */
+    color: #0288d1;
+}
+.grade-b {
+    background-color: #e1f5fe;
+    color: #039be5;
+}
+.grade-c-plus {
+    background-color: #fff9c4; /* Light yellow */
+    color: #fbc02d;
+}
+.grade-c {
+    background-color: #ffe0b2; /* Light orange */
+    color: #f57c00;
+}
+.grade-d {
+    background-color: #ffcdd2; /* Light red */
+    color: #d32f2f;
+}
+
+
     .error{color:red;}
     .row_background {background-color:#dce1ee;}
     .row_absent{    background-color: #f8e3e3;}
@@ -482,6 +541,7 @@
                         </div>
                         <div class="progresscard-contents progresscardreporttable">
 
+                        <h3 style="text-align:center"><?=isset($exams[$examID]) ? $exams[$examID] : ''?> </h3>
 
                             <table>
                                 <thead>
@@ -494,7 +554,9 @@
                                             $uniquepercentageArr = isset($markpercentagesArr[$firstindex]) ? $markpercentagesArr[$firstindex] : [];
                                             $markpercentages     = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
                                             ?>
-                                            <th colspan="<?=customCompute($markpercentages)?>"><?=isset($exams[$examID]) ? $exams[$examID] : ''?></th>
+                                            <th colspan=""> Max Marks</th>
+
+                                            <th colspan="<?=customCompute($markpercentages)?>"> Obtained Marks</th>
                                             <input type="hidden" name="exam_name[]" value="<?=isset($exams[$examID]) ? $exams[$examID] : ''?>">
                                         <?php } } ?>
                                         <!-- <th rowspan="2"><?=$this->lang->line('progresscardreport_total')?></th>
@@ -544,7 +606,8 @@
                                         $total_max_marks += $mandatorySubject->max_mark;
                                         ?>
                                         <tr>
-                                            <td class="text-blue"><?=$mandatorySubject->subject?>  ( <?=$mandatorySubject->max_mark?> ) </td>
+                                            <td class="text-blue"><?=$mandatorySubject->subject?>  </td>
+                                            <td class="text-purple"><?=$mandatorySubject->max_mark?>  </td>
                                             <?php 
                                             if(customCompute($settingExam)) { foreach($settingExam as $examID) {
                                                 $examTotalSubjectMark = 0;
@@ -661,11 +724,14 @@
                                     <?php } ?>
                                     <tr>
                                         <td class="text-blue" ><b><?=$this->lang->line('progresscardreport_total_mark')?> </b></td>
+                                        <td  ><blink><b><?=ini_round($total_max_marks)?></b></blink></td>
                                         <td  ><blink><b><?=ini_round($totalAllSubjectMark)?></b></blink></td>
                                         <input type="hidden" name="total_marks[]" value="<?php echo ini_round($totalAllSubjectMark)."/".$totalExMarks;?>">
                                     </tr>
                                     <tr>
                                         <td class="text-blue"><b><?=$this->lang->line('progresscardreport_average_mark')?></b> </td>
+                                        <td></td>
+
                                        <td> 
                                         <b>
                                                 <?php
@@ -674,7 +740,7 @@
                                                         $tSubject = $tSubject + 1;
                                                     }
                                                     $totalAllSubject = $tSubject * customCompute($settingExam);
-                                                    echo ini_round($totalAllSubjectMark / $totalAllSubject);
+                                                    echo $tot = ini_round($totalAllSubjectMark / $totalAllSubject);
                                                 ?>
                                             </b> 
  
@@ -685,6 +751,8 @@
 
                                     <tr>
                                         <td class="text-blue"><b>Percentage</b> </td>
+                                        <td></td>
+
                                        <td> 
                                         <b>
                                                 <?php
@@ -695,6 +763,47 @@
                                                     // }
                                                     // $totalAllSubject = $tSubject * customCompute($settingExam);
                                                     echo ini_round(($totalAllSubjectMark * 100) / $total_max_marks). "%";
+                                                ?>
+                                            </b> 
+ 
+                                        </td>
+                                        
+                                    </tr>
+
+                                    
+                                    <tr>
+                                        <td class="text-blue"><b>Grade</b> </td> 
+                                       <td> 
+                                        <b>
+                                                <?php
+                                                     $out_of = $total_max_marks != 0 ? $total_max_marks : 1;
+                                            $percent_cal = ($tot / $out_of) * 100;
+
+                                            if ($percent_cal >= 95  ) {
+                                                $grade = "A+";
+                                                $gradeClass = "grade-a-plus";
+                                            } else if ($percent_cal >= 90 && $percent_cal < 95  ) {
+                                                $grade = "A";
+                                                $gradeClass = "grade-a";
+                                            } else if ($percent_cal >= 80 && $percent_cal < 90  ) {
+                                                $grade = "B+";
+                                                $gradeClass = "grade-b-plus";
+                                            } else if ($percent_cal >= 70 && $percent_cal < 80  ) {
+                                                $grade = "B";
+                                                $gradeClass = "grade-b";
+                                            } else if ($percent_cal >= 60 && $percent_cal < 70  ) {
+                                                $grade = "C+";
+                                                $gradeClass = "grade-c-plus";
+                                            } else if ($percent_cal >= 50 && $percent_cal < 60  ) {
+                                                $grade = "C";
+                                                $gradeClass = "grade-c";
+                                            } else {
+                                                $grade = "D";
+                                                $gradeClass = "grade-d";
+                                            }
+
+                                            echo "<td><span class='grade-label {$gradeClass}'>$grade</span></td>";
+                                                    
                                                 ?>
                                             </b> 
  

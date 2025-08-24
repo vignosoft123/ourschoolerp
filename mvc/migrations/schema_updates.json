@@ -8,6 +8,14 @@
         }
     },
     {
+        "query": "ALTER TABLE `student` ADD `medium` VARCHAR(55) NULL DEFAULT 'English' AFTER `platform`",
+        "type": "alter",
+        "check_column": {
+            "table": "student",
+            "column": "medium"
+        }
+    },
+    {
         "query": "ALTER TABLE `teacher` ADD `default_login_time` TIME NULL DEFAULT '0.00' ",
         "type": "alter",
         "check_column": {

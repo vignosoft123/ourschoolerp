@@ -94,6 +94,41 @@
                         </div>
 
 
+                         <?php
+                            if (form_error('medium'))
+                                echo "<div class='col-md-4 has-error' >";
+                            else
+                                echo "<div class='col-md-4' >";
+                            ?>
+                            <label for="medium" class=" control-label">
+                            Medium
+                            </label>
+                            
+                                <input type="text" class="form-control" id="medium" name="medium" value="<?= set_value('medium') ?>">
+                            
+                            <span class="  control-label">
+                                <?php echo form_error('medium'); ?>
+                            </span>
+                        </div>
+
+
+                         <?php
+                            if (form_error('rf_id'))
+                                echo "<div class='col-md-4 has-error' >";
+                            else
+                                echo "<div class='col-md-4' >";
+                            ?>
+                            <label for="name_id" class=" control-label">
+                            RF ID
+                            </label>
+                            
+                                <input type="text" class="form-control" id="rf_id" name="rf_id" value="<?= set_value('rf_id') ?>">
+                            
+                            <span class="  control-label">
+                                <?php echo form_error('rf_id'); ?>
+                            </span>
+                        </div><!------End RF ID ----->
+
                 <?php
                     if (form_error('classesID'))
                         echo "<div class='col-md-4 has-error' >";
@@ -147,22 +182,7 @@
                             <?php echo form_error('sectionID'); ?>
                         </span>
                         </div> <!------End Section ----->
-                        <?php
-                            if (form_error('rf_id'))
-                                echo "<div class='col-md-4 has-error' >";
-                            else
-                                echo "<div class='col-md-4' >";
-                            ?>
-                            <label for="name_id" class=" control-label">
-                            RF ID
-                            </label>
-                            
-                                <input type="text" class="form-control" id="rf_id" name="rf_id" value="<?= set_value('rf_id') ?>">
-                            
-                            <span class="  control-label">
-                                <?php echo form_error('rf_id'); ?>
-                            </span>
-                        </div><!------End RF ID ----->
+                       
                         <?php
                             if (form_error('roll')) 
                                 echo "<div class='col-md-4 has-error' >";

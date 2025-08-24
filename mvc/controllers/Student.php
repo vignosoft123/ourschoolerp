@@ -963,6 +963,7 @@ class Student extends Admin_Controller
 					$array["sub_caste"] = $this->input->post('sub_caste');
 					$array["pen_number"] = $this->input->post('pen_number');
 					$array["child_id"] = $this->input->post('child_id');
+					$array["medium"] = $this->input->post('medium')?? 'English';
 
 					$array["mole1"] = $this->input->post('mole1');
 					$array["mole2"] = $this->input->post('mole2');
@@ -1694,6 +1695,7 @@ class Student extends Admin_Controller
 					$array["sub_caste"] = $this->input->post('sub_caste');
 					$array["pen_number"] = $this->input->post('pen_number');
 					$array["child_id"] = $this->input->post('child_id');
+					$array["medium"] = $this->input->post('medium') ?? 'Enlish';
 
 					$array["mole1"] = $this->input->post('mole1');
 					$array["mole2"] = $this->input->post('mole2');
@@ -2361,6 +2363,7 @@ class Student extends Admin_Controller
 							$array["sub_caste"] = $this->input->post('sub_caste'); 
 							$array["pen_number"] = $this->input->post('pen_number');
 							$array["child_id"] = $this->input->post('child_id');
+							$array["medium"] = $this->input->post('medium')?? 'medium';
 							$array["remarks"] = $this->input->post('remarks');
 
 							$array["mole1"] = $this->input->post('mole1');

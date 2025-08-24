@@ -256,6 +256,8 @@
                                             <?php } } ?>
                                             <tr>
                                                 <td><b><?=$this->lang->line('global_total')?></b></td>
+                                                <td></td>
+
                                                 <td><b><?=$invoice_total?></b></td>
                                                 <td><b><?=$invoice_weaver?></b></td>
                                                 <td><b><?=$invoice_fine?></b></td>

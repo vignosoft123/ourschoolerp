@@ -38,7 +38,7 @@
         .idcard-details {
             margin-top: 0px;
             font-size: 15px;
-            line-height: 1.6;
+            line-height: 2.0;
         }
         .idcard-details b {
             width: 120px;
@@ -73,7 +73,7 @@
                  <?php //echo "<pre>"; print_r($student);die;?>
                <b> <div class="idcard-details text-black" style="">
                     <b class="text-black">Medium</b>: <?=$student->medium ?? 'English'?><br>
-                    <b class="text-black">C'ass/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
+                    <b class="text-black">Class/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
                     <b class="text-black">F'Name</b>: <?=$student->father_name ?? ''?><br>
                     <b class="text-black" >Contact No.</b>: <?=$student->phone ?? ''?><br>
                     <b class="text-black">Village</b>: <?=$student->address ?? ''?><br>

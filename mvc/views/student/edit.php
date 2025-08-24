@@ -87,6 +87,23 @@
                             </span>
                         </div>
 
+                         <?php
+                            if (form_error('medium'))
+                                echo "<div class='col-md-4 has-error' >";
+                            else
+                                echo "<div class='col-md-4' >";
+                            ?>
+                            <label for="medium" class=" control-label">
+                            Medium
+                            </label>
+                            
+                                <input type="text" class="form-control" id="medium" name="medium"  value="<?=set_value('medium', $student->medium)?>">
+                            
+                            <span class="  control-label">
+                                <?php echo form_error('medium'); ?>
+                            </span>
+                        </div>
+
                         
                             <?php 
                             if(form_error('classesID')) 
