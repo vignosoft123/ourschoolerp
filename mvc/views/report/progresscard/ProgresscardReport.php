@@ -740,7 +740,7 @@ font-size: 13px;
                                                         $tSubject = $tSubject + 1;
                                                     }
                                                     $totalAllSubject = $tSubject * customCompute($settingExam);
-                                                    echo $tot = ini_round($totalAllSubjectMark / $totalAllSubject);
+                                                    echo ini_round($totalAllSubjectMark / $totalAllSubject);
                                                 ?>
                                             </b> 
  
@@ -762,6 +762,7 @@ font-size: 13px;
                                                     //     $tSubject = $tSubject + 1;
                                                     // }
                                                     // $totalAllSubject = $tSubject * customCompute($settingExam);
+                                                    $tot = $totalAllSubjectMark;
                                                     echo ini_round(($totalAllSubjectMark * 100) / $total_max_marks). "%";
                                                 ?>
                                             </b> 
@@ -775,8 +776,8 @@ font-size: 13px;
                                         <td class="text-blue"><b>Grade</b> </td> 
                                        <td> 
                                         <b>
-                                                <?php
-                                                     $out_of = $total_max_marks != 0 ? $total_max_marks : 1;
+                                                <?php //echo $tot.'=========y';
+                                                        $out_of = $total_max_marks != 0 ? $total_max_marks : 1;
                                             $percent_cal = ($tot / $out_of) * 100;
 
                                             if ($percent_cal >= 95  ) {

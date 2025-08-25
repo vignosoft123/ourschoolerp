@@ -381,6 +381,68 @@ public function get_order_by_payment_new_summary($schoolyearID, $fee_type = null
 		return $query->result();
 	}
 
+	public function get_all_payment_for_report_multi($queryArray) {
+    $this->db->select('payment.*');
+    $this->db->from('payment');
+
+    // Join globalpayment if filters exist
+    if(
+        (isset($queryArray['classesID']) && $queryArray['classesID'] != 0) || 
+        (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) || 
+        (isset($queryArray['studentID']) && $queryArray['studentID'] != 0)
+    ) {
+        $this->db->join('globalpayment', 'payment.globalpaymentID = globalpayment.globalpaymentID','LEFT');
+
+        if(isset($queryArray['classesID']) && $queryArray['classesID'] != 0) {
+            $this->db->where('globalpayment.classesID', $queryArray['classesID']);
+        }
+
+        if(isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) {
+            $this->db->where('globalpayment.sectionID', $queryArray['sectionID']);
+        }
+
+        if(isset($queryArray['studentID']) && $queryArray['studentID'] != 0) {
+            $this->db->where('globalpayment.studentID', $queryArray['studentID']);
+        }
+    }
+
+    // ✅ Multi fee type filter
+    if (isset($queryArray['feetypeID']) && !empty($queryArray['feetypeID'])) {
+        $this->db->join('invoice', 'payment.invoiceID = invoice.invoiceID','LEFT');
+
+        if (is_array($queryArray['feetypeID'])) {
+            $this->db->where_in('invoice.feetypeID', $queryArray['feetypeID']);
+        } else {
+            $this->db->where('invoice.feetypeID', $queryArray['feetypeID']);
+        }
+    }
+
+    // Date filter
+    if (!empty($queryArray['fromdate']) && !empty($queryArray['todate'])) {
+        $fromdate = date('Y-m-d', strtotime($queryArray['fromdate']));
+        $todate   = date('Y-m-d', strtotime($queryArray['todate']));
+        $this->db->where('paymentdate >=', $fromdate);
+        $this->db->where('paymentdate <=', $todate);
+    }
+
+    // User filter
+    $userID    = $this->session->userdata('loginuserID');
+    $usertypeID= $this->session->userdata('usertypeID');
+
+    if ($usertypeID != 1) {
+        $this->db->where(array('payment.userID' => $userID));
+        $this->db->where(array('payment.usertypeID' => 5));    
+    } elseif (!empty($queryArray['userID']) && $queryArray['userID'] != 0) {
+        $this->db->where(array('payment.userID' => $queryArray['userID']));
+        $this->db->where(array('payment.usertypeID' => 5));    
+    }
+
+    $query = $this->db->get();
+    // echo $this->db->last_query();die;
+    return $query->result();
+}
+
+
 	public function get_payments($array) {
 		$this->db->select('*');
 		$this->db->from($this->_table_name);

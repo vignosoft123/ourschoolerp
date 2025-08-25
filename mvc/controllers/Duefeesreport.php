@@ -206,9 +206,19 @@ class Duefeesreport extends Admin_Controller{
 					$this->data['classes']  = pluck($this->classes_m->general_get_classes(),'classes','classesID');
 					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
 					
-					$this->data['getFeesReports'] = $this->totalPayment($this->payment_m->get_all_payment_for_report($this->input->post()), $schoolyearID);
+					// $this->data['getFeesReports'] = $this->totalPayment($this->payment_m->get_all_payment_for_report($this->input->post()), $schoolyearID);
 
-					$this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report($this->input->post());
+					$this->data['getFeesReports'] = $this->totalPayment($this->payment_m->get_all_payment_for_report_multi($this->input->post()), $schoolyearID);
+
+
+					$feetypeIDs = $this->input->post('feetypeID'); // this will now be an array
+					$this->data['feetypeIDs'] = $feetypeIDs;
+
+					// Pass post data as-is to model
+					$this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report_multi($this->input->post());
+
+
+					// $this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report($this->input->post());
 					// echo "<pre>";print_r($this->data['getDueFeesReports'] );die;
 
 					if($_POST['view_type'] == 'horizontal'){

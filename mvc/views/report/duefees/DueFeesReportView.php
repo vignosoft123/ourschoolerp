@@ -47,17 +47,22 @@
 
                 <div class="form-group col-sm-4" id="feetypeDiv">
                     <label><?=$this->lang->line("duefeesreport_feetype")?></label>
-                    <?php
-                        $feetypeArray = array(
-                            "0" => $this->lang->line("duefeesreport_please_select"),
-                        );
-                        if(customCompute($feetypes)) {
-                            foreach($feetypes as $feetype) {
-                                $feetypeArray[$feetype->feetypesID] = $feetype->feetypes;
-                            }
-                        }
-                        echo form_dropdown("feetypeID", $feetypeArray, set_value("feetypeID"), "id='feetypeID' class='form-control select2'");
-                     ?>
+           <?php
+    $feetypeArray = [];
+    if(customCompute($feetypes)) {
+        foreach($feetypes as $feetype) {
+            $feetypeArray[$feetype->feetypesID] = $feetype->feetypes;
+        }
+    }
+
+    echo form_dropdown(
+        "feetypeID[]",   // <-- make it array
+        $feetypeArray,
+        set_value("feetypeID[]"),
+        "id='feetypeID' class='form-control select2' multiple='multiple'"
+    );
+?>
+
                 </div>
 
                 <div class="form-group col-sm-4" id="fromdateDiv">

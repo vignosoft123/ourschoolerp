@@ -150,6 +150,7 @@ class Studentrelation_m extends MY_Model {
     // if $photo_type == 0, no extra condition (all students)
 
     $this->db->where('student.studentID !=', NULL);
+    $this->db->where('student.active =', 1);
 
     $query = $this->db->get();
     // echo $this->db->last_query(); die;

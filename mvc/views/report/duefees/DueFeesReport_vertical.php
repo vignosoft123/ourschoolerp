@@ -118,6 +118,8 @@ foreach($getDueFeesReports as $report) {
 
 // Step 2: Pivot data by student and invoice date
 $pivotData = [];
+
+// echo "<pre>";print_r($students);die;
 foreach($getDueFeesReports as $report) {
     $studentID = $report->studentID;
     $invoiceDate = date('Y-m-d', strtotime($report->create_date)); // Group by invoice date
@@ -147,6 +149,7 @@ foreach($getDueFeesReports as $report) {
             <th><?=$this->lang->line('slno')?></th>
             <th><?=$this->lang->line('duefeesreport_invoice_date')?></th>
             <th><?=$this->lang->line('duefeesreport_name')?></th>
+            <th>Father</th>
             <th>Phone</th>
             <th><?=$this->lang->line('duefeesreport_registerNO')?></th>
             <th><?=$this->lang->line('duefeesreport_roll')?></th>
@@ -167,7 +170,9 @@ foreach($getDueFeesReports as $report) {
                 <td><?=$i++?></td>
                 <td><?=date('d M Y', strtotime($entry['invoice_date']))?></td>
                 <td><?=$entry['student'] ? $entry['student']->srname : ''?></td>
+                <td><?=$entry['student'] ? $entry['student']->father_name : ''?></td>
                 <td><?=$entry['student'] ? $entry['student']->phone : ''?></td>
+
                 <td><?=$entry['student'] ? $entry['student']->srregisterNO : ''?></td>
                 <td><?=$entry['student'] ? $entry['student']->srroll : ''?></td>
 

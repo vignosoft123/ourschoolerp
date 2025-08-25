@@ -141,6 +141,52 @@ class Invoice_m extends MY_Model {
 		return $query->result();
 	}
 
+	public function get_all_duefees_for_report_multi($queryArray) {
+    $this->db->select('invoice.*');
+    $this->db->from('invoice');
+    $this->db->join('student', 'student.studentID = invoice.studentID', 'LEFT');
+    $this->db->where('invoice.schoolyearID', $queryArray['schoolyearID']);
+    $this->db->where('student.active', 1);
+
+    if(
+        (isset($queryArray['classesID']) && $queryArray['classesID'] != 0) || 
+        (isset($queryArray['sectionID']) && $queryArray['sectionID'] != 0) || 
+        (isset($queryArray['studentID']) && $queryArray['studentID'] != 0)
+    ) {
+        if(isset($queryArray['classesID']) && $queryArray['classesID'] != 0) {
+            $this->db->where('invoice.classesID', $queryArray['classesID']);
+        }
+
+        if(isset($queryArray['studentID']) && $queryArray['studentID'] != 0) {
+            $this->db->where('invoice.studentID', $queryArray['studentID']);
+        }
+    }
+
+    // ✅ Multi fee type filter
+    if (isset($queryArray['feetypeID']) && !empty($queryArray['feetypeID'])) {
+        if (is_array($queryArray['feetypeID'])) {
+            $this->db->where_in('invoice.feetypeID', $queryArray['feetypeID']);
+        } else {
+            $this->db->where('invoice.feetypeID', $queryArray['feetypeID']);
+        }
+    }
+
+    // Date filter
+    if (!empty($queryArray['fromdate']) && !empty($queryArray['todate'])) {
+        $fromdate = date('Y-m-d', strtotime($queryArray['fromdate']));
+        $todate   = date('Y-m-d', strtotime($queryArray['todate']));
+        $this->db->where('invoice.create_date >=', $fromdate);
+        $this->db->where('invoice.create_date <=', $todate);
+    }
+
+    $this->db->where('invoice.paidstatus !=', 2);
+    $this->db->where('invoice.deleted_at', 1);
+
+    $query = $this->db->get();
+    return $query->result();
+}
+
+
 	public function get_all_balancefees_for_report($queryArray) { 
 		$this->db->select('*');
 		$this->db->from('invoice ');
