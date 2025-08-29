@@ -285,6 +285,22 @@ class Idcardreport extends Admin_Controller {
         $this->load->view('_layout_main', $this->data);
     }
 
+     public function low_dimensions() {
+        $this->data['headerassets'] = array(
+            'css' => array(
+                'assets/select2/css/select2.css',
+                'assets/select2/css/select2-bootstrap.css',
+            ),
+            'js' => array(
+                'assets/select2/select2.js',
+            )
+        );
+        $this->data['usertypes'] = $this->usertype_m->get_usertype();
+        $this->data['classes'] = $this->classes_m->general_get_classes();
+        $this->data["subview"] = "report/idcard/IdcardReportView_new_low_dimensions";
+        $this->load->view('_layout_main', $this->data);
+    }
+
     public function getIdcardReport() {
         $retArray['status'] = FALSE;
         $retArray['render'] = '';
@@ -320,6 +336,60 @@ class Idcardreport extends Admin_Controller {
                     //echo "<pre>";print_r($this->data['idcards']);die;
                     // $retArray['render'] = $this->load->view('report/idcard/IdcardReport', $this->data,true);
                 $retArray['render'] = $this->load->view('report/idcard/IdcardReport_new', $this->data,true);
+
+                    echo json_encode($retArray);
+                    exit;
+                }
+            } else {
+                $retArray['status'] = TRUE;
+                $retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+                echo json_encode($retArray);
+                exit;
+            }
+        } else {
+            $retArray['status'] = TRUE;
+            $retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+            echo json_encode($retArray);
+            exit;
+        }
+    }
+
+
+    public function getIdcardReport_low_dimensions() {
+        $retArray['status'] = FALSE;
+        $retArray['render'] = '';
+        if(permissionChecker('idcardreport')) {
+            if($_POST) {
+                // echo "<PRE>aaaa";print_r($_POST);die;
+                $usertypeID = $this->input->post('usertypeID');
+                $rules = $this->rules($usertypeID);
+                $this->form_validation->set_rules($rules);
+                if ($this->form_validation->run() == FALSE) {
+                    $retArray = $this->form_validation->error_array();
+                    $retArray['status'] = FALSE;
+                    echo json_encode($retArray);
+                    exit;
+                } else {
+                    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+                    $this->data['usertypeID']  = $usertypeID;
+                    $this->data['classesID']   = $this->input->post('classesID');
+                    $this->data['sectionID']   = $this->input->post('sectionID');
+                    $this->data['userID']      = $this->input->post('userID');
+                    $this->data['type']        = $this->input->post('type');
+                    $this->data['background']  = $this->input->post('background');
+                    $this->data['photo_type']  = $this->input->post('photo_type');
+                    $this->data['schoolyear'] = $this->schoolyear_m->get_single_schoolyear(array('schoolyearID'=>$schoolyearID));
+                    $this->data['classes']     = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+                    $this->data['sections']    = pluck($this->section_m->general_get_section(),'section','sectionID');
+                    $this->data['usertypes']   = pluck($this->usertype_m->get_usertype(),'usertype','usertypeID');
+                    $this->data['idcards']     = $this->queryArray($this->input->post());
+                    $retArray['status'] = TRUE;
+
+					 $this->data['id_card_template'] = $this->Setting_m->get_setting_where('id_card_template');
+
+                    //echo "<pre>";print_r($this->data['idcards']);die;
+                    // $retArray['render'] = $this->load->view('report/idcard/IdcardReport', $this->data,true);
+                $retArray['render'] = $this->load->view('report/idcard/IdcardReport_low_dimensions', $this->data,true);
 
                     echo json_encode($retArray);
                     exit;

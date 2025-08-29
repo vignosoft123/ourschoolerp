@@ -8,7 +8,7 @@
         }
     },
     {
-        "query": "ALTER TABLE `student` ADD `medium` VARCHAR(55) NULL DEFAULT 'English' AFTER `platform`",
+        "query": "ALTER TABLE `student` ADD `medium` VARCHAR(55) NULL DEFAULT 'English'",
         "type": "alter",
         "check_column": {
             "table": "student",
