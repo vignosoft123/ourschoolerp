@@ -520,7 +520,7 @@
                                                                             <h4 class="modal-title">Add Attendance</h4>
                                                                         </div>
                                                                         <div class="modal-body">
-                                                                        
+                                                                        <input type="hidden" name="percentage_id" value="<?= $data->markpercentageID?>">
                                                                             <?php 
                                                                                 if(form_error('to')) 
                                                                                     echo "<div class='form-group has-error' >";

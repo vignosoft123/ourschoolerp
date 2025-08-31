@@ -1754,8 +1754,9 @@ class Mark extends Admin_Controller
 
 		// print_r($_POST);die;
 		$mark_id = $_POST['markID']; 
+		$percentage_id = $_POST['percentage_id']; 
 		if( $_POST['attendance'] == 'Absent'){
-			 $sql = "select * from markrelation where markID=$mark_id and mark is not null and mark!=0";
+			 $sql = "select * from markrelation where markID=$mark_id and markpercentageID = $percentage_id and mark is not null and mark!=0";
 			   $cnt = $this->db->query($sql)->num_rows();
 			if(($cnt) > 0){
  				$this->session->set_flashdata('error', 'Already have marks, please remove the marks before adding attendance as absent!' );

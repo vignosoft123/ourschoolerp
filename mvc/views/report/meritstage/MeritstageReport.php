@@ -15,6 +15,21 @@
     <div id="printablediv">
         <style type="text/css">
 
+              .attendance-circle {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #f8d7da; /* light red */
+    color: #a94442;             /* darker red text */
+    font-weight: bold;
+    font-size: 13px;
+    font-family: Arial, sans-serif;
+    margin: 2px;
+}
+
             .mainmeritstagereport{
                 margin: 0px;
                 overflow: hidden;
