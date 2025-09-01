@@ -242,42 +242,6 @@
                                     </tr>
                                 </table> 
                                 <div class="admitcardbody">
-
-                                    <style>
-                                        .admitcardstudentinfo {
-    background: linear-gradient(145deg, #ffffff, #f0f0f0); /* light glossy gradient */
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-    position: relative;
-    overflow: hidden;
-}
-
-/* Glossy highlight overlay */
-.admitcardstudentinfo::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -50%;
-    width: 200%;
-    height: 60%;
-    background: rgba(255, 255, 255, 0.35);
-    transform: rotate(-25deg);
-    pointer-events: none;
-}
-
-/* Inner text styling */
-.studentinfo p {
-    margin: 6px 0;
-    font-size: 14px;
-    color: #333;
-}
-.studentinfo .namebold {
-    font-weight: 600;
-    color: #c00;
-}
-
-                                        </style>
                                    
                                     <div class="admitcardstudentinfo">
                                         <div class="studentinfo">
@@ -339,48 +303,32 @@
                                         </table> -->
 
                                         <!-- vertical view start -->
-                                        <style>
-.exam-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin-top: 25px;
-    font-family: Arial, sans-serif;
-    font-size: 13px;
-    text-align: center;
-}
-
-.exam-table th, .exam-table td {
-    border: 1px solid #bbb;
-    padding: 8px;
-}
-
-.exam-table th {
-    background-color: #eaf3ff; /* light sky blue */
-    color: #333;
-    font-weight: bold;
-    text-align: center;
-}
-
-.exam-table tr:nth-child(even) td {
-    background-color: #f9f9f9; /* very light gray */
-}
-
-.exam-table tr:nth-child(odd) td {
-    background-color: #ffffff; /* white */
-}
-
-
-</style>
-
-<table class="exam-table">
+                                        <table style="margin-top:25px;">
     <tr>
-        <th><?=$this->lang->line('admitcardreport_slno')?></th>
+         
         <?php 
         $i= 0; if(customCompute($subjects)) { 
             foreach($subjects as $subject) { 
                 if($subject->type == 1) { 
                     $i++;
-                    echo "<th>$i</th>";
+                ?>
+                <!-- <th>Subject <?=$i?></th> -->
+        <?php 
+                }
+            } 
+        } 
+        ?>
+    </tr>
+    <tr>
+        <td><?=$this->lang->line('admitcardreport_slno')?></td>
+        <?php 
+        $i= 0; if(customCompute($subjects)) { 
+            foreach($subjects as $subject) { 
+                if($subject->type == 1) { 
+                    $i++;
+                    ?>
+                    <td><?=$i?></td>
+        <?php 
                 }
             } 
         } 
@@ -393,12 +341,16 @@
             foreach($subjects as $subject) { 
                 if($subject->type == 1) { 
                     $exam_date = '';
-                    foreach($examScheduleReports as $examInfo) {
-                        if($examInfo->subjectID==$subject->subjectID) {
+                    foreach($examScheduleReports as $key => $examInfo)
+                    {
+                        if($examInfo->subjectID==$subject->subjectID)
+                        {
                             $exam_date = $examInfo->edate;
                         }
                     }
-                    echo "<td>".date("d-m-Y",strtotime($exam_date))."</td>";
+                    ?>
+                    <td><?php echo date("d-m-Y",strtotime($exam_date));?></td>
+        <?php 
                 }
             } 
         } 
@@ -411,13 +363,17 @@
             foreach($subjects as $subject) { 
                 if($subject->type == 1) { 
                     $exam_from = $exam_to = '';
-                    foreach($examScheduleReports as $examInfo) {
-                        if($examInfo->subjectID==$subject->subjectID) {
+                    foreach($examScheduleReports as $key => $examInfo)
+                    {
+                        if($examInfo->subjectID==$subject->subjectID)
+                        {
                             $exam_from = $examInfo->examfrom;
                             $exam_to = $examInfo->examto;
                         }
                     }
-                    echo "<td>$exam_from - $exam_to</td>";
+                    ?>
+                    <td><?=$exam_from . "-". $exam_to?></td>
+        <?php 
                 }
             } 
         } 
@@ -426,10 +382,12 @@
     <tr>
         <td><?=$this->lang->line('admitcardreport_subject_name')?></td>
         <?php 
-        if(customCompute($subjects)) { 
+        $i= 0; if(customCompute($subjects)) { 
             foreach($subjects as $subject) { 
                 if($subject->type == 1) { 
-                    echo "<td>{$subject->subject}</td>";
+                    ?>
+                    <td><?=$subject->subject?></td>
+        <?php 
                 }
             } 
         } 
@@ -438,17 +396,18 @@
     <tr>
         <td><?=$this->lang->line('admitcardreport_subject_mark')?></td>
         <?php 
-        if(customCompute($subjects)) { 
+        $i= 0; if(customCompute($subjects)) { 
             foreach($subjects as $subject) { 
                 if($subject->type == 1) { 
-                    echo "<td>{$subject->max_mark}</td>";
+                    ?>
+                    <td><?=$subject->max_mark?></td>
+        <?php 
                 }
             } 
         } 
         ?>
     </tr>
 </table>
-
 <!-- vertical view end -->
  
 

@@ -15,6 +15,15 @@
             "column": "medium"
         }
     },
+    
+    {
+        "query": "ALTER TABLE `whatapp_templates` DROP PRIMARY KEY, MODIFY `mailandsmstemplateID` INT NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (`mailandsmstemplateID`)",
+        "type": "alter",
+        "check_column": {
+            "table": "whatapp_templates",
+            "column": "mailandsmstemplateID"
+        }
+    }
     {
         "query": "ALTER TABLE `teacher` ADD `default_login_time` TIME NULL DEFAULT '0.00' ",
         "type": "alter",

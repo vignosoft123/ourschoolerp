@@ -723,13 +723,13 @@ font-size: 13px;
                                         </tr>
                                     <?php } ?>
                                     <tr>
-                                        <td class="text-blue" ><b><?=$this->lang->line('progresscardreport_total_mark')?> </b></td>
+                                        <td class="text-blue" ><b>Total Marks </b></td>
                                         <td  ><blink><b><?=ini_round($total_max_marks)?></b></blink></td>
                                         <td  ><blink><b><?=ini_round($totalAllSubjectMark)?></b></blink></td>
                                         <input type="hidden" name="total_marks[]" value="<?php echo ini_round($totalAllSubjectMark)."/".$totalExMarks;?>">
                                     </tr>
                                     <tr>
-                                        <td class="text-blue"><b><?=$this->lang->line('progresscardreport_average_mark')?></b> </td>
+                                        <td class="text-blue"><b>Max Marks</b> </td>
                                         <td></td>
 
                                        <td> 
@@ -821,11 +821,11 @@ font-size: 13px;
                                             ?>
                                         </td>
                                     </tr> -->
-                                    <!-- <tr>
-                                        <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_from_teacher_remarks')?></td>
+                                     <tr>
+                                        <td colspan="">Remarks</td>
                                         <td colspan="<?=$totalColumn-$leftColumn?>"></td>
                                     </tr>
-                                    <tr>
+                                  <!-- <tr>
                                         <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_house_teacher_remarks')?></td>
                                         <td colspan="<?=$totalColumn-$leftColumn?>"></td>
                                     </tr>

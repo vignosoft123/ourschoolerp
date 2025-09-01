@@ -13,7 +13,169 @@
         <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> <?=$this->lang->line('meritstagereport_report_for')?> - <?=$this->lang->line('meritstagereport_meritstage')?> </h3>
     </div><!-- /.box-header -->
     <div id="printablediv">
-        <style type="text/css">
+
+          <style>
+            body, table, td, th {
+                font-family: 'Arial', sans-serif;
+                font-size: 13px;
+                color: #333;
+            }
+
+            .bg-navy {
+                background-color: #003366 !important;
+                color: #fff !important;
+                padding: 12px;
+            }
+
+            .text-white { color: #fff !important; }
+
+            .attendance-circle {
+                display: inline-block;
+                width: 22px;
+                height: 22px;
+                line-height: 22px;
+                text-align: center;
+                border-radius: 50%;
+                background-color: #f8d7da; /* light red */
+                color: #721c24;             /* darker red text */
+                font-weight: bold;
+                font-size: 12px;
+                margin: 2px;
+            }
+
+            .mainmeritstagereport {
+                margin: 0 auto;
+                border: 1px solid #ddd;
+                max-width: 900px;
+                padding: 18px;
+                background: #fff;
+                box-shadow: 0 3px 6px rgba(0,0,0,.1);
+            }
+
+            .terminal-headers {
+                border-bottom: 2px solid #003366;
+                padding-bottom: 12px;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+            }
+
+            .terminal-logo img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .school-name h2 {
+                margin-left: 20px;
+                font-weight: bold;
+                color: #003366;
+                font-size: 24px;
+            }
+
+            .school_info h3, 
+            .merit_info h3, 
+            .caption_table {
+                font-weight: bold;
+                font-size: 16px;
+                color: #003366;
+                margin-bottom: 6px;
+            }
+
+            .school_info p, 
+            .merit_info p {
+                font-size: 13px;
+                margin: 2px 0;
+            }
+
+            .terminal-infos {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 15px;
+            }
+
+            .school_address, 
+            .mandatory_subjects, 
+            .optinal_subjects {
+                flex: 1;
+                padding: 0 8px;
+            }
+
+            .terminal-contents table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 15px;
+            }
+
+            .terminal-contents th {
+                background: #003366;
+                color: #fff;
+                font-weight: bold;
+                padding: 6px;
+                text-transform: uppercase;
+                font-size: 12px;
+            }
+
+            .terminal-contents td {
+                padding: 6px;
+                font-size: 12px;
+                border: 1px solid #ddd;
+            }
+
+            .terminal-contents tbody tr:nth-child(even) {
+                background: #f5f7fa;
+            }
+
+            @media print {
+                .mainmeritstagereport {
+                    border: none;
+                    padding: 0;
+                    box-shadow: none;
+                }
+                .bg-navy { background-color: #000 !important; }
+            }
+        </style>
+
+<style>
+.school_address {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.school_info, .merit_info {
+    flex: 1;
+    padding: 10px;
+}
+
+.school_info {
+    text-align: left;
+}
+
+.merit_info {
+    text-align: right;
+}
+
+/* Print-specific adjustments */
+@media print {
+    .school_address {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        border-bottom: 1px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+    .school_info, .merit_info {
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    h3 {
+        margin: 0 0 5px;
+        font-size: 15px;
+    }
+}
+</style>
+        <!-- <style type="text/css">
 
               .attendance-circle {
     display: inline-block;
@@ -178,7 +340,7 @@
                 }      
             }
             
-        </style>
+        </style> -->
         <div class="box-body" style="margin-bottom: 50px;">
             <div class="row">
                 <div class="col-sm-12">
@@ -191,24 +353,32 @@
                                 <h2><?=$siteinfos->sname?></h2>
                             </div>
                         </div>
-                        <div class="terminal-infos">
-                            <div class="school_address">
-                                <div class="school_info">
-                                    <h3><?=$siteinfos->sname?></h3>
-                                    <p><?=$this->lang->line('meritstagereport_address');?>: <?=$siteinfos->address?></p>
-                                    <p><?=$this->lang->line('meritstagereport_phone');?>: <?=$siteinfos->phone?></p>
-                                    <p><?=$this->lang->line('meritstagereport_email');?>: <?=$siteinfos->email?></p>
-                                    <p><?=$this->lang->line('website');?>: <?=$siteinfos->website?></p>
-                                </div>
-                                <div class="merit_info">
-                                    <h3><?=$this->lang->line('meritstagereport_order_merit');?></h3>
-                                    <p><?=$this->lang->line('meritstagereport_academic_year');?>: <?=$schoolyearsessionobj->schoolyear?></p>
-                                    <p><?=$this->lang->line('meritstagereport_exam');?>: <?=$examName?></p>
-                                    <p><?=$this->lang->line('meritstagereport_class');?>: <?=isset($classes[$classesID]) ? $classes[$classesID] : ''?></p>
-                                    <p><?=$this->lang->line('meritstagereport_section');?>: <?=isset($sections[$sectionID]) ? $sections[$sectionID] : $this->lang->line('meritstagereport_all_section')?></p>
-                                </div>
-                            </div>
-                            <div class="mandatory_subjects">
+                        <div class="terminal-infoss">
+                            <div class="row school_address">
+    <!-- Left side: School Info -->
+    <div class="col-md-6">
+        <div class="school_info">
+            <h3><?=$siteinfos->sname?></h3>
+            <p><?=$this->lang->line('meritstagereport_address');?>: <?=$siteinfos->address?></p>
+            <p><?=$this->lang->line('meritstagereport_phone');?>: <?=$siteinfos->phone?></p>
+            <p><?=$this->lang->line('meritstagereport_email');?>: <?=$siteinfos->email?></p>
+            <p><?=$this->lang->line('website');?>: <?=$siteinfos->website?></p>
+        </div>
+    </div>
+
+    <!-- Right side: Merit Info -->
+    <div class="col-md-6">
+        <div class="merit_info">
+            <h3><?=$this->lang->line('meritstagereport_order_merit');?></h3>
+            <p><?=$this->lang->line('meritstagereport_academic_year');?>: <?=$schoolyearsessionobj->schoolyear?></p>
+            <p><?=$this->lang->line('meritstagereport_exam');?>: <?=$examName?></p>
+            <p><?=$this->lang->line('meritstagereport_class');?>: <?=isset($classes[$classesID]) ? $classes[$classesID] : ''?></p>
+            <p><?=$this->lang->line('meritstagereport_section');?>: <?=isset($sections[$sectionID]) ? $sections[$sectionID] : $this->lang->line('meritstagereport_all_section')?></p>
+        </div>
+    </div>
+</div>
+
+                            <!-- <div class="mandatory_subjects">
                                 <table>
                                     <tr>
                                         <td class="caption_table" colspan="3"><?=$this->lang->line('meritstagereport_mandatory_subjects')?></td>
@@ -221,7 +391,7 @@
                                     </tr>
                                     <?php $mandatory_column++; } } } ?>
                                 </table>
-                            </div>
+                            </div> -->
 
                             <?php 
                                 $optionalSubjectStatus = FALSE;
