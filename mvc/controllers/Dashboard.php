@@ -59,7 +59,7 @@ if ( !defined('BASEPATH') ) {
             $language = $this->session->userdata('lang');
             $this->lang->load('dashboard', $language);
 
-            $this->_automation();
+           // $this->_automation(); //stoped automation invoice in every month
         }
 
         private function _automation()

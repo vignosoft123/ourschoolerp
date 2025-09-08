@@ -1885,7 +1885,7 @@ class Invoice extends Admin_Controller
         }
     }
 
-    private function grandtotalandpaid( $maininvoices, $schoolyearID )
+    private function grandtotalandpaid_bkp( $maininvoices, $schoolyearID )
     {
         $retArray           = [];
         $invoiceitems       = pluck_multi_array_key($this->invoice_m->get_order_by_invoice(['schoolyearID' => $schoolyearID]), 'obj', 'maininvoiceID', 'invoiceID');
@@ -1970,6 +1970,87 @@ class Invoice extends Admin_Controller
 
         return $retArray;
     }
+
+    private function grandtotalandpaid($maininvoices, $schoolyearID)
+{
+    $retArray = [];
+
+    // All invoice rows for this schoolyear, grouped by maininvoiceID -> invoiceID
+    $invoiceitems = pluck_multi_array_key(
+        $this->invoice_m->get_order_by_invoice(['schoolyearID' => $schoolyearID]),
+        'obj',
+        'maininvoiceID',
+        'invoiceID'
+    );
+
+    $paymentitems = pluck_multi_array(
+        $this->payment_m->get_order_by_payment([
+            'schoolyearID'     => $schoolyearID,
+            'paymentamount !=' => NULL
+        ]),
+        'obj',
+        'invoiceID'
+    );
+
+    $weaverandfineitems = pluck_multi_array(
+        $this->weaverandfine_m->get_order_by_weaverandfine(['schoolyearID' => $schoolyearID]),
+        'obj',
+        'invoiceID'
+    );
+
+    if (customCompute($maininvoices)) {
+        foreach ($maininvoices as $maininvoice) {
+            $mid = $maininvoice->maininvoiceID;
+            $studentID = $maininvoice->maininvoicestudentID;
+
+            if (!isset($invoiceitems[$mid]) || !customCompute($invoiceitems[$mid])) {
+                continue;
+            }
+
+            foreach ($invoiceitems[$mid] as $invoiceID => $invoiceitem) {
+
+                // ✅ Crucial guard: only total invoices that belong to THIS student
+                if ((int)$invoiceitem->studentID !== (int)$studentID) {
+                    continue;
+                }
+
+                // Amount after discount (your system uses absolute discount)
+                $lineAmount = (float)$invoiceitem->amount - (float)$invoiceitem->discount;
+                if ($lineAmount < 0) $lineAmount = 0;
+
+                // Grand total (net)
+                $retArray['grandtotal'][$mid] = ($retArray['grandtotal'][$mid] ?? 0) + $lineAmount;
+
+                // Original amount (gross)
+                $retArray['totalamount'][$mid] = ($retArray['totalamount'][$mid] ?? 0) + (float)$invoiceitem->amount;
+
+                // Total discount
+                $retArray['totaldiscount'][$mid] = ($retArray['totaldiscount'][$mid] ?? 0) + (float)$invoiceitem->discount;
+
+                // Payments
+                if (isset($paymentitems[$invoiceID])) {
+                    foreach ($paymentitems[$invoiceID] as $paymentitem) {
+                        $retArray['totalpayment'][$mid] = ($retArray['totalpayment'][$mid] ?? 0) + (float)$paymentitem->paymentamount;
+                    }
+                }
+
+                // Weaver & Fine
+                if (isset($weaverandfineitems[$invoiceID])) {
+                    foreach ($weaverandfineitems[$invoiceID] as $wf) {
+                        $retArray['totalweaver'][$mid] = ($retArray['totalweaver'][$mid] ?? 0) + (float)$wf->weaver;
+                        $retArray['totalfine'][$mid]   = ($retArray['totalfine'][$mid]   ?? 0) + (float)$wf->fine;
+                    }
+                }
+
+                // Fee types (optional dedupe later in the view if needed)
+                $retArray['fee_types'][$mid][] = $invoiceitem->feetypeID;
+            }
+        }
+    }
+
+    return $retArray;
+}
+
 
     private function grandtotalandpaidsingle( $maininvoice, $schoolyearID, $studentID = NULL )
     { 

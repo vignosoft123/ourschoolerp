@@ -1,4 +1,33 @@
-        </div>
+ <style>
+       /* Length dropdown */
+.dataTables_length label {
+    font-weight: 600;
+    margin: 0;
+}
+.dataTables_length select {
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    margin-left: 6px;
+}
+
+/* Search box */
+.dataTables_filter label {
+    font-weight: 600;
+    margin: 0;
+}
+.dataTables_filter input {
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+    margin-left: 6px;
+    border: 1px solid #ccc;
+}
+ 
+
+          </style>
+
+</div>
+
+       
         <script type="text/javascript" src="<?php echo base_url('assets/bootstrap/bootstrap.min.js'); ?>"></script>
         <script type="text/javascript" src="<?php echo base_url('assets/inilabs/style.js'); ?>"></script>
         <script type="text/javascript" src="<?php echo base_url('assets/datatables/tools/jquery.dataTables.min.js'); ?>"></script>
@@ -134,6 +163,21 @@
                 });
               }, 5000);
             });
+
+           
+
+ 
+
+$('.dataTable').DataTable({
+    pageLength: 50,
+    lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+    dom: '<"row mb-2"<"col-md-6 d-flex align-items-center"l><"col-md-6 d-flex justify-content-end"f>>tip',
+    // l = length dropdown, f = search box, t = table, i = info, p = pagination
+});
+
+
         </script>
+
+        
     </body>
 </html>

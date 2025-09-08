@@ -23,7 +23,7 @@ class Push_notification extends Admin_Controller {
 
 public function send_push_to_students()
 {
-    $studentIDs = [6,155]; // <-- Replace with real student IDs
+    $studentIDs = [155,349]; // <-- Replace with real student IDs
 
     
     $students = $this->student_m->get_tokens_by_studentIDs($studentIDs);
@@ -34,7 +34,7 @@ public function send_push_to_students()
             $deviceTokens[] = $student->device_token;
         }
     }
-print_r($deviceTokens);
+        print_r($deviceTokens);
     if (!empty($deviceTokens)) {
         $title = "Exam Reminder";
         $message = "Dear student, your exam starts tomorrow. Please be prepared.";

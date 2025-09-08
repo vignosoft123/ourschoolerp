@@ -1,3 +1,66 @@
+<style>
+.table-sticky {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.table-sticky tbody {
+    display: block;
+    max-height: 400px; /* adjust as needed */
+    overflow-y: auto;
+}
+
+.table-sticky thead,
+.table-sticky tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed; /* keeps column widths aligned */
+}
+
+
+/* Table head */
+#example11 thead th {
+    background: #007bff;       /* Primary blue background */
+    color: #fff;               /* White text */
+    text-align: center;        /* Center align text */
+    font-weight: 600;
+    vertical-align: middle;
+    padding: 10px;
+}
+
+/* Table rows */
+#example11 tbody tr:nth-child(even) {
+    background: #f9f9f9;       /* Light gray stripe */
+}
+
+#example11 tbody tr:hover {
+    background: #e9f3ff;       /* Light blue hover effect */
+}
+
+/* Table borders */
+#example11, 
+#example11 th, 
+#example11 td {
+    border: 1px solid #dee2e6;
+}
+
+/* Checkbox alignment */
+#example11 th input[type="checkbox"],
+#example11 td input[type="checkbox"] {
+    margin: 0 auto;
+    display: block;
+}
+
+/* Action buttons (if any) */
+#example11 td .btn {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    border-radius: 5px;
+}
+
+
+    </style>
+
 <?php 
     $uri = $this->uri->segment(3);
 ?>
@@ -106,7 +169,7 @@
 
 
 
-                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                    <table id="example11" class="table table-striped table-bordered table-hover dataTable no-footer table-sticky-no">
                         <thead>
                             <tr>
                                             <th><input type="checkbox" id="selectAll"/></th>
@@ -134,7 +197,7 @@
                              if(customCompute($maininvoices)) {$i = 1; 
                              foreach($maininvoices as $maininvoice) { ?>
                                 <tr>
-                                    <td><input type="checkbox" class="invoice-checkbox" value="<?= $maininvoice->maininvoiceID ?>" name="maininvoiceIDs[]"/></td>
+                                    <td><input type="checkbox" class="invoice-checkbox" value="<?= $maininvoice->maininvoiceID ?>" name="maininvoiceIDs[]"/>   </td>
 
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
@@ -154,10 +217,21 @@
                                     </td>
 
                                     <td data-title="Fee Type">
-                                        <?php 
-                                        // echo "<pre>";print_r($grandtotalandpayment['fee_types']);
-                                        //   echo "<pre>=====";  print_r([$maininvoice->maininvoiceID]);
-                                        foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType){
+
+                                            <?php 
+                                               /* if($maininvoice->feetypes){
+                                                    echo $maininvoice->feetypes; 
+
+                                                }else{
+                                                //   echo  $sql= "select feetype from invoice where maininvoiceID=".$maininvoice->maininvoiceID. " and studentID=".$maininvoice->srstudentID;
+                                                //    $result =  $this->db->query($sql)->row_array(); 
+                                                    // echo $result['feetype'];
+                                                }*/
+                                            ?>
+
+                                        <?php  
+                                      
+                                       foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType){
                                             
                                             ?>
 
@@ -353,7 +427,7 @@
             </div>
             <div class="modal-body">
                 <div id="hide-table">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered table-sticky">
                         <thead>
                             <tr>
                                 <th><?=$this->lang->line('slno')?></th>
