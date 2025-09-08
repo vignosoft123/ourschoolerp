@@ -559,7 +559,11 @@ public function getmeritstagereport() {
     $studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID] = $markValue;
 
     // But when adding to total, convert Absent → 0
-    $studentPositon[$student->srstudentID]['totalSubjectMark'] += ($markValue === 'Absent') ? 0 : $markValue;
+    // $studentPositon[$student->srstudentID]['totalSubjectMark'] += ($markValue === 'Absent') ? 0 : $markValue;
+	$numericMark = ($markValue === 'Absent' || $markValue === null || $markValue === '') ? 0 : (float) $markValue;
+
+	$studentPositon[$student->srstudentID]['totalSubjectMark'] += $numericMark;
+
 } else {
     $studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID] = 0;
     $studentPositon[$student->srstudentID]['totalSubjectMark'] += 0;
@@ -592,7 +596,16 @@ public function getmeritstagereport() {
                                     }
                                 }
 
-                                $studentPositon[$student->srstudentID]['totalSubjectMark'] += $studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID];
+                                
+
+								$markValue = $studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID] ?? 0;
+
+if ($markValue === 'Absent' || $markValue === '' || $markValue === null) {
+    $markValue = 0;
+}
+
+$studentPositon[$student->srstudentID]['totalSubjectMark'] += (float) $markValue;
+
 
                                 if(!isset($studentChecker['totalSubjectMark'][$student->srstudentID])) {
                                     if($student->sroptionalsubjectID != 0) {

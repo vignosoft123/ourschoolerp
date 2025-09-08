@@ -80,6 +80,12 @@ $db['default']['username'] = 'mindw2ft_dummy';
 $db['default']['database'] = 'mindw2ft_dummy';
 $db['default']['password'] = 'DjmyAZTeNAq3'; 
 
+  
+// $db['default']['hostname'] = '119.18.54.141'; 
+// $db['default']['username'] = 'mindw2ft_common_user';
+// $db['default']['password'] = 'common_user'; 
+// $db['default']['database'] = 'mindw2ft_dummy_new_low_data';
+
 //  $db['default']['hostname'] = '119.18.54.141'; 
 // $db['default']['username'] = 'mindw2ft_ourschoolerp';
 // $db['default']['database'] = 'mindw2ft_ourschoolerp';

@@ -66,7 +66,7 @@ class Whatsapp_m extends MY_Model {
         $template_name = urlencode($template_name);
     
         // Construct API URL
-        $url = "http://bwa.mindwhile.com/api/sendmsg.php?user={$this->username}&pass={$this->password}&sender={$this->senderID}&phone={$to}&text={$template_name}&priority=wa&stype=normal&Params={$message}";
+        $url = "http://bwa.mindwhile.com/api/sendmsgutil.php?user={$this->username}&pass={$this->password}&sender={$this->senderID}&phone={$to}&text={$template_name}&priority=wa&stype=normal&Params={$message}";
     
         // Initialize cURL
         $ch = curl_init();

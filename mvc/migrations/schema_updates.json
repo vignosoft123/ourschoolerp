@@ -23,7 +23,7 @@
             "table": "whatapp_templates",
             "column": "mailandsmstemplateID"
         }
-    }
+    },
     {
         "query": "ALTER TABLE `teacher` ADD `default_login_time` TIME NULL DEFAULT '0.00' ",
         "type": "alter",

@@ -3,8 +3,8 @@
         <?php
             $pdf_preview_uri = base_url('meritstagereport/pdf/'.$examID.'/'.$classesID.'/'.$sectionID);
             echo btn_printReport('meritstagereport', $this->lang->line('report_print'), 'printablediv');
-            echo btn_pdfPreviewReport('meritstagereport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            echo btn_sentToMailReport('meritstagereport', $this->lang->line('report_send_pdf_to_mail'));
+          // echo btn_pdfPreviewReport('meritstagereport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+           // echo btn_sentToMailReport('meritstagereport', $this->lang->line('report_send_pdf_to_mail')); 
         ?>
     </div>
 </div>
@@ -46,7 +46,7 @@
             .mainmeritstagereport {
                 margin: 0 auto;
                 border: 1px solid #ddd;
-                max-width: 900px;
+                /* max-width: 900px; */
                 padding: 18px;
                 background: #fff;
                 box-shadow: 0 3px 6px rgba(0,0,0,.1);

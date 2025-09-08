@@ -541,7 +541,7 @@ font-size: 13px;
                         </div>
                         <div class="progresscard-contents progresscardreporttable">
 
-                        <h3 style="text-align:center"><?=isset($exams[$examID]) ? $exams[$examID] : ''?> </h3>
+                        <h3 style="text-align:center"><?=isset($exams[$examID]) ? $exams[$examID] : ''?>  Progress card report - 2025-2026.</h3>
 
                             <table>
                                 <thead>
@@ -728,7 +728,7 @@ font-size: 13px;
                                         <td  ><blink><b><?=ini_round($totalAllSubjectMark)?></b></blink></td>
                                         <input type="hidden" name="total_marks[]" value="<?php echo ini_round($totalAllSubjectMark)."/".$totalExMarks;?>">
                                     </tr>
-                                    <tr>
+                                    <!-- <tr>
                                         <td class="text-blue"><b>Max Marks</b> </td>
                                         <td></td>
 
@@ -746,7 +746,7 @@ font-size: 13px;
  
                                     </td>
                                         
-                                    </tr>
+                                    </tr> -->
 
 
                                     <tr>
@@ -763,6 +763,7 @@ font-size: 13px;
                                                     // }
                                                     // $totalAllSubject = $tSubject * customCompute($settingExam);
                                                     $tot = $totalAllSubjectMark;
+                                                    $prcnt = ini_round(($totalAllSubjectMark * 100) / $total_max_marks);
                                                     echo ini_round(($totalAllSubjectMark * 100) / $total_max_marks). "%";
                                                 ?>
                                             </b> 
@@ -821,9 +822,36 @@ font-size: 13px;
                                             ?>
                                         </td>
                                     </tr> -->
-                                     <tr>
-                                        <td colspan="">Remarks</td>
-                                        <td colspan="<?=$totalColumn-$leftColumn?>"></td>
+                                     <tr> 
+                                        <td class="text-blue"><b>Remarks</b> </td> 
+
+                                        <td colspan="<?=$totalColumn-$leftColumn?>">
+
+<?php 
+if ($prcnt !== null) {
+    if ($prcnt >= 90 && $prcnt <= 100) {
+        $points = "<span style='color: green; font-size:16px; font-weight:bold;'>Excellent</span>";
+    } elseif ($prcnt >= 80 && $prcnt < 90) {
+        $points = "<span style='color: #28a745; font-size:16px; font-weight:bold;'>Very Good</span>";
+    } elseif ($prcnt >= 70 && $prcnt < 80) {
+        $points = "<span style='color: #007bff; font-size:16px; font-weight:bold;'>Good</span>";
+    } elseif ($prcnt >= 60 && $prcnt < 70) {
+        $points = "<span style='color: #ffc107; font-size:16px; font-weight:bold;'>Fair</span>";
+    } elseif ($prcnt >= 50 && $prcnt < 60) {
+        $points = "<span style='color: orange; font-size:16px; font-weight:bold;'>Average</span>";
+    } elseif ($prcnt < 50) {
+        $points = "<span style='color: red; font-size:16px; font-weight:bold;'>Need Improvement</span>";
+    } else {
+        $points = "";
+    }
+
+    echo $points;
+}
+?>
+
+
+
+                                        </td>
                                     </tr>
                                   <!-- <tr>
                                         <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_house_teacher_remarks')?></td>
@@ -980,9 +1008,9 @@ font-size: 13px;
 </div>
 
 <div class="signature-section" style="display: flex; justify-content: space-between; padding-top: 20px;">
-    <span class="headmaster_signature">Parent Signature</span>                               
-    <span class="">Teacher Signature</span>
-    <span class="">Principal Signature</span>
+    <span class="headmaster_signature">Parent's Signature</span>                               
+    <span class="">Teacher's Signature</span>
+    <span class="">Principal's Signature</span>
 </div>
 
 
