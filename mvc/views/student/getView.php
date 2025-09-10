@@ -87,7 +87,11 @@ if (customCompute($profile)) { ?>
 									<?= date("d-M-Y",strtotime($profile->admission_date ?? $profile->create_date))?>
 								</span>
 							</li>
-
+<li class="list-group-item">
+								<span class="h5-title">Device token</span> <span class="h6-title pull-right">
+									<?= $profile->device_token?>
+								</span>
+							</li>
 							<!-- 
 							<li class="list-group-item" style="background-color: #FFF">
 								<b>Joined Class</b> <a class="pull-right"><?= customCompute($section) ? $section->section : '' ?></a>
