@@ -451,7 +451,7 @@ class Meritstagereport extends Admin_Controller {
     }
 }*/
 
-public function getmeritstagereport() {
+public function getmeritstagereport_working() {
     $retArray['status'] = FALSE;
     $retArray['render'] = '';
     if(permissionChecker('meritstagereport')) {
@@ -564,10 +564,10 @@ public function getmeritstagereport() {
 
 	$studentPositon[$student->srstudentID]['totalSubjectMark'] += $numericMark;
 
-} else {
-    $studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID] = 0;
-    $studentPositon[$student->srstudentID]['totalSubjectMark'] += 0;
-}
+	} else {
+		$studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID] = 0;
+		$studentPositon[$student->srstudentID]['totalSubjectMark'] += 0;
+	}
 
                                         }
 
@@ -600,11 +600,11 @@ public function getmeritstagereport() {
 
 								$markValue = $studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID] ?? 0;
 
-if ($markValue === 'Absent' || $markValue === '' || $markValue === null) {
-    $markValue = 0;
-}
+	if ($markValue === 'Absent' || $markValue === '' || $markValue === null) {
+		$markValue = 0;
+	}
 
-$studentPositon[$student->srstudentID]['totalSubjectMark'] += (float) $markValue;
+	$studentPositon[$student->srstudentID]['totalSubjectMark'] += (float) $markValue;
 
 
                                 if(!isset($studentChecker['totalSubjectMark'][$student->srstudentID])) {
@@ -644,6 +644,186 @@ $studentPositon[$student->srstudentID]['totalSubjectMark'] += (float) $markValue
     }
 }
 
+public function getmeritstagereport() {
+    $retArray['status'] = FALSE;
+    $retArray['render'] = '';
+    if(permissionChecker('meritstagereport')) {
+        if($_POST) {
+            $examID       = $this->input->post('examID');
+            $classesID    = $this->input->post('classesID');
+            $sectionID    = $this->input->post('sectionID');
+            $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+            $rules = $this->rules();
+            $this->form_validation->set_rules($rules);
+            if ($this->form_validation->run() == FALSE) {
+                $retArray = $this->form_validation->error_array();
+                $retArray['status'] = FALSE;
+                echo json_encode($retArray);
+                exit;
+            } else {
+                $this->data['examID']    = $examID;
+                $this->data['classesID'] = $classesID;
+                $this->data['sectionID'] = $sectionID;
+
+                $queryArray        = [];
+                $studentQueryArray = [];
+                $queryArray['schoolyearID']           = $schoolyearID;
+                $studentQueryArray['srschoolyearID']  = $schoolyearID;
+
+                if((int)$examID > 0) {
+                    $queryArray['examID'] = $examID;
+                }
+                if((int)$classesID > 0) {
+                    $queryArray['classesID']          = $classesID;
+                    $studentQueryArray['srclassesID'] = $classesID;
+                }
+                if((int)$sectionID > 0) {
+                    $queryArray['sectionID']          = $sectionID;
+                    $studentQueryArray['srsectionID'] = $sectionID;
+                }
+
+                $this->data['studentLists'] = pluck(
+                    $this->studentrelation_m->general_get_order_by_student($studentQueryArray),
+                    'obj','srstudentID'
+                );
+                $this->data['subjects'] = $this->subject_m
+                    ->general_get_order_by_subject_left_examschedule($classesID, 1, $examID, $sectionID);
+
+                $exams                  = $this->exam_m->get_single_exam(['examID'=> $examID]);
+                $this->data['examName'] = $exams->exam;
+                $this->data['classes']  = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+                $this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
+
+                $students          = $this->studentrelation_m
+                    ->general_get_order_by_student(['srclassesID' => $classesID, 'srschoolyearID' => $schoolyearID]);
+                $marks             = $this->mark_m->student_all_mark_array($queryArray);
+                $mandatorySubjects = $this->subject_m
+                    ->general_get_order_by_subject_left_examschedule($classesID, 1, $examID, $sectionID);
+
+                $markpercentagesmainArr = $this->marksetting_m->get_marksetting_markpercentages();
+                $markpercentagesArr     = isset($markpercentagesmainArr[$classesID][$examID]) 
+                                            ? $markpercentagesmainArr[$classesID][$examID] 
+                                            : [];
+                $settingmarktypeID      = $this->data['siteinfos']->marktypeID;
+
+                // 🔹 Build marks array
+                $retMark = [];
+                if(customCompute($marks)) {
+                    foreach ($marks as $mark) {
+                        if(isset($mark->eattendance) && strtolower($mark->eattendance) == 'absent') {
+                            $retMark[$mark->studentID][$mark->subjectID][$mark->markpercentageID] = '<span class="attendance-circle">A</span>';
+                        } else {
+                            $retMark[$mark->studentID][$mark->subjectID][$mark->markpercentageID] = (float)$mark->mark;
+                        }
+                    }
+                }
+
+                // 🔹 Calculate totals & positions
+                $studentPositon            = [];
+                $studentClassPositionArray = [];
+
+                if(customCompute($students)) {
+                    foreach ($students as $student) {
+                        $opuniquepercentageArr = [];
+                        if($student->sroptionalsubjectID > 0) {
+                            $opuniquepercentageArr = isset($markpercentagesArr[$student->sroptionalsubjectID]) 
+                                ? $markpercentagesArr[$student->sroptionalsubjectID] 
+                                : [];
+                        }
+
+                        // Init
+                        $studentPositon[$student->srstudentID]['totalSubjectMark'] = 0;
+                        $studentPositon[$student->srstudentID]['subjectMark'] = [];
+
+                        // 🔹 Loop through mandatory subjects
+                        if(customCompute($mandatorySubjects)) {
+                            foreach ($mandatorySubjects as $mandatorySubject) {
+                                $subjectTotal   = 0;
+                                $subjectDisplay = 'Absent';
+
+                                $uniquepercentageArr = isset($markpercentagesArr[$mandatorySubject->subjectID]) 
+                                    ? $markpercentagesArr[$mandatorySubject->subjectID] 
+                                    : [];
+
+                                $markpercentages = $uniquepercentageArr[
+                                    (($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'
+                                ] ?? [];
+
+                                if(customCompute($markpercentages)) {
+                                    foreach ($markpercentages as $markpercentageID) {
+                                        if(isset($retMark[$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID])) {
+                                            $markValue = $retMark[$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID];
+                                            $numericMark = ($markValue === 'Absent' || $markValue === '' || $markValue === null) 
+                                                ? 0 
+                                                : (float)$markValue;
+
+                                            $subjectTotal   += $numericMark;
+                                            $subjectDisplay = $markValue;
+                                        }
+                                    }
+                                }
+
+                                $studentPositon[$student->srstudentID]['subjectMark'][$mandatorySubject->subjectID] =
+                                    ($subjectTotal > 0) ? $subjectTotal : $subjectDisplay;
+
+                                $studentPositon[$student->srstudentID]['totalSubjectMark'] += $subjectTotal;
+                            }
+                        }
+
+                        // 🔹 Optional subject
+                        if($student->sroptionalsubjectID > 0) {
+                            $optionalTotal   = 0;
+                            $optionalDisplay = 'Absent';
+
+                            if(isset($retMark[$student->srstudentID][$student->sroptionalsubjectID])) {
+                                foreach($retMark[$student->srstudentID][$student->sroptionalsubjectID] as $markValue) {
+                                    $numericMark = ($markValue === 'Absent' || $markValue === '' || $markValue === null) 
+                                        ? 0 
+                                        : (float)$markValue;
+                                    $optionalTotal   += $numericMark;
+                                    $optionalDisplay = $markValue;
+                                }
+                            }
+
+                            $studentPositon[$student->srstudentID]['subjectMark'][$student->sroptionalsubjectID] =
+                                ($optionalTotal > 0) ? $optionalTotal : $optionalDisplay;
+
+                            $studentPositon[$student->srstudentID]['totalSubjectMark'] += $optionalTotal;
+                        }
+
+                        // 🔹 Class position mark (average)
+                        $subjectCount = customCompute($studentPositon[$student->srstudentID]['subjectMark']);
+                        $studentPositon[$student->srstudentID]['classPositionMark'] = 
+                            ($subjectCount > 0) 
+                                ? ($studentPositon[$student->srstudentID]['totalSubjectMark'] / $subjectCount) 
+                                : 0;
+
+                        $studentClassPositionArray[$student->srstudentID] = $studentPositon[$student->srstudentID]['classPositionMark'];
+                    }
+                }
+
+                // 🔹 Sort positions
+                arsort($studentClassPositionArray);
+                $studentPositon['studentClassPositionArray'] = $studentClassPositionArray;
+                $this->data['studentPosition']               = $studentPositon;
+
+                $retArray['render'] = $this->load->view('report/meritstage/MeritstageReport',$this->data,true);
+                $retArray['status'] = TRUE;
+                echo json_encode($retArray);
+                exit();
+            }
+        } else {
+            echo json_encode($retArray);
+            exit;
+        }
+    } else {
+        $retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+        $retArray['status'] = TRUE;
+        echo json_encode($retArray);
+        exit;
+    }
+}
 
 
 	public function pdf() {

@@ -114,7 +114,7 @@ class Whatsapp_m extends MY_Model {
    
 	function whatsapp_config_send($user) {  //paid fee
 
-        $template_sql = "select params,template_name from whatapp_templates where template_name like '%FEE_PAID%' ";
+        $template_sql = "select params,template_name from whatapp_templates where short_name like '%FEE_PAID%' ";
 		$whatsapp_params = $this->db->query($template_sql)->row_array();
         $params = $whatsapp_params['params'];
         $template_name = $whatsapp_params['template_name'];

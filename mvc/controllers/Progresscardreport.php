@@ -1140,6 +1140,10 @@ class Progresscardreport extends Admin_Controller {
 
 		$total = 0; 
 
+		$template_sql = "select params,template_name from whatapp_templates where short_name like '%EXAM_MARKS%' ";
+		$whatsapp_params = $this->db->query($template_sql)->row_array(); 
+        $template_name = $whatsapp_params['template_name'];
+
 		foreach($st_ids as $key => $student)
 		{
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
@@ -1150,7 +1154,7 @@ class Progresscardreport extends Admin_Controller {
 					$final_messege = $template1. '. Total: '.$total_marks[$key];
 					$final_messege = str_replace(',', '.', $final_messege);
 					$message = $params.','.$final_messege.','.$school_name;
-					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,'mark_sms');
+					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,$template_name);
 		        
 		    }
 		}
