@@ -222,6 +222,7 @@ class User extends Admin_Controller {
 				$array["religion"] = $this->input->post("religion");
 				$array["email"] = $this->input->post("email");
 				$array["phone"] = $this->input->post("phone");
+				$array["rfid"] = $this->input->post("rfid");
 				$array["address"] = $this->input->post("address");
 				$array["jod"] = date("Y-m-d", strtotime($this->input->post("jod")));
 				$array["username"] = $this->input->post("username");
@@ -289,6 +290,8 @@ class User extends Admin_Controller {
 					$array["religion"] = $this->input->post("religion");
 					$array["email"] = $this->input->post("email");
 					$array["phone"] = $this->input->post("phone");
+					$array["rfid"] = $this->input->post("rfid");
+					
 					$array["address"] = $this->input->post("address");
 					$array["jod"] = date("Y-m-d", strtotime($this->input->post("jod")));
 					$array["usertypeID"] = $this->input->post("usertypeID");
@@ -297,6 +300,7 @@ class User extends Admin_Controller {
 					$array['photo'] = $this->upload_data['file']['file_name'];
 
 					$this->user_m->update_user($array, $id);
+					// echo $this->db->last_query();die;
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 					redirect(base_url("user/index"));
 				}

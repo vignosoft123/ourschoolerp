@@ -324,7 +324,7 @@ class Tabulationsheetreport extends Admin_Controller {
 		}
 	}
 
-	private function getMark($marks) {
+	private function getMark_bkp($marks) {
 		$retMark = [];
 		if(customCompute($marks)) {
 			foreach ($marks as $mark) {
@@ -333,6 +333,27 @@ class Tabulationsheetreport extends Admin_Controller {
 		}
 		return $retMark;
 	}
+
+	private function getMark($marks) {
+    $retMark = [];
+
+    if(customCompute($marks)) {
+        foreach ($marks as $mark) {
+            if(isset($mark->eattendance) && strtolower($mark->eattendance) == 'absent') {
+                // Show "A" with circle for absent
+                $retMark[$mark->studentID][$mark->subjectID][$mark->markpercentageID] 
+                    = '<span class="attendance-circle">A</span>';
+            } else {
+                // Otherwise numeric mark
+                $retMark[$mark->studentID][$mark->subjectID][$mark->markpercentageID] 
+                    = (float) $mark->mark;
+            }
+        }
+    }
+
+    return $retMark;
+}
+
 
 	public function getExam() {
 		$classesID = $this->input->post('classesID');

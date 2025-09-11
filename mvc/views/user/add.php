@@ -216,6 +216,25 @@
                         </span>
                     </div>
 
+
+                    <?php
+                        if(form_error('rfid'))
+                            echo "<div class='form-group has-error' >";
+                        else
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="rfid" class="control-label">
+                            RFID
+                        </label>
+                        <div class="input-field">
+                            <input type="text" class="form-control" id="rfid" name="rfid" value="<?=set_value('rfid')?>" >
+                        </div>
+                        <span class="control-label">
+                            <?php echo form_error('rfid'); ?>
+                        </span>
+                    </div>
+                    
+
                     <?php
                         if(form_error('username'))
                             echo "<div class='form-group has-error' >";

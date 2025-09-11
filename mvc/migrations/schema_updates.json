@@ -8,6 +8,14 @@
         }
     },
     {
+        "query": "ALTER TABLE `user` ADD COLUMN `rfid` VARCHAR(255) DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "user",
+            "column": "rfid"
+        }
+    }, 
+     {
         "query": "ALTER TABLE `student` ADD `medium` VARCHAR(55) NULL DEFAULT 'English'",
         "type": "alter",
         "check_column": {

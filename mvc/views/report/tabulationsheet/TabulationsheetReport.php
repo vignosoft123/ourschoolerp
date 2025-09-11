@@ -1,10 +1,50 @@
+    <style>
+    .tabulation-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        font-size: 13px;
+    }
+
+    .tabulation-table th,
+    .tabulation-table td {
+        border: 1px solid #ddd;
+        padding: 6px;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .tabulation-table th {
+        background: #3f51b5;   /* blue header */
+        color: #fff;
+        font-weight: bold;
+    }
+
+    .attendance-circle {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #f44336; /* red background */
+        color: #fff;
+        text-align: center;
+        font-size: 12px;
+        line-height: 20px;
+        font-weight: bold;
+    }
+
+    .subject-header {
+        background: #e8eaf6;
+        font-weight: bold;
+    }
+</style>
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
             $pdf_preview_uri = base_url('tabulationsheetreport/pdf/'.$examID.'/'.$classesID.'/'.$sectionID.'/'.$studentID);
             echo btn_printReport('tabulationsheetreport', $this->lang->line('tabulationsheetreport_print'), 'printablediv');
-            echo btn_pdfPreviewReport('tabulationsheetreport',$pdf_preview_uri, $this->lang->line('tabulationsheetreport_pdf_preview'));
-            echo btn_sentToMailReport('tabulationsheetreport', $this->lang->line('tabulationsheetreport_send_pdf_to_mail'));
+            // echo btn_pdfPreviewReport('tabulationsheetreport',$pdf_preview_uri, $this->lang->line('tabulationsheetreport_pdf_preview'));
+            // echo btn_sentToMailReport('tabulationsheetreport', $this->lang->line('tabulationsheetreport_send_pdf_to_mail'));
         ?>
     </div>
 </div>
@@ -75,215 +115,121 @@
                 <?php if(customCompute($marks)) { ?>
                     <div class="col-sm-12">
                         <div class="maintabulationsheetreport">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th rowspan="2"><?=$this->lang->line('tabulationsheetreport_name')?></th>
-                                        <th rowspan="2"><?=$this->lang->line('tabulationsheetreport_roll')?></th>
-                                        <?php 
-                                        //echo "<pre>";print_r($mandatorysubjects);
-                                        if(customCompute($mandatorysubjects)) { 
-                                            foreach ($mandatorysubjects as $mandatorysubject) {
-                                            $out_of += $mandatorysubject->max_mark;
-                                            ?>
-                                            <th colspan="<?php echo '1';//(customCompute($markpercentages) +1)?>"><?=$mandatorysubject->subject?></th>
-                                        <?php } } ?>
+                        
 
-                                        <?php if(customCompute($optionalsubjects)) { ?>
-                                            <th colspan="<?php echo '1';//(customCompute($markpercentages) +1) ?>">
-                                                <?php 
-                                                    $i = 1; 
-                                                    if(customCompute($optionalsubjects)) {
-                                                        foreach ($optionalsubjects as $optionalsubject) {
-                                                            $expSub = explode(' ', $optionalsubject->subject);
-                                                            if(customCompute($optionalsubjects) == $i) {
-                                                                echo $expSub[0]; 
-                                                            } else { 
-                                                                echo $expSub[0].'/';
-                                                            }
-                                                            $i++; 
-                                                    } } ?>
-                                            </th>
-                                        <?php } ?>
-                                        <th rowspan="2">Total</th>
-                                        <th rowspan="2">Grade</th>
-                                    </tr>
+<table class="tabulation-table">
+    <thead>
+        <tr>
+            <th>Roll</th>
+            <th>Name</th>
 
-                                    <tr>
-                                        <?php if(customCompute($mandatorysubjects)) { foreach($mandatorysubjects as $mandatorysubject) {
-                                            if(customCompute($markpercentages)) { foreach ($markpercentages as $markpercentageID) { ?>
-                                                <!--<th><?=isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->markpercentagetype[0] : ''?></th>-->
-                                            <?php } } ?>
-                                            <!--<th><?=$this->lang->line('tabulationsheetreport_total')?></th>-->
-                                        <?php } } ?>
+            <?php foreach($mandatorysubjects as $mandatorysubject): ?>
+                <th colspan="<?=count($markpercentages)?>">
+                    <?=$mandatorysubject->subject?>
+                </th>
+            <?php endforeach; ?>
 
-                                        <?php if(customCompute($optionalsubjects)) { foreach ($optionalsubjects as $optionalsubject) {
-                                             if(customCompute($markpercentages)) { foreach ($markpercentages as $markpercentageID) { ?>
-                                                <!--<th><?=isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->markpercentagetype[0] : ''?></th>-->
-                                            <?php } } ?>
-                                        <?php break; } ?> 
-                                            <!--<th><?=$this->lang->line('tabulationsheetreport_total')?></th>-->
-                                        <?php } ?>
-                                    </tr>
-                                </thead>
+            <?php if(customCompute($optionalsubjects)): ?>
+                <?php foreach($optionalsubjects as $optionalsubject): ?>
+                    <th colspan="<?=count($markpercentages)?>">
+                        <?=$optionalsubject->subject?>
+                    </th>
+                <?php endforeach; ?>
+            <?php endif; ?>
 
-                                <tbody>
-                                    <?php $studentCount = []; 
-                                        if(customCompute($students)) { foreach($students as $student) { $totalGrade = 0; ?>
-                                        <tr>
-                                            <td><?=$student->srname?></td>
-                                            <td><?=$student->srroll?></td>
-                                            <?php if(customCompute($mandatorysubjects)) {
-                                                foreach ($mandatorysubjects as $mandatorysubject) { 
-                                                    $subjectTotal         = 0; 
-                                                    $optionalSubjectTotal = 0;
-                                                    $uniquepercentageArr  = isset($markpercentagesArr[$mandatorysubject->subjectID]) ? $markpercentagesArr[$mandatorysubject->subjectID] : [];
-                                                    $markpercentages      = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
-                                                    $percentageMark       = 0;
-                                                    if(customCompute($markpercentages)) {
-                                                        foreach ($markpercentages as $markpercentageID) { 
-                                                            $f = false;
-                                                            if(isset($uniquepercentageArr['own']) && in_array($markpercentageID, $uniquepercentageArr['own'])) {
-                                                                $f = true;
-                                                                $percentageMark   += isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : 0;
-                                                            } ?>
-                                                    <td>
-                                                        <?php
-                                                            if(isset($marks[$student->srstudentID][$mandatorysubject->subjectID][$markpercentageID]) && $f) {
-                                                                if($marks[$student->srstudentID][$mandatorysubject->subjectID][$markpercentageID] > 0) {
-                                                                    echo $mrk = $marks[$student->srstudentID][$mandatorysubject->subjectID][$markpercentageID];
-                                                                    $subjectTotal += $marks[$student->srstudentID][$mandatorysubject->subjectID][$markpercentageID];
-                                                                    $totl +=$mrk; 
-                                                                } else {
-                                                                    echo 0;
-                                                                }
-                                                            } else {
-                                                                echo 0;
-                                                            }
-                                                        ?>
-                                                    </td>
-                                                <?php } } ?>
-                                                
-                                                <!--<td>
-                                                    <?php 
-                                                        // echo $subjectTotal;
-                                                        $subjectTotal = markCalculationView($subjectTotal, $mandatorysubject->finalmark, $percentageMark);
-                                                        if(customCompute($grades)) {
-                                                            foreach ($grades as $grade) {
-                                                                if($grade->gradefrom <= $subjectTotal && $grade->gradeupto >= $subjectTotal) {
-                                                                    $totalGrade += $grade->point;
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-                                                    ?>
-                                                </td>-->
-                                            <?php } } ?>
+            <th>Total</th>
+        </tr>
 
-                                            <?php if(customCompute($optionalsubjects)) { foreach ($optionalsubjects as $optionalsubject) {
-                                                if((int)$student->sroptionalsubjectID) {
-                                                    if($student->sroptionalsubjectID == $optionalsubject->subjectID) {
-                                                        $opuniquepercentageArr = [];
-                                                        $opuniquepercentageArr = isset($markpercentagesArr[$student->sroptionalsubjectID]) ? $markpercentagesArr[$student->sroptionalsubjectID] : [];
+        <tr>
+            <th></th>
+            <th></th>
 
-                                                        $percentageMark  = 0;
-                                                        if(customCompute($markpercentages)) { foreach ($markpercentages as $markpercentageID) {
-                                                            $f = false;
-                                                            if(isset($opuniquepercentageArr['own']) && in_array($markpercentageID, $opuniquepercentageArr['own'])) {
-                                                                $f = true;
-                                                                $percentageMark   += isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : 0;
-                                                            } ?>
-                                                            <td>
-                                                                <?php
-                                                                    if(isset($marks[$student->srstudentID][$optionalsubject->subjectID][$markpercentageID]) && $f) {
-                                                                        if($marks[$student->srstudentID][$optionalsubject->subjectID][$markpercentageID] > 0) {
-                                                                            echo $marks[$student->srstudentID][$optionalsubject->subjectID][$markpercentageID];
-                                                                            $optionalSubjectTotal += $marks[$student->srstudentID][$optionalsubject->subjectID][$markpercentageID];
-                                                                        } else {
-                                                                            echo 0;
-                                                                        }
-                                                                    } else {
-                                                                        echo 0;
-                                                                    }
-                                                                ?>
-                                                            </td>
-                                                            <?php $studentCount[$student->srstudentID] = TRUE; 
-                                                        } } ?>
-                                                        <!--<td>
-                                                            <?php
-                                                                // echo $optionalSubjectTotal;
-                                                                $optionalSubjectTotal = markCalculationView($optionalSubjectTotal, $optionalsubject->finalmark, $percentageMark);
-                                                                if(customCompute($grades)) {
-                                                                    foreach ($grades as $grade) {
-                                                                        if($grade->gradefrom <= $optionalSubjectTotal && $grade->gradeupto >= $optionalSubjectTotal) {
-                                                                            $totalGrade += $grade->point;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ?>
-                                                        </td>-->
-                                                <?php } } else { 
-                                                    if(!isset($studentCount[$student->srstudentID])) { 
-                                                        $studentCount[$student->srstudentID] = TRUE; 
-                                                        if(customCompute($markpercentages)) { foreach ($markpercentages as $markpercentageID) { ?>
-                                                            <td><?php echo 0; ?></td>
-                                                        <?php } } ?>
-                                                        <td><?=0?></td>
-                                                <?php } } } } ?>
+            <?php foreach($mandatorysubjects as $mandatorysubject): ?>
+                <?php foreach($markpercentages as $markpercentageID => $markpercentage): ?>
+                    <th><?=$markpercentage?></th>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
 
-                                            <!-- <td>
-                                                <?php
-                                                    $optSub = 0;
-                                                    $manSub = customCompute($mandatorysubjects);
-                                                    if($student->sroptionalsubjectID != 0) {
-                                                        $optSub = 1;
-                                                    }
+            <?php if(customCompute($optionalsubjects)): ?>
+                <?php foreach($optionalsubjects as $optionalsubject): ?>
+                    <?php foreach($markpercentages as $markpercentageID => $markpercentage): ?>
+                        <th><?=$markpercentage?></th>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
 
-                                                    $avg      = 0;
-                                                    $totalSub = $manSub+$optSub;
-                                                    if($totalSub > 0) {
-                                                        $avg = ($totalGrade/$totalSub);
-                                                    }
-                                                    echo ini_round($avg);
-                                                ?>
-                                            </td> -->
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach($students as $student): ?>
+            <tr>
+                <td><?=$student->srroll?></td>
+                <td style="text-align: left;"><?=$student->srname?></td>
 
-                                            <td><?php echo $totl;?></td>
-                                            <td><?php 
-                                            
-                                            if(!empty($out_of)){
-                                                $percent_cal = ($totl / $out_of) * 100;
-                                            }else{
-                                                $percent_cal =0;
-                                            }
-                                            $zero_mark = 0;
-                                            if($percent_cal >= 95 && $zero_mark == 0){
-                                                $grade = "A+";
-                                            }else if($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0){
-                                                $grade = "A";
-                                            }else if($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0){
-                                                $grade = "B+";
-                                            }else if($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0){
-                                                $grade = "B";
-                                            }else if($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0){
-                                                $grade =  "C+";
-                                            }else if($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0){
-                                                $grade = "C";
-                                            }else{
-                                                $grade = "D";
-                                            }
-                                            echo  $grade;
-                                            ?>
-                                            
-                                        </td>
-                                           
-                                        </tr>
-                                    <?php  $totl = 0;
-                                        //$out_of=0; 
-                                    } } ?>
-                                </tbody>
-                            </table>
+                <?php 
+                    $totl = 0;
+                    // --- Mandatory subjects ---
+                    foreach($mandatorysubjects as $mandatorysubject) {
+                        $subjectTotal = 0;
+
+                        foreach($markpercentages as $markpercentageID => $markpercentage) {
+                            echo '<td>';
+                            if(isset($marks[$student->srstudentID][$mandatorysubject->subjectID][$markpercentageID])) {
+                                $markValue = $marks[$student->srstudentID][$mandatorysubject->subjectID][$markpercentageID];
+
+                                if(is_string($markValue) && strpos($markValue, 'attendance-circle') !== false) {
+                                    echo $markValue; // show A
+                                    $numericMark = 0;
+                                } else {
+                                    echo $markValue;
+                                    $numericMark = (float)$markValue;
+                                }
+
+                                $subjectTotal += $numericMark;
+                                $totl += $numericMark;
+                            } else {
+                                echo 0;
+                            }
+                            echo '</td>';
+                        }
+                    }
+
+                    // --- Optional subjects ---
+                    if(customCompute($optionalsubjects)) {
+                        foreach($optionalsubjects as $optionalsubject) {
+                            $optionalSubjectTotal = 0;
+
+                            foreach($markpercentages as $markpercentageID => $markpercentage) {
+                                echo '<td>';
+                                if(isset($marks[$student->srstudentID][$optionalsubject->subjectID][$markpercentageID])) {
+                                    $markValue = $marks[$student->srstudentID][$optionalsubject->subjectID][$markpercentageID];
+
+                                    if(is_string($markValue) && strpos($markValue, 'attendance-circle') !== false) {
+                                        echo $markValue;
+                                        $numericMark = 0;
+                                    } else {
+                                        echo $markValue;
+                                        $numericMark = (float)$markValue;
+                                    }
+
+                                    $optionalSubjectTotal += $numericMark;
+                                    $totl += $numericMark;
+                                } else {
+                                    echo 0;
+                                }
+                                echo '</td>';
+                            }
+                        }
+                    }
+                ?>
+
+                <td style="font-weight: bold;"><?=$totl?></td>
+            </tr>
+        <?php endforeach; ?>
+    </tbody>
+</table>
+
                         </div>
                     </div>
                 <?php } else { ?>
