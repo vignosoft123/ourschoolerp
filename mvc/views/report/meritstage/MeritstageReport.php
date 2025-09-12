@@ -434,6 +434,7 @@
                                         <th rowspan="2"><?=$this->lang->line('meritstagereport_roll')?></th>
                                         <th rowspan="2"><?=$this->lang->line('meritstagereport_position')?></th>
                                         <th rowspan="2"><?=$this->lang->line('meritstagereport_total_marks')?></th>
+                                        <th rowspan="2">%</th>
                                         <th rowspan="2"><?=$this->lang->line('meritstagereport_average')?></th>
                                         <th colspan="<?=$mandatory_column?>"><?=$this->lang->line('meritstagereport_mandatory_subjects')?></th>
 
@@ -498,8 +499,17 @@
                                             ?>
                                         </td>
                                         <td><?=isset($studentPosition[$studentID]['totalSubjectMark']) ? ini_round($studentPosition[$studentID]['totalSubjectMark']) : 0 ?></td>
+
+                                                                                
+                                        <td> <?= isset($studentPosition[$studentID]['percentage']) 
+                                                ? $studentPosition[$studentID]['percentage'].'%' : '0%' ?></td>
+
                                         <td><?=isset($studentPosition[$studentID]['classPositionMark']) ? ini_round($studentPosition[$studentID]['classPositionMark']) : 0 ?></td>
-                                        <?php if(customCompute($subjects)) { foreach($subjects as $subject) { if($subject->type == 1) { ?>
+
+                                         
+
+                                        <?php if(customCompute($subjects)) {
+                                             foreach($subjects as $subject) { if($subject->type == 1) { ?>
                                             <td><?=isset($studentPosition[$studentID]['subjectMark'][$subject->subjectID]) ? $studentPosition[$studentID]['subjectMark'][$subject->subjectID] : '0'?></td>
                                         <?php } } } ?>
 

@@ -199,7 +199,7 @@ public function insert_markrelation($data)
 		return $query->row();
 	}
 
-	public function student_all_mark_array($array) {
+	public function student_all_mark_array_bkp($array) {
 		$this->db->select('*');
 		$this->db->from('mark');
 		$this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
@@ -228,6 +228,37 @@ public function insert_markrelation($data)
 		// echo $this->db->last->query();die;
 		return $query->result();
 	}
+	
+
+	public function student_all_mark_array($array) {
+    $this->db->select('mark.*, markrelation.*, examschedule.max_mark');
+    $this->db->from('mark');
+    $this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
+    $this->db->join('examschedule', 'examschedule.examID = mark.examID 
+        AND examschedule.classesID = mark.classesID 
+        AND examschedule.subjectID = mark.subjectID', 'LEFT');
+
+    if(isset($array['subjectID'])) {
+        $this->db->where('mark.subjectID', $array['subjectID']);
+    }
+    if(isset($array['schoolyearID'])) {
+        $this->db->where('mark.schoolyearID', $array['schoolyearID']);
+    }
+    if(isset($array['examID'])) {
+        $this->db->where('mark.examID', $array['examID']);
+    }
+    if(isset($array['classesID'])) {
+        $this->db->where('mark.classesID', $array['classesID']);
+    }
+    if(isset($array['studentID'])) {
+        $this->db->where('mark.studentID', $array['studentID']);
+    }
+
+    $query = $this->db->get();
+    return $query->result();
+}
+
+
 
 	public function student_all_mark_array_new($array) {
 		$this->db->select('*');
