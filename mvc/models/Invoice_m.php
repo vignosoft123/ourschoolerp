@@ -46,7 +46,7 @@ class Invoice_m extends MY_Model {
 		return $query;
 	}
 
-	public function get_order_by_invoice_join_maininvoice($studentID=NULL,$schoolyearID=NULL,$deleted_at=NULL) {
+	public function get_order_by_invoice_join_maininvoice_bkp($studentID=NULL,$schoolyearID=NULL,$deleted_at=NULL) {
 		if(!empty($studentID) && !empty($schoolyearID) && !empty($deleted_at) ){
 			$sql ='select i.* from invoice i inner join maininvoice m on m.maininvoiceID = i.maininvoiceID where studentID = "'.$studentID.'" and schoolyearID = "'.$schoolyearID.'" and deleted_at = "'.$deleted_at.'" ';
 			// $sql ='select i.* from invoice i left join maininvoice m on m.maininvoiceID = i.maininvoiceID where schoolyearID = "'.$schoolyearID.'" and deleted_at = "'.$deleted_at.'" and m.maininvoicestudentID = "'.$studentID.'" ';
@@ -55,6 +55,29 @@ class Invoice_m extends MY_Model {
 			return array();
 		}
 	}
+
+	public function get_order_by_invoice_join_maininvoice($studentID = NULL, $schoolyearID = NULL, $deleted_at = NULL) 
+{
+    if (!empty($studentID) && !empty($schoolyearID) && !empty($deleted_at)) {
+        $sql = '
+            SELECT i.* 
+            FROM invoice i
+            INNER JOIN maininvoice m 
+                ON m.maininvoiceID = i.maininvoiceID 
+               AND m.maininvoicestudentID = i.studentID 
+               AND m.maininvoiceschoolyearID = i.schoolyearID
+            WHERE i.studentID = "'.$studentID.'" 
+              AND i.schoolyearID = "'.$schoolyearID.'" 
+              AND i.deleted_at = "'.$deleted_at.'" 
+              AND m.maininvoicedeleted_at = 1
+        ';
+
+        return $this->db->query($sql)->result();
+    } else {
+        return [];
+    }
+}
+
 
 	public function get_order_by_invoice($array=NULL) {
 		$query = parent::get_order_by($array);

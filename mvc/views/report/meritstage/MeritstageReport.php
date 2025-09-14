@@ -498,7 +498,10 @@
                                                 }
                                             ?>
                                         </td>
-                                        <td><?=isset($studentPosition[$studentID]['totalSubjectMark']) ? ini_round($studentPosition[$studentID]['totalSubjectMark']) : 0 ?></td>
+                                        <td><?= isset($studentPosition[$studentID]['totalSubjectMark']) 
+    ? (int) round($studentPosition[$studentID]['totalSubjectMark']) 
+    : 0 ?>
+</td>
 
                                                                                 
                                         <td> <?= isset($studentPosition[$studentID]['percentage']) 

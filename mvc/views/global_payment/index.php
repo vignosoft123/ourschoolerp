@@ -1,3 +1,20 @@
+    <style>
+                                    .table thead tr {
+    background: linear-gradient(135deg, #e3f2fd, #bbdefb); /* light glossy blue */
+    color: #2c3e50;
+    font-weight: 600;
+    text-align: center;
+}
+
+.table thead th,
+.table thead td {
+    border: 1px solid #d0d7e1 !important;
+    padding: 10px;
+    font-size: 14px;
+}
+
+                                    </style>
+
 <style>
     @page {
         size: A4;
@@ -315,7 +332,7 @@
 
                               
 
-                                
+                            
 
 
                                     <table class="table table-striped table-bordered">

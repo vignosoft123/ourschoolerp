@@ -979,6 +979,8 @@ class Progresscardreport extends Admin_Controller {
 	public function send_marks_to_sms() {
 		// echo "<pre>";print_r($_POST);die;
 	    $this->load->model('mailandsms_m');
+		$marks_grade = $this->input->post('marks_grade');
+
 		$st_ids = $this->input->post('st_ids');
 		$mobile_no = $this->input->post('mobile_no');
 		$marks_template = $this->input->post('marks_template');
@@ -1002,7 +1004,7 @@ class Progresscardreport extends Admin_Controller {
 				if( $senderid=='VGNSSP'){
 		        	$template1 = substr($marks_template[$key],0,-1);
 					
-		        	$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$template1.'. Total: '.$total_marks[$key].', From '.$school_name.'. VGNSSP';
+		        	$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$template1.'. Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$school_name.'. VGNSSP';
 
 					 // Dear parent, your children vasu FA - 1 marks are TELUGU=11/100,HINDI=16/50,ENGLISH=17/60,MATH=18/60,EVS=0/100,computer=0/100. Total: 62/470, From OURSCHOOL ERP. VGNSSP
 				}
@@ -1037,7 +1039,7 @@ class Progresscardreport extends Admin_Controller {
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.' . '.$senderid;
 
 					
 					}else if($senderid=='SDHEDU'){  //siddardha school
@@ -1050,7 +1052,7 @@ class Progresscardreport extends Admin_Controller {
 						$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 						$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 						
-						$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+						$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.' . '.$senderid;
 	
 						
 	
@@ -1072,7 +1074,7 @@ class Progresscardreport extends Admin_Controller {
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].', From '.$registered_school_name.'.'.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.'.'.$senderid;
  
 				} else{
 		        	$template1 = substr($marks_template[$key],0,-1);
@@ -1084,7 +1086,7 @@ class Progresscardreport extends Admin_Controller {
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].', From '.$registered_school_name.' . '.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.' . '.$senderid;
 
 					
 
@@ -1128,6 +1130,7 @@ class Progresscardreport extends Admin_Controller {
 		// error_reporting(E_ALL);
 		// ini_set('display_errors', 1);
 		// echo "<pre>";print_r($_POST);die; 
+		$marks_grade = $this->input->post('marks_grade');
 		$st_ids = $this->input->post('st_ids');
 		$mobile_no = $this->input->post('mobile_no');
 		$marks_template = $this->input->post('marks_template');
@@ -1151,9 +1154,15 @@ class Progresscardreport extends Admin_Controller {
 		        	$template1 = substr($marks_template[$key],0,-1);
 					 
 					$params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
-					$final_messege = $template1. '. Total: '.$total_marks[$key];
+					$final_messege = $template1. '. Total: '.$total_marks[$key] . ' Grade:'.$marks_grade[$key];
 					$final_messege = str_replace(',', '.', $final_messege);
+					if (strpos($school_name, 'HANUMANTHARAO') !== false || strpos($school_name, 'SRI LITTLE') !== false) {
+					$message = $params.','.$final_messege;	//don't need school name in template
+
+					}else{
 					$message = $params.','.$final_messege.','.$school_name;
+
+					}
 					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,$template_name);
 		        
 		    }

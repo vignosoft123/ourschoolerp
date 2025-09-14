@@ -48,7 +48,8 @@
           });
 
           $(document).ready(function () {
-            $('#example3, #example11, #example2').DataTable({
+            // $('#example3, #example1, #example2').DataTable({
+            $('#example3, #example2').DataTable({
               dom : 'Bfrtip',
               buttons : [
                 'copyHtml5',

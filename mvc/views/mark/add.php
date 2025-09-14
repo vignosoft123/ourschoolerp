@@ -604,7 +604,7 @@
                                                     <!-- //CONSTRUCT SEND MARKS SMS -->
                                                     <td>
                                                         <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam;?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
-                                                        exam_date = "<?= $sendExam->date?>"
+                                                        exam_date = "<?= $sendExam->date?>" marks_grade=<?= $grade?>
                                                         name="send_sms_marks" id="send_sms_marks" class="checkbox">
                                                     </td>
                                                 </tr>
@@ -835,6 +835,8 @@ toastr.options = {
                 return false;
             }
 
+            var marks_grade = [];
+
             var st_ids = [];
             st_names =[];
             mobile_no = [];
@@ -846,6 +848,7 @@ toastr.options = {
             $('.checkbox:checked').each(function(){        
                 // var values = $(this).val();
                 // var sids = $(this).attr("st_ids");
+                marks_grade[i++] = $(this).attr("marks_grade");
                 
                 st_ids[i++] = $(this).attr("st_ids");
                 st_names[j++] = $(this).attr("st_names");
@@ -860,7 +863,7 @@ toastr.options = {
                 type: "POST",
                 url: "<?php echo site_url('progresscardreport/send_marks_to_sms'); ?>",
                 // dataType: "json",
-                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template},
+                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"marks_grade":marks_grade},
                 success: function(result)
                 {
                     
@@ -875,6 +878,8 @@ toastr.options = {
                 return false;
             }
 
+            
+            var marks_grade = [];
             var st_ids = [];
             st_names =[];
             mobile_no = [];
@@ -888,6 +893,7 @@ toastr.options = {
                 // var values = $(this).val();
                 // var sids = $(this).attr("st_ids");
                 
+                marks_grade[i++] = $(this).attr("marks_grade");
                 st_ids[i++] = $(this).attr("st_ids");
                 st_names[j++] = $(this).attr("st_names");
                 mobile_no[k++] = $(this).attr("mobile_no");
@@ -903,7 +909,7 @@ toastr.options = {
                 type: "POST",
                 url: "<?php echo site_url('progresscardreport/send_marks_to_whatsapp'); ?>",
                 // dataType: "json",
-                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"exam_date":exam_date},
+                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"exam_date":exam_date,"marks_grade" :marks_grade},
                 success: function(result)
                 {
                     
