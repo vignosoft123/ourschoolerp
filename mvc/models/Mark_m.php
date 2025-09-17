@@ -114,7 +114,7 @@ public function insert_markrelation($data)
 			$examID = $array['examID'];
 			$classesID = $array['classesID'];
 	
-			$sql = "SELECT m.*
+			$sql = "SELECT m.* 
 					FROM mark m
 					INNER JOIN (
 						SELECT studentID, MIN(markID) as minMarkID
@@ -122,10 +122,13 @@ public function insert_markrelation($data)
 						WHERE schoolyearID = ? AND examID = ? AND classesID = ?
 						GROUP BY studentID,subjectID
 					) first ON m.markID = first.minMarkID
+					
 					ORDER BY m.studentID DESC";
 	
 			$query = $this->db->query($sql, array($schoolyearID, $examID, $classesID));
+			// echo $this->db->last_query();die;
 			return $query->result();
+
 		} else {
 			return array();
 		}
@@ -231,7 +234,7 @@ public function insert_markrelation($data)
 	
 
 	public function student_all_mark_array($array) {
-    $this->db->select('mark.*, markrelation.*, examschedule.max_mark');
+    $this->db->select('mark.*, markrelation.*, examschedule.max_mark, examschedule.min_mark');
     $this->db->from('mark');
     $this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
     $this->db->join('examschedule', 'examschedule.examID = mark.examID 

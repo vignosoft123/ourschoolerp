@@ -495,4 +495,33 @@ class Studentrelation_m extends MY_Model {
         $query = parent::get_where_in($array, $key);
         return $query;
     }
+
+public function get_students_batch($where = [], $limit = 20, $offset = 0) {
+    // Ensure table exists and columns are correct
+    $this->db->select('sr.studentrelationID, sr.srclassesID, sr.srsectionID, sr.sroptionalsubjectID, s.studentID, s.name, s.photo, s.roll');
+    $this->db->from('studentrelation sr');
+    $this->db->join('student s', 'sr.studentID = s.srstudentID', 'left');
+
+    // Apply conditions if provided
+    if (!empty($where)) {
+        $this->db->where($where);
+    }
+
+    // Pagination
+    $this->db->limit($limit, $offset);
+
+    // Execute query
+    $query = $this->db->get();
+// echo $this->db->last_query();die;
+    // Check if query failed
+    if (!$query) {
+        $error = $this->db->error(); // CI DB error array
+        log_message('error', 'Student batch query failed: ' . print_r($error, true));
+        return []; // Return empty array instead of bool
+    }
+
+    return $query->result();
+}
+
+
 }

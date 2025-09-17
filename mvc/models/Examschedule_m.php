@@ -42,6 +42,8 @@ class Examschedule_m extends MY_Model {
 
 	public function get_single_examschedule($array) {
 		$query = parent::get_single($array);
+				// echo $this->db->last_query();die;
+
 		return $query;
 	}
 

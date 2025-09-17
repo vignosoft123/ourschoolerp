@@ -230,5 +230,15 @@ class student_m extends MY_Model {
     return $query->result();
 }
 
+public function count_student($array = [])
+{
+    $this->db->from('student');
+    if(!empty($array)) {
+        $this->db->where($array);
+    }
+    return $this->db->count_all_results();
+}
+
+
 
 }

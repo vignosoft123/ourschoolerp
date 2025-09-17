@@ -293,48 +293,7 @@
                         </div>
                     </div>
                 </form>
-                <?php if (customCompute($students)) { ?>
-                    <!-- <form enctype="multipart/form-data" style="" action="<?= base_url('mark/mark_bulkimport'); ?>" class="form-horizontal" role="form" method="post">
-                        <input  type="hidden"name="classId" value="" class="classId" />
-                        <input  type="hidden"name="sectionId" value="" class="sectionId" />
-                        <input  type="hidden"name="subjectId" value="" class="subjectId" />
-                        <input  type="hidden" name="examId" value="" class="examId" />
-                        <div class="form-group">
-                            <label for="csvMark" class="col-sm-2 control-label col-xs-8 col-md-2">
-                                <?= 'Add Mark Sheet' ?>
-                                &nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="bottom" title="Download sample mark shhet and add marks and upload"></i>
-                            </label>
-                            <div class="col-sm-3 col-xs-1 col-md-2">
-                                <input class="form-control markImport" id="uploadFile" placeholder="Choose File" disabled />
-                            </div>
-
-                            <div class="col-sm-2 col-xs-1 col-md-1">
-                                <div class="fileUpload btn btn-success form-control">
-                                    <span class="fa fa-repeat"></span>
-                                    <span><?= "Upload" ?></span>
-                                    <input id="uploadBtn" type="file" class="upload markUpload" name="csvMark" />
-                                </div>
-                            </div>
-
-                            <div class="col-md-1 rep-mar">
-                                <input type="submit" class="btn btn-success" value="Import">
-                            </div>
-                        </div>
-                    </form>
-                    <form enctype="multipart/form-data" style="" action="<?= base_url('mark/add'); ?>" class="form-horizontal" role="form" method="post">
-                        <input type="hidden" name="classesID" value="" class="classId" />
-                        <input  type="hidden"name="sectionID" value="" class="sectionId" />
-                        <input  type="hidden"name="subjectID" value="" class="subjectId" />
-                        <input  type="hidden"name="examID" value="" class="examId" />
-                        <input  type="hidden" name="downloadFile" value="1" id="" />
-                        <div class="form-group">
-                            <div class="col-md-1 rep-mar">
-                                <input type="submit" class="btn btn-success" value="Download Sample File">
-                            </div>
-                        </div>
-                    </form> -->
-
-                <?php }  ?>
+               
 
 
  <div class="row" style="margin-top: 20px;">
@@ -438,203 +397,15 @@
 
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php if (customCompute($students)) {
-                                    $i = 1;
-                                     foreach ($students as $student) {  ?>
-                                                <tr>
-                                                    <td class="no-export" data-title="<?= $this->lang->line('slno') ?>">
-                                                        <?php echo $i; ?>
-                                                    </td>
-                                                    <td data-title="<?= $this->lang->line('mark_photo') ?>">
-                                                        <?= profileproimage($student->photo) ?>
-                                                    </td>
-                                                    <td  class='excel-only1'>
-                                                        <?php echo $student->studentID; ?>
-                                                    </td> 
-                                                    <td data-title="<?= $this->lang->line('mark_name') ?>">
-                                                        <?php echo $student->name; ?> ( <?php echo $student->roll; ?>)
-                                                    </td>
-                                                   
-                                                    <?php 
-                                                        foreach ($subjects as $subject) { 
-
-                                                    foreach ($markpercentages as $data) { 
-                                                          
-                                                        foreach ($marks as $mark) { 
-                                                            if($subject->subjectID == $mark->subjectID && $student->studentID == $mark->studentID ){
-
-                                                                 $sql = "SELECT mark,eattendance FROM `mark` LEFT JOIN `markrelation` ON `markrelation`.`markID` = `mark`.`markID` WHERE `mark`.`schoolyearID` = ".$mark->schoolyearID." AND `mark`.`examID` = ".$mark->examID." AND `mark`.`classesID` = ".$mark->classesID." and studentId= ".$student->studentID." and markpercentageID =".$data->markpercentageID." and subjectID=".$subject->subjectID;
-                                                                //  echo "<br/>";       
-                                                                $all_marks =  $this->db->query($sql)->row();
-                                                               $mrk = $all_marks->mark;
-                                                               $exam_absent = $all_marks->eattendance;
-
-                                                               $readonly = "";
-                                                               $A = "";
-                                                               if($exam_absent == 'Absent'){
-                                                                $readonly = "readonly";
-                                                                $A = "a";
-                                                               }
-
-
-                                                               $mrk = (int)$mrk;
-
-                                                               if ($mrk == 0) {
-                                                                   ++$zero_mark;
-                                                               }
-                                                               $tot += $mrk;
-                                                                
-
-
-                                                        echo "<td data-title='$data->markpercentagetype'>";
-
-                                                        echo "<a href='#' ><i class='fa icon-eattendance pull-left' title='add exam attendance' data-toggle='modal' data-target='#attendance-modal_".$mark->markID."'></i></a>";
-
-
-                                                        if($A == 'a'){
-                                                            echo '<span class="attendance-circle">A</span>';
-
-
-                                                        }else{
-                                                            
-                                                            echo  "<input subj_id = '".$subject->subjectID."'  class='form-control mark input_mark' type='' style='width: 100px !important;' name='".$subject->subjectID."mark-" . $mark->markID . "' id='" . $data->markpercentageID . "' value='" . $mrk . "' min='0' max='" . $subject->max_mark . "' $readonly  />
-                                                            
-                                                            ";
-                                                        
-                                                        }
-
-
-                                                        echo "</td>";
-                                                        
-                                                         ?>
-
-
-
-                                                            <!-- email modal starts here -->
-                                                            <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAttendance');?>" method="post">
-                                                                <div class="modal fade" id="attendance-modal_<?= $mark->markID?>">
-                                                                <div class="modal-dialog">
-                                                                    <div class="modal-content">
-                                                                        <div class="modal-header">
-                                                                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                                                                            <h4 class="modal-title">Add Attendance</h4>
-                                                                        </div>
-                                                                        <div class="modal-body">
-                                                                        <input type="hidden" name="percentage_id" value="<?= $data->markpercentageID?>">
-                                                                            <?php 
-                                                                                if(form_error('to')) 
-                                                                                    echo "<div class='form-group has-error' >";
-                                                                                else     
-                                                                                    echo "<div class='form-group' >";
-                                                                            ?>
-                                                                                <label for="to" class="col-sm-2 control-label">
-                                                                                    Attendance</span>
-                                                                                </label>
-                                                                                <div class="col-sm-6">
-                                                                                    <select name="attendance" id="attendance" class="form-control">
-                                                                                        <option value="Present">Present</option>
-                                                                                        <option value="Absent">Absent</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <input type="hidden" name="examID" value="<?= $set_exam?>" class="form-control">
-                                                                                <input type="hidden" name="classesID" value="<?= $set_classes?>" class="form-control">
-                                                                                <input type="hidden" name="subjectID" value="<?= $subject->subjectID?>" class="form-control">
-                                                                                <input type="hidden" name="sectionID" value="<?= $set_section?>" class="form-control">
-                                                                                <input type="hidden" name="studentID" value="<?= $student->studentID?>" class="form-control">
-                                                                                <input type="hidden" name="markID" value="<?= $mark->markID?>" class="form-control">
-                                                                                <span class="col-sm-4 control-label" id="to_error">
-                                                                                </span>
-                                                                            </div>
-
-                                                                        
-
-                                                                        
-                                                                        </div>
-                                                                        <div class="modal-footer">
-                                                                            <button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
-                                                                            <input type="submit" id="send_pdf" class="btn btn-success" value="Save" />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                </div>
-                                                            </form>
-                                                            <!-- email end here -->
-                                                        
-                                                            <?php 
-                                                            $absent_or_mark = $mrk ? ($mrk."/".$subject->max_mark) : 'Ab';
-                                                            $my_template .= $subject->subject."=".$absent_or_mark.",";
-                                                        }
-                                                        }
-                                                    }
-                                                } 
-                                            echo "<td>".$tot."</td>"; 
-
-                                            $out_of = $out_of != 0 ? $out_of : 1;
-                                            $percent_cal = ($tot / $out_of) * 100;
-
-                                            if ($percent_cal >= 95 && $zero_mark == 0) {
-                                                $grade = "A+";
-                                                $gradeClass = "grade-a-plus";
-                                            } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
-                                                $grade = "A";
-                                                $gradeClass = "grade-a";
-                                            } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
-                                                $grade = "B+";
-                                                $gradeClass = "grade-b-plus";
-                                            } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
-                                                $grade = "B";
-                                                $gradeClass = "grade-b";
-                                            } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
-                                                $grade = "C+";
-                                                $gradeClass = "grade-c-plus";
-                                            } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
-                                                $grade = "C";
-                                                $gradeClass = "grade-c";
-                                            } else {
-                                                $grade = "D";
-                                                $gradeClass = "grade-d";
-                                            }
-
-                                            echo "<td><span class='grade-label {$gradeClass}'>$grade</span></td>";
-
-                                                    ?>
-
-
-                                                <td>
-                                                    <?php 
-                                                        $stuID = $student->studentID;
-                                                        if(isset($studentResults[$stuID])) {
-                                                            echo $sms_rank = $studentResults[$stuID]['isFail'] ? "Fail" : $studentResults[$stuID]['rank'];
-                                                        } else {
-                                                            echo "-";
-                                                        }
-
-                                            $grade_rank = $grade .' Rank ' .$sms_rank;
-
-                                                    ?>
-                                                </td>
-
-
-
-                                                    <!-- //CONSTRUCT SEND MARKS SMS -->
-                                                    <td>
-                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam;?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
-                                                        exam_date = "<?= $sendExam->date?>" marks_grade=<?= $grade_rank?> sms_rank=<?= $sms_rank?>
-                                                        name="send_sms_marks" id="send_sms_marks" class="checkbox">
-                                                    </td>
-                                                </tr>
-                                            <?php 
-                                            $my_template = "";
-                                            $tot = 0;
-                                            $zero_mark = 0;
-                                            $i++;
-                                            // }
-                                        // }
-                                    }
-                                } ?>
+                           <tbody id="marksBody">
+                                <!-- Student rows will be loaded here by AJAX -->
                             </tbody>
                         </table>
+
+                        <div class="text-center">
+<button id="loadMore" class="btn btn-primary">Load More</button>
+</div>
+
                     </div>
                    
 
@@ -851,8 +622,6 @@
                 return false;
             }
 
-            var sms_rank = [];
-
             var marks_grade = [];
 
             var st_ids = [];
@@ -867,7 +636,6 @@
                 // var values = $(this).val();
                 // var sids = $(this).attr("st_ids");
                 marks_grade[i++] = $(this).attr("marks_grade");
-                sms_rank[i++] = $(this).attr("sms_rank");
                 
                 st_ids[i++] = $(this).attr("st_ids");
                 st_names[j++] = $(this).attr("st_names");
@@ -877,13 +645,12 @@
                 marks_template[n++] = $(this).attr("marks_template");
             });
 
- 
             $.ajax({
                             
                 type: "POST",
                 url: "<?php echo site_url('progresscardreport/send_marks_to_sms'); ?>",
                 // dataType: "json",
-                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"marks_grade":marks_grade,"sms_rank" : sms_rank},
+                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"marks_grade":marks_grade},
                 success: function(result)
                 {
                     
@@ -899,7 +666,6 @@
             }
 
             
-            var sms_rank = [];
             var marks_grade = [];
             var st_ids = [];
             st_names =[];
@@ -912,9 +678,8 @@
 
             $('.checkbox:checked').each(function(){        
                 // var values = $(this).val();
-                // var sids = $(this).attr("st_ids");sms_rank
+                // var sids = $(this).attr("st_ids");
                 
-                sms_rank[i++] = $(this).attr("sms_rank");
                 marks_grade[i++] = $(this).attr("marks_grade");
                 st_ids[i++] = $(this).attr("st_ids");
                 st_names[j++] = $(this).attr("st_names");
@@ -925,14 +690,13 @@
                 exam_date[o++] = $(this).attr("exam_date");
             });
                  
-            var grade_rank = marks_grade + 'Rank ' + sms_rank;
 
             $.ajax({
                             
                 type: "POST",
                 url: "<?php echo site_url('progresscardreport/send_marks_to_whatsapp'); ?>",
                 // dataType: "json",
-                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"exam_date":exam_date,"marks_grade" :marks_grade,"sms_rank" : sms_rank},
+                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"exam_date":exam_date,"marks_grade" :marks_grade},
                 success: function(result)
                 {
                     
@@ -1066,4 +830,49 @@ $(document).ready(function () {
         XLSX.writeFile(wb, filename);
     });
 });
+</script>
+
+
+<script> 
+
+var offset = 0;
+var limit = 20;
+var loading = false;
+
+function loadStudents(reset=false){
+    if(loading) return;
+    loading = true;
+
+    if(reset) offset=0;
+    var classesID = $('#classesID').val();
+    var sectionID = $('#sectionID').val();
+    var examID    = $('#examID').val();
+
+    $.post('<?=site_url("mark/get_students_page")?>', {
+        classesID: classesID,
+        sectionID: sectionID,
+        examID: examID,
+        offset: offset
+    }, function(response){
+        if(reset) $('#marksBody').html(response);
+        else $('#marksBody').append(response);
+
+        var rows = $(response).filter('tr').length;
+        if(rows > 0) offset += rows;
+        loading = false;
+    });
+}
+
+// Initial load
+$('.mark_btn').on('click', function(e){
+    e.preventDefault();
+    loadStudents(true);
+});
+
+// Optional: Load more button
+$('#loadMore').on('click', function(){
+    loadStudents(false);
+});
+
+
 </script>
