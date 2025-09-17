@@ -620,7 +620,7 @@
                                                     <!-- //CONSTRUCT SEND MARKS SMS -->
                                                     <td>
                                                         <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam;?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
-                                                        exam_date = "<?= $sendExam->date?>" marks_grade=<?= $grade_rank?> sms_rank=<?= $sms_rank?>
+                                                        exam_date = "<?= $sendExam->date?>" marks_grade="<?= $grade_rank?>" sms_rank="<?= $sms_rank?>"
                                                         name="send_sms_marks" id="send_sms_marks" class="checkbox">
                                                     </td>
                                                 </tr>
