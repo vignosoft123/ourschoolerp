@@ -429,7 +429,7 @@ class Mark extends Admin_Controller
         //print_r($_POST);
     }
 
-    // error_reporting(E_ALL);
+    // error_reporting(E_ALL); 
     // ini_set('display_errors', 1);
     // ini_set('display_startup_errors', 1);
 
@@ -2281,10 +2281,13 @@ public function get_students_page() {
 		$classesID = $this->input->post('classesID');
 		if ((int)$classesID) {
 			$exams    = pluck($this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID), 'obj', 'examID');
-			echo "<option value='0'>", $this->lang->line("mark_select_exam"), "</option>";
+			
+			// echo "<pre>";print_r($exams);die;
+			
+			echo "<option value='0'>  ", $this->lang->line("mark_select_exam"), "</option>";
 			if (customCompute($exams)) {
 				foreach ($exams as $exam) {
-					echo "<option value=" . $exam->examID . ">" . $exam->exam . "</option>";
+        echo "<option value='" . $exam->examID . "' data-examdate='" . $exam->date . "'>" . $exam->exam . "</option>";
 				}
 			}
 		} else {

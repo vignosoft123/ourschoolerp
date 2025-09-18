@@ -1,4 +1,10 @@
-
+<?php 
+// echo "<pre>";print_r($this->session->userdata('usertypeID'));die;
+$global_payment_permission = false;
+if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('usertypeID') == 5){ //admin & accountant
+    $global_payment_permission = true;
+}
+?>
 <style>
     label { 
     color: #ffff;
@@ -422,12 +428,15 @@
                                                                 if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                                                                     echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
                                                                         echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
-                                                                }
+                                                                        
+                                                                        
+                                                                        if( $global_payment_permission){
+                                                                        ?>
 
-                                                                // print_r($student);die;
-                                                                ?>
+                                                                         <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
+                                                              <?php   }}  ?>
 
-                                                                <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
+                                                               
 
 
                                                             </td>
@@ -541,12 +550,19 @@
                                                                 if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                                                                     echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
                                                                         echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
-                                                                }
+                                                                        if( $global_payment_permission){
+                                                                        
+                                                                        ?>
+
+                                                                        <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
+                                                                        
+                                                              <?php  } 
+                                                              }?>
 
                                                                 // print_r($student);die;
                                                                 ?>
 
-                                                                <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
+                                                                
 
 
                                                             </td>

@@ -276,10 +276,15 @@
                                         }
                                         echo form_dropdown("subjectID", $subjectArray, set_value("subjectID"), "id='subjectID' class='form-control select2'");
                                         ?>
+
                                     </div>
                                 </div>
                             </div>
                         </div>
+
+
+                        <input type="hidden" id="selected_exam_date" value="" class="form-control">
+
                         <div class="col-md-2 col-xs-12">
                             <div class="row">
                                 <div class="col-md-12 col-xs-12">
@@ -619,7 +624,7 @@
 
                                                     <!-- //CONSTRUCT SEND MARKS SMS -->
                                                     <td>
-                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam;?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
+                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam.' held on '.date("d-m-Y", strtotime($mark->date));?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
                                                         exam_date = "<?= $sendExam->date?>" marks_grade="<?= $grade_rank?>" sms_rank="<?= $sms_rank?>"
                                                         name="send_sms_marks" id="send_sms_marks" class="checkbox">
                                                     </td>
@@ -1066,4 +1071,16 @@ $(document).ready(function () {
         XLSX.writeFile(wb, filename);
     });
 });
+
+
+
+$('#examID').on('change', function() {
+    var examDate = $(this).find(':selected').data('examdate'); // YYYY-MM-DD
+    if (examDate) {
+        var parts = examDate.split("-"); // [YYYY, MM, DD]
+        var formatted = parts[2] + "-" + parts[1] + "-" + parts[0]; // DD-MM-YYYY
+        $("#selected_exam_date").val(formatted);
+    }
+});
+
 </script>

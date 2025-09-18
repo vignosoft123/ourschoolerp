@@ -1163,6 +1163,7 @@ class Progresscardreport extends Admin_Controller {
 					$message = $params.','.$final_messege.','.$school_name;
 
 					}
+					// echo $message;die;
 					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,$template_name);
 		        
 		    }

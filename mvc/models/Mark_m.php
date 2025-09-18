@@ -114,14 +114,15 @@ public function insert_markrelation($data)
 			$examID = $array['examID'];
 			$classesID = $array['classesID'];
 	
-			$sql = "SELECT m.* 
+			$sql = "SELECT m.* ,e.date
 					FROM mark m
 					INNER JOIN (
 						SELECT studentID, MIN(markID) as minMarkID
 						FROM mark
 						WHERE schoolyearID = ? AND examID = ? AND classesID = ?
 						GROUP BY studentID,subjectID
-					) first ON m.markID = first.minMarkID
+					) first ON m.markID = first.minMarkID 
+					left join exam e on m.examID=e.examID
 					
 					ORDER BY m.studentID DESC";
 	
