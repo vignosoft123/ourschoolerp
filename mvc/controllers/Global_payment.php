@@ -34,9 +34,9 @@ class Global_payment extends Admin_Controller
         $this->lang->load('global_payment', $language);
         $this->load->library("msg91");
 
-         if($this->session->userdata('usertypeID') != 1 || $this->session->userdata('usertypeID') != 5){ //admin & accountant
-            redirect('student');
-        }
+        //  if($this->session->userdata('usertypeID') != 1 || $this->session->userdata('usertypeID') != 5){ //admin & accountant
+        //     redirect('student');
+        // }
     }
 
     protected function rules()
