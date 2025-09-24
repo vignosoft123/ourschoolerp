@@ -1264,13 +1264,14 @@ if (customCompute($profile)) { ?>
 												<th><?= $this->lang->line('slno') ?></th>
 												<th><?= $this->lang->line('student_feetype') ?></th>
 												<th><?= $this->lang->line('student_date') ?></th>
-												<th><?= $this->lang->line('student_status') ?></th>
 												<th><?= $this->lang->line('student_fees_amount') ?></th>
 												<th><?= $this->lang->line('student_discount') ?></th>
 												<th><?= $this->lang->line('student_paid') ?></th>
 												<th><?= $this->lang->line('student_weaver') ?></th>
 												<th><?= $this->lang->line('student_fine') ?></th>
 												<th><?= $this->lang->line('student_due') ?></th>
+												<th><?= $this->lang->line('student_status') ?></th>
+
 											</tr>
 										</thead>
 										<tbody>
@@ -1296,24 +1297,7 @@ if (customCompute($profile)) { ?>
 															<?= !empty($invoice->date) ? date('d M Y', strtotime($invoice->date)) : '' ?>
 														</td>
 
-														<td data-title="<?= $this->lang->line('student_status') ?>">
-															<?php
-															$status = $invoice->paidstatus;
-															$setButton = '';
-															if ($status == 0) {
-																$status = $this->lang->line('student_notpaid');
-																$setButton = 'text-danger';
-															} elseif ($status == 1) {
-																$status = $this->lang->line('student_partially_paid');
-																$setButton = 'text-warning';
-															} elseif ($status == 2) {
-																$status = $this->lang->line('student_fully_paid');
-																$setButton = 'text-success';
-															}
-
-															echo "<span class='" . $setButton . "'>" . $status . "</span>";
-															?>
-														</td>
+														
 
 														<td data-title="<?= $this->lang->line('student_fees_amount') ?>">
 															<?php $invoiceAmount = $invoice->amount;
@@ -1362,6 +1346,34 @@ if (customCompute($profile)) { ?>
 															echo number_format($dueAmount, 2);
 															$totalDue += $dueAmount; ?>
 														</td>
+														
+													<td data-title="<?= $this->lang->line('student_status') ?>">
+															<?php
+															// echo "<pre>";print_r($invoice);
+															$status = $invoice->paidstatus;
+															$setButton = '';
+ 															if ($status == 0) { 
+																 if( $invoiceAmount != $dueAmount ){
+                                                        $status = "Partially paid";
+                                                        $setButton = 'btn-warning';
+                                                    }else{
+                                                       $status = "Not paid";
+                                                        $setButton = 'btn-danger';
+                                                    }
+
+																// $status = $this->lang->line('student_notpaid');
+																// $setButton = 'text-danger';
+															} elseif ($status == 1) {
+																$status = $this->lang->line('student_partially_paid');
+																$setButton = 'text-warning';
+															} elseif ($status == 2) {
+																$status = $this->lang->line('student_fully_paid');
+																$setButton = 'text-success';
+															}
+
+															echo "<span class='" . $setButton . "'>" . $status . "</span>";
+															?>
+														</td>
 
 													</tr>
 
@@ -1370,7 +1382,7 @@ if (customCompute($profile)) { ?>
 											} ?>
 
 											<tr>
-												<td colspan="4" data-title="<?= $this->lang->line('student_total') ?>">
+												<td colspan="3" data-title="<?= $this->lang->line('student_total') ?>">
 													<?php if ($siteinfos->currency_code) {
 														echo '<b>' . $this->lang->line('student_total') . ' (' . $siteinfos->currency_code . ')' . '</b>';
 													} else {

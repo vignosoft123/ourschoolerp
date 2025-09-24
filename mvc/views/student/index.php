@@ -559,8 +559,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                               <?php  } 
                                                               }?>
 
-                                                                // print_r($student);die;
-                                                                ?>
+                                                               
 
                                                                 
 

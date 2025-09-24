@@ -58,7 +58,7 @@ class Payment_m extends MY_Model {
 		return $query->result();
 	}
 
-	public function get_payment_with_studentrelation_by_studentID_and_schoolyearID($studentID, $schoolyearID) {
+	public function get_payment_with_studentrelation_by_studentID_and_schoolyearID_bkp($studentID, $schoolyearID) {
 		$this->db->select('payment.*, invoice.invoiceID, invoice.feetype, invoice.feetypeID, invoice.amount, weaverandfine.weaver, weaverandfine.fine');
 		$this->db->from('payment');
 		$this->db->join('invoice', 'invoice.invoiceID = payment.invoiceID', 'LEFT');
@@ -69,6 +69,36 @@ class Payment_m extends MY_Model {
 		$query = $this->db->get();
 		return $query->result();
 	}
+
+    public function get_payment_with_studentrelation_by_studentID_and_schoolyearID($studentID, $schoolyearID) 
+{
+    $this->db->select('
+        payment.*,
+        invoice.invoiceID,
+        invoice.feetype,
+        invoice.feetypeID,
+        invoice.amount,
+        weaverandfine.weaver,
+        weaverandfine.fine
+    ');
+    $this->db->from('payment');
+    $this->db->join('invoice', 'invoice.invoiceID = payment.invoiceID', 'LEFT');
+    $this->db->join('maininvoice', '
+        maininvoice.maininvoiceID = invoice.maininvoiceID
+        AND maininvoice.maininvoicestudentID = payment.studentID
+        AND maininvoice.maininvoiceschoolyearID = payment.schoolyearID
+        AND maininvoice.maininvoicedeleted_at = 1
+    ', 'INNER'); // INNER to avoid mismatched junk
+    $this->db->join('weaverandfine', 'payment.paymentID = weaverandfine.paymentID', 'LEFT');
+
+    $this->db->where('payment.studentID', $studentID);
+    $this->db->where('payment.schoolyearID', $schoolyearID);
+    $this->db->where('payment.paymentamount !=', '');
+
+    $query = $this->db->get();
+    return $query->result();
+}
+
 
 	public function get_payment_by_sum($invoiceID) {
 		$this->db->select_sum('paymentamount');

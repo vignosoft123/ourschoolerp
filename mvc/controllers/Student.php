@@ -373,7 +373,9 @@ class Student extends Admin_Controller
 	{
 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
 		if (customCompute($studentInfo)) {
-			$this->data['invoices'] = $this->invoice_m->get_order_by_invoice(array('schoolyearID' => $schoolyearID, 'studentID' => $studentInfo->srstudentID, 'deleted_at' => 1));
+			// $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(array('schoolyearID' => $schoolyearID, 'studentID' => $studentInfo->srstudentID, 'deleted_at' => 1));
+
+			$this->data['invoices'] = $this->invoice_m->get_order_by_invoice_join_maininvoice( $studentInfo->srstudentID, $schoolyearID, 1);
 
 			$payments = $this->payment_m->get_order_by_payment(array('schoolyearID' => $schoolyearID, 'studentID' => $studentInfo->srstudentID));
 			$weaverandfines = $this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID' => $schoolyearID, 'studentID' => $studentInfo->srstudentID));
