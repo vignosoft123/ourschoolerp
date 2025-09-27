@@ -428,7 +428,9 @@ class Mark extends Admin_Controller
         $_POST = $a;
         //print_r($_POST);
     }
-
+// $_POST['subjectID'] = 1;
+//     echo "<pre>";    print_r($_POST);
+// die;
     // error_reporting(E_ALL); 
     // ini_set('display_errors', 1);
     // ini_set('display_startup_errors', 1);
@@ -529,11 +531,12 @@ class Mark extends Admin_Controller
                             'sroptionalsubjectID' => $subject->subjectID
                         ));
 
-                        $studentArray['sroptionalsubjectID'] = $subject->subjectID;
+                        // $studentArray['sroptionalsubjectID'] = $subject->subjectID;
                     }
                 }
-
                 $sendStudent = $this->studentrelation_m->get_order_by_student($studentArray);
+				//echo "<pre>";print_r($sendStudent);die;
+
                 foreach ($subjectsss as $subj) {
 
                     $markPluck   = pluck($this->mark_m->get_order_by_mark(array("examID" => $examID, "classesID" => $classesID, "	subjectID" => $subj->subjectID, 'schoolyearID' => $schoolyearID)), 'obj', 'studentID');
@@ -763,6 +766,7 @@ class Mark extends Admin_Controller
                 $this->data['studentResults'] = $studentResults;
                 // ----------------- RANK CALCULATION END -----------------
 
+				// echo "<pre>";print_r($this->data);die;
                 if ($downloadFile == 1) {
                     $this->download_mark_sheet($this->data);
                 } else {
@@ -779,6 +783,103 @@ class Mark extends Admin_Controller
         $this->load->view('_layout_main', $this->data);
     }
 }
+public function load_students_ajax() {
+    $offset      = $this->input->post('offset') ?? 0;
+    $examID      = $this->input->post('examID') ?? 0;
+    $classesID   = $this->input->post('classesID') ?? 0;
+    $sectionID   = $this->input->post('sectionID') ?? 0;
+    $subjectID   = $this->input->post('subjectID') ?? 0;
+    $schoolyearID= $this->input->post('schoolyearID') ?? 0;
+
+    $limit = 20; // Students per batch
+
+    // Fetch students for this class-section-schoolyear
+    $this->db->where('classesID', $classesID);
+    $this->db->where('sectionID', $sectionID);
+    $this->db->where('schoolyearID', $schoolyearID);
+    $students = $this->db->get('student', $limit, $offset)->result();
+
+    if (!$students) {
+        echo json_encode(['html' => '<tr><td colspan="50" class="text-center">No students found</td></tr>', 'count' => 0]);
+        return;
+    }
+
+    // Fetch subjects for this class
+    $subjects = $this->db->where('classesID', $classesID)->get('subject')->result();
+
+    // If subjectID filter is applied
+    if ($subjectID != 0) {
+        $subjects = array_filter($subjects, fn($s) => $s->subjectID == $subjectID);
+    }
+
+    // Fetch marks for this exam, class, section, schoolyear
+    $marks = $this->db->where('examID', $examID)
+                      ->where('classesID', $classesID)
+                      ->where('sectionID', $sectionID)
+                      ->where('schoolyearID', $schoolyearID)
+                      ->get('mark')->result();
+
+    $html = '';
+    $i = $offset + 1;
+
+    foreach ($students as $student) {
+        $tot = 0;
+        $zero_mark = 0;
+        $my_template = '';
+        $html .= '<tr>';
+        $html .= '<td class="no-export">' . $i . '</td>';
+        $html .= '<td>' . profileproimage($student->photo) . '</td>';
+        $html .= '<td class="excel-only1">' . $student->studentID . '</td>';
+        $html .= '<td>' . $student->name . ' (' . $student->roll . ')</td>';
+
+        foreach ($subjects as $subject) {
+            $student_mark = 0;
+
+            foreach ($marks as $mark) {
+                if ($mark->studentID == $student->studentID && $mark->subjectID == $subject->subjectID) {
+                    $student_mark = (int)$mark->mark;
+                    if ($student_mark == 0) $zero_mark++;
+                    $tot += $student_mark;
+                    break;
+                }
+            }
+
+            // Table columns: visible + Excel hidden
+            $html .= '<td>' . ($student_mark ? $student_mark : 'Ab') . '</td>';
+            $html .= '<td class="excel-only">' . $student_mark . '</td>';
+
+            $my_template .= $subject->subject . '=' . ($student_mark ? $student_mark : 'Ab') . ',';
+        }
+
+        // Total and grade
+        $out_of = array_sum(array_map(fn($s) => $s->max_mark, $subjects));
+        $percent_cal = ($tot / ($out_of ?: 1)) * 100;
+
+        if ($percent_cal >= 95 && $zero_mark == 0) $grade = 'A+';
+        else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) $grade = 'A';
+        else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) $grade = 'B+';
+        else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) $grade = 'B';
+        else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) $grade = 'C+';
+        else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) $grade = 'C';
+        else $grade = 'D';
+
+        $html .= '<td>' . $tot . '</td>';
+        $html .= '<td><span class="grade-label grade-' . strtolower($grade) . '">' . $grade . '</span></td>';
+        $html .= '<td>-</td>'; // Rank placeholder, calculate after full list if needed
+        $html .= '<td><input type="checkbox" st_ids="' . $student->studentID . '" st_names="' . $student->name . '" name="send_sms_marks" class="checkbox"></td>';
+
+        $html .= '</tr>';
+        $i++;
+    }
+
+    echo json_encode([
+        'html' => $html,
+        'count' => count($students)
+    ]);
+}
+
+
+
 
 // Main add page
  public function add_paginations($a=array())
@@ -1967,7 +2068,7 @@ public function get_students_page() {
 		}
 	}
 
-	public function mark_send()
+	public function mark_send_bkp()
 	{
 		$retArray['status'] = FALSE;
 		$retArray['message'] = '';
@@ -2007,6 +2108,75 @@ public function get_students_page() {
 					// $this->markrelation_m->update_batch_markrelation($markRelationArray, 'markrelationID');
 					
 				// }
+
+				$retArray['status'] = TRUE;;
+				$retArray['message'] = $this->lang->line('mark_success');
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['message'] = 'Something wrong';
+			echo json_encode($retArray);
+			exit;
+		}
+	}
+
+	public function mark_send()
+	{
+		$retArray['status'] = FALSE;
+		$retArray['message'] = '';
+
+		if ($_POST) {
+			$rules = $this->markRules();
+			$this->form_validation->set_rules($rules);
+			if ($this->form_validation->run() == FALSE) {
+				$retArray = $this->form_validation->error_array();
+				$retArray['status'] = FALSE;
+				echo json_encode($retArray);
+				exit;
+			} else {
+				$examID 		= $this->input->post("examID");
+				$classesID		= $this->input->post("classesID");
+				$subjectID 		= $this->input->post("subjectID");
+				$inputs 		= $this->input->post("inputs");
+				$schoolyearID 	= $this->data['siteinfos']->school_year;
+
+				$markRelationArray = [];
+				if (customCompute($inputs)) {
+					foreach ($inputs as $key => $value) {
+						$data = explode('-', $value['mark']); 
+
+
+							// $this->db->where('markpercentageID',$value['markpercentageid']);
+							// $this->db->where('markID',$data[1]);
+							// $this->db->update('markrelation',array('mark' => abs($value['value']) ));
+
+
+
+							$this->db->where('markpercentageID', $value['markpercentageid']);
+							$this->db->where('markID', $data[1]);
+							$query = $this->db->get('markrelation');
+
+							if($query->num_rows() > 0) {
+								// record exists → update
+								$this->db->where('markpercentageID', $value['markpercentageid']);
+								$this->db->where('markID', $data[1]);
+								$this->db->update('markrelation', array('mark' => abs($value['value'])));
+							} else {
+								// record does not exist → insert
+								$this->db->insert('markrelation', array(
+									'markpercentageID' => $value['markpercentageid'],
+									'markID'           => $data[1],
+									'mark'             => abs($value['value']),
+								));
+							}
+
+
+						 
+					}
+				}
+
+ 
 
 				$retArray['status'] = TRUE;;
 				$retArray['message'] = $this->lang->line('mark_success');
@@ -2611,6 +2781,56 @@ public function get_students_page() {
 		
 
 	}
+public function saveAllAttendance() {
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    $examID     = $this->input->post('examID');
+    $classesID  = $this->input->post('classesID');
+    $sectionID  = $this->input->post('sectionID');
+    $studentID  = $this->input->post('studentID');
+    $attendance = $this->input->post('attendance');
+
+    if($attendance == 'Absent') {
+        // 🔹 Step 1: Get all markIDs for this student in this exam
+        $marks = $this->db->select('markID')
+            ->from('mark')
+            ->where('schoolyearID', $schoolyearID)
+            ->where('examID', $examID)
+            ->where('classesID', $classesID)
+            // ->where('sectionID', $sectionID)
+            ->where('studentID', $studentID)
+            ->get()
+            ->result();
+
+        if(!empty($marks)) {
+            foreach($marks as $m) {
+                // 🔹 Step 2: Reset all markrelation rows for this markID
+                $this->db->where('markID', $m->markID);
+                $this->db->update('markrelation', ['mark' => 0]);
+            }
+        }
+    }
+
+    // 🔹 Step 3: Update attendance in mark table
+    $data = ['eattendance' => $attendance];
+    $this->db->where('schoolyearID', $schoolyearID);
+    $this->db->where('examID', $examID);
+    $this->db->where('classesID', $classesID);
+    // $this->db->where('sectionID', $sectionID);
+    $this->db->where('studentID', $studentID);
+    $this->db->update('mark', $data);
+
+    // 🔹 Step 4: Also update eattendance table if required
+    $this->db->where('schoolyearID', $schoolyearID);
+    $this->db->where('examID', $examID);
+    $this->db->where('classesID', $classesID);
+    $this->db->where('sectionID', $sectionID);
+    $this->db->where('studentID', $studentID);
+    $this->db->update('eattendance', $data);
+
+    $this->session->set_flashdata('success', 'Successfully updated all subjects attendance');
+    redirect(base_url("mark/add"));
+}
 
 
 	

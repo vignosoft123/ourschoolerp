@@ -255,6 +255,7 @@
 
           
 
+            <tr> <td>Manual Receipt</td> <td>:  <?=$globalpayment[0]->invoicedescription?></td> </tr>
             <tr> <td>Receipt No</td> <td>:  INV-G-<?=$globalpayment[0]->globalpaymentID?></td> </tr>
             <tr> <td>Receipt Date</td> <td>: <?=isset($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID])) : '' ?></td> </tr>
             <tr> <td>Class Name</td> <td>: <?=customCompute($single_classes) ? $single_classes->classes : ''?></td> </tr>
@@ -335,7 +336,7 @@
               </span>
             </span>
           </div>
-          <div style="width: 30%; text-align: center; vertical-align: middle;bottom: -35px;position:relative">
+          <div style="width: 30%; text-align: center; vertical-align: middle;bottom: -20px;position:relative">
             <p style = "font-size:18px">Authorised Signatory</p>
           </div>
         </div>

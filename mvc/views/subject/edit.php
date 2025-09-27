@@ -76,8 +76,8 @@
                         </label>
                         <div class="input-field">
                             <?php
-                                $arraytype['select'] = $this->lang->line("subject_select_type");
-                                $arraytype[0] = $this->lang->line("subject_optional");
+                                // $arraytype['select'] = $this->lang->line("subject_select_type");
+                                // $arraytype[0] = $this->lang->line("subject_optional");
                                 $arraytype[1] = $this->lang->line("subject_mandatory");
                                 echo form_dropdown("type", $arraytype, set_value("type", $subject->type), "id='type' class='form-control select2'");
                             ?>

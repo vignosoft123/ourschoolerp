@@ -298,7 +298,7 @@
                                                     <input type="hidden" id="inv_name" value="<?= $single_student->srregisterNO.'-'.$single_student->srname?>">
                                     </td>
 
-                                        <td style="border-bottom-width: 1px;"><?=$this->lang->line('global_description')?></td>
+                                        <td style="border-bottom-width: 1px;">Manual Reciept</td>
                                         <td style="border-bottom-width: 1px;"><input class="form-control" id="invoicedescription" type="text" name="invoicedescription"></td>
                                     </tr>
                                 </thead>

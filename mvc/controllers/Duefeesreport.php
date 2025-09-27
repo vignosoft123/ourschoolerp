@@ -153,7 +153,7 @@ class Duefeesreport extends Admin_Controller{
 		}
 	}
 
-	public function getDueFeesReport() {
+	public function getDueFeesReport_bkp() {
 		$retArray['status'] = FALSE;
 		$retArray['render'] = '';
 
@@ -196,10 +196,14 @@ class Duefeesreport extends Admin_Controller{
 						$studnetArray['srstudentID'] = $studentID;
 					}
 					$studnetArray['srschoolyearID'] = $schoolyearID;
-
 					// $this->data['students'] = pluck($this->studentrelation_m->get_order_by_studentrelation($studnetArray),'obj','srstudentID');
 
+
+
+
 					$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
+
 
 					$this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(),'feetypes','feetypesID');
 					
@@ -243,6 +247,111 @@ class Duefeesreport extends Admin_Controller{
 			exit;
 		}
 	}
+	public function getDueFeesReport() {
+    $retArray['status'] = FALSE;
+    $retArray['render'] = '';
+
+    if(permissionChecker('duefeesreport')) {
+        if($_POST) {
+            $rules = $this->rules();
+            $this->form_validation->set_rules($rules);
+            if ($this->form_validation->run() == FALSE) {
+                $retArray = $this->form_validation->error_array();
+                $retArray['status'] = FALSE;
+                echo json_encode($retArray);
+                exit;
+            } else {
+                $schoolyearID = $this->session->userdata('defaultschoolyearID');
+                $_POST['schoolyearID'] = $schoolyearID;
+
+                $classesID = (int) $this->input->post('classesID'); 
+                $sectionID = (int) $this->input->post('sectionID'); 
+                $studentID = (int) $this->input->post('studentID'); 
+                $feetypeID = $this->input->post('feetypeID'); 
+                $fromdate  = $this->input->post('fromdate'); 
+                $todate    = $this->input->post('todate'); 
+
+                $this->data['classesID']    = $classesID;
+                $this->data['sectionID']    = $sectionID;
+                $this->data['studentID']    = $studentID;
+                $this->data['feetypeID']    = $feetypeID;
+                $this->data['fromdate']     = $fromdate;
+                $this->data['todate']       = $todate;
+                $this->data['schoolyearID'] = $schoolyearID; 
+
+                // ✅ Correct filter array
+                $studentArray = [
+                    'srschoolyearID' => $schoolyearID,
+                    'active'         => 1
+                ];
+                if($classesID != 0) {
+                    $studentArray['srclassesID'] = $classesID;
+                }
+                if($sectionID != 0) {
+                    $studentArray['srsectionID'] = $sectionID;
+                }
+                if($studentID != 0) {
+                    $studentArray['srstudentID'] = $studentID;
+                }
+
+                // ✅ Load students correctly with filters
+                $this->data['students'] = pluck(
+                    $this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),
+                    'obj',
+                    'srstudentID'
+                );
+
+                // Load static data
+                $this->data['feetypes'] = pluck(
+                    $this->feetypes_m->get_feetypes(),
+                    'feetypes',
+                    'feetypesID'
+                );
+                $this->data['classes']  = pluck(
+                    $this->classes_m->general_get_classes(),
+                    'classes',
+                    'classesID'
+                );
+                $this->data['sections'] = pluck(
+                    $this->section_m->general_get_section(),
+                    'section',
+                    'sectionID'
+                );
+
+                // ✅ Payments
+                $this->data['getFeesReports'] = $this->totalPayment(
+                    $this->payment_m->get_all_payment_for_report_multi($this->input->post()), 
+                    $schoolyearID
+                );
+
+                $this->data['feetypeIDs'] = $feetypeID;
+
+                // ✅ Due Fees
+                $this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report_multi($this->input->post());
+
+                // Render
+                if($_POST['view_type'] == 'horizontal'){
+                    $retArray['render'] = $this->load->view('report/duefees/DueFeesReport', $this->data,true);
+                } else {
+                    $retArray['render'] = $this->load->view('report/duefees/DueFeesReport_vertical', $this->data,true);
+                }
+
+                $retArray['status'] = TRUE;
+                echo json_encode($retArray);
+                exit;
+            }
+        } else {
+            echo json_encode($retArray);
+            exit;
+        }
+    } else {
+        $retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+        $retArray['status'] = TRUE;
+        echo json_encode($retArray);
+        exit;
+    }
+}
+
 
 	private function totalPayment($arrays, $schoolyearID) {
 		$weaverandfine = pluck($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)),'obj','paymentID');

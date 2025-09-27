@@ -28,7 +28,7 @@ class MY_Controller extends CI_Controller {
         $this->data['errors'] = [];
         $this->load->library('session');
 
-        // $this->callSubDomainProcess();
+        //  $this->callSubDomainProcess();
 
 
         if ( !$this->config->config_install() ) {

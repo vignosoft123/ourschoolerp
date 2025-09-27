@@ -291,55 +291,13 @@
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-success col-md-12 col-xs-12 mark_btn" style="margin-top: 20px;">Get Marks</button>
 
-                                        <!-- <input class="btn btn-black" type="reset" value="Clear"> -->
-                                    </div>
+                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
-                <?php if (customCompute($students)) { ?>
-                    <!-- <form enctype="multipart/form-data" style="" action="<?= base_url('mark/mark_bulkimport'); ?>" class="form-horizontal" role="form" method="post">
-                        <input  type="hidden"name="classId" value="" class="classId" />
-                        <input  type="hidden"name="sectionId" value="" class="sectionId" />
-                        <input  type="hidden"name="subjectId" value="" class="subjectId" />
-                        <input  type="hidden" name="examId" value="" class="examId" />
-                        <div class="form-group">
-                            <label for="csvMark" class="col-sm-2 control-label col-xs-8 col-md-2">
-                                <?= 'Add Mark Sheet' ?>
-                                &nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="bottom" title="Download sample mark shhet and add marks and upload"></i>
-                            </label>
-                            <div class="col-sm-3 col-xs-1 col-md-2">
-                                <input class="form-control markImport" id="uploadFile" placeholder="Choose File" disabled />
-                            </div>
-
-                            <div class="col-sm-2 col-xs-1 col-md-1">
-                                <div class="fileUpload btn btn-success form-control">
-                                    <span class="fa fa-repeat"></span>
-                                    <span><?= "Upload" ?></span>
-                                    <input id="uploadBtn" type="file" class="upload markUpload" name="csvMark" />
-                                </div>
-                            </div>
-
-                            <div class="col-md-1 rep-mar">
-                                <input type="submit" class="btn btn-success" value="Import">
-                            </div>
-                        </div>
-                    </form>
-                    <form enctype="multipart/form-data" style="" action="<?= base_url('mark/add'); ?>" class="form-horizontal" role="form" method="post">
-                        <input type="hidden" name="classesID" value="" class="classId" />
-                        <input  type="hidden"name="sectionID" value="" class="sectionId" />
-                        <input  type="hidden"name="subjectID" value="" class="subjectId" />
-                        <input  type="hidden"name="examID" value="" class="examId" />
-                        <input  type="hidden" name="downloadFile" value="1" id="" />
-                        <div class="form-group">
-                            <div class="col-md-1 rep-mar">
-                                <input type="submit" class="btn btn-success" value="Download Sample File">
-                            </div>
-                        </div>
-                    </form> -->
-
-                <?php }  ?>
+             
 
 
  <div class="row" style="margin-top: 20px;">
@@ -443,8 +401,8 @@
 
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php if (customCompute($students)) {
+                                <tbody id="studentsBody">
+                                    <?php //if (customCompute($students)) {
                                     $i = 1;
                                      foreach ($students as $student) {  ?>
                                                 <tr>
@@ -459,8 +417,6 @@
                                                     </td> 
                                                     <td data-title="<?= $this->lang->line('mark_name') ?>">
                                                         <?php echo $student->name; ?> ( <?php echo $student->roll; ?>)
-                                                        <br>
-                                                         <button type="button" class="btn btn-warning btn-xs" data-toggle="modal"   data-target="#attendance-all-modal_<?= $student->studentID?>">   All Subjects Absent  </button>
                                                     </td>
                                                    
                                                     <?php 
@@ -612,8 +568,7 @@
                                                     <?php 
                                                         $stuID = $student->studentID;
                                                         if(isset($studentResults[$stuID])) {
-                                                            // echo $sms_rank = $studentResults[$stuID]['isFail'] ? "Fail" : $studentResults[$stuID]['rank'];
-                                                            echo $sms_rank = $studentResults[$stuID]['rank'];
+                                                            echo $sms_rank = $studentResults[$stuID]['isFail'] ? "Fail" : $studentResults[$stuID]['rank'];
                                                         } else {
                                                             echo "-";
                                                         }
@@ -632,40 +587,46 @@
                                                         name="send_sms_marks" id="send_sms_marks" class="checkbox">
                                                     </td>
 
-                   
+                                                    <td>
+                            <button type="button" class="btn btn-warning btn-xs"
+                                data-toggle="modal"
+                                data-target="#attendance-all-modal_<?= $student->studentID?>">
+                                All Subjects Absent
+                            </button>
+                        </td>
 
 
-        <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAllAttendance');?>" method="post">
-            <div class="modal fade" id="attendance-all-modal_<?= $student->studentID?>">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                            <h4 class="modal-title">Mark All Subjects Attendance</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">Attendance</label>
-                                <div class="col-sm-6">
-                                    <select name="attendance" class="form-control">
-                                        <option value="Present">Present</option>
-                                        <option value="Absent">Absent</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <input type="hidden" name="examID" value="<?= $set_exam?>">
-                            <input type="hidden" name="classesID" value="<?= $set_classes?>">
-                            <input type="hidden" name="sectionID" value="<?= $set_section?>">
-                            <input type="hidden" name="studentID" value="<?= $student->studentID?>">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->lang->line('close')?></button>
-                            <input type="submit" class="btn btn-success" value="Save" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
+                                <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAllAttendance');?>" method="post">
+                                    <div class="modal fade" id="attendance-all-modal_<?= $student->studentID?>">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                                                    <h4 class="modal-title">Mark All Subjects Attendance</h4>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="form-group">
+                                                        <label class="col-sm-3 control-label">Attendance</label>
+                                                        <div class="col-sm-6">
+                                                            <select name="attendance" class="form-control">
+                                                                <option value="Present">Present</option>
+                                                                <option value="Absent">Absent</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <input type="hidden" name="examID" value="<?= $set_exam?>">
+                                                    <input type="hidden" name="classesID" value="<?= $set_classes?>">
+                                                    <input type="hidden" name="sectionID" value="<?= $set_section?>">
+                                                    <input type="hidden" name="studentID" value="<?= $student->studentID?>">
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->lang->line('close')?></button>
+                                                    <input type="submit" class="btn btn-success" value="Save" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
 
                                                 </tr>
                                             <?php 
@@ -678,7 +639,9 @@
                             </tbody>
                         </table>
                     </div>
-                   
+                    <div class="text-center" style="margin-top: 15px;">
+    <button id="loadMoreBtn" class="btn btn-primary">Load More</button>
+</div>
 
                     <div class="text-right">
 
@@ -830,7 +793,7 @@
                             });
                         });
                     </script>
-                <?php } ?>
+                <?php //} ?>
             </div>
         </div>
     </div>
@@ -1127,4 +1090,77 @@ $('#examID').on('change', function() {
     }
 });
 
+</script>
+
+<script>
+var offset = 0;
+var loading = false;
+
+// Load students function
+function loadStudents(reset = false) {
+    if (loading) return;
+    loading = true;
+
+    if (reset) offset = 0;
+
+    var examID    = $("#examID").length ? $("#examID").val() : 0;
+    var classesID = $("#classesID").length ? $("#classesID").val() : 0;
+    var sectionID = $("#sectionID").length ? $("#sectionID").val() : 0;
+    var subjectID = $("#subjectID").length ? $("#subjectID").val() : 0;
+
+    $.ajax({
+        url: "<?= base_url('mark/load_students_ajax') ?>",
+        method: "POST",
+        data: { offset: offset, examID: examID, classesID: classesID, sectionID: sectionID, subjectID: subjectID },
+        dataType: "json",
+        beforeSend: function() {
+            if (reset) {
+                $("#studentsBody").html('<tr><td colspan="50" class="text-center">Loading...</td></tr>');
+            } else {
+                $("#loadMoreBtn").prop('disabled', true).text('Loading...');
+            }
+        },
+        success: function(res) {
+            if (res.html) {
+                if (reset) {
+                    $("#studentsBody").html(res.html);
+                } else {
+                    $("#studentsBody").append(res.html);
+                }
+                offset += parseInt(res.count);
+                // Show/hide Load More button
+                if (res.count < 20) {
+                    $("#loadMoreBtn").hide();
+                } else {
+                    $("#loadMoreBtn").show().prop('disabled', false).text('Load More');
+                }
+            } else {
+                if (reset) {
+                    $("#studentsBody").html('<tr><td colspan="50" class="text-center text-danger">No data found</td></tr>');
+                }
+                $("#loadMoreBtn").hide();
+            }
+        },
+        error: function(xhr, status, err) {
+            console.error(err);
+            if (reset) {
+                $("#studentsBody").html('<tr><td colspan="50" class="text-center text-danger">Error loading data</td></tr>');
+            }
+        },
+        complete: function() {
+            loading = false;
+        }
+    });
+}
+
+// Trigger on Get Marks button
+$(document).on('click', '.mark_btn', function(e) {
+    e.preventDefault();
+    loadStudents(true); // reset table
+});
+
+// Load more on button click
+$(document).on('click', '#loadMoreBtn', function() {
+    loadStudents(false);
+});
 </script>
