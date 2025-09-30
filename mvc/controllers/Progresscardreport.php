@@ -1154,8 +1154,17 @@ class Progresscardreport extends Admin_Controller {
 		        	$template1 = substr($marks_template[$key],0,-1);
 					 
 					$params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
-					$final_messege = $template1. '. Total: '.$total_marks[$key] . ' Grade:'.$marks_grade[$key];
-					$final_messege = str_replace(',', '.', $final_messege);
+					
+
+					if (strpos($school_name, 'VIVEKA') !== false  ) {
+						$final_messege = $template1. '. Total: '.$total_marks[$key]; //no need grade;
+						$final_messege = str_replace(',', '.', $final_messege);
+
+					}else{
+						$final_messege = $template1. '. Total: '.$total_marks[$key] . ' Grade:'.$marks_grade[$key];
+						$final_messege = str_replace(',', '.', $final_messege);
+					}
+
 					if (strpos($school_name, 'HANUMANTHARAO') !== false || strpos($school_name, 'SRI LITTLE') !== false) {
 					$message = $params.','.$final_messege;	//don't need school name in template
 
