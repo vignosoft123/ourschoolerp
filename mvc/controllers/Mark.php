@@ -2927,8 +2927,8 @@ public function marks_bulkimport()
         $file_path = './uploads/csv/' . $file_data['file_name'];
 
 
-// 		$temp_path = './uploads/csv/temp_' . time() . '.csv';
-// file_put_contents($temp_path, implode("\n", $data_lines));
+		// 		$temp_path = './uploads/csv/temp_' . time() . '.csv';
+		// file_put_contents($temp_path, implode("\n", $data_lines));
 
 
         // Read the raw file contents to auto detect delimiter

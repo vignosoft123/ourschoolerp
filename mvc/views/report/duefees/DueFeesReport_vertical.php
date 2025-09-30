@@ -134,7 +134,8 @@ foreach($getDueFeesReports as $report) {
         ];
     }
 
-    $discount = ($report->amount / 100) * $report->discount;
+    // $discount = ($report->amount / 100) * $report->discount;
+    $discount =  $report->discount;
     $paidAmount = isset($getFeesReports[$report->invoiceID]) ? $getFeesReports[$report->invoiceID] : 0;
     $due = ($report->amount - $paidAmount - $discount);
 
