@@ -140,11 +140,11 @@
             <th>Total</th>
         </tr>
 
-        <tr>
+        <!-- <tr>
             <th></th>
             <th></th>
 
-            <?php foreach($mandatorysubjects as $mandatorysubject): ?>
+            <?php /*foreach($mandatorysubjects as $mandatorysubject): ?>
                 <?php foreach($markpercentages as $markpercentageID => $markpercentage): ?>
                     <th><?=$markpercentage?></th>
                 <?php endforeach; ?>
@@ -156,10 +156,10 @@
                         <th><?=$markpercentage?></th>
                     <?php endforeach; ?>
                 <?php endforeach; ?>
-            <?php endif; ?>
+            <?php endif; */?>
 
             <th></th>
-        </tr>
+        </tr> -->
     </thead>
     <tbody>
         <?php foreach($students as $student): ?>

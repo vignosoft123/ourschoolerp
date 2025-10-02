@@ -340,7 +340,7 @@
                                             <tr>
                                                 <!-- <td>#</td> -->
                                                 <td style="width:3%" ><input type="checkbox" id="select_all"> 
-                                                <a style="    padding: 1px 5px;" id="update_selected" class=" btn btn-danger btn-xs mrg"  ><i class="fa fa-trash-o"></i></a>
+                                                <!-- <a style="    padding: 1px 5px;" id="update_selected" class=" btn btn-danger btn-xs mrg"  ><i class="fa fa-trash-o"></i></a> -->
                                             </td>
                                                  
                                                 <td><?=$this->lang->line('global_fees_name')?></td>
@@ -348,7 +348,7 @@
                                                 <td><?=$this->lang->line('global_due')?></td>
                                                 <td><?=$this->lang->line('global_paid_amount')?></td>
                                                 <td class="<?= $accountant?>">Discount</td>
-                                                <td class="<?= $accountant?>"><?=$this->lang->line('global_fine')?></td>
+                                                <td class="<?= $accountant?>"  ><?=$this->lang->line('global_fine')?></td>
                                              </tr>
                                         </thead>
 
@@ -398,7 +398,7 @@
                                                             <!-- <td style="width:10%"><?=$i?></td> -->
                                                             <td><input type="checkbox" class="record_checkbox" value="<?= $invoice->invoiceID ?>" data-maininvoiceid="<?= $invoice->maininvoiceID ?>">
 
-                                                            <a style="    padding: 1px 5px;" class="update_single btn btn-danger btn-xs mrg" data-id="<?= $invoice->invoiceID ?>" data-mainid="<?= $invoice->maininvoiceID ?>"><i class="fa fa-trash-o"></i></a>
+                                                            <!-- <a style="    padding: 1px 5px;" class="update_single btn btn-danger btn-xs mrg" data-id="<?= $invoice->invoiceID ?>" data-mainid="<?= $invoice->maininvoiceID ?>"><i class="fa fa-trash-o"></i></a> -->
                                                         </td>
 
                                                           
@@ -415,7 +415,10 @@
                                                                      echo $invoice->amount;  
                                                                 }  ?></td>
 
-                                                            <td id="_due_<?=$i-1?>" style="width:10%"><?=$due?></td>
+                                                            <!-- <td id="_due_<?=$i-1?>" style="width:10%"><?=$due?></td> -->
+
+                                                            <td style="width:10%" id="_due_<?=$i-1?>" data-original="<?=$invoice->amount?>" class="due_original"><?=$due?></td>
+
 
                                                             <td style="width:10%">
                                                                 <?php
@@ -446,7 +449,7 @@
                                                                         echo '';
                                                                         echo '<input style="display:none" name="fine-'.$invoice->invoiceID.'-'.$invoice->feetypeID.'" class="form-control fine" type="text">';
                                                                     } else {
-                                                                        echo '<input name="fine-'.$invoice->invoiceID.'-'.$invoice->feetypeID.'" class="form-control fine" type="text">';
+                                                                        echo '<input style="visibility:hidden" name="fine-'.$invoice->invoiceID.'-'.$invoice->feetypeID.'" class="form-control fine" type="text">';
                                                                     }
                                                                 ?>
                                                             </td>
@@ -461,10 +464,16 @@
                                                     <td><?=$totalDue?></td>
                                                     <td id="set_paid_amount" class="<?= $accountant?>">0</td>
                                                     <td id="set_weaver" class="<?= $accountant?>">0</td>
-                                                    <td id="set_fine">0</td>
+                                                    <td id="set_fine"></td>
                                                 </tr>
 
                                                 <tr>
+                                                    <td colspan="2" style="width:10%"></td>
+                                                    <td colspan="1" style="width:10%"> Remaining Due</td>
+                                                    <td colspan="4" style="width:10%" id="set_total_due" class="text-red"></td>
+                                                </tr>
+
+                                                  <tr>
                                                     <td colspan="2" style="width:10%"></td>
                                                     <td colspan="2" style="width:10%"><?=$this->lang->line('global_total_collection').' ('.$this->lang->line('global_paid').'+'.$this->lang->line('global_fine').')'?></td>
                                                     <td colspan="3" style="width:10%" id="TottalCollection">0</td>
@@ -1838,10 +1847,14 @@ $(document).on("keyup", ".paid_amount", function() {
                             $(this).val('');
                         }
                     } 
+                        // recalculateDue(i);
+
                 });
                 $("#set_paid_amount").html(parseFloat(sum).toFixed(2));
                 globalPaid = sum;
                 $("#TottalCollection").html(parseFloat(globalPaid+globalFine).toFixed(2));   
+                recalculateGrandTotalDue();
+
             } else {
                 $(this).val(paid_amount_value);
             }
@@ -1880,6 +1893,7 @@ $(document).on("keyup", ".paid_amount", function() {
             $(this).val('');
         }
     }  
+
 });
 
 $(document).on("keyup", ".weaver", function() {
@@ -1976,8 +1990,12 @@ $(document).on("keyup", ".weaver", function() {
                             $(this).val('');
                         }
                     }
+                    // recalculateDue(i);
+
                 });
                 $("#set_weaver").html(parseFloat(sum).toFixed(2));
+                recalculateGrandTotalDue();
+
             } else {
                 $(this).val(weaver_amount_value);
             }
@@ -2005,6 +2023,7 @@ $(document).on("keyup", ".weaver", function() {
             $(this).val('');
         }
     }
+ 
 });
 
 $(document).on("keyup", ".fine", function() {
@@ -2015,7 +2034,7 @@ $(document).on("keyup", ".fine", function() {
         if(floatChecker($(this).val())) {
             if(parseFloat(fine_amount_value)) {
                 $('input[name^=fine]').removeClass('errorClass');
-                $(".fine").each(function(){
+                $(".fine").each(function(i, valu) {
                     var input_value = parseFloat($(this).val());
                     if(isInt(input_value)) {
                         if(input_value >= 0 &&  $(this).val().length <= 10) {
@@ -2031,6 +2050,8 @@ $(document).on("keyup", ".fine", function() {
                     } else {
                         $(this).val('');
                     }
+                    recalculateDue(i);
+
                 });
                 $("#set_fine").html(parseFloat(sum).toFixed(2));
                 globalFine = sum;
@@ -2074,6 +2095,7 @@ $(document).on("keyup", ".fine", function() {
             $(this).val('');
         }
     }
+ 
 });
 
 $(document).on("keyup", "#paymentyear", function() {
@@ -2485,4 +2507,49 @@ $(document).ready(function() {
         }
     });
 });
+
+
+function recalculateDue(index) { //alert(index);
+    var original_value = parseFloat($('#_due_'+index).attr('data-original')); // keep original amount in attr
+    var paid_value = parseFloat($('._paid_'+index).val() || 0);
+    var weaver_value = parseFloat($('._weaver_'+index).val() || 0);
+    var fine_value = parseFloat($('.fine').eq(index).val() || 0);
+
+    // Due = Original - (Paid + Weaver)   (Fine is not deducted from due usually, but you can include if needed)
+    var new_due = original_value - (paid_value + weaver_value);
+
+    if(new_due < 0) new_due = 0; // prevent negative due
+
+    $('#_due_'+index).text(new_due.toFixed(2));
+}
+
+
+function recalculateGrandTotalDue() {
+    var totalOriginalDue = 0;
+    var totalPaid = 0;
+    var totalWeaver = 0;
+
+    $(".paid_amount").each(function(i) {
+        var paidVal = parseFloat($(this).val()) || 0;
+        totalPaid += paidVal;
+    });
+
+    $(".weaver").each(function(i) {
+        var weaverVal = parseFloat($(this).val()) || 0;
+        totalWeaver += weaverVal;
+    });
+
+    // base due = sum of original due values (from PHP-rendered column)
+    $(".due_original").each(function() {
+        totalOriginalDue += parseFloat($(this).text()) || 0;
+    });
+
+    // recalc grand due
+    var grandDue = totalOriginalDue - (totalPaid + totalWeaver);
+    if (grandDue < 0) grandDue = 0;
+
+    $("#set_total_due").text(grandDue.toFixed(2));
+}
+
+
 </script>

@@ -411,6 +411,12 @@
             <div class="col-sm-12">
                 <?php if (customCompute($students)) { ?>
                     <div id="hide-table">
+ 
+                    <button onclick="exportTableToCSV('myTable','table_data.csv')" class="btn btn-primary">📥 Download CSV</button>
+
+
+
+
                         <table class="table table-striped table-bordered table-hover dataTable no-footer" id="myTable">
                             <thead>
                                 <tr>
@@ -614,11 +620,9 @@
                                                         if(isset($studentResults[$stuID])) {
                                                             // echo $sms_rank = $studentResults[$stuID]['isFail'] ? "Fail" : $studentResults[$stuID]['rank'];
                                                             echo $sms_rank = $studentResults[$stuID]['rank'];
-                                                        } else {
-                                                            echo "-";
-                                                        }
+                                                        }  
 
-                                            $grade_rank = $grade .' Rank ' .$sms_rank;
+                                                            $grade_rank = $grade .' Rank ' .$sms_rank;
 
                                                     ?>
                                                 </td>
@@ -635,37 +639,37 @@
                    
 
 
-        <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAllAttendance');?>" method="post">
-            <div class="modal fade" id="attendance-all-modal_<?= $student->studentID?>">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                            <h4 class="modal-title">Mark All Subjects Attendance</h4>
-                        </div>
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="col-sm-3 control-label">Attendance</label>
-                                <div class="col-sm-6">
-                                    <select name="attendance" class="form-control">
-                                        <option value="Present">Present</option>
-                                        <option value="Absent">Absent</option>
-                                    </select>
+                            <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAllAttendance');?>" method="post">
+                                <div class="modal fade" id="attendance-all-modal_<?= $student->studentID?>">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                                                <h4 class="modal-title">Mark All Subjects Attendance</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="form-group">
+                                                    <label class="col-sm-3 control-label">Attendance</label>
+                                                    <div class="col-sm-6">
+                                                        <select name="attendance" class="form-control">
+                                                            <option value="Present">Present</option>
+                                                            <option value="Absent">Absent</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="examID" value="<?= $set_exam?>">
+                                                <input type="hidden" name="classesID" value="<?= $set_classes?>">
+                                                <input type="hidden" name="sectionID" value="<?= $set_section?>">
+                                                <input type="hidden" name="studentID" value="<?= $student->studentID?>">
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->lang->line('close')?></button>
+                                                <input type="submit" class="btn btn-success" value="Save" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <input type="hidden" name="examID" value="<?= $set_exam?>">
-                            <input type="hidden" name="classesID" value="<?= $set_classes?>">
-                            <input type="hidden" name="sectionID" value="<?= $set_section?>">
-                            <input type="hidden" name="studentID" value="<?= $student->studentID?>">
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->lang->line('close')?></button>
-                            <input type="submit" class="btn btn-success" value="Save" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </form>
+                            </form>
 
                                                 </tr>
                                             <?php 
@@ -1051,6 +1055,9 @@ $(document).on("click","#add_mark",function(){
         });
     });
 </script> -->
+
+
+
  <script>
 $(document).ready(function () {
     $("#exportButton").click(function () {
@@ -1127,4 +1134,35 @@ $('#examID').on('change', function() {
     }
 });
 
+
+
+
+</script>
+
+  
+<script>
+function exportTableToCSV(tableID, filename = 'table.csv') {
+    var csv = [];
+    var rows = document.querySelectorAll(`#${tableID} tr`);
+
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll("td, th");
+        for (var j = 0; j < cols.length; j++) {
+            // Escape double quotes
+            var text = cols[j].innerText.replace(/"/g, '""');
+            row.push('"' + text + '"');
+        }
+        csv.push(row.join(","));
+    }
+
+    // Create download link
+    var csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+    var downloadLink = document.createElement("a");
+    downloadLink.download = filename;
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+}
 </script>
