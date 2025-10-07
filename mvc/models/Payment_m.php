@@ -210,11 +210,13 @@ class Payment_m extends MY_Model {
     if (!empty($studentID)) {
         $this->db->where('i.studentID', $studentID);
     }
+    $this->db->where('i.deleted_at', 1);
 
     $this->db->group_by('i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, s.studentID, s.name');
-    $this->db->order_by('i.invoiceID', 'DESC');
+    $this->db->order_by('i.invoiceID', 'ASC');
 
     $query = $this->db->get();
+    // echo $this->db->last_query();die;
     return $query->result();
 }
 

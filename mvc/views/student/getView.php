@@ -1308,7 +1308,8 @@ if (customCompute($profile)) { ?>
 														<td data-title="<?= $this->lang->line('student_discount') ?>">
 															<?php $discountAmount = 0;
 															if ($invoice->discount > 0) {
-																$discountAmount = (($invoice->amount / 100) * $invoice->discount);
+																// $discountAmount = (($invoice->amount / 100) * $invoice->discount);
+																$discountAmount =  $invoice->discount;
 															}
 															echo number_format($discountAmount, 2);
 															$totalDiscount += $discountAmount; ?>

@@ -803,7 +803,10 @@ class Global_payment extends Admin_Controller
             $this->data['single_section'] = $this->section_m->get_single_section(array('sectionID' => $single_student->srsectionID));
             $this->data['single_group'] = $this->studentgroup_m->get_single_studentgroup(array('studentgroupID' => $single_student->srstudentgroupID));
 
-            $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(array('studentID' => $single_student->srstudentID, 'schoolyearID' => $schoolyearID, 'deleted_at' => 1));
+            // $this->data['invoices'] = $this->invoice_m->get_order_by_invoice(array('studentID' => $single_student->srstudentID, 'schoolyearID' => $schoolyearID, 'deleted_at' => 1));
+
+            $this->data['invoices'] = $this->invoice_m->get_order_by_invoice_join_maininvoice( $single_student->srstudentID, $schoolyearID, 1);
+ 
 
             $this->data['invoicefeetype'] = pluck($this->data['invoices'], 'feetypeID', 'invoiceID');
 

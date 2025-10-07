@@ -80,11 +80,11 @@ $db['default']['username'] = 'mindw2ft_dummy';
 $db['default']['database'] = 'mindw2ft_dummy';
 $db['default']['password'] = 'DjmyAZTeNAq3'; 
 
-  
-// $db['default']['hostname'] = '119.18.54.141'; 
-// $db['default']['username'] = 'mindw2ft_common_user';
-// $db['default']['password'] = 'common_user'; 
-// $db['default']['database'] = 'mindw2ft_dummy_new_low_data';
+//   myschools
+// $db['default']['hostname'] = '119.18.54.166'; 
+// $db['default']['username'] = 'myschknc_viveka';
+// $db['default']['password'] = 'mN5bCg-Rp[PM'; 
+// $db['default']['database'] = 'myschknc_viveka';
 
 //  $db['default']['hostname'] = '119.18.54.141'; 
 // $db['default']['username'] = 'mindw2ft_ourschoolerp';

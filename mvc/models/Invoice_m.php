@@ -69,9 +69,8 @@ class Invoice_m extends MY_Model {
             WHERE i.studentID = "'.$studentID.'" 
               AND i.schoolyearID = "'.$schoolyearID.'" 
               AND i.deleted_at = "'.$deleted_at.'" 
-              AND m.maininvoicedeleted_at = 1
-        ';
-
+         ';
+// echo $sql;die;
         return $this->db->query($sql)->result();
     } else {
         return [];

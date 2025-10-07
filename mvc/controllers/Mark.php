@@ -684,86 +684,70 @@ class Mark extends Admin_Controller
                 }
 
                 // compute totals and fail flag for each student
-                $studentResults = []; // keyed by studentID
-                $subjectsForCalc = isset($this->data['subjects']) ? $this->data['subjects'] : [];
+                 
+// ... earlier code that builds $studentSubjectSum, $studentSubjectAbsent, $subjectMin
 
-                foreach ($sendStudent as $stu) {
-                    $sid = $stu->studentID;
-                    $total = 0;
-                    $isFail = false;
+// compute totals and fail flag
+$studentResults = [];
+$subjectsForCalc = isset($this->data['subjects']) ? $this->data['subjects'] : [];
 
-                    // iterate through subjects visible in this page (subjectsForCalc)
-                    if (customCompute($subjectsForCalc)) {
-                        foreach ($subjectsForCalc as $s) {
-                            $subid = $s->subjectID;
-                            $subSum = isset($studentSubjectSum[$sid][$subid]) ? $studentSubjectSum[$sid][$subid] : 0;
+foreach ($sendStudent as $stu) {
+    $sid = $stu->studentID;
+    $total = 0.0;
+    $isFail = false;
 
-                            // if any absent record for this student-subject => fail
-                            if (isset($studentSubjectAbsent[$sid]) && isset($studentSubjectAbsent[$sid][$subid]) && $studentSubjectAbsent[$sid][$subid]) {
-                                $isFail = true;
-                            }
+    if (customCompute($subjectsForCalc)) {
+        foreach ($subjectsForCalc as $s) {
+            $subid = $s->subjectID;
+            $subSum = isset($studentSubjectSum[$sid][$subid]) ? (float)$studentSubjectSum[$sid][$subid] : 0.0;
 
-                            // get min mark for subject (from examschedule if present)
-                            $min = isset($subjectMin[$subid]) ? $subjectMin[$subid] : 0;
+            if (isset($studentSubjectAbsent[$sid][$subid]) && $studentSubjectAbsent[$sid][$subid]) {
+                $isFail = true;
+            }
 
-                            // if obtained less than min mark => fail
-                            if ($subSum < $min) {
-                                $isFail = true;
-                            }
+            $min = isset($subjectMin[$subid]) ? (float)$subjectMin[$subid] : 0.0;
+            if ($subSum < $min) {
+                $isFail = true;
+            }
 
-                            $total += $subSum;
-                        }
-                    }
+            $total += $subSum;
+        }
+    }
 
-                    $studentResults[$sid] = [
-                        'total' => $total,
-                        'isFail' => $isFail
-                    ];
-                }
+    $studentResults[$sid] = ['total' => $total, 'isFail' => $isFail];
+}
 
-                // assign ranks only to passed students
-                $passed = [];
-                foreach ($studentResults as $sid => $res) {
-                    if (!$res['isFail']) {
-                        $passed[$sid] = $res['total'];
-                    }
-                }
+// rank only passed students (dense ranking)
+$passed = [];
+foreach ($studentResults as $sid => $res) {
+    if (!$res['isFail']) $passed[$sid] = $res['total'];
+}
 
-                if (customCompute($passed)) {
-                    // sort passed students by total descending, preserve keys (studentID)
-                    arsort($passed);
+if (customCompute($passed)) {
+    arsort($passed); // sort descending by total
 
-                    $currentIndex = 0;
-                    $prevTotal = null;
-                    $lastRank = 0;
-                    $studentRanks = [];
+    $studentRanks = [];
+    $rank = 0;
+    $prevTotal = null;
 
-                    foreach ($passed as $sid => $totalVal) {
-                        $currentIndex++;
-                        if ($prevTotal !== null && $totalVal == $prevTotal) {
-                            // same total => same rank as previous
-                            $studentRanks[$sid] = $lastRank;
-                        } else {
-                            // new total => rank is currentIndex among passed students
-                            $studentRanks[$sid] = $currentIndex;
-                            $lastRank = $currentIndex;
-                        }
-                        $prevTotal = $totalVal;
-                    }
+    foreach ($passed as $sid => $totalVal) {
+        if ($prevTotal === null || $totalVal != $prevTotal) {
+            $rank++;
+        }
+        $studentRanks[$sid] = $rank;
+        $prevTotal = $totalVal;
+    }
 
-                    // attach ranks to studentResults, fails get '-'
-                    foreach ($studentResults as $sid => $res) {
-                        $studentResults[$sid]['rank'] = isset($studentRanks[$sid]) ? $studentRanks[$sid] : '-';
-                    }
-                } else {
-                    // no passed students, all '-' or fail
-                    foreach ($studentResults as $sid => $res) {
-                        $studentResults[$sid]['rank'] = '-';
-                    }
-                }
+    foreach ($studentResults as $sid => $res) {
+        $studentResults[$sid]['rank'] = isset($studentRanks[$sid]) ? $studentRanks[$sid] : '-';
+    }
+} else {
+    foreach ($studentResults as $sid => $res) {
+        $studentResults[$sid]['rank'] = '-';
+    }
+}
 
-                // pass to view
-                $this->data['studentResults'] = $studentResults;
+$this->data['studentResults'] = $studentResults;
                 // ----------------- RANK CALCULATION END -----------------
 
 				// echo "<pre>";print_r($this->data);die;
@@ -2927,8 +2911,8 @@ public function marks_bulkimport()
         $file_path = './uploads/csv/' . $file_data['file_name'];
 
 
-// 		$temp_path = './uploads/csv/temp_' . time() . '.csv';
-// file_put_contents($temp_path, implode("\n", $data_lines));
+		// 		$temp_path = './uploads/csv/temp_' . time() . '.csv';
+		// file_put_contents($temp_path, implode("\n", $data_lines));
 
 
         // Read the raw file contents to auto detect delimiter
