@@ -172,7 +172,14 @@
 $('.dataTable').DataTable({
     pageLength: 50,
     lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
-    dom: '<"row mb-2"<"col-md-6 d-flex align-items-center"l><"col-md-6 d-flex justify-content-end"f>>tip',
+    dom: '<"row mb-2"<"col-md-6 d-flex align-items-center"l><"col-md-6 d-flex justify-content-end"f>>Bfrtip',
+      buttons : [
+                'copyHtml5',
+                'excelHtml5',
+                'csvHtml5',
+                'pdfHtml5'
+              ],
+              // dom : 'Bfrtip',
     // l = length dropdown, f = search box, t = table, i = info, p = pagination
 });
 

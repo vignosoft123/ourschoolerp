@@ -1076,6 +1076,22 @@ class Progresscardreport extends Admin_Controller {
 					
 					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.'.'.$senderid;
  
+				} else if($senderid=='SSEMRK'){ //sadana
+		        	$template1 = substr($marks_template[$key],0,-1);
+
+					$subs = explode(',',$template1);
+ 					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
+				    $var2 = ($subs[2]?$subs[2]:'-').','.($subs[3]?$subs[3]:'-');
+					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
+					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
+					
+					$template = 'Dear parent, your children '.$st_names[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].' Exam name '.$exam_name[$key].', From '.$registered_school_name.' . '.$senderid;
+
+					 
+
+					// Dear parent, your children {#var#} marks are {#var#} and {#var#} and {#var#}. Total: {#var#}, From Sri Sadana Juniour College Markapur . SSEMRK
+
+					
 				} else{
 		        	$template1 = substr($marks_template[$key],0,-1);
 
@@ -1276,6 +1292,7 @@ class Progresscardreport extends Admin_Controller {
 
 	private function userConfigSMS($message, $user)
 	{
+		//echo $message;die;
 	    $this->load->model('mailandsmstemplate_m');
 	    $this->load->library('msg91');
 	    $template_id = 0;

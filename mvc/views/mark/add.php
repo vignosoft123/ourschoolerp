@@ -914,13 +914,13 @@
             exam_name = [];
             total_marks = [] ;
             marks_template = []; 
-            i=j=k=l=m=n=p=0;
+            i=j=k=l=m=n=p=q=0;
 
             $('.checkbox:checked').each(function(){        
                 // var values = $(this).val();
                 // var sids = $(this).attr("st_ids");
                 marks_grade[p++] = $(this).attr("marks_grade");
-                sms_rank[i++] = $(this).attr("sms_rank");
+                sms_rank[q++] = $(this).attr("sms_rank");
                 
                 st_ids[i++] = $(this).attr("st_ids");
                 st_names[j++] = $(this).attr("st_names");
@@ -961,13 +961,13 @@
             total_marks = [] ;
             marks_template = [];  
             exam_date = [];  
-            i=j=k=l=m=n=o=p=0;
+            i=j=k=l=m=n=o=p=q=0;
 
             $('.checkbox:checked').each(function(){        
                 // var values = $(this).val();
                 // var sids = $(this).attr("st_ids");sms_rank
                 
-                sms_rank[i++] = $(this).attr("sms_rank");
+                sms_rank[q++] = $(this).attr("sms_rank");
                 marks_grade[p++] = $(this).attr("marks_grade");
                 st_ids[i++] = $(this).attr("st_ids");
                 st_names[j++] = $(this).attr("st_names");
