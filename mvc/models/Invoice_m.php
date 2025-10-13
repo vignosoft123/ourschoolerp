@@ -387,7 +387,7 @@ public function get_all_duefees_for_report_multi($queryArray) {
 }
 
 
-public function get_all_balancefees_for_report_multi($queryArray) 
+public function get_all_balancefees_for_report_multi_working($queryArray) 
 {
     if (empty($queryArray['schoolyearID'])) {
         return [];
@@ -438,6 +438,64 @@ public function get_all_balancefees_for_report_multi($queryArray)
     // echo $this->db->last_query(); die;
     return $query->result();
 }
+
+public function get_all_balancefees_for_report_multi($queryArray) 
+{
+    if (empty($queryArray['schoolyearID'])) {
+        return [];
+    }
+
+    $this->db->select('invoice.*, m.maininvoiceclassesID, m.maininvoicestudentID, student.sectionID, student.classesID, sr.srsection');
+    $this->db->from('invoice');
+
+    // Strict join to maininvoice
+    $this->db->join(
+        'maininvoice m',
+        'm.maininvoiceID = invoice.maininvoiceID
+         AND m.maininvoicestudentID = invoice.studentID
+         AND m.maininvoiceschoolyearID = invoice.schoolyearID
+         AND m.maininvoicedeleted_at = 1',
+        'INNER',
+        FALSE
+    );
+
+    // Join student
+    $this->db->join('student', 'student.studentID = invoice.studentID', 'LEFT');
+
+    // ✅ Join studentrelation to get section name
+    $this->db->join('studentrelation sr', 'sr.srstudentID = student.studentID', 'LEFT');
+
+    // Filters
+    $this->db->where('invoice.schoolyearID', $queryArray['schoolyearID']);
+    $this->db->where('invoice.deleted_at', 1);
+    $this->db->where('student.active', 1);
+
+    if (isset($queryArray['classesID']) && $queryArray['classesID'] != 0) {
+        $this->db->where('m.maininvoiceclassesID', $queryArray['classesID']);
+    }
+
+    // Filter by section name instead of sectionID
+    if (isset($queryArray['sectionName']) && !empty($queryArray['sectionName'])) {
+        $this->db->where('sr.srsection', $queryArray['sectionName']);
+    }
+
+    if (isset($queryArray['studentID']) && $queryArray['studentID'] != 0) {
+        $this->db->where('invoice.studentID', $queryArray['studentID']);
+    }
+
+    if (isset($queryArray['feetypeID']) && !empty($queryArray['feetypeID'])) {
+        if (is_array($queryArray['feetypeID'])) {
+            $this->db->where_in('invoice.feetypeID', $queryArray['feetypeID']);
+        } else {
+            $this->db->where('invoice.feetypeID', $queryArray['feetypeID']);
+        }
+    }
+
+    $query = $this->db->get();
+    // echo $this->db->last_query(); die;
+    return $query->result();
+}
+
 
 
 	public function get_dueamount($array) {

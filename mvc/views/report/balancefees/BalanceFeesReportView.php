@@ -195,6 +195,8 @@
         var studentID = $('#studentID').val();
         var feetypeID = $('#feetypeID').val();
         var villageID = $('#villageID').val();
+        var sectionName = $('#sectionID option:selected').text(); // 👈 get selected section name
+
         var error = 0;
 
         var field = {
@@ -203,6 +205,7 @@
             "studentID" : studentID,
             "feetypeID" : feetypeID,
             "villageID" : villageID,
+            "sectionName" :sectionName
         };
 
         if(error == 0 ) {
