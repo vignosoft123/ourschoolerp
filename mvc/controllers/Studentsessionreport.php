@@ -30,6 +30,9 @@ class Studentsessionreport extends Admin_Controller {
 
 		$language = $this->session->userdata('lang');
 		$this->lang->load('studentsessionreport', $language);
+
+// 		error_reporting(E_ALL);
+// ini_set('display_errors', 1);
 	}
 	
  	public function index() {
@@ -194,6 +197,83 @@ class Studentsessionreport extends Admin_Controller {
 					$this->data['students']          = $students;
 					$this->data['settingmarktypeID']       = $settingmarktypeID;
 					$this->data['markpercentagesmainArr']  = $markpercentagesmainArr;
+					$this->data['getHolidays'] = explode('","', $this->getHolidaysSession());
+				$this->data['getWeekendDays'] = $this->getWeekendDaysSession();
+
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+						 $is_display_attendance_res = $this->setting_m->get_setting_where('is_display_attendance_on_progresscard');
+									 $this->data['is_display_attendance'] =$is_display_attendance = $is_display_attendance_res['value'];
+
+									if($is_display_attendance > 0){
+									//code for student attendance in progress report
+
+									$this->data['months'] = $months_array = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May',);
+									
+									$this->db->where('schoolyearID',$schoolyearID);
+									$this->data['schoolyear'] =  $schoolyear = $this->db->get('schoolyear')->row()->schoolyear;
+									 $schoolyear_exp = explode("-",$schoolyear);
+
+									// for($m=6;$m<count($months_array)+6;$m++){
+										foreach($months_array as $mkey=>$v){
+
+											if ($mkey < 10) {
+												$d_m = str_pad($mkey, 2, "0", STR_PAD_LEFT);
+											}else{$d_m = $mkey;}
+
+											if($d_m <= 5){
+												$year = $schoolyear_exp[1];
+											}else{
+												$year = $schoolyear_exp[0];
+											}
+										
+										$monthyear = $d_m."-".$year;
+									$this->db->where('monthyear',$monthyear);
+									$this->db->where('studentID',$studentID);
+									$attendace = $this->db->get('attendance')->result_array();
+									// echo $this->db->last_query();die;
+									$absent = 0;
+									$present = 0; 
+
+
+								if(!empty($attendace)){
+									for($j = 0; $j < count($attendace); $j++) {
+										if(!empty($attendace[$j])){
+											foreach($attendace[$j] as $k => $v){
+												for ($i = 1; $i <= 31; $i++) { 
+													$acolumnname = 'a'.$i;
+													if($k == $acolumnname){
+								
+														// Corrected here: checking $v directly
+														if($v == 'P'){ 
+															$present += 1;
+														} else { 
+															$present += 0;
+														}
+								
+														if($v == 'A'){ 
+															$absent += 1;
+														} else { 
+															$absent += 0;
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+								
+									$temp = array(
+										'absent' => $absent,
+										'present' => $present
+									 );
+									 $this->data['attendance'][$mkey][$studentID] =$temp;
+									}
+									//end code for attendance
+									 
+								}
+
+
 
 					$retArray['render'] = $this->load->view('report/studentsession/StudentsessionReport',$this->data,true);
 					$retArray['status'] = TRUE;

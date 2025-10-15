@@ -887,60 +887,123 @@ if ($prcnt !== null) {
                                                 <!-- code for attendance -->
                                                 <br/>
                                                 <h5 class="text-blue"><b>Attendance</b></h5>
-                                                <table>
-                                                <thead>
-                                                <tr class="row_head">
-                                                    <th><?php //echo $schoolyear;?>Months</th>
-                                                 
-                                                    <?php 
-                                                    // print_r($months);
-                                                    $months = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr',);
-                                                        for($m=6;$m<count($months)+6;$m++){  
+                                                
+<?php
+$months = array(
+    '6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr'
+);
 
-                                                            if($m > 12)
-                                                                $d_m = $m - 12;
-                                                            else
-                                                                $d_m = $m 
-                                                    ?>
-                                                <th class="text-purple"><?= $months[$d_m]?></th>
-                                                <?php } ?>
-                                                </tr>                                               
-                                                </thead>
+// Helper function to count holidays/weekends per month
+function countDaysByMonth($daysArray, $monthNum, $year) {
+    $count = 0;
+    foreach($daysArray as $day) {
+        $parts = explode('-', $day);
+        if(count($parts) == 3) {
+            $d = (int)$parts[0];
+            $m = (int)$parts[1];
+            $y = (int)$parts[2];
+            if($m == $monthNum && $y == $year) {
+                $count++;
+            }
+        }
+    }
+    return $count;
+}
 
-                                                <tbody>
-                                                     
-                                                    <tr class="row_background">
-                                                    <td class="text-green"><b>Present</b></td>
-                                                    <?php  
-                                                        for($m=6;$m<count($months)+6;$m++){  
+$schoolyearID = $this->session->userdata('defaultschoolyearID');
 
-                                                            if($m > 12)
-                                                                $d_m = $m - 12;
-                                                            else
-                                                                $d_m = $m 
-                                                    ?>
-                                                        
-                                                        <td><?php echo $attendance[$d_m][$student->studentID]['present'];?></td>
-                                                        <?php }?>
-                                                    </tr>
+// Get the school year string (e.g., "2025-26" or "2025-2026")
+$schoolyearObj = $this->db->get_where('schoolyear', ['schoolyearID' => $schoolyearID])->row();
+
+if ($schoolyearObj) {
+    $schoolyear = $schoolyearObj->schoolyear;
+
+    // Normalize formats like "2025-26" or "2025-2026"
+    $parts = explode('-', $schoolyear);
+    if (count($parts) == 2) {
+        $startYear = (int)$parts[0];
+        $endPart   = trim($parts[1]);
+        // Handle short format like "25" -> "2026"
+        $endYear   = (strlen($endPart) == 2) ? (int)("20" . $endPart) : (int)$endPart;
+    } else {
+        // fallback default
+        $startYear = date('Y');
+        $endYear   = $startYear + 1;
+    }
+} else {
+    // fallback default if no record
+    $startYear = date('Y');
+    $endYear   = $startYear + 1;
+}
+
+$this->data['startYear'] = $startYear;
+$this->data['endYear']   = $endYear;
+
+?>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr class="row_head">
+            <th>Months</th>
+            <?php 
+                for($m=6;$m<count($months)+6;$m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+            ?>
+                <th class="text-purple"><?= $months[$d_m]?></th>
+            <?php } ?>
+        </tr>
+    </thead>
+
+    <tbody>
+        <!-- Present Row -->
+        <tr class="row_background">
+            <td class="text-green"><b>Present</b></td>
+            <?php  
+                for($m=6;$m<count($months)+6;$m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+            ?>
+                <td><?= $attendance[$d_m][$student->studentID]['present'];?></td>
+            <?php } ?>
+        </tr>
+
+        <!-- Absent Row -->
+        <tr class="row_absent">
+            <td class="text-red"><b>Absent</b></td>
+            <?php  
+                for($m=6;$m<count($months)+6;$m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+            ?>
+                <td><?= $attendance[$d_m][$student->studentID]['absent'];?></td>
+            <?php } ?>
+        </tr>
+
+        <!-- Working Days Row -->
+        <tr class="row_workingdays">
+            <td class="text-blue"><b>Working Days</b></td>
+            <?php  
+                for($m=6;$m<count($months)+6;$m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+
+                    // handle year rollover (Jan–Apr → next year)
+                    $year = ($m > 12) ? $endYear : $startYear;
+
+                    // total days in month
+                    $totalDays = cal_days_in_month(CAL_GREGORIAN, $d_m, $year);
+
+                    // count holidays & weekends for that month
+                    $holidayCount = countDaysByMonth($getHolidays, $d_m, $year);
+                    $weekendCount = countDaysByMonth($getWeekendDays, $d_m, $year);
+
+                    $workingDays = $totalDays - ($holidayCount + $weekendCount);
+            ?>
+                <td><?= $workingDays; ?></td>
+            <?php } ?>
+        </tr>
+    </tbody>
+</table>
 
 
-                                                    <tr class="row_absent">
-                                                        <td class="text-red"><b>Absent</b></td>
-                                                        <?php  
-                                                        for($m=6;$m<count($months)+6;$m++){  
 
-                                                            if($m > 12)
-                                                                $d_m = $m - 12;
-                                                            else
-                                                                $d_m = $m 
-                                                    ?>
-                                                       <td> <?php echo $attendance[$d_m][$student->studentID]['absent'];?></td>
-                                                    
-                                                    <?php }?>
-                                                </tr>
-                                                </tbody>
-                                            </table>
 
                                             <?php }?>
 

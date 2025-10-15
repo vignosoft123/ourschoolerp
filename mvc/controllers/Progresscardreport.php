@@ -372,8 +372,9 @@ class Progresscardreport extends Admin_Controller {
 					$this->data['students']          = $students;
 					$this->data['markArray']         = $markArray;
 					$this->data['settingExam']       = $settingExam;
-
-					$retArray['render'] = $this->load->view('report/progresscard/ProgresscardReport',$this->data,true);
+				$this->data['getHolidays'] = explode('","', $this->getHolidaysSession());
+				$this->data['getWeekendDays'] = $this->getWeekendDaysSession();
+  					$retArray['render'] = $this->load->view('report/progresscard/ProgresscardReport',$this->data,true);
 					$retArray['status'] = TRUE;
 					echo json_encode($retArray);
 					exit();

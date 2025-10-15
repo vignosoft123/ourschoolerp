@@ -3,11 +3,163 @@
         <?php
             $pdf_preview_uri = base_url('studentsessionreport/pdf/'.$studentID);
             echo btn_printReport('studentsessionreport', $this->lang->line('report_print'), 'printablediv');
-            echo btn_pdfPreviewReport('studentsessionreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            echo btn_sentToMailReport('studentsessionreport', $this->lang->line('report_send_pdf_to_mail'));
+            // echo btn_pdfPreviewReport('studentsessionreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+            // echo btn_sentToMailReport('studentsessionreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
     </div>
 </div>
+
+<style type="text/css">
+    /* ==== Base Container ==== */
+    .mainstudentsessionreport {
+        margin: 0 auto 20px auto;
+        overflow: hidden;
+        border: 1px solid #ddd;
+        /* max-width: 850px; */
+        background: #f9fafc;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 30px 35px;
+    }
+
+    /* ==== Header Section ==== */
+    .studentsession-headers {
+        display: flex;
+        align-items: center;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 12px;
+        margin-bottom: 15px;
+    }
+
+    .studentsession-logo img {
+        width: 70px;
+        height: 70px;
+        border-radius: 6px;
+    }
+
+    .school-name h2 {
+        margin: 0;
+        padding-left: 20px;
+        font-weight: 700;
+        font-size: 24px;
+        color: #6b9ce2;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ==== Info Section ==== */
+    .studentsession-infos {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        border-bottom: 1px dashed #ccc;
+        padding-bottom: 15px;
+    }
+
+    .school-address, .student-profile {
+        /* width: 45%; */
+    }
+
+    .school-address h4, .student-profile h4 {
+        color: #2d2d2d;
+        font-weight: 600;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+    }
+
+    .school-address p, .student-profile p {
+        margin: 3px 0;
+        font-size: 14px;
+        color: #333;
+    }
+
+    .student-profile-img {
+        /* width: 100%; */
+        text-align: right;
+        margin-top: 10px;
+    }
+
+    .student-profile-img img {
+        width: 120px;
+        height: 120px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        object-fit: cover;
+        background: #fff;
+        padding: 4px;
+    }
+
+    /* ==== Table Section ==== */
+    .studentsession-contents {
+        margin-top: 20px;
+    }
+
+    .studentsession-contents table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .studentsession-contents table th {
+        background: #6b9ce2;
+        color: #fff;
+        padding: 10px;
+        font-weight: 600;
+        border: 1px solid #ccc;
+        text-align: center;
+    }
+
+    .studentsession-contents table td {
+        padding: 8px;
+        border: 1px solid #ddd;
+        text-align: center;
+        background-color: #fff;
+    }
+
+    .studentsession-contents table tr:nth-child(even) td {
+        background: #f7f9fb;
+    }
+
+    .studentsession-contents table tr:hover td {
+        background: #eef6ff;
+    }
+
+    /* ==== Attendance Section ==== */
+    h5.text-blue {
+        margin-top: 25px;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #6b9ce2;
+        color: #6b9ce2;
+        font-weight: 600;
+    }
+
+    table.table-bordered {
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+    }
+
+    table.table-bordered th {
+        background: #457b9d;
+        color: white;
+        text-align: center;
+    }
+
+    .row_background td, .row_absent td, .row_workingdays td {
+        text-align: center;
+    }
+
+    .text-green { color: #2a9d8f; }
+    .text-red { color: #e63946; }
+    .text-blue { color: #6b9ce2; }
+    .text-purple { color: #6a1b9a; }
+
+    /* ==== Print Optimization ==== */
+ 
+</style>
+
 <div class="box">
     <div class="box-header bg-gray">
         <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> 
@@ -509,6 +661,121 @@
     </tbody>
 </table>
 
+
+ <!-- code for attendance table start -->
+
+<?php 
+if($is_display_attendance > 0){ ?>
+
+<br/>
+<h5 class="text-blue"><b>Attendance</b></h5>
+
+<?php
+$months = array(
+    '6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr'
+);
+
+// ✅ Define function only once
+if (!function_exists('countDaysByMonth')) {
+    function countDaysByMonth($daysArray, $monthNum, $year) {
+        $count = 0;
+        foreach($daysArray as $day) {
+            $parts = explode('-', $day);
+            if(count($parts) == 3) {
+                $d = (int)$parts[0];
+                $m = (int)$parts[1];
+                $y = (int)$parts[2];
+                if($m == $monthNum && $y == $year) {
+                    $count++;
+                }
+            }
+        }
+        return $count;
+    }
+}
+
+// ✅ Get academic year dynamically
+$schoolyearID = $this->session->userdata('defaultschoolyearID');
+$schoolyearObj = $this->db->get_where('schoolyear', ['schoolyearID' => $schoolyearID])->row();
+
+if ($schoolyearObj) {
+    $schoolyear = $schoolyearObj->schoolyear;
+    $parts = explode('-', $schoolyear);
+
+    if (count($parts) == 2) {
+        $startYear = (int)$parts[0];
+        $endPart   = trim($parts[1]);
+        $endYear   = (strlen($endPart) == 2) ? (int)("20" . $endPart) : (int)$endPart;
+    } else {
+        $startYear = date('Y');
+        $endYear   = $startYear + 1;
+    }
+} else {
+    $startYear = date('Y');
+    $endYear   = $startYear + 1;
+}
+
+$this->data['startYear'] = $startYear;
+$this->data['endYear']   = $endYear;
+?>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr class="row_head">
+            <th>Months</th>
+            <?php 
+                for($m=6; $m<count($months)+6; $m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+            ?>
+                <th class="text-purple"><?= $months[$d_m]?></th>
+            <?php } ?>
+        </tr>
+    </thead>
+
+    <tbody>
+        <!-- Present Row -->
+        <tr class="row_background">
+            <td class="text-green"><b>Present</b></td>
+            <?php  
+                for($m=6; $m<count($months)+6; $m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+            ?>
+                <td><?= $attendance[$d_m][$student->studentID]['present'] ?? 0; ?></td>
+            <?php } ?>
+        </tr>
+
+        <!-- Absent Row -->
+        <tr class="row_absent">
+            <td class="text-red"><b>Absent</b></td>
+            <?php  
+                for($m=6; $m<count($months)+6; $m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+            ?>
+                <td><?= $attendance[$d_m][$student->studentID]['absent'] ?? 0; ?></td>
+            <?php } ?>
+        </tr>
+
+        <!-- Working Days Row -->
+        <tr class="row_workingdays">
+            <td class="text-blue"><b>Working Days</b></td>
+            <?php  
+                for($m=6; $m<count($months)+6; $m++){  
+                    $d_m = ($m > 12) ? $m - 12 : $m;
+                    $year = ($m > 12) ? $endYear : $startYear;
+
+                    $totalDays    = cal_days_in_month(CAL_GREGORIAN, $d_m, $year);
+                    $holidayCount = countDaysByMonth($getHolidays, $d_m, $year);
+                    $weekendCount = countDaysByMonth($getWeekendDays, $d_m, $year);
+                    $workingDays  = $totalDays - ($holidayCount + $weekendCount);
+            ?>
+                <td><?= $workingDays; ?></td>
+            <?php } ?>
+        </tr>
+    </tbody>
+</table>
+
+<?php } ?>
+<!-- code for attendance table end -->
 
 
 

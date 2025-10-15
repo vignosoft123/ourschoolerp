@@ -18,24 +18,7 @@ class Whatsapp_m extends MY_Model {
         $this->password = $msg91_bind['whatsapp_password']; 
     }
 
-	  public function get_whatsapp_credits()
-        {
-             $get_msg91s = $this->smssettings_m->get_order_by_whatsapp(); 
-            if(isset($get_msg91s[1]->field_values) && isset($get_msg91s[2]->field_values))
-            {
-                $user_name = $get_msg91s[1]->field_values;
-                $password = $get_msg91s[2]->field_values; 
-            //    $url = "http://bwa.mindwhile.com/api/checkbalance.php?user=$user_name&pass=$password";
-               $url = "http://bwa.mindwhile.com/api/checkbalancewamu.php?user=$user_name&pass=$password"; 
-
-               $result = file_get_contents($url); 
-                if(!empty($result))
-                {
-                    return $result;
-                }
-            }
-            return 0;
-        }
+	  
   
 		function url_get_contents ($url) {
             // echo $url;
@@ -110,6 +93,42 @@ class Whatsapp_m extends MY_Model {
         return $output ?: false;
     }
 
+	public function get_whatsapp_credits()
+{
+    $get_msg91s = $this->smssettings_m->get_order_by_whatsapp();
+
+    if (isset($get_msg91s[1]->field_values) && isset($get_msg91s[2]->field_values)) {
+        $user_name = $get_msg91s[1]->field_values;
+        $password  = $get_msg91s[2]->field_values;
+
+        $url = "http://bwa.mindwhile.com/api/checkbalancewamu.php?user=$user_name&pass=$password";
+        // echo "URL: " . $url . "<br>";
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => 15,
+            CURLOPT_ENCODING => '',
+        ]);
+
+        $result = curl_exec($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            echo "CURL ERROR: " . $error;
+            return 0;
+        }
+
+       return $result;
+        die;
+    }
+
+	return 0;
+}
 
    
 	function whatsapp_config_send($user) {  //paid fee
