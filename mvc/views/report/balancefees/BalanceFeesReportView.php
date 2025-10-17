@@ -196,7 +196,9 @@
         var feetypeID = $('#feetypeID').val();
         var villageID = $('#villageID').val();
         var sectionName = $('#sectionID option:selected').text(); // 👈 get selected section name
-
+        if (sectionName === '' || sectionName.toLowerCase() === 'please select') {
+            sectionName = '';
+        }
         var error = 0;
 
         var field = {

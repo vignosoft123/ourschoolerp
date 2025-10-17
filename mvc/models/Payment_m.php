@@ -413,7 +413,7 @@ public function get_order_by_payment_new_summary($schoolyearID, $fee_type = null
 		return $query->result();
 	}
 
-	public function get_all_payment_for_report_multi($queryArray) {
+public function get_all_payment_for_report_multi($queryArray) {
     $this->db->select('payment.*');
     $this->db->from('payment');
 
@@ -461,10 +461,11 @@ public function get_order_by_payment_new_summary($schoolyearID, $fee_type = null
     $userID    = $this->session->userdata('loginuserID');
     $usertypeID= $this->session->userdata('usertypeID');
 
-    if ($usertypeID != 1) {
-        $this->db->where(array('payment.userID' => $userID));
-        $this->db->where(array('payment.usertypeID' => 5));    
-    } elseif (!empty($queryArray['userID']) && $queryArray['userID'] != 0) {
+    // if ($usertypeID != 1) {
+    //     $this->db->where(array('payment.userID' => $userID));
+    //     $this->db->where(array('payment.usertypeID' => 5));    
+    // } else
+    if (!empty($queryArray['userID']) && $queryArray['userID'] != 0) {
         $this->db->where(array('payment.userID' => $queryArray['userID']));
         $this->db->where(array('payment.usertypeID' => 5));    
     }

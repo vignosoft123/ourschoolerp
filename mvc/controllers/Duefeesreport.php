@@ -247,7 +247,7 @@ class Duefeesreport extends Admin_Controller{
 			exit;
 		}
 	}
-	public function getDueFeesReport() {
+public function getDueFeesReport() {
     $retArray['status'] = FALSE;
     $retArray['render'] = '';
 

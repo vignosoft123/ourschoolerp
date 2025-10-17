@@ -99,6 +99,8 @@
                         // echo "<pre>";print_r($a);
 		               echo $a->footer ;
                     ?>
+
+                    <?php echo ' -v'.VERSION;?>
                     </div>
                 </div>
             </div>

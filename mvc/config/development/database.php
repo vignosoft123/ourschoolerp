@@ -82,9 +82,9 @@ $db['default']['password'] = 'DjmyAZTeNAq3';
 
 //   myschools
 // $db['default']['hostname'] = '119.18.54.166'; 
-// $db['default']['username'] = 'myschknc_viveka';
-// $db['default']['password'] = 'mN5bCg-Rp[PM'; 
-// $db['default']['database'] = 'myschknc_viveka';
+// $db['default']['username'] = 'myschknc_vasavidb';
+// $db['default']['password'] = '8OAu8?JNoggk'; 
+// $db['default']['database'] = 'myschknc_vasavidb';
 
 //  $db['default']['hostname'] = '119.18.54.141'; 
 // $db['default']['username'] = 'mindw2ft_ourschoolerp';
