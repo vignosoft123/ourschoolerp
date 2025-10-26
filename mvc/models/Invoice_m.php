@@ -349,7 +349,7 @@ public function get_all_duefees_for_report_multi($queryArray) {
 		return $query->result();
 	}
 
-	public function get_all_balancefees_for_report_multi_bkp($queryArray) { 
+public function get_all_balancefees_for_report_multi_bkp($queryArray) { 
     $this->db->select('*');
     $this->db->from('invoice');
     $this->db->join('maininvoice m','m.maininvoiceID = invoice.maininvoiceID','inner'); // condition for duplicate transport fee
@@ -490,6 +490,9 @@ public function get_all_balancefees_for_report_multi($queryArray)
             $this->db->where('invoice.feetypeID', $queryArray['feetypeID']);
         }
     }
+
+        // ✅ Optional safeguard — avoid exact duplicates
+    $this->db->group_by('invoice.invoiceID');
 
     $query = $this->db->get();
     // echo $this->db->last_query(); die;

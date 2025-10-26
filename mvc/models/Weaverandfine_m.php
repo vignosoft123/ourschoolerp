@@ -18,6 +18,7 @@ class Weaverandfine_m extends MY_Model {
 
 	function get_order_by_weaverandfine($array=NULL) {
 		$query = parent::get_order_by($array);
+		// echo $this->db->last_query();die;
 		return $query;
 	}
 

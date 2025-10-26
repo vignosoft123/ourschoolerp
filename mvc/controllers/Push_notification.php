@@ -14,6 +14,8 @@ class Push_notification extends Admin_Controller {
     | WEBSITE:			http://inilabs.net
     | -----------------------------------------------------
     */
+
+    //FCM
     function __construct() {
         parent::__construct();
     // Load student model

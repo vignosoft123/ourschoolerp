@@ -278,6 +278,7 @@
 
                             <!-- Fee Type Amounts -->
                             <?php 
+                             $all_total = $all_paid = $all_discount = $all_remaining = 0;
                             foreach($allFeeTypes as $feeType) {
                                 $total = $paid = $discount = $remaining = 0;
 
@@ -289,44 +290,61 @@
                                     $remaining = isset($feeData['remaining']) ? max(0, $feeData['remaining']) : 0;
                                 }
                             ?>
-                                <td><?=number_format($total, 2)?></td>
-                                <td><?=number_format($paid, 2)?></td>
-                                <td><?=number_format($discount, 2)?></td>
-                                <td><?=number_format($remaining, 2)?></td>
+                                <td>
+                                    <?php echo number_format($total, 2); 
+                                        $all_total += $total;
+                                ?>
+                                </td>
+                                <td><?php echo number_format($paid, 2);
+                                    $all_paid += $paid;?></td>
+                                <td><?=number_format($discount, 2);
+                                    $all_discount += $discount;
+                                ?></td>
+                                <td><?=number_format($remaining, 2);
+                                 $all_remaining += $remaining;
+                                ?></td>
                             <?php } ?>
 
                             <!-- Overall -->
                             <td>
-                                <?=number_format($feeamount = $totalAmountAndDiscount[$student->srstudentID]['amount'], 2)?>
-                            </td>
-
-                            <td>
-                                <?php 
-                                    $discount_plus_waver = $totalAmountAndDiscount[$student->srstudentID]['discount'] + $totalweavar[$student->srstudentID]['weaver'];
-                                    echo number_format($discount_plus_waver,2);
+                                <?= //number_format($feeamount = $totalAmountAndDiscount[$student->srstudentID]['amount'], 2);
+                                $feeamount = number_format($all_total, 2);
                                 ?>
                             </td>
 
                             <td>
-                                <?=number_format($paid = $totalPayment[$student->srstudentID]['payment'], 2)?>
+                                <?php 
+                                    // $discount_plus_waver = $totalAmountAndDiscount[$student->srstudentID]['discount'] + $totalweavar[$student->srstudentID]['weaver'];
+                                    // echo number_format($discount_plus_waver,2);
+                                    echo $discount_plus_waver = number_format($all_discount, 2);
+                                ?>
+                            </td>
+
+                            <td>
+                                <?= //number_format($paid = $totalPayment[$student->srstudentID]['payment'], 2);
+                                   $paid = number_format($all_paid, 2);
+                                ?>
                             </td>
 
                             <td>
                                 <?php
-                                    $Amount = $totalAmountAndDiscount[$student->srstudentID]['amount'];
-                                    $Discount = $totalAmountAndDiscount[$student->srstudentID]['discount'];
-                                    $Payment = $totalPayment[$student->srstudentID]['payment'];
-                                    $Weaver = $totalweavar[$student->srstudentID]['weaver'];
+                                    // $Amount = $totalAmountAndDiscount[$student->srstudentID]['amount'];
+                                    // $Discount = $totalAmountAndDiscount[$student->srstudentID]['discount'];
+                                    // $Payment = $totalPayment[$student->srstudentID]['payment'];
+                                    // $Weaver = $totalweavar[$student->srstudentID]['weaver'];
 
-                                    $Balance = ($Amount - $Discount) - ($Payment+$Weaver);
+                                    // $Balance = ($Amount - $Discount) - ($Payment+$Weaver);
 
-                                    $totalAmount += $Amount;
-                                    $totalDiscount += $Discount;
-                                    $totalPayments += $Payment;
-                                    $totalWeaver += $Weaver;
-                                    $totalBalance += $Balance;
+                                    // $totalAmount += $Amount;
+                                    // $totalDiscount += $Discount;
+                                    // $totalPayments += $Payment;
+                                    // $totalWeaver += $Weaver;
+                                    // $totalBalance += $Balance;
 
-                                    echo number_format($Balance,2);
+                                    // echo number_format($Balance,2);
+                                    echo $Balance = number_format($all_remaining, 2);
+
+                                    
                                 ?>
                             </td>
 
@@ -575,7 +593,11 @@ balance = [];
 // marks_template = []; 
 i=j=k=l=m=n=0;
 var date = $("#date").val();
-var dynamic_term = $("#feetypeID option:selected").text();
+var dynamic_term = $("#feetypeID option:selected").text(); 
+if(date == null || date == ''){
+    alert('Please select date');
+    return false;
+}
 
 
 $('.checkbox:checked').each(function(){        

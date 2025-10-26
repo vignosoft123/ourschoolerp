@@ -86,6 +86,14 @@ $db['default']['password'] = 'DjmyAZTeNAq3';
 // $db['default']['password'] = '8OAu8?JNoggk'; 
 // $db['default']['database'] = 'myschknc_vasavidb';
 
+
+//   schoolhour
+// $db['default']['hostname'] = '162.241.123.136'; 
+// $db['default']['username'] = 'schoodj8_common_user';
+// $db['default']['password'] = 'common_user'; 
+// $db['default']['database'] = 'schoodj8_care';
+
+
 //  $db['default']['hostname'] = '119.18.54.141'; 
 // $db['default']['username'] = 'mindw2ft_ourschoolerp';
 // $db['default']['database'] = 'mindw2ft_ourschoolerp';

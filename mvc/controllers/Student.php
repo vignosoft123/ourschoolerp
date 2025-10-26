@@ -2546,9 +2546,36 @@ class Student extends Admin_Controller
 							$this->studentextend_m->update_studentextend_by_studentID($studentExtendArray, $studentID);
 
 
-
+								// echo $objStudent->parentID;die;
 							$this->student_m->update_student($array, $studentID);
-							$this->student_m->update_parent($arrParentData, $objStudent->parentID);
+
+							if($objStudent->parentID == 0 || $objStudent->parentID == null){
+								if ($studentID > 0) {
+									$parent_array = array();
+									$parent_array['name'] = $this->input->post("father_name") ?? '';
+									$parent_array['father_name'] = $this->input->post("father_name") ?? '';
+									$parent_array['father_aadhar'] = $this->input->post("father_aadhar") ?? '';
+									$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar") ?? '';
+									$parent_array['mother_name'] =  $this->input->post("mother_name") ? $this->input->post("mother_name") : '-';
+									$parent_array["phone"] = $this->input->post("phone") ?? 0;
+									$parent_array['photo'] = "default.png";
+									$parent_array['usertypeID'] = 4;
+									$parent_array['active'] = 1;
+									$parent_array['create_date'] = date("Y-m-d H:i:s");
+									$parent_array['modify_date'] = date("Y-m-d H:i:s");
+
+									$parent_id = $this->student_m->insert_parent($parent_array);
+									// echo $this->db->last_query
+									if ($parent_id > 0) {
+										$this->student_m->update_student(array("parentID" => $parent_id), $studentID);
+									}
+								}
+							}else{
+								$this->student_m->update_parent($arrParentData, $objStudent->parentID);
+							}
+
+
+							
 
 							
 

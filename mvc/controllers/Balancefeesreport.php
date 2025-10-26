@@ -201,9 +201,11 @@ class Balancefeesreport extends Admin_Controller{
 
 					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
 
-				// 	echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
+					// echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
 
 					$this->data['totalweavar'] = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
+
+					// echo "<pre>=========";print_r($this->data['totalweavar']);die;
 
 					$retArray['render'] = $this->load->view('report/balancefees/BalanceFeesReport', $this->data, true);
 					$retArray['status'] = TRUE;
