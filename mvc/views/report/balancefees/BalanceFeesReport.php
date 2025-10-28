@@ -335,15 +335,21 @@
 
                                     // $Balance = ($Amount - $Discount) - ($Payment+$Weaver);
 
-                                    // $totalAmount += $Amount;
-                                    // $totalDiscount += $Discount;
-                                    // $totalPayments += $Payment;
-                                    // $totalWeaver += $Weaver;
-                                    // $totalBalance += $Balance;
 
                                     // echo number_format($Balance,2);
                                     echo $Balance = number_format($all_remaining, 2);
 
+                                     $Amount = $all_total;
+                                    $Discount =$all_discount;
+                                    $Payment = $all_paid;
+                                    $Weaver = $all_discount;
+
+                                    $totalAmount += $Amount;
+                                    $totalDiscount += $Discount;
+                                    $totalPayments += $Payment;
+                                    $totalWeaver += $Weaver;
+                                    $totalBalance += $all_remaining;
+                                    $total_disc += $all_discount;
                                     
                                 ?>
                             </td>
@@ -381,7 +387,7 @@
 
                             <td class="text-bold" style="color:purple">
                                 <?php 
-                                    $d_w = $totalDiscount + $totalWeaver;
+                                    $d_w = $total_disc ;//$totalDiscount + $totalWeaver;
                                     echo number_format($d_w,2);
                                 ?> 
                             </td>
