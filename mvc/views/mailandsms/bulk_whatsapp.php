@@ -1009,35 +1009,6 @@
                                                 <?php echo form_error('whatsapp_numbers'); ?>
                                             </span>
                                         </div>
- <!-- Whatsapp Template Dropdown -->
-<div class="form-group <?= form_error('whatsapp_template') ? 'has-error' : '' ?>">
-    <label for="whatsapp_template" class="col-sm-2 control-label">
-        Whatsapp Template
-    </label>
-    <div class="col-sm-6">
-        <?php
-            $templateArray = array('' => 'Select Template');
-
-            // ✅ Use standard PHP count() instead of customCompute()
-            if (!empty($whatsapp_templates) && count($whatsapp_templates) > 0) {
-                foreach ($whatsapp_templates as $template) {
-                    $templateArray[$template->mailandsmstemplateID] = $template->template_name;
-                }
-            }
-
-            echo form_dropdown(
-                "whatsapp_template",
-                $templateArray,
-                set_value("whatsapp_template"),
-                "id='whatsapp_template' class='form-control select2'"
-            );
-        ?>
-    </div>
-    <span class="col-sm-4 control-label">
-        <?php echo form_error('whatsapp_template'); ?>
-    </span>
-</div>
-
 
 
                                         <?php 
@@ -1879,28 +1850,4 @@ var l =$(this).text().length;
     }
 });
 
-</script>
-<script>
-$(document).ready(function() {
-    $('#whatsapp_template').on('change', function() {
-        var templateID = $(this).val();
-        if(templateID) {
-            $.ajax({
-                url: "<?=base_url('Mailandsms/get_whatsapp_template')?>",
-                type: "POST",
-                data: { template_id: templateID },
-                dataType: "json",
-                success: function(res) {
-                    if(res.status == 1) {
-                        $('#whatsapp_message').val(res.message);
-                    } else {
-                        $('#whatsapp_message').val('');
-                    }
-                }
-            });
-        } else {
-            $('#whatsapp_message').val('');
-        }
-    });
-});
 </script>

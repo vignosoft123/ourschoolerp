@@ -271,6 +271,9 @@ class Mailandsms extends Admin_Controller {
 		$this->data['allClasses'] = $this->classes_m->general_get_classes();
         $this->data['sections'] = [];
         $classesID = $this->input->post("classesID");
+		 $this->data['whatsapp_templates'] = $this->db->get('whatapp_templates')->result();
+		//  echo "<pre>";print_r($this->data['whatsapp_templates']);die;
+
 
         if($classesID > 0) {
             $this->data['sections'] = $this->section_m->get_order_by_section(array("classesID" => $classesID));
@@ -1443,6 +1446,1198 @@ class Mailandsms extends Admin_Controller {
 		}
 	}
 
+	public function bulk_whatsapp() {
+		// ECHO "<PRE>";print_r($_POST);DIE;
+		
+
+		$this->data['headerassets'] = array(
+			'css' => array(
+				'assets/select2/css/select2.css',
+				'assets/select2/css/select2-bootstrap.css',
+				'assets/editor/jquery-te-1.4.0.css'
+			),
+			'js' => array(
+				'assets/select2/select2.js',
+				'assets/editor/jquery-te-1.4.0.min.js'
+			)
+		);
+		$this->data['usertypes'] = $this->usertype_m->get_usertype();
+		$this->data['schoolyears'] = $this->schoolyear_m->get_schoolyear();
+		$this->data['allClasses'] = $this->classes_m->general_get_classes();
+        $this->data['sections'] = [];
+        $classesID = $this->input->post("classesID");
+
+        if($classesID > 0) {
+            $this->data['sections'] = $this->section_m->get_order_by_section(array("classesID" => $classesID));
+        } else {
+            $this->data['sections'] = [];
+        }
+
+
+        /* Start For Email */
+		$email_usertypeID = $this->input->post("email_usertypeID");
+		if($email_usertypeID && $email_usertypeID != 'select') {
+			$this->data['email_usertypeID'] = $email_usertypeID;
+		} else {
+			$this->data['email_usertypeID'] = 'select';
+		}
+		/* End For Email */
+
+		/* Start For SMS */
+		$sms_usertypeID = $this->input->post("sms_usertypeID");
+		if($sms_usertypeID && $sms_usertypeID != 'select') {
+			$this->data['sms_usertypeID'] = $sms_usertypeID;
+		} else {
+			$this->data['sms_usertypeID'] = 'select';
+		}
+		/* End For SMS */
+		
+		/* Start for Voice */
+        $bearer = $this->bearer;//"gjK_1igpeGdsHGJwvN1u_c7-QZ7RFyGKFOClGgYMmdVxi7yrkysOK-0nRUFb9-cE";
+		$curl = curl_init();
+        curl_setopt_array($curl, array(
+          CURLOPT_URL => 'https://voice.vignosoft.com/api_v2/voice-call/list_caller_id',
+          CURLOPT_RETURNTRANSFER => true,
+          CURLOPT_ENCODING => '',
+          CURLOPT_MAXREDIRS => 10,
+          CURLOPT_TIMEOUT => 30,
+          CURLOPT_FOLLOWLOCATION => true,
+          CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+          CURLOPT_CUSTOMREQUEST => 'POST',
+          CURLOPT_HTTPHEADER => array(
+            'Authorization: Bearer '.$bearer
+          ),
+        ));
+        $response = curl_exec($curl);
+        curl_close($curl);
+        $this->data['caller_list'] = json_decode($response)->data;
+        
+        $curl = curl_init();
+        curl_setopt_array($curl, array( CURLOPT_URL => "https://voice.vignosoft.com/api_v2/voice-call/voice_file",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "POST",
+        CURLOPT_HTTPHEADER => array(
+        "Authorization: Bearer ".$bearer
+        ),
+        ));
+        $response2 = curl_exec($curl);
+        curl_close($curl);
+        $this->data['voice_list'] = json_decode($response2)->data;
+        /* End For Voice */
+		if($_POST) {
+		// echo "<pre>";print_r($_POST);die;
+
+			$this->data['submittype'] = $this->input->post('type');
+			if($this->input->post('type') == "email") {
+				$rules = $this->rules_mail();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					$this->data['emailUserID'] = $this->input->post('email_users');
+					$this->data['emailTemplateID'] = $this->input->post('email_template');
+
+					$this->data['allStudents'] = $this->studentrelation_m->general_get_order_by_student(array('srschoolyearID' => $this->input->post('email_schoolyear'), 'srclassesID' => $this->input->post('email_class')), TRUE);
+
+					$this->data['smsUserID'] = 0;
+					$this->data['smsTemplateID'] = 0;
+
+					$this->data["email"] = 1;
+					$this->data["sms"] = 0;
+					$this->data["otheremail"] = 0;
+					$this->data["othersms"] = 0;
+					$this->data["whatsapp"] = 0;
+
+					$this->data["subview"] = "mailandsms/bulk_whatsapp";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+					$usertypeID = $this->input->post('email_usertypeID');
+					$schoolyearID = $this->input->post('email_schoolyear');
+
+					if($usertypeID == 1) { /* FOR ADMIN */
+						$systemadminID = $this->input->post('email_users');
+						if($systemadminID == 'select') {
+							$message = $this->input->post('email_message');
+							$multisystemadmins = $this->systemadmin_m->get_systemadmin();
+							if(customCompute($multisystemadmins)) {
+								$countusers = '';
+								foreach ($multisystemadmins as $key => $multisystemadmin) {
+									$this->userConfigEmail($message, $multisystemadmin, $usertypeID, $schoolyearID);
+									$countusers .= $multisystemadmin->name .' ,';
+								}
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $countusers,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$message = $this->input->post('email_message');
+							$singlesystemadmin = $this->systemadmin_m->get_systemadmin($systemadminID);
+							if(customCompute($singlesystemadmin)) {
+								$this->userConfigEmail($message, $singlesystemadmin, $usertypeID);
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $singlesystemadmin->name,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} elseif($usertypeID == 2) { /* FOR TEACHER */
+						$teacherID = $this->input->post('email_users');
+						if($teacherID == 'select') {
+							$message = $this->input->post('email_message');
+							$multiteachers = $this->teacher_m->general_get_teacher();
+							if(customCompute($multiteachers)) {
+								$countusers = '';
+								foreach ($multiteachers as $key => $multiteacher) {
+									$this->userConfigEmail($message, $multiteacher, $usertypeID);
+									$countusers .= $multiteacher->name .' ,';
+								}
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $countusers,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$message = $this->input->post('email_message');
+							$singleteacher = $this->teacher_m->general_get_teacher($teacherID);
+							if(customCompute($singleteacher)) {
+								$this->userConfigEmail($message, $singleteacher, $usertypeID);
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $singleteacher->name,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} elseif($usertypeID == 3) { /* FOR STUDENT */
+						$studentID = $this->input->post('email_users');
+						if($studentID == 'select') {
+							$class = $this->input->post('email_class');
+							if($class == 'select') {
+								/* Multi School Year */
+								$schoolyear = $this->input->post('email_schoolyear');
+								if($schoolyear == 'select') {
+									$message = $this->input->post('email_message');
+									$multiSchoolYearStudents = $this->studentrelation_m->general_get_student(TRUE);
+									if(customCompute($multiSchoolYearStudents)) {
+										$countusers = '';
+										foreach ($multiSchoolYearStudents as $key => $multiSchoolYearStudent) {
+											$this->userConfigEmail($message, $multiSchoolYearStudent, $usertypeID, $multiSchoolYearStudent->srschoolyearID);
+											$countusers .= $multiSchoolYearStudent->srname .' ,';
+										}
+										$array = array(
+											'usertypeID' => $usertypeID,
+											'users' => $countusers,
+											'type' => ucfirst($this->input->post('type')),
+											'message' => $this->input->post('email_message'),
+											'year' => date('Y'),
+											'senderusertypeID' => $this->session->userdata('usertypeID'),
+											'senderID' => $this->session->userdata('loginuserID')
+										);
+										$this->mailandsms_m->insert_mailandsms($array);
+										redirect(base_url('mailandsms/index'));
+									} else {
+										$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+										redirect(base_url('mailandsms/bulk_whatsapp'));
+									}
+								} else {
+									/* Single school Year Student */
+									$message = $this->input->post('email_message');
+									$singleSchoolYear = $this->input->post('email_schoolyear');
+									$singleSchoolYearStudents = $this->studentrelation_m->general_get_order_by_student(array('srschoolyearID' => $singleSchoolYear), TRUE);
+									if(customCompute($singleSchoolYearStudents)) {
+										$countusers = '';
+										foreach ($singleSchoolYearStudents as $key => $singleSchoolYearStudent) {
+											$this->userConfigEmail($message, $singleSchoolYearStudent, $usertypeID, $schoolyearID);
+											$countusers .= $singleSchoolYearStudent->srname .' ,';
+										}
+										$array = array(
+											'usertypeID' => $usertypeID,
+											'users' => $countusers,
+											'type' => ucfirst($this->input->post('type')),
+											'message' => $this->input->post('email_message'),
+											'year' => date('Y'),
+											'senderusertypeID' => $this->session->userdata('usertypeID'),
+											'senderID' => $this->session->userdata('loginuserID')
+										);
+										$this->mailandsms_m->insert_mailandsms($array);
+										redirect(base_url('mailandsms/index'));
+									} else {
+										$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+										redirect(base_url('mailandsms/bulk_whatsapp'));
+									}
+								}
+							} else {
+								/* Single Class Student */
+								$message = $this->input->post('email_message');
+								$singleClass = $this->input->post('email_class');
+								$singleSection = $this->input->post('email_section');
+								if((int)$singleSection){
+                                    $singleClassStudents = $this->studentrelation_m->general_get_order_by_student(array('srclassesID' => $singleClass,'srsectionID' => $singleSection, 'srschoolyearID' => $schoolyearID), TRUE);
+
+                                }else {
+                                    $singleClassStudents = $this->studentrelation_m->general_get_order_by_student(array('srclassesID' => $singleClass, 'srschoolyearID' => $schoolyearID), TRUE);
+                                }
+
+								if(customCompute($singleClassStudents)) {
+									$countusers = '';
+									foreach ($singleClassStudents as $key => $singleClassStudent) {
+										$this->userConfigEmail($message, $singleClassStudent, $usertypeID, $schoolyearID);
+										$countusers .= $singleClassStudent->srname .' ,';
+									}
+									$array = array(
+										'usertypeID' => $usertypeID,
+										'users' => $countusers,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('email_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+									redirect(base_url('mailandsms/bulk_whatsapp'));
+								}
+							}
+						} else {
+							/* Single Student */
+							$message = $this->input->post('email_message');
+							$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+							if(customCompute($singlestudent)) {
+								$this->userConfigEmail($message, $singlestudent, $usertypeID, $schoolyearID);
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $singlestudent->srname,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} elseif($usertypeID == 4) { /* FOR PARENTS */
+						$parentsID = $this->input->post('email_users');
+						if($parentsID == 'select') {
+							$message = $this->input->post('email_message');
+							$multiparents = $this->parents_m->get_parents();
+							if(customCompute($multiparents)) {
+								$countusers = '';
+								foreach ($multiparents as $key => $multiparent) {
+									$this->userConfigEmail($message, $multiparent, $usertypeID);
+									$countusers .= $multiparent->name .' ,';
+								}
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $countusers,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$message = $this->input->post('email_message');
+							$singleparent = $this->parents_m->get_parents($parentsID);
+							if(customCompute($singleparent)) {
+								$this->userConfigEmail($message, $singleparent, $usertypeID);
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $singleparent->name,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} else { /* FOR ALL USERS */
+						$userID = $this->input->post('email_users');
+						if($userID == 'select') {
+							$message = $this->input->post('email_message');
+							$multiusers = $this->user_m->get_order_by_user(array('usertypeID' => $usertypeID));
+							if(customCompute($multiusers)) {
+								$countusers = '';
+								foreach ($multiusers as $key => $multiuser) {
+									$this->userConfigEmail($message, $multiuser, $usertypeID);
+									$countusers .= $multiuser->name .' ,';
+								}
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $countusers,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$message = $this->input->post('email_message');
+							$singleuser = $this->user_m->get_user($userID);
+							if(customCompute($singleuser)) {
+								$this->userConfigEmail($message, $singleuser, $usertypeID);
+								$array = array(
+									'usertypeID' => $usertypeID,
+									'users' => $singleuser->name,
+									'type' => ucfirst($this->input->post('type')),
+									'message' => $this->input->post('email_message'),
+									'year' => date('Y'),
+									'senderusertypeID' => $this->session->userdata('usertypeID'),
+									'senderID' => $this->session->userdata('loginuserID')
+								);
+								$this->mailandsms_m->insert_mailandsms($array);
+								redirect(base_url('mailandsms/index'));
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					}
+				}
+			}  elseif($this->input->post('type') == "whatsapp") {
+				// echo "<pre>";print_r($_POST);die;
+				 
+					$usertypeID = $this->input->post('whatsapp_usertypeID');
+					$schoolyearID = $this->input->post('whatsapp_schoolyear');
+
+					//if($usertypeID == 1) { /* FOR ADMIN */
+						$systemadminID = $this->input->post('sms_users');
+						// if($systemadminID == 'select') {
+							$countusers = '';
+							$retval = 1;
+							$retmess = '';
+							if(!empty($_POST['whatsapp_users'])){
+								$u_ids = implode(",",$_POST['whatsapp_users']);
+								$array = array('u_ids' => $u_ids,'usertypeId' => $usertypeID);
+								$multisystemadmins = $this->systemadmin_m->get_systemadmin_in($array);
+							}
+							$message = $this->input->post('whatsapp_message');
+							
+							// echo "<pre>";PRINT_R($multisystemadmins);die;
+							if(customCompute($multisystemadmins)) {
+								foreach ($multisystemadmins as $key => $multisystemadmin) {
+									$countusers .= $multisystemadmin->name .' ,';
+									$whatsapp_numbers[]= $multisystemadmin->phone;
+								}
+							}
+								
+								$whatsapp_numbers[] = $this->input->post('others');
+								 $numbers = implode(",",$whatsapp_numbers);
+								 
+								 $countusers .=$numbers;
+								//  $numbers = '91'.$numbers;
+								 //echo $numbers;die;
+								
+								//send whatsapp message - srinu
+								$media_path = $this->input->post('dynamic_file1_path');
+								$params = array('whatsapp_message' => $message,'whatsapp_numbers' =>$numbers,'media_path' => $media_path);
+								$status = $this->send_whatsapp_msg($params);
+								
+								if($retval == 1) {
+									$array = array(
+										'usertypeID' => $usertypeID,
+										'users' => $countusers,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('whatsapp_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							// } else {
+							// 	$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+							// 	redirect(base_url('mailandsms/bulk_whatsapp'));
+							// }
+						 
+					//} 
+				//}
+			} elseif($this->input->post('type') == "sms") {
+				
+				$rules = $this->rules_sms();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					$this->data['smsUserID'] = $this->input->post('sms_users');
+					$this->data['smsTemplateID'] = $this->input->post('sms_template');
+
+					$this->data['allStudents'] = $this->studentrelation_m->get_order_by_student(array('srschoolyearID' => $this->input->post('sms_schoolyear'), 'srclassesID' => $this->input->post('sms_class')));
+
+					$this->data['emailUserID'] = 0;
+					$this->data['emailTemplateID'] = 0;
+
+					$this->data["email"] = 0;
+					$this->data["sms"] = 1;
+					$this->data["otheremail"] = 0;
+					$this->data["othersms"] = 0;
+
+					$this->data["subview"] = "mailandsms/bulk_whatsapp";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+					$getway = $this->input->post('sms_getway');
+					$usertypeID = $this->input->post('sms_usertypeID');
+					$schoolyearID = $this->input->post('sms_schoolyear');
+
+					if($usertypeID == 1) { /* FOR ADMIN */
+						$systemadminID = $this->input->post('sms_users');
+						if($systemadminID == 'select') {
+							$countusers = '';
+							$retval = 1;
+							$retmess = '';
+
+							$message = $this->input->post('sms_message');
+							$multisystemadmins = $this->systemadmin_m->get_systemadmin();
+							if(customCompute($multisystemadmins)) {
+
+								foreach ($multisystemadmins as $key => $multisystemadmin) {
+									$status = $this->userConfigSMS($message, $multisystemadmin, $usertypeID, $getway);
+									$countusers .= $multisystemadmin->name .' ,';
+
+									if($status['check'] == FALSE) {
+										$retval = 0;
+										$retmess = $status['message'];
+										break;
+									}
+
+								}
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $countusers,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$retval = 1;
+							$retmess = '';
+							$message = $this->input->post('sms_message');
+							$singlesystemadmin = $this->systemadmin_m->get_systemadmin($systemadminID);
+							if(customCompute($singlesystemadmin)) {
+								$status = $this->userConfigSMS($message, $singlesystemadmin, $usertypeID, $getway);
+								if($status['check'] == FALSE) {
+									$retval = 0;
+									$retmess = $status['message'];
+								}
+
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $singlesystemadmin->name,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} elseif($usertypeID == 2) { /* FOR TEACHER */
+						$teacherID = $this->input->post('sms_users');
+						if($teacherID == 'select') {
+							$message = $this->input->post('sms_message');
+							$multiteachers = $this->teacher_m->general_get_teacher();
+							if(customCompute($multiteachers)) {
+								$countusers = '';
+								$retval = 1;
+								$retmess = '';
+								foreach ($multiteachers as $key => $multiteacher) {
+									$status = $this->userConfigSMS($message, $multiteacher, $usertypeID, $getway);
+									$countusers .= $multiteacher->name .' ,';
+
+									if($status['check'] == FALSE) {
+										$retval = 0;
+										$retmess = $status['message'];
+										break;
+									}
+
+								}
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $countusers,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$retval = 1;
+							$retmess = '';
+							$message = $this->input->post('sms_message');
+							$singleteacher = $this->teacher_m->general_get_teacher($teacherID);
+							if(customCompute($singleteacher)) {
+								$status = $this->userConfigSMS($message, $singleteacher, $usertypeID, $getway);
+								if($status['check'] == FALSE) {
+									$retval = 0;
+									$retmess = $status['message'];
+								}
+
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $singleteacher->name,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} elseif($usertypeID == 3) { /* FOR STUDENT */
+
+						$studentID = $this->input->post('sms_users');
+						if($studentID == 'select') {
+							$class = $this->input->post('sms_class');
+							if($class == 'select') {
+								/* Multi School Year */
+								$countusers = '';
+								$retval = 1;
+								$retmess = '';
+
+								$schoolyear = $this->input->post('sms_schoolyear');
+								if($schoolyear == 'select') {
+									$message = $this->input->post('sms_message');
+									$auto_manual = $this->input->post('auto_manual');
+									$multiSchoolYearStudents = $this->studentrelation_m->general_get_student(TRUE);
+									if(customCompute($multiSchoolYearStudents)) {
+										foreach ($multiSchoolYearStudents as $key => $multiSchoolYearStudent) {
+											$status = $this->userConfigSMS($message, $multiSchoolYearStudent, $usertypeID, $getway, $multiSchoolYearStudent->srschoolyearID,$auto_manual);
+											$countusers .= $multiSchoolYearStudent->srname .' ,';
+											if($status['check'] == FALSE) {
+												$retval = 0;
+												$retmess = $status['message'];
+												break;
+											}
+										}
+
+										if($retval == 1) {
+											$array = array(
+												'campid' => $status['campid'],
+												'usertypeID' => $usertypeID,
+												'users' => $countusers,
+												'type' => ucfirst($this->input->post('type')),
+												'message' => $this->input->post('sms_message'),
+												'year' => date('Y'),
+												'senderusertypeID' => $this->session->userdata('usertypeID'),
+												'senderID' => $this->session->userdata('loginuserID')
+											);
+											$this->mailandsms_m->insert_mailandsms($array);
+											redirect(base_url('mailandsms/index'));
+										} else {
+											$this->session->set_flashdata('error', $retmess);
+											redirect(base_url('mailandsms/bulk_whatsapp'));
+										}
+									} else {
+										$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+										redirect(base_url('mailandsms/bulk_whatsapp'));
+									}
+								} else {
+									/* Single school Year Student */
+									$countusers = '';
+									$retval = 1;
+									$retmess = '';
+									$message = $this->input->post('sms_message');
+									$singleSchoolYear = $this->input->post('sms_schoolyear');
+									$singleSchoolYearStudents = $this->studentrelation_m->general_get_order_by_student(array('srschoolyearID' => $singleSchoolYear), TRUE);
+									if(customCompute($singleSchoolYearStudents)) {
+										foreach ($singleSchoolYearStudents as $key => $singleSchoolYearStudent) {
+											$status = $this->userConfigSMS($message, $singleSchoolYearStudent, $usertypeID, $getway, $schoolyearID);
+											$countusers .= $singleSchoolYearStudent->srname .' ,';
+											if($status['check'] == FALSE) {
+												$retval = 0;
+												$retmess = $status['message'];
+												break;
+											}
+										}
+										if($retval == 1) {
+											$array = array(
+												'campid' => $status['campid'],
+												'usertypeID' => $usertypeID,
+												'users' => $countusers,
+												'type' => ucfirst($this->input->post('type')),
+												'message' => $this->input->post('sms_message'),
+												'year' => date('Y'),
+												'senderusertypeID' => $this->session->userdata('usertypeID'),
+												'senderID' => $this->session->userdata('loginuserID')
+											);
+											$this->mailandsms_m->insert_mailandsms($array);
+											redirect(base_url('mailandsms/index'));
+										} else {
+											$this->session->set_flashdata('error', $retmess);
+											redirect(base_url("mailandsms/bulk_whatsapp"));
+										}
+									} else {
+										$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+										redirect(base_url('mailandsms/bulk_whatsapp'));
+									}
+								}
+							} else {
+								/* Single Class Student */
+								$countusers = '';
+								$retval = 1;
+								$retmess = '';
+
+								$message = $this->input->post('sms_message');
+								$singleClass = $this->input->post('sms_class');
+                                $singleSection = $this->input->post('sms_section');
+                                if((int)$singleSection){
+                                    $singleClassStudents = $this->studentrelation_m->general_get_order_by_student(array('srclassesID' => $singleClass,'srsectionID' => $singleSection, 'srschoolyearID' => $schoolyearID), TRUE);
+
+                                }else {
+                                    $singleClassStudents = $this->studentrelation_m->general_get_order_by_student(array('srclassesID' => $singleClass, 'srschoolyearID' => $schoolyearID), TRUE);
+                                }
+								if(customCompute($singleClassStudents)) {
+									$countusers = '';
+									foreach ($singleClassStudents as $key => $singleClassStudent) {
+										$status = $this->userConfigSMS($message, $singleClassStudent, $usertypeID, $getway, $schoolyearID);
+										$countusers .= $singleClassStudent->srname .' ,';
+										if($status['check'] == FALSE) {
+											$retval = 0;
+											$retmess = $status['message'];
+											break;
+										}
+									}
+
+									if($retval == 1) {
+										$array = array(
+											'campid' => $status['campid'],
+											'usertypeID' => $usertypeID,
+											'users' => $countusers,
+											'type' => ucfirst($this->input->post('type')),
+											'message' => $this->input->post('sms_message'),
+											'year' => date('Y'),
+											'senderusertypeID' => $this->session->userdata('usertypeID'),
+											'senderID' => $this->session->userdata('loginuserID')
+										);
+										$this->mailandsms_m->insert_mailandsms($array);
+										redirect(base_url('mailandsms/index'));
+									} else {
+										$this->session->set_flashdata('error', $retmess);
+										redirect(base_url("mailandsms/bulk_whatsapp"));
+									}
+								} else {
+									$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+									redirect(base_url('mailandsms/bulk_whatsapp'));
+								}
+							}
+						} else {
+							/* Single Student */
+							$retval = 1;
+							$retmess = '';
+
+							$message = $this->input->post('sms_message');
+							$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+							if(customCompute($singlestudent)) {
+								$status = $this->userConfigSMS($message, $singlestudent, $usertypeID, $getway, $schoolyearID);
+								if($status['check'] == FALSE) {
+									$retval = 0;
+									$retmess = $status['message'];
+								}
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' =>  $singlestudent->srname,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} elseif($usertypeID == 4) { /* FOR PARENTS */
+						$parentsID = $this->input->post('sms_users');
+						if($parentsID == 'select') {
+							$countusers = '';
+							$retval = 1;
+							$retmess = '';
+
+							$message = $this->input->post('sms_message');
+							$multiparents = $this->parents_m->get_parents();
+							if(customCompute($multiparents)) {
+
+								foreach ($multiparents as $key => $multiparent) {
+									$status = $this->userConfigSMS($message, $multiparent, $usertypeID, $getway);
+									$countusers .= $multiparent->name .' ,';
+
+									if($status['check'] == FALSE) {
+										$retval = 0;
+										$retmess = $status['message'];
+										break;
+									}
+								}
+
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $countusers,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$retval = 1;
+							$retmess = '';
+
+							$message = $this->input->post('sms_message');
+							$singleparent = $this->parents_m->get_parents($parentsID);
+							if(customCompute($singleparent)) {
+								$status = $this->userConfigSMS($message, $singleparent, $usertypeID, $getway);
+								if($status['check'] == FALSE) {
+									$retval = 0;
+									$retmess = $status['message'];
+
+								}
+
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $singleparent->name,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					} else { /* FOR ALL USERS */
+						$userID = $this->input->post('sms_users');
+						if($userID == 'select') {
+							$countusers = '';
+							$retval = 1;
+							$retmess = '';
+							$message = $this->input->post('sms_message');
+							$multiusers = $this->user_m->get_order_by_user(array('usertypeID' => $usertypeID));
+							if(customCompute($multiusers)) {
+								foreach ($multiusers as $key => $multiuser) {
+									$status = $this->userConfigSMS($message, $multiuser, $usertypeID, $getway);
+									$countusers .= $multiuser->name .' ,';
+
+									if($status['check'] == FALSE) {
+										$retval = 0;
+										$retmess = $status['message'];
+										break;
+									}
+								}
+
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $countusers,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						} else {
+							$retval = 1;
+							$retmess = '';
+							$message = $this->input->post('sms_message');
+							$singleuser = $this->user_m->get_user($userID);
+							if(customCompute($singleuser)) {
+								$status = $this->userConfigSMS($message, $singleuser, $usertypeID, $getway);
+								if($status['check'] == FALSE) {
+									$retval = 0;
+									$retmess = $status['message'];
+								}
+
+								if($retval == 1) {
+									$array = array(
+										'campid' => $status['campid'],
+										'usertypeID' => $usertypeID,
+										'users' => $singleuser->name,
+										'type' => ucfirst($this->input->post('type')),
+										'message' => $this->input->post('sms_message'),
+										'year' => date('Y'),
+										'senderusertypeID' => $this->session->userdata('usertypeID'),
+										'senderID' => $this->session->userdata('loginuserID')
+									);
+									$this->mailandsms_m->insert_mailandsms($array);
+									redirect(base_url('mailandsms/index'));
+								} else {
+									$this->session->set_flashdata('error', $retmess);
+									redirect(base_url("mailandsms/bulk_whatsapp"));
+								}
+							} else {
+								$this->session->set_flashdata('error', $this->lang->line('mailandsms_notfound_error'));
+								redirect(base_url('mailandsms/bulk_whatsapp'));
+							}
+						}
+					}
+				}
+			} elseif($this->input->post('type') == "otheremail") {
+				$rules = $this->rules_otheremail();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					
+					$this->data['emailUserID'] = 0;
+					$this->data['emailTemplateID'] = 0;
+					$this->data['allStudents'] = [];
+					$this->data['smsUserID'] = 0;
+					$this->data['smsTemplateID'] = 0;
+
+					$this->data["email"] = 0;
+					$this->data["sms"] = 0;
+					$this->data["otheremail"] = 1;
+					$this->data["othersms"] = 0;
+
+					$this->data["subview"] = "mailandsms/bulk_whatsapp";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+					$email   = $this->input->post('otheremail_email');
+					$subject = $this->input->post('otheremail_subject');
+					$message = $this->input->post('otheremail_message');
+
+					$result  = $this->inilabs->sendMailSystem($email, $subject, $message);
+					if($result) {
+						$array = array(
+							'usertypeID' => '0',
+							'users' => $this->input->post('otheremail_name'),
+							'type' => ucfirst($this->lang->line('mailandsms_otheremail')),
+							'message' => $this->input->post('otheremail_message'),
+							'year' => date('Y'),
+							'senderusertypeID' => $this->session->userdata('usertypeID'),
+							'senderID' => $this->session->userdata('loginuserID')
+						);
+						$this->mailandsms_m->insert_mailandsms($array);
+						$this->session->set_flashdata('success', $this->lang->line('mail_success'));
+						redirect(base_url('mailandsms/index'));
+					} else {
+						$this->session->set_flashdata('error', $this->lang->line('mail_error'));
+						redirect(base_url("mailandsms/bulk_whatsapp"));
+					}
+				}
+			} elseif($this->input->post('type') == "othersms") {
+				$rules = $this->rules_othersms();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+
+					$this->data['emailUserID'] = 0;
+					$this->data['emailTemplateID'] = 0;
+					$this->data['allStudents'] = [];
+					$this->data['smsUserID'] = 0;
+					$this->data['smsTemplateID'] = 0;
+
+					$this->data["email"] = 0;
+					$this->data["sms"] = 0;
+					$this->data["otheremail"] = 0;
+					$this->data["othersms"] = 1;
+
+					$this->data["subview"] = "mailandsms/bulk_whatsapp";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+					$to = $this->input->post('othersms_phone');
+					$getway = $this->input->post('sms_getway');
+					$message = $this->input->post('othersms_message');
+
+					$result = $this->allgetway_send_message($getway, $to, $message);
+					if($result['check']) {
+						$array = array(
+							'usertypeID' => '0',
+							'users' => $this->input->post('othersms_name'),
+							'type' => ucfirst($this->lang->line('mailandsms_othersms')),
+							'message' => $this->input->post('othersms_message'),
+							'year' => date('Y'),
+							'senderusertypeID' => $this->session->userdata('usertypeID'),
+							'senderID' => $this->session->userdata('loginuserID')
+						);
+						$this->mailandsms_m->insert_mailandsms($array);
+						redirect(base_url('mailandsms/index'));
+					} else {
+						$retmess = isset($result['message']) ? $result['message'] : $this->lang->line('mailandsms_error');
+						$this->session->set_flashdata('error', $retmess);
+						redirect(base_url("mailandsms/bulk_whatsapp"));
+					}
+				}
+			} elseif($this->input->post('type') == "voice") {
+				$rules = $this->rules_voice();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					$this->data['emailUserID'] = 0;
+					$this->data['emailTemplateID'] = 0;
+					$this->data['allStudents'] = [];
+					$this->data['smsUserID'] = 0;
+					$this->data['smsTemplateID'] = 0;
+
+					$this->data["email"] = 0;
+					$this->data["sms"] = 0;
+					$this->data["otheremail"] = 0;
+					$this->data["othersms"] = 1;
+
+					$this->data["subview"] = "mailandsms/bulk_whatsapp";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+					$from_call = $this->input->post('from_call');
+                    $voice_file = $this->input->post('voice_file');
+                    $usertypeID = $this->input->post('voice_usertypeID');
+                    $user_array = array();
+                    if($usertypeID==2)
+                    {
+                        $multiteachers = $this->teacher_m->general_get_teacher();
+                        foreach ($multiteachers as $key => $multiteacher)
+                        {
+                            if(strlen(trim($multiteacher->phone))==10)
+                            {
+                                $user_array[] = array("user_id"=>'',"email"=>'',"mobileno"=>trim($multiteacher->phone));
+                            }
+                        }
+                    }
+                    elseif($usertypeID==3)
+                    {
+                        $schoolyear = $this->input->post('voice_schoolyear');
+						$class = $this->input->post('voice_class');
+						
+						if($class == 'select') {
+						    $singleSchoolYearStudents = $this->studentrelation_m->general_get_order_by_student(array('srschoolyearID' => $schoolyear), TRUE);
+							if(customCompute($singleSchoolYearStudents))
+							{
+								foreach ($singleSchoolYearStudents as $key => $singleSchoolYearStudent)
+								{
+								    if(strlen(trim($singleSchoolYearStudent->phone))==10)
+                                    {
+                                        $user_array[] = array("user_id"=>'',"email"=>'',"mobileno"=>trim($singleSchoolYearStudent->phone));
+                                    }
+								}
+							}
+						}
+						else
+						{
+                            $singleClassStudents = $this->studentrelation_m->general_get_order_by_student(array('srclassesID' => $class,'srschoolyearID' => $schoolyear), TRUE);
+                            if(customCompute($singleClassStudents))
+                            {
+								foreach ($singleClassStudents as $key => $singleClassStudent)
+								{
+								    if(strlen(trim($singleClassStudent->phone))==10)
+                                    {
+                                        $user_array[] = array("user_id"=>'',"email"=>'',"mobileno"=>trim($singleClassStudent->phone));
+                                    }
+								}
+                            }
+						}
+                    }
+                    $mobile_nos = explode(",",str_replace("\n",",",str_replace(" ","",$this->input->post('to_numbers'))));
+                    foreach($mobile_nos as $key => $custom_mobile)
+                    {
+                        if(strlen(trim($custom_mobile))==10)
+                        {
+                            $user_array[] = array("user_id"=>'',"email"=>'',"mobileno"=>trim($custom_mobile));
+                        }
+                    }
+                    $sent = 0;
+                    if (!empty($user_array)) {
+                        foreach ($user_array as $user_mail_key => $user_mail_value) {
+                            if ($user_mail_value['mobileno'] != "") {
+                                $response = $this->send_voice_call($from_call,$voice_file,$user_mail_value['mobileno']);
+                                $sent++;
+                            }
+                        }
+                    }
+					if($sent) {
+						$array = array(
+							'usertypeID' => '0',
+							'users' => "",
+							'type' => ucfirst("Voice"),
+							'message' => $voice_file,
+							'year' => date('Y'),
+							'senderusertypeID' => $this->session->userdata('usertypeID'),
+							'senderID' => $this->session->userdata('loginuserID')
+						);
+						$this->mailandsms_m->insert_mailandsms($array);
+						redirect(base_url('mailandsms/index'));
+					} else {
+						$retmess = isset($result['message']) ? $result['message'] : $this->lang->line('mailandsms_error');
+						$this->session->set_flashdata('error', $retmess);
+						redirect(base_url("mailandsms/bulk_whatsapp"));
+					}
+				}
+			} else {
+				redirect('mainandsms/add');
+			}
+		} else {
+			$this->data['emailUserID'] = 0;
+			$this->data['emailTemplateID'] = 0;
+
+			$this->data['smsUserID'] = 0;
+			$this->data['smsTemplateID'] = 0;
+
+			$this->data["email"] = 0;
+			$this->data["sms"] = 1;
+			$this->data["otheremail"] = 0;
+			$this->data["othersms"] = 0;
+			$this->data['submittype'] = 'none';
+
+			$this->data['allStudents'] = array();
+			$this->data["subview"] = "mailandsms/bulk_whatsapp";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
 	private function userConfigEmail($message, $user, $usertypeID, $schoolyearID = 1) {
 		if($user && $usertypeID) {
 			$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => $usertypeID));
@@ -2264,5 +3459,15 @@ class Mailandsms extends Admin_Controller {
 		}
 	}
 
+public function get_whatsapp_template() {
+    $id = $this->input->post('template_id');
+    $template = $this->db->get_where('whatsapp_templates', ['id' => $id])->row();
+
+    if ($template) {
+        echo json_encode(['status' => 1, 'message' => $template->message_body]);
+    } else {
+        echo json_encode(['status' => 0, 'message' => '']);
+    }
+}
 
 }
