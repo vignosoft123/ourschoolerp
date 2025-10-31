@@ -993,22 +993,22 @@
 
                                             
 
-                                            <?php 
-                                                if(form_error('whatsapp_numbers')) 
-                                                    echo "<div class='form-group has-error' >";
-                                                else     
-                                                    echo "<div class='form-group' >";
+                                           <?php 
+                                                // if(form_error('whatsapp_numbers')) 
+                                                //     echo "<div class='form-group has-error' >";
+                                                // else     
+                                                //     echo "<div class='form-group' >";
                                             ?>
-                                                <label for="whatsapp_numbers" class="col-sm-2 control-label">
+                                              <!--    <label for="whatsapp_numbers" class="col-sm-2 control-label">
                                                 Other Whatsapp Numbers   <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-10">
                                                     <textarea class="form-control" style="resize:vertical" id="whatsapp_numbers" name="others" ><?=set_value('whatsapp_numbers')?></textarea>
                                                 </div>
                                                 <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
-                                                    <?php echo form_error('whatsapp_numbers'); ?>
+                                                    <?php //echo form_error('whatsapp_numbers'); ?>
                                                 </span>
-                                            </div>
+                                            </div> -->
                                                <!-- WhatsApp Template Dropdown -->
                                                     <div class="form-group <?= form_error('whatsapp_template') ? 'has-error' : '' ?>">
                                                         <label for="whatsapp_template" class="col-sm-2 control-label">
