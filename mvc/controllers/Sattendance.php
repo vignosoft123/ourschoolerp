@@ -519,7 +519,14 @@ class Sattendance extends Admin_Controller
 						$this->sendAbsentWhatsapp($students, $schoolyearID, $classes, $sectionID);
 					}
 
+				}else{
+					if($send_whatsapp == 1){
+						$this->sendAbsentWhatsapp($students, $schoolyearID, $classes, $sectionID);
+					}
 				}
+
+				
+
 				if ($isSendVoiceCall) {
 					$this->sendVoiceCall($students, $schoolyearID, $classes, $sectionID);
 				}
@@ -1697,6 +1704,7 @@ class Sattendance extends Admin_Controller
 
 	private function userConfigWhatsapp($message, $user, $usertypeID, $schoolyearID = 1,$template_name)
 	{
+		// print_r($user);die;
 		if ($user && $usertypeID) {
 
 			$template_id = 0;

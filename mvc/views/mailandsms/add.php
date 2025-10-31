@@ -840,247 +840,271 @@
                         </div>
 
                         <!-- whatsapp start -->
-                        <div id="whatsapp"  class="tab-pane <?php if($whatsapp == 1) echo 'active'; ?>">
-                            <br>
-                            <div class="row">
-                                <div class="col-sm-10">
-                                    <form class="form-horizontal" role="form" method="post" id="whatsapp_form">
-                                        <?php echo form_hidden('type', 'whatsapp'); ?> 
-                                        <?php 
-                                            if(form_error('whatsapp_usertypeID')) 
-                                                echo "<div class='form-group has-error' >";
-                                            else     
-                                                echo "<div class='form-group' >";
-                                        ?>
-                                            <label for="whatsapp_usertypeID" class="col-sm-2 control-label">
-                                                <?=$this->lang->line("mailandwhatsapp_usertype")?> <span class="text-red">*</span>
-                                            </label>
-                                            <div class="col-sm-6">
-                                                <?php
-                                                    $array = array(
-                                                        'select' => $this->lang->line('mailandsms_all_role')
-                                                    );
+                            <div id="whatsapp"  class="tab-pane <?php if($whatsapp == 1) echo 'active'; ?>">
+                                <br>
+                                <div class="row">
+                                    <div class="col-sm-10">
+                                        <form class="form-horizontal" role="form" method="post" id="whatsapp_form">
+                                            <?php echo form_hidden('type', 'whatsapp'); ?> 
+                                            <?php 
+                                                if(form_error('whatsapp_usertypeID')) 
+                                                    echo "<div class='form-group has-error' >";
+                                                else     
+                                                    echo "<div class='form-group' >";
+                                            ?>
+                                                <label for="whatsapp_usertypeID" class="col-sm-2 control-label">
+                                                    <?=$this->lang->line("mailandwhatsapp_usertype")?> <span class="text-red">*</span>
+                                                </label>
+                                                <div class="col-sm-6">
+                                                    <?php
+                                                        $array = array(
+                                                            'select' => $this->lang->line('mailandsms_all_role')
+                                                        );
 
-                                                    if(customCompute($usertypes)) {
-                                                        foreach ($usertypes as $key => $usertype) {
-                                                            $array[$usertype->usertypeID] = $usertype->usertype;
-                                                        }
-                                                    }
-                                                    echo form_dropdown("whatsapp_usertypeID", $array, set_value("whatsapp_usertypeID"), "id='whatsapp_usertypeID' class='form-control select2'");
-                                                ?>
-                                            </div>
-                                            <span class="col-sm-4 control-label">
-                                                <?php echo form_error('whatsapp_usertypeID'); ?>
-                                            </span>
-                                        </div>
-
-                                        <?php 
-                                            if(form_error('whatsapp_schoolyear')) 
-                                                echo "<div id='divwhatsapp_schoolyear' class='form-group has-error' >";
-                                            else     
-                                                echo "<div id='divwhatsapp_schoolyear' class='form-group' >";
-                                        ?>
-                                            <label for="whatsapp_schoolyear" class="col-sm-2 control-label">
-                                                <?=$this->lang->line("mailandwhatsapp_schoolyear")?>
-                                            </label>
-                                            <div class="col-sm-6">
-                                                <?php
-                                                    $array = array(
-                                                        'select' => $this->lang->line('mailandwhatsapp_all_schoolyear')
-                                                    );
-
-                                                    if(customCompute($schoolyears)) {
-                                                        $setschoolyear = '';
-                                                        foreach ($schoolyears as $key => $schoolyear) {
-                                                            if($schoolyear->schoolyearID == $siteinfos->school_year) {
-                                                                $array[$schoolyear->schoolyearID] = $schoolyear->schoolyear.' - ('.$this->lang->line('mailandwhatsapp_default').')';
-                                                                $setschoolyear = $schoolyear->schoolyearID;
-                                                            } else {
-                                                                $array[$schoolyear->schoolyearID] = $schoolyear->schoolyear;
+                                                        if(customCompute($usertypes)) {
+                                                            foreach ($usertypes as $key => $usertype) {
+                                                                $array[$usertype->usertypeID] = $usertype->usertype;
                                                             }
                                                         }
-                                                    }
-
-                                                    echo form_dropdown("whatsapp_schoolyear", $array, set_value("whatsapp_schoolyear", $setschoolyear), "id='whatsapp_schoolyear' class='form-control select2'");
-                                                ?>
+                                                        echo form_dropdown("whatsapp_usertypeID", $array, set_value("whatsapp_usertypeID"), "id='whatsapp_usertypeID' class='form-control select2'");
+                                                    ?>
+                                                </div>
+                                                <span class="col-sm-4 control-label">
+                                                    <?php echo form_error('whatsapp_usertypeID'); ?>
+                                                </span>
                                             </div>
-                                            <span class="col-sm-4 control-label">
-                                                <?php echo form_error('whatsapp_schoolyear'); ?>
-                                            </span>
-                                        </div>
 
-                                        <?php 
-                                            if(form_error('whatsapp_class')) 
-                                                echo "<div id='divwhatsapp_class' class='form-group has-error' >";
-                                            else     
-                                                echo "<div id='divwhatsapp_class' class='form-group' >";
-                                        ?>
-                                            <label for="whatsapp_class" class="col-sm-2 control-label">
-                                                <?=$this->lang->line("mailandwhatsapp_class")?>
-                                            </label>
-                                            <div class="col-sm-6">
-                                                <?php
-                                                    $classArray = array(
-                                                        'select' => $this->lang->line('mailandwhatsapp_all_class')
-                                                    );
-
-                                                    if(customCompute($allClasses)) {
-                                                        foreach ($allClasses as $allClass) {
-                                                            $classArray[$allClass->classesID] = $allClass->classes;
-                                                        }
-                                                    }
-
-                                                    echo form_dropdown("whatsapp_class", $classArray, set_value("whatsapp_class"), "id='whatsapp_class' class='form-control select2'");
-                                                ?>
-                                            </div>
-                                            <span class="col-sm-4 control-label">
-                                                <?php echo form_error('whatsapp_class'); ?>
-                                            </span>
-                                        </div>
-                                        <?php
-                                        if(form_error('whatsapp_section'))
-                                            echo "<div id='divwhatsapp_section' class='form-group has-error' >";
-                                        else
-                                            echo "<div id='divwhatsapp_section' class='form-group' >";
-                                        ?>
-                                        <label for="sectionID" class="col-sm-2 control-label">
-                                            <?=$this->lang->line("mailandwhatsapp_section")?>
-                                        </label>
-                                        <div class="col-sm-6">
-                                            <?php
-                                            $arraysection['select'] = $this->lang->line("mailandwhatsapp_all_section");
-                                            if(customCompute($sections)) {
-                                                foreach ($sections as $section) {
-                                                    $arraysection[$section->sectionID] = $section->section;
-                                                }
-                                            }
-                                            echo form_dropdown("whatsapp_section", $arraysection, set_value("whatsapp_section"), "id='whatsapp_section' class='form-control select2'");
+                                            <?php 
+                                                if(form_error('whatsapp_schoolyear')) 
+                                                    echo "<div id='divwhatsapp_schoolyear' class='form-group has-error' >";
+                                                else     
+                                                    echo "<div id='divwhatsapp_schoolyear' class='form-group' >";
                                             ?>
-                                        </div>
-                                        <span class="col-sm-4 control-label">
-                                                 <?php echo form_error('whatsapp_section'); ?>
-                                           </span>
-                                        </div>
+                                                <label for="whatsapp_schoolyear" class="col-sm-2 control-label">
+                                                    <?=$this->lang->line("mailandwhatsapp_schoolyear")?>
+                                                </label>
+                                                <div class="col-sm-6">
+                                                    <?php
+                                                        $array = array(
+                                                            'select' => $this->lang->line('mailandwhatsapp_all_schoolyear')
+                                                        );
 
-                                        <?php 
-                                            if(form_error('whatsapp_users')) 
-                                                echo "<div class='form-group has-error' >";
-                                            else     
-                                                echo "<div class='form-group' >";
-                                        ?>
-                                            <label for="whatsapp_users" class="col-sm-2 control-label">
-                                                <?=$this->lang->line("mailandwhatsapp_users")?>
+                                                        if(customCompute($schoolyears)) {
+                                                            $setschoolyear = '';
+                                                            foreach ($schoolyears as $key => $schoolyear) {
+                                                                if($schoolyear->schoolyearID == $siteinfos->school_year) {
+                                                                    $array[$schoolyear->schoolyearID] = $schoolyear->schoolyear.' - ('.$this->lang->line('mailandwhatsapp_default').')';
+                                                                    $setschoolyear = $schoolyear->schoolyearID;
+                                                                } else {
+                                                                    $array[$schoolyear->schoolyearID] = $schoolyear->schoolyear;
+                                                                }
+                                                            }
+                                                        }
+
+                                                        echo form_dropdown("whatsapp_schoolyear", $array, set_value("whatsapp_schoolyear", $setschoolyear), "id='whatsapp_schoolyear' class='form-control select2'");
+                                                    ?>
+                                                </div>
+                                                <span class="col-sm-4 control-label">
+                                                    <?php echo form_error('whatsapp_schoolyear'); ?>
+                                                </span>
+                                            </div>
+
+                                            <?php 
+                                                if(form_error('whatsapp_class')) 
+                                                    echo "<div id='divwhatsapp_class' class='form-group has-error' >";
+                                                else     
+                                                    echo "<div id='divwhatsapp_class' class='form-group' >";
+                                            ?>
+                                                <label for="whatsapp_class" class="col-sm-2 control-label">
+                                                    <?=$this->lang->line("mailandwhatsapp_class")?>
+                                                </label>
+                                                <div class="col-sm-6">
+                                                    <?php
+                                                        $classArray = array(
+                                                            'select' => $this->lang->line('mailandwhatsapp_all_class')
+                                                        );
+
+                                                        if(customCompute($allClasses)) {
+                                                            foreach ($allClasses as $allClass) {
+                                                                $classArray[$allClass->classesID] = $allClass->classes;
+                                                            }
+                                                        }
+
+                                                        echo form_dropdown("whatsapp_class", $classArray, set_value("whatsapp_class"), "id='whatsapp_class' class='form-control select2'");
+                                                    ?>
+                                                </div>
+                                                <span class="col-sm-4 control-label">
+                                                    <?php echo form_error('whatsapp_class'); ?>
+                                                </span>
+                                            </div>
+                                            <?php
+                                            if(form_error('whatsapp_section'))
+                                                echo "<div id='divwhatsapp_section' class='form-group has-error' >";
+                                            else
+                                                echo "<div id='divwhatsapp_section' class='form-group' >";
+                                            ?>
+                                            <label for="sectionID" class="col-sm-2 control-label">
+                                                <?=$this->lang->line("mailandwhatsapp_section")?>
                                             </label>
                                             <div class="col-sm-6">
                                                 <?php
-                                                    $userArray = array(
-                                                        'select' => $this->lang->line('mailandwhatsapp_all_users')
-                                                    );
-
-                                                    if(customCompute($allStudents)) {
-                                                        foreach ($allStudents as $allStudent) {
-                                                            $userArray[$allStudent->studentID] = $allStudent->name;
-                                                        }
+                                                $arraysection['select'] = $this->lang->line("mailandwhatsapp_all_section");
+                                                if(customCompute($sections)) {
+                                                    foreach ($sections as $section) {
+                                                        $arraysection[$section->sectionID] = $section->section;
                                                     }
-
-                                                    echo form_dropdown("whatsapp_users[]", $userArray, set_value("whatsapp_users"), "id='whatsapp_users' class='form-control select2' multiple" );
+                                                }
+                                                echo form_dropdown("whatsapp_section", $arraysection, set_value("whatsapp_section"), "id='whatsapp_section' class='form-control select2'");
                                                 ?>
                                             </div>
                                             <span class="col-sm-4 control-label">
-                                                <?php echo form_error('whatsapp_users'); ?>
+                                                    <?php echo form_error('whatsapp_section'); ?>
                                             </span>
-                                        </div>
-
-                                        
-
-                                        <?php 
-                                            if(form_error('whatsapp_numbers')) 
-                                                echo "<div class='form-group has-error' >";
-                                            else     
-                                                echo "<div class='form-group' >";
-                                        ?>
-                                            <label for="whatsapp_numbers" class="col-sm-2 control-label">
-                                              Other Whatsapp Numbers   <span class="text-red">*</span>
-                                            </label>
-                                            <div class="col-sm-10">
-                                                <textarea class="form-control" style="resize:vertical" id="whatsapp_numbers" name="others" ><?=set_value('whatsapp_numbers')?></textarea>
                                             </div>
-                                            <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
-                                                <?php echo form_error('whatsapp_numbers'); ?>
-                                            </span>
-                                        </div>
- <!-- Whatsapp Template Dropdown -->
-<div class="form-group <?= form_error('whatsapp_template') ? 'has-error' : '' ?>">
-    <label for="whatsapp_template" class="col-sm-2 control-label">
-        Whatsapp Template
-    </label>
-    <div class="col-sm-6">
-        <?php
-            $templateArray = array('' => 'Select Template');
 
-            // ✅ Use standard PHP count() instead of customCompute()
-            if (!empty($whatsapp_templates) && count($whatsapp_templates) > 0) {
-                foreach ($whatsapp_templates as $template) {
-                    $templateArray[$template->mailandsmstemplateID] = $template->template_name;
-                }
-            }
+                                            <?php 
+                                                if(form_error('whatsapp_users')) 
+                                                    echo "<div class='form-group has-error' >";
+                                                else     
+                                                    echo "<div class='form-group' >";
+                                            ?>
+                                                <label for="whatsapp_users" class="col-sm-2 control-label">
+                                                    <?=$this->lang->line("mailandwhatsapp_users")?>
+                                                </label>
+                                                <div class="col-sm-6">
+                                                    <?php
+                                                        $userArray = array(
+                                                            'select' => $this->lang->line('mailandwhatsapp_all_users')
+                                                        );
 
-            echo form_dropdown(
-                "whatsapp_template",
-                $templateArray,
-                set_value("whatsapp_template"),
-                "id='whatsapp_template' class='form-control select2'"
-            );
-        ?>
-    </div>
-    <span class="col-sm-4 control-label">
-        <?php echo form_error('whatsapp_template'); ?>
-    </span>
-</div>
+                                                        if(customCompute($allStudents)) {
+                                                            foreach ($allStudents as $allStudent) {
+                                                                $userArray[$allStudent->studentID] = $allStudent->name;
+                                                            }
+                                                        }
 
-
-
-                                        <?php 
-                                            if(form_error('whatsapp_message')) 
-                                                echo "<div class='form-group has-error' >";
-                                            else     
-                                                echo "<div class='form-group' >";
-                                        ?>
-                                            <label for="whatsapp_message" class="col-sm-2 control-label">
-                                               Whatsapp Message  <span class="text-red">*</span>
-                                            </label>
-                                            <div class="col-sm-10">
-                                                <textarea class="form-control" style="resize:vertical" id="whatsapp_message" name="whatsapp_message" ><?=set_value('whatsapp_message')?></textarea>
+                                                        echo form_dropdown("whatsapp_users[]", $userArray, set_value("whatsapp_users"), "id='whatsapp_users' class='form-control select2' multiple" );
+                                                    ?>
+                                                </div>
+                                                <span class="col-sm-4 control-label">
+                                                    <?php echo form_error('whatsapp_users'); ?>
+                                                </span>
                                             </div>
-                                            <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
-                                                <?php echo form_error('whatsapp_message'); ?>
-                                            </span>
-                                        </div>
-                                        <input type="hidden" name="dynamic_file1_path" id="dynamic_file1_path" value="">
-                                         
-                                        <div class='form-group'>
-                                            <label for="from_call" class="col-sm-2 control-label">
-                                                New File
-                                            </label>
-                                            <div class="col-sm-6">
-                                                <input type="file" id="csv_file1" class="form-control" name="individual_attachment1" >
+
+                                            
+
+                                            <?php 
+                                                if(form_error('whatsapp_numbers')) 
+                                                    echo "<div class='form-group has-error' >";
+                                                else     
+                                                    echo "<div class='form-group' >";
+                                            ?>
+                                                <label for="whatsapp_numbers" class="col-sm-2 control-label">
+                                                Other Whatsapp Numbers   <span class="text-red">*</span>
+                                                </label>
+                                                <div class="col-sm-10">
+                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_numbers" name="others" ><?=set_value('whatsapp_numbers')?></textarea>
+                                                </div>
+                                                <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
+                                                    <?php echo form_error('whatsapp_numbers'); ?>
+                                                </span>
                                             </div>
-                                            <div class="col-sm-2">
-                                                <a href="javascript:void(0)" id="upload_btn1" class="btn btn-success upload_btn1" onclick="uploadFile1()">Upload </a>
-                                            </div>
-                                        </div>
+                                               <!-- WhatsApp Template Dropdown -->
+                                                    <div class="form-group <?= form_error('whatsapp_template') ? 'has-error' : '' ?>">
+                                                        <label for="whatsapp_template" class="col-sm-2 control-label">
+                                                            WhatsApp Template
+                                                        </label>
+
+                                                        <div class="col-sm-6">
+                                                            <?php
+                                                                // Preload template options in a single efficient pass
+                                                                $templateOptions = ['' => 'Select Template'];
+
+                                                                if (!empty($whatsapp_templates) && is_array($whatsapp_templates)) {
+                                                                    foreach ($whatsapp_templates as $t) {
+                                                                        $templateOptions[$t->id] = $t->template_name;
+                                                                    }
+                                                                }
+
+                                                                echo form_dropdown(
+                                                                    'whatsapp_template',
+                                                                    $templateOptions,
+                                                                    set_value('whatsapp_template'),
+                                                                    'id="whatsapp_template" class="form-control select2" data-placeholder="Choose a WhatsApp Template..."'
+                                                                );
+                                                            ?>
+                                                        </div>
+
+                                                        <div class="col-sm-4">
+                                                            <span class="text-danger">
+                                                                <?= form_error('whatsapp_template'); ?>
+                                                            </span>
+                                                        </div>
+                                                    </div>
 
 
-                                        <div class="form-group">
-                                            <div class="col-sm-offset-1 col-sm-8">
-                                                <input type="submit" class="btn btn-success" value="<?=$this->lang->line("send")?>" >
-                                            </div>
-                                        </div>
 
-                                    </form>
+
+                                            <?php 
+                                                if(form_error('whatsapp_templ')) 
+                                                    echo "<div class='form-group has-error' >";
+                                                else     
+                                                    echo "<div class='form-group' >";
+                                            ?>
+                                                <label for="whatsapp_templ" class="col-sm-2 control-label">
+                                                Whatsapp Template  <span class="text-red">*</span>
+                                                </label>
+                                                <div class="col-sm-10">
+                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_templ" name="whatsapp_templ" ><?=set_value('whatsapp_templ')?></textarea>
+                                                </div>
+                                                <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
+                                                    <?php echo form_error('whatsapp_templ'); ?>
+                                                </span>
+                                            </div>
+
+                                             <?php 
+                                                if(form_error('whatsapp_message')) 
+                                                    echo "<div class='form-group has-error' >";
+                                                else     
+                                                    echo "<div class='form-group' >";
+                                            ?>
+                                                <label for="whatsapp_message" class="col-sm-2 control-label">
+                                                Whatsapp Params  <span class="text-red">*</span>
+                                                </label>
+                                                <div class="col-sm-10">
+                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_message" name="whatsapp_message" ><?=set_value('whatsapp_message')?></textarea>
+                                                </div>
+                                                <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
+                                                    <?php echo form_error('whatsapp_message'); ?>
+                                                </span>
+                                            </div>
+
+
+                                            <input type="hidden" name="dynamic_file1_path" id="dynamic_file1_path" value="">
+                                            
+                                            <div class='form-group'>
+                                                <label for="from_call" class="col-sm-2 control-label">
+                                                    New File
+                                                </label>
+                                                <div class="col-sm-6">
+                                                    <input type="file" id="csv_file1" class="form-control" name="individual_attachment1" >
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <a href="javascript:void(0)" id="upload_btn1" class="btn btn-success upload_btn1" onclick="uploadFile1()">Upload </a>
+                                                </div>
+                                            </div>
+
+
+                                            <div class="form-group">
+                                                <div class="col-sm-offset-1 col-sm-8">
+                                                    <input type="submit" class="btn btn-success" value="<?=$this->lang->line("send")?>" >
+                                                </div>
+                                            </div>
+
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
                         <!-- whatsapp end -->
                     </div>
@@ -1880,20 +1904,26 @@ var l =$(this).text().length;
 });
 
 </script>
+
+
 <script>
 $(document).ready(function() {
+
+    // When WhatsApp template is changed, auto-fill the message textarea
     $('#whatsapp_template').on('change', function() {
         var templateID = $(this).val();
-        if(templateID) {
+        if(templateID !== '') {
             $.ajax({
-                url: "<?=base_url('Mailandsms/get_whatsapp_template')?>",
+                url: "<?= base_url('mailandsms/get_whatsapp_template') ?>", // Controller method
                 type: "POST",
-                data: { template_id: templateID },
+                data: { id: templateID },
                 dataType: "json",
                 success: function(res) {
-                    if(res.status == 1) {
-                        $('#whatsapp_message').val(res.message);
+                    if (res.status) {
+                        $('#whatsapp_templ').val(res.template); // Fill message with params
+                        $('#whatsapp_message').val(res.params); // Fill message with params
                     } else {
+                        $('#whatsapp_templ').val('');
                         $('#whatsapp_message').val('');
                     }
                 }
@@ -1902,5 +1932,33 @@ $(document).ready(function() {
             $('#whatsapp_message').val('');
         }
     });
+
+    // Handle Send button AJAX submit
+    $('#whatsapp_form').on('submit', function(e) {
+        e.preventDefault();
+
+        var formData = $(this).serialize();
+
+        $.ajax({
+            url: "<?= base_url('mailandsms/send_whatsapp_message') ?>", // Controller method
+            type: "POST",
+            data: formData,
+            dataType: "json",
+            beforeSend: function() {
+                toastr.info('Sending WhatsApp messages, please wait...');
+            },
+            success: function(res) {
+                if (res.status) {
+                    toastr.success(res.message);
+                } else {
+                    toastr.error(res.message || 'Failed to send WhatsApp messages');
+                }
+            },
+            error: function() {
+                toastr.error('Error occurred while sending WhatsApp messages.');
+            }
+        });
+    });
+
 });
 </script>

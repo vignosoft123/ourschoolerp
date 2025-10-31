@@ -45,12 +45,13 @@ class Whatsapp_m extends MY_Model {
 	function sendWhatsapp($to, $message, $template_name = '') {  //send marks &
         // URL encode message and template name
         $msg = $message;
+		// echo $msg;die;
         $message = urlencode($message);
         $template_name = urlencode($template_name);
     
         // Construct API URL
         $url = "http://bwa.mindwhile.com/api/sendmsgutil.php?user={$this->username}&pass={$this->password}&sender={$this->senderID}&phone={$to}&text={$template_name}&priority=wa&stype=normal&Params={$message}";
-    
+    		//echo $url;die;
         // Initialize cURL
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -93,42 +94,164 @@ class Whatsapp_m extends MY_Model {
         return $output ?: false;
     }
 
-	public function get_whatsapp_credits()
+ 
+
+
+	public function sendWhatsapp_bulk_batch($dataBatch, $templateName)
 {
-    $get_msg91s = $this->smssettings_m->get_order_by_whatsapp();
+    $sent = 0;
 
-    if (isset($get_msg91s[1]->field_values) && isset($get_msg91s[2]->field_values)) {
-        $user_name = $get_msg91s[1]->field_values;
-        $password  = $get_msg91s[2]->field_values;
+    // You can send 50–100 numbers per API call (depending on provider)
+    $chunkSize = 50;
+    foreach (array_chunk($dataBatch, $chunkSize) as $batch) {
+        $payload = [
+            'template_name' => $templateName,
+            'messages' => $batch
+        ];
 
-        $url = "http://bwa.mindwhile.com/api/checkbalancewamu.php?user=$user_name&pass=$password";
-        // echo "URL: " . $url . "<br>";
+        $response = $this->send_to_api($payload); // your WhatsApp API function
 
+        if ($response && isset($response['success_count'])) {
+            $sent += $response['success_count'];
+        }
+    }
+
+    return $sent;
+}
+
+
+public function send_to_api($payload)
+{
+    $templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
+    $messages     = isset($payload['messages']) ? $payload['messages'] : [];
+
+    if (empty($messages)) {
+        return ['success_count' => 0, 'results' => []];
+    }
+
+    // ✅ WhatsApp API Credentials
+    $username  = $this->username;
+    $password  = $this->password;
+    $senderID  =  $this->senderID; // optional, depends on your MindWhile account
+
+	    //  $url = "http://bwa.mindwhile.com/api/sendmsgutil.php?user={$this->username}&pass={$this->password}&sender={$this->senderID}&phone={$to}&text={$template_name}&priority=wa&stype=normal&Params={$message}";
+
+    $results = [];
+    $successCount = 0;
+
+    foreach ($messages as $msg) {
+        // Each $msg should be like: ['phone' => '919876543210', 'message' => 'text message']
+
+        $to       = trim($msg['phone']);
+        $text     = urlencode($templateName);
+        $params   = urlencode($msg['message']);
+
+        // ✅ Construct API URL
+        $url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
+             . "?user={$username}"
+             . "&pass={$password}"
+             . "&sender={$senderID}"
+             . "&phone={$to}"
+             . "&text={$text}"
+             . "&priority=wa"
+             . "&stype=normal"
+             . "&Params={$params}";
+
+			//  echo $url;die;
+        // ✅ Execute API Request
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_TIMEOUT => 15,
-            CURLOPT_ENCODING => '',
+            CURLOPT_TIMEOUT => 10,
         ]);
 
-        $result = curl_exec($ch);
-        $error = curl_error($ch);
+        $response = curl_exec($ch);
+        $error    = curl_error($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
-        if ($error) {
-            echo "CURL ERROR: " . $error;
-            return 0;
-        }
+        // ✅ Prepare result log
+        $status = ($httpCode == 200 && stripos($response, 'success') !== false);
 
-       return $result;
-        die;
+        if ($status) $successCount++;
+
+        $results[] = [
+              'request_url'   => $url,
+            'api_response'  => $response,
+            'created_on'    => date("Y-m-d H:i:s"),
+            'type'          => "whatsapp",
+            'message'       =>$msg['message'],
+            'template_name' => $templateName
+        ];
+
+		 
+
     }
 
-	return 0;
+    // ✅ Log to database (optional)
+	// print_r($results);
+    $this->log_whatsapp_history($results);
+
+    // ✅ Return summary
+    return [
+        'success_count' => $successCount,
+        'results'       => $results
+    ];
 }
+
+private function log_whatsapp_history($results)
+{
+    foreach ($results as $r) {
+        $this->db->insert('whatsapp_logs', [
+            'request_url'        => $r['request_url'],
+            'api_response'     => $r['api_response'],
+            'type'      => $r['type'],
+            'message'     => $r['message'],
+            'template_name'       => $r['template_name'],
+            'created_on'  => date('Y-m-d H:i:s')
+        ]);
+		// echo $this->db->last_query();die;
+    }
+}
+
+
+	public function get_whatsapp_credits()
+	{
+		$get_msg91s = $this->smssettings_m->get_order_by_whatsapp();
+
+		if (isset($get_msg91s[1]->field_values) && isset($get_msg91s[2]->field_values)) {
+			$user_name = $get_msg91s[1]->field_values;
+			$password  = $get_msg91s[2]->field_values;
+
+			$url = "http://bwa.mindwhile.com/api/checkbalancewamu.php?user=$user_name&pass=$password";
+			// echo "URL: " . $url . "<br>";
+
+			$ch = curl_init();
+			curl_setopt_array($ch, [
+				CURLOPT_URL => $url,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_FOLLOWLOCATION => true,
+				CURLOPT_SSL_VERIFYPEER => false,
+				CURLOPT_TIMEOUT => 15,
+				CURLOPT_ENCODING => '',
+			]);
+
+			$result = curl_exec($ch);
+			$error = curl_error($ch);
+			curl_close($ch);
+
+			if ($error) {
+				echo "CURL ERROR: " . $error;
+				return 0;
+			}
+
+		return $result;
+			die;
+		}
+
+		return 0;
+	}
 
    
 	function whatsapp_config_send($user) {  //paid fee

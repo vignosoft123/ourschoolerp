@@ -271,6 +271,8 @@ class Mailandsms extends Admin_Controller {
 		$this->data['allClasses'] = $this->classes_m->general_get_classes();
         $this->data['sections'] = [];
         $classesID = $this->input->post("classesID");
+		$this->db->select('mailandsmstemplateID as id, template_name');
+
 		 $this->data['whatsapp_templates'] = $this->db->get('whatapp_templates')->result();
 		//  echo "<pre>";print_r($this->data['whatsapp_templates']);die;
 
@@ -2724,7 +2726,7 @@ class Mailandsms extends Admin_Controller {
 	}
 
 	private function tagConvertor($userTags, $user, $message, $sendType, $schoolyearID) {
-
+	//echo $message;die;
 		$this->data['setting'] = $this->setting_m->get_setting();
 		$school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
 		$website = (isset($this->data['setting']->website)) ? $this->data['setting']->website : "";
@@ -2942,9 +2944,17 @@ class Mailandsms extends Admin_Controller {
 				elseif($userTag->tagname == '{{absent_date}}') {
 					$message = str_replace("{{absent_date}}", date("Y-m-d"), $message);
 				}
+				// elseif($userTag->tagname == '{{school_name}}') {
+				// 	$message = str_replace("{{school_name}}", " ", $message);
+				// }
 				elseif($userTag->tagname == '{{school_name}}') {
-					$message = str_replace("{{school_name}}", " ", $message);
+					if($school_name) {
+						$message = str_replace("{{school_name}}", $school_name, $message);
+					} else {
+						$message = str_replace("{{school_name}}", ' ', $message);
+					}
 				}
+
 				elseif($userTag->tagname == '{{url}}') {
 						$message = str_replace("{{url}}", $website, $message);
 				}
@@ -2960,6 +2970,20 @@ class Mailandsms extends Admin_Controller {
 						$message = str_replace("{{password}}", "123456", $message);
 					} else {
 						$message = str_replace("{{password}}", ' ', $message);
+					}
+				}elseif($userTag->tagname == '{{date}}') {
+					$message = str_replace("{{date}}",$user->date, $message);
+				}elseif($userTag->tagname == '{{category}}') {
+					if($user->category) {
+						$message = str_replace('{{category}}', $user->category, $message);
+					} else {
+						$message = str_replace('{{category}}', ' ', $message);
+					}
+				}elseif($userTag->tagname == '{{paid_amount}}') {
+					if($user->paidamount) {
+						$message = str_replace('{{paid_amount}}', $user->paidamount, $message);
+					} else {
+						$message = str_replace('{{paid_amount}}', ' ', $message);
 					}
 				}
 			}
@@ -3459,15 +3483,132 @@ class Mailandsms extends Admin_Controller {
 		}
 	}
 
-public function get_whatsapp_template() {
-    $id = $this->input->post('template_id');
-    $template = $this->db->get_where('whatsapp_templates', ['id' => $id])->row();
+public function get_whatsapp_template()
+{
+    $id = $this->input->post('id');
+    $data = ['status' => false];
 
-    if ($template) {
-        echo json_encode(['status' => 1, 'message' => $template->message_body]);
-    } else {
-        echo json_encode(['status' => 0, 'message' => '']);
+    if ($id) {
+        $template = $this->db->get_where('whatapp_templates', ['mailandsmstemplateID' => $id])->row();
+        if ($template) {
+            $data = [
+                'status' => true,
+                'params' => $template->params,
+                'template_name' => $template->template_name,
+                'template' => $template->template
+
+            ];
+        }
     }
+
+    echo json_encode($data);
 }
+
+
+public function send_whatsapp_message()
+{
+    $retArray = ['status' => false, 'message' => ''];
+
+    $templateID   = $this->input->post('whatsapp_template');
+    $usertypeID   = $this->input->post('whatsapp_usertypeID');
+    $schoolyearID = $this->input->post('whatsapp_schoolyear');
+    $classesID    = $this->input->post('whatsapp_class');
+    $sectionID    = $this->input->post('whatsapp_section');
+    $users        = $this->input->post('whatsapp_users');
+    $messageText  = $this->input->post('whatsapp_message');
+
+    // ✅ Step 1: Basic Validation
+    if (!$templateID || !$schoolyearID || !$classesID || !$sectionID) {
+        $retArray['message'] = "Missing required fields.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    // ✅ Step 2: Get WhatsApp Template
+    $template = $this->db
+        ->select('params, template_name')
+        ->where('mailandsmstemplateID', $templateID)
+        ->get('whatapp_templates')
+        ->row_array();
+
+    if (!$template) {
+        $retArray['message'] = "Invalid template selected.";
+        echo json_encode($retArray);
+        return;
+    }
+
+     // ✅ Step 3: Fetch All Students (filtered if needed)
+		$this->db->from('studentrelation');
+		$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+		$this->db->join('villages', 'villages.villageID = student.villageID', 'LEFT');
+		$this->db->join('studentextend', 'studentextend.studentID = studentrelation.srstudentID', 'LEFT');
+		$this->db->where([
+			'studentrelation.srschoolyearID' => $schoolyearID,
+			'studentrelation.srclassesID'    => $classesID,
+			'studentrelation.srsectionID'    => $sectionID,
+			'student.active'                 => 1
+		]);
+
+		// ✅ Handle specific student selection
+		if (!empty($users) && is_array($users)) {
+			$this->db->where_in('studentrelation.srstudentID', $users);
+		}
+
+		$this->db->order_by('srroll', 'asc');
+		$students = $this->db->get()->result();
+
+    if (empty($students)) {
+        $retArray['message'] = "No students found for the selected filters.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    // ✅ Step 4: Fetch all parents in one go
+    $parents = $this->parents_m->get_parents();
+    $parentsByID = [];
+    foreach ($parents as $p) {
+        $parentsByID[$p->parentsID] = $p->phone;
+    }
+
+    // ✅ Step 5: Fetch all template tags once
+    $templateTags = $this->mailandsmstemplatetag_m
+        ->get_order_by_mailandsmstemplatetag(['usertypeID' => 3]);
+
+    // ✅ Step 6: Prepare bulk payload (No per-student DB query)
+    $bulkMessages = [];
+    foreach ($students as $student) {
+        $parentPhone = $parentsByID[$student->parentID] ?? '';
+        if ($parentPhone == '') continue;
+
+        $msg = $this->tagConvertor(
+            $templateTags,
+            $student,
+            $template['params'],
+            'SMS',
+            $schoolyearID
+        );
+
+        $bulkMessages[] = [
+            'phone' => $parentPhone,
+            'message' => $msg
+        ];
+    }
+
+    if (empty($bulkMessages)) {
+        $retArray['message'] = "No valid phone numbers found.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    // ✅ Step 7: Send in batches (faster than one-by-one)
+    $this->load->model('Whatsapp_m');
+    $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
+
+    $retArray['status'] = true;
+    $retArray['message'] = "WhatsApp messages sent successfully to {$sentCount} recipients.";
+    echo json_encode($retArray);
+}
+
+
 
 }
