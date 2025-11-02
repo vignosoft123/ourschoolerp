@@ -994,21 +994,21 @@
                                             
 
                                            <?php 
-                                                // if(form_error('whatsapp_numbers')) 
-                                                //     echo "<div class='form-group has-error' >";
-                                                // else     
-                                                //     echo "<div class='form-group' >";
+                                                if(form_error('whatsapp_numbers')) 
+                                                    echo "<div class='form-group has-error' >";
+                                                else     
+                                                    echo "<div class='form-group' >";
                                             ?>
-                                              <!--    <label for="whatsapp_numbers" class="col-sm-2 control-label">
+                                                 <label for="whatsapp_numbers" class="col-sm-2 control-label">
                                                 Other Whatsapp Numbers   <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-10">
-                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_numbers" name="others" ><?=set_value('whatsapp_numbers')?></textarea>
+                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_numbers" name="other_whatsapp_numbers" ><?=set_value('whatsapp_numbers')?></textarea>
                                                 </div>
                                                 <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
                                                     <?php //echo form_error('whatsapp_numbers'); ?>
                                                 </span>
-                                            </div> -->
+                                            </div>
                                                <!-- WhatsApp Template Dropdown -->
                                                     <div class="form-group <?= form_error('whatsapp_template') ? 'has-error' : '' ?>">
                                                         <label for="whatsapp_template" class="col-sm-2 control-label">
@@ -1055,7 +1055,7 @@
                                                 Whatsapp Template  <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-10">
-                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_templ" name="whatsapp_templ" ><?=set_value('whatsapp_templ')?></textarea>
+                                                    <textarea readonly class="form-control" style="resize:vertical" id="whatsapp_templ" name="whatsapp_templ" ><?=set_value('whatsapp_templ')?></textarea>
                                                 </div>
                                                 <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
                                                     <?php echo form_error('whatsapp_templ'); ?>
@@ -1069,10 +1069,10 @@
                                                     echo "<div class='form-group' >";
                                             ?>
                                                 <label for="whatsapp_message" class="col-sm-2 control-label">
-                                                Whatsapp Params  <span class="text-red">*</span>
+                                                Comma Separated values  <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-10">
-                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_message" name="whatsapp_message" ><?=set_value('whatsapp_message')?></textarea>
+                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_message" name="whatsapp_message" > </textarea>
                                                 </div>
                                                 <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
                                                     <?php echo form_error('whatsapp_message'); ?>
@@ -1751,7 +1751,7 @@ $('#divwhatsapp_class').hide();
                 data: "templateID=" + templateID,
                 dataType: "html",
                 success: function(data) {
-                   $('#whatsapp_message').html(data);
+                   //$('#whatsapp_message').html(data);
                 }
             });
 
@@ -1920,11 +1920,13 @@ $(document).ready(function() {
                 dataType: "json",
                 success: function(res) {
                     if (res.status) {
-                        $('#whatsapp_templ').val(res.template); // Fill message with params
-                        $('#whatsapp_message').val(res.params); // Fill message with params
+                      $('#whatsapp_templ').val(res.template + '\n' + res.params); // Fill message with params
+                        // $('#whatsapp_message').val(res.params); // Fill message with params
+                        $('#whatsapp_message').val(''); 
+
                     } else {
                         $('#whatsapp_templ').val('');
-                        $('#whatsapp_message').val('');
+                        $('#whatsapp_message').val(''); 
                     }
                 }
             });
@@ -1940,7 +1942,8 @@ $(document).ready(function() {
         var formData = $(this).serialize();
 
         $.ajax({
-            url: "<?= base_url('mailandsms/send_whatsapp_message') ?>", // Controller method
+           // url: "<?php //echo base_url('mailandsms/send_whatsapp_message') ?>", //dynamic bulk whatsapp message
+             url: "<?= base_url('mailandsms/send_whatsapp_static_message') ?>", // Controller method
             type: "POST",
             data: formData,
             dataType: "json",

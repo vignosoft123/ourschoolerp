@@ -137,6 +137,7 @@
 
         <button id="exportButton" class="btn btn-default">Export to Excel</button>
         <button class="btn btn-default " id="send_sms_balance_btn"><span class="fa fa-send"></span> Send SMS</button>
+        <button class="btn btn-default " id="send_whatsapp_balance_btn"><span class="fa fa-send"></span> Send Whatsapp</button>
 
        
 
@@ -627,6 +628,52 @@ $.ajax({
     success: function(result)
     {
         console.log("SMS sent successfully:", result);
+
+    }
+})
+});
+
+
+$(document).off("click", "#send_whatsapp_balance_btn").on("click", "#send_whatsapp_balance_btn", function() {
+
+
+var st_ids = [];
+st_names =[];
+mobile_no = [];
+balance = [];
+// total_marks = [] ;
+// marks_template = []; 
+i=j=k=l=m=n=0;
+var date = $("#date").val();
+var dynamic_term = $("#feetypeID option:selected").text(); 
+if(date == null || date == ''){
+    alert('Please select date');
+    return false;
+}
+
+
+$('.checkbox:checked').each(function(){        
+    // var values = $(this).val();
+    // var sids = $(this).attr("st_ids");
+    
+    st_ids[i++] = $(this).attr("st_ids");
+    st_names[j++] = $(this).attr("st_names");
+    mobile_no[k++] = $(this).attr("mobile_no");
+    balance[l++] = $(this).attr("balance");
+    // total_marks[m++] = $(this).attr("total_marks");
+    // marks_template[n++] = $(this).attr("marks_template");
+}); 
+
+$.ajax({
+                
+    type: "POST",
+    url: "<?php echo site_url('progresscardreport/send_balance_whatsapp'); ?>",
+    // dataType: "json",
+    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance,"date":date,"dynamic_term":dynamic_term},
+    success: function(result)
+    {
+        alert(result.message);
+        console.log("whatsapp sent successfully:", result);
 
     }
 })

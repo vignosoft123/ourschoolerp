@@ -24,8 +24,15 @@
                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                         <a class="red-text" href="<?php echo base_url('mailandsms/errors') ?>">
                             <i class="glyphicon glyphicon-ban-circle"></i> 
-                            Error Logs
+                            Sms Error Logs
                         </a>
+
+                         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <a class="red-text" href="<?php echo base_url('mailandsms/whatsapp_logs_list') ?>">
+                            <i class="glyphicon glyphicon-ban-circle"></i> 
+                            Whatsapp Logs
+                        </a>
+
                     </h5>
                 <?php } ?>
 

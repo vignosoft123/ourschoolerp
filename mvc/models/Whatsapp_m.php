@@ -497,5 +497,20 @@ private function log_whatsapp_history($results)
 	}
     
 
+	public function get_whatsapp_logs($filter = '')
+{
+    $this->db->from('whatsapp_logs');
+    $this->db->order_by('id', 'DESC');
+
+    if ($filter == 'success') {
+        $this->db->like('api_response', 'S.');
+    } elseif ($filter == 'failure') {
+        $this->db->not_like('api_response', 'S.');
+    }
+
+    return $this->db->get()->result();
+}
+
+
 
 }

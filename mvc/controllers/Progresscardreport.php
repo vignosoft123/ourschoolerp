@@ -1386,4 +1386,78 @@ class Progresscardreport extends Admin_Controller {
 	   
 	// }
 
+public function send_balance_whatsapp()
+{
+    $retArray = ['status' => false, 'message' => ''];
+
+    $st_ids       = $this->input->post('st_ids');
+    $mobile_no    = $this->input->post('mobile_no');
+    $balance      = $this->input->post('balance');
+    $date         = $this->input->post('date');
+    $dynamic_term = $this->input->post('dynamic_term') != 'Please Select' ? $this->input->post('dynamic_term') : '';
+    $st_names     = $this->input->post('st_names');
+ 
+
+	 $template_sql = "select params,template_name from whatapp_templates where short_name like '%FEE_PAID%' ";
+		$template = $this->db->query($template_sql)->row_array();
+
+    if (!$template) {
+        $retArray['message'] = "Invalid template selected.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    if (empty($st_ids) || empty($mobile_no) || empty($balance) || empty($template['template_name'])) {
+        $retArray['message'] = "Missing required fields.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    // ✅ Get registered school name
+    $this->load->model('setting_m');
+    $this->data['setting'] = $this->setting_m->get_setting();
+    $school_name = isset($this->data['setting']->sname) ? $this->data['setting']->sname : '';
+
+    $query = $this->db->select('field_values')
+        ->where(['types' => 'msg91', 'field_names' => 'msg91_register_school_name'])
+        ->get('smssettings')
+        ->row();
+    $registered_school_name = $query ? $query->field_values : $school_name;
+ 
+	
+
+    // ✅ Prepare bulk message data
+    $bulkMessages = [];
+    foreach ($st_names as $key => $student_name) {
+        if (empty($mobile_no[$key])) continue;
+
+        $param1 = $student_name;
+        $param2 = $balance[$key];
+        $param3 = $date;
+        $param4 = $registered_school_name;
+
+        $params = "{$param1},{$param2},{$param3},{$param4}";
+
+        $bulkMessages[] = [
+            'phone'   => $mobile_no[$key],
+            'message' => $params
+        ];
+    }
+
+    if (empty($bulkMessages)) {
+        $retArray['message'] = "No valid phone numbers found.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    // ✅ Send messages via model
+    $this->load->model('Whatsapp_m');
+    $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
+
+    $retArray['status'] = true;
+    $retArray['message'] = "WhatsApp balance messages sent successfully to {$sentCount} recipients.";
+    echo json_encode($retArray);
+}
+
+
 }

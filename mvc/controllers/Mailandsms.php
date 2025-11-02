@@ -3610,5 +3610,157 @@ public function send_whatsapp_message()
 }
 
 
+// bulk whatsapp static start
+public function send_whatsapp_static_message()
+{
+    $retArray = ['status' => false, 'message' => ''];
+
+    $templateID   = $this->input->post('whatsapp_template');
+    $usertypeID   = $this->input->post('whatsapp_usertypeID');
+    $schoolyearID = $this->input->post('whatsapp_schoolyear');
+    $classesID    = $this->input->post('whatsapp_class');
+    $sectionID    = $this->input->post('whatsapp_section');
+    $users        = $this->input->post('whatsapp_users');
+    $messageText  = $this->input->post('whatsapp_message');
+	$other_whatsapp_numbers = $this->input->post('other_whatsapp_numbers'); // e.g. "8500595656,9989876545" 
+
+    // ✅ Step 1: Basic validation
+    if (!$templateID || !$schoolyearID || !$classesID || !$sectionID) {
+        $retArray['message'] = "Missing required fields.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    // ✅ Step 2: Get WhatsApp Template
+    $template = $this->db
+        ->select('params, template_name')
+        ->where('mailandsmstemplateID', $templateID)
+        ->get('whatapp_templates') // ✅ fixed table name typo
+        ->row_array();
+
+    if (!$template) {
+        $retArray['message'] = "Invalid template selected.";
+        echo json_encode($retArray);
+        return;
+    }
+
+    // ✅ Step 3: Optimized Query – fetch only necessary fields
+    $this->db->select('student.studentID, student.name, student.parentID, parents.phone');
+    $this->db->from('studentrelation');
+    $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+    $this->db->join('parents', 'parents.parentsID = student.parentID', 'LEFT');
+    $this->db->where([
+        'studentrelation.srschoolyearID' => $schoolyearID,
+        'studentrelation.srclassesID'    => $classesID,
+        'studentrelation.srsectionID'    => $sectionID,
+        'student.active'                 => 1
+    ]);
+
+    if (!empty($users) && is_array($users)) {
+        $this->db->where_in('studentrelation.srstudentID', $users);
+    }
+
+    $this->db->order_by('studentrelation.srroll', 'asc');
+    $students = $this->db->get()->result();
+
+  
+
+    // ✅ Step 4: Prepare payload directly (no secondary parent query)
+   
+
+$bulkMessages = [];
+
+// ✅ 1. Add student numbers
+foreach ($students as $student) {
+    if (!empty($student->phone)) {
+        $bulkMessages[] = [
+            'phone'   => preg_replace('/\D/', '', $student->phone), // sanitize to digits
+            'message' => $messageText,
+        ];
+    }
+}
+
+// ✅ 2. Add other custom numbers
+if (!empty($other_whatsapp_numbers)) {
+    // Split by comma, remove spaces
+    $otherNumbers = array_map('trim', explode(',', $other_whatsapp_numbers));
+
+    foreach ($otherNumbers as $num) {
+        if (preg_match('/^[0-9]{10,15}$/', $num)) { // simple number validation
+            $bulkMessages[] = [
+                'phone'   => $num,
+                'message' => $messageText,
+            ];
+        }
+    }
+}
+
+  if (empty($bulkMessages)) {
+        $retArray['message'] = "No numbers found for the selected filters.";
+        echo json_encode($retArray);
+        return;
+    }
+
+// ✅ 3. Check before sending
+if (empty($bulkMessages)) {
+    $retArray['message'] = "No valid phone numbers found.";
+    echo json_encode($retArray);
+    return;
+}
+
+// ✅ 4. Send in batches
+$this->load->model('Whatsapp_m');
+$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
+
+
+    $retArray['status'] = true;
+    $retArray['message'] = "WhatsApp messages sent successfully to {$sentCount} recipients.";
+    echo json_encode($retArray);
+}
+
+	//bulk whatsapp end
+
+public function whatsapp_logs_list()
+{
+    $this->load->model('Whatsapp_m');
+
+	
+		$this->data['headerassets'] = array(
+			'css' => array(
+				'assets/select2/css/select2.css',
+				'assets/select2/css/select2-bootstrap.css',
+				'assets/editor/jquery-te-1.4.0.css'
+			),
+			'js' => array(
+				'assets/select2/select2.js',
+				'assets/editor/jquery-te-1.4.0.min.js'
+			)
+		);
+
+    $filter = $this->input->get('status'); // 'success', 'failure', or ''
+   $this->data['status_filter'] = $filter;
+
+    $this->data['logs'] = $this->Whatsapp_m->get_whatsapp_logs($filter);
+
+    // $this->load->view('mailandsms/whatsapp_logs_list', $this->data);
+
+	$this->data["subview"] = "mailandsms/whatsapp_logs_list";
+		$this->load->view('_layout_main', $this->data);
+}
+
+/** ✅ AJAX Delete (single/multiple) */
+public function delete_whatsapp_logs()
+{
+    $ids = $this->input->post('ids'); // array of IDs
+
+    if (!empty($ids)) {
+        $this->db->where_in('id', $ids)->delete('whatsapp_logs');
+        echo json_encode(['status' => 1, 'message' => 'Selected logs deleted successfully.']);
+    } else {
+        echo json_encode(['status' => 0, 'message' => 'No logs selected.']);
+    }
+}
+
+
 
 }
