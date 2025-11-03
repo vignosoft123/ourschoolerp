@@ -1398,7 +1398,7 @@ public function send_balance_whatsapp()
     $st_names     = $this->input->post('st_names');
  
 
-	 $template_sql = "select params,template_name from whatapp_templates where short_name like '%FEE_PAID%' ";
+	 $template_sql = "select params,template_name from whatapp_templates where short_name like '%FEE_REMINDER%' ";
 		$template = $this->db->query($template_sql)->row_array();
 
     if (!$template) {
@@ -1434,7 +1434,7 @@ public function send_balance_whatsapp()
         $param1 = $student_name;
         $param2 = $balance[$key];
         $param3 = $date;
-        $param4 = $registered_school_name;
+        // $param4 = $registered_school_name;
 
         $params = "{$param1},{$param2},{$param3},{$param4}";
 

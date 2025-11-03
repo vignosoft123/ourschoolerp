@@ -29,33 +29,45 @@
                     </h5>
                 <?php } ?>
 
+                 <div class="pull-right">
+                    <button id="deleteSelectedErrors" class="btn btn-danger btn-sm">
+                        <i class="fa fa-trash"></i> Delete Selected
+                    </button>
+                </div>
+
                 <div id="hide-table">
-                <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
-    <thead>
-        <tr>
-            <th style="width: 5%;"><?=$this->lang->line('slno')?></th>
-            <th style="width: 15%;">Response</th>
-            <th style="width: 15%;">Type</th>
-            <th style="width: 15%;">Message</th>
-            <th style="width: 5%;">Created On</th>
-            <th style="width: 25%;">Request</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php if(customCompute($errors)) {$i = 1; foreach($errors as $error) { ?>
-            <tr>
-                <td data-title="<?=$this->lang->line('slno')?>">
-                    <?php echo $i; ?>
-                </td>
-                <td><?= $error->api_response?></td>
-                <td><?= $error->type?></td>
-                <td style="width: 15%;"><?= $error->message?></td>
-                <td><?= $error->created_on?></td>
-                <td><?= $error->request_url?></td>
-            </tr>
-        <?php $i++; }} ?>
-    </tbody>
-</table>
+                 <table id="example1" class="table table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="selectAllErrors"></th>
+                    <th style="width: 5%;"><?=$this->lang->line('slno')?></th>
+                    <th style="width: 15%;">Response</th>
+                    <th style="width: 15%;">Type</th>
+                    <th style="width: 25%;">Message</th>
+                    <th style="width: 10%;">Created On</th>
+                    <th style="width: 20%;">Request</th>
+                    <th style="width: 5%;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if(customCompute($errors)) { $i = 1; foreach($errors as $error) { ?>
+                    <tr id="errorRow_<?=$error->id?>">
+                        <td><input type="checkbox" class="errorCheckbox" value="<?=$error->id?>"></td>
+                        <td><?=$i?></td>
+                        <td><?=htmlspecialchars($error->api_response)?></td>
+                        <td><?=htmlspecialchars($error->type)?></td>
+                        <td><?=substr(strip_tags($error->message), 0, 60)?></td>
+                        <td><?=date("d M Y h:i a", strtotime($error->created_on))?></td>
+                        <td><?=substr(strip_tags($error->request_url), 0, 60)?></td>
+                        <td>
+                            <button class="btn btn-danger btn-xs deleteError" data-id="<?=$error->id?>">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                <?php $i++; } } ?>
+            </tbody>
+        </table>
 
                 </div>
    
@@ -65,3 +77,60 @@
         </div><!-- row -->
     </div><!-- Body -->
 </div><!-- /.box -->
+<script>
+$(document).ready(function() {
+    // Select/Deselect all
+    $('#selectAllErrors').on('change', function() {
+        $('.errorCheckbox').prop('checked', this.checked);
+    });
+
+    // ✅ Single Delete
+    $('.deleteError').on('click', function() {
+        const id = $(this).data('id');
+        if (confirm('Are you sure you want to delete this log?')) {
+            $.ajax({
+                url: '<?=base_url('mailandsms/delete_error_log/')?>' + id,
+                type: 'POST',
+                dataType: 'json',
+                success: function(res) {
+                    if (res.status) {
+                        $('#errorRow_' + id).fadeOut(500, function() { $(this).remove(); });
+                    } else {
+                        alert(res.message);
+                    }
+                }
+            });
+        }
+    });
+
+    // ✅ Multiple Delete
+    $('#deleteSelectedErrors').on('click', function() {
+        const selected = $('.errorCheckbox:checked').map(function() {
+            return $(this).val();
+        }).get();
+
+        if (selected.length === 0) {
+            alert('Please select at least one record to delete.');
+            return;
+        }
+
+        if (confirm('Delete selected logs?')) {
+            $.ajax({
+                url: '<?=base_url('mailandsms/delete_multiple_error_logs')?>',
+                type: 'POST',
+                data: { ids: selected },
+                dataType: 'json',
+                success: function(res) {
+                    if (res.status) {
+                        selected.forEach(function(id) {
+                            $('#errorRow_' + id).fadeOut(500, function() { $(this).remove(); });
+                        });
+                    } else {
+                        alert(res.message);
+                    }
+                }
+            });
+        }
+    });
+});
+</script>

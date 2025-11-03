@@ -37,57 +37,59 @@
                 <?php } ?>
 
                 <div id="hide-table">
-                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
-                        <thead>
-                            <tr>
-                                <th class="col-lg-1"><?=$this->lang->line('slno')?></th>
-                                <th class="col-lg-1"><?=$this->lang->line('mailandsms_usertype')?></th>
-                                <th class="col-lg-3"><?=$this->lang->line('mailandsms_users')?></th>
-                                <th class="col-lg-1"><?=$this->lang->line('mailandsms_type')?></th>
-                                <th class="col-lg-2"><?=$this->lang->line('mailandsms_dateandtime')?></th>
-                                <th class="col-lg-3"><?=$this->lang->line('mailandsms_message')?></th>
-                                <?php if(permissionChecker('mailandsms_view')) { ?>
-                                <th class="col-lg-1"><?=$this->lang->line('action')?></th>
-                                <?php } ?>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if(customCompute($mailandsmss)) {$i = 1; foreach($mailandsmss as $mailandsms) { ?>
-                                <tr>
-                                    <td data-title="<?=$this->lang->line('slno')?>">
-                                        <?php echo $i; ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('mailandsms_usertype')?>">
-                                        <?=($mailandsms->usertypeID !== NULL) ? $mailandsms->usertype : $this->lang->line('mailandsms_guest_user')?>
-                                    </td>
 
-                                    <td data-title="<?=$this->lang->line('mailandsms_users')?>">
-                                        <?php
-                                            if(strlen($mailandsms->users) > 36) {
-                                                echo substr($mailandsms->users, 0, 36). ".."; 
-                                            } else {
-                                                echo $mailandsms->users;
-                                            }
-                                        ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('mailandsms_type')?>">
-                                        <?php echo $mailandsms->type; ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('mailandsms_dateandtime')?>">
-                                        <?php echo date("d M Y h:i:s a", strtotime($mailandsms->create_date));?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('mailandsms_message')?>">
-                                        <?php echo substr(strip_tags($mailandsms->message), 0, 36). ".."; ?>
-                                    </td>
-                                    <?php if(permissionChecker('mailandsms_view')) { ?>
-                                    <td data-title="<?=$this->lang->line('action')?>">
-                                        <?php echo btn_view('mailandsms/view/'.$mailandsms->mailandsmsID.'/'.$mailandsms->campid, $this->lang->line('view')) ?>
-                                    </td>
-                                    <?php } ?>
-                                </tr>
-                            <?php $i++; }} ?>
-                        </tbody>
-                    </table>
+                        <button id="deleteSelected" class="btn btn-danger btn-sm pull-right">Delete Selected</button>
+
+
+                    <table id="mailSmsTable" class="table table-striped table-bordered table-hover">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            <th><?=$this->lang->line('slno')?></th>
+            <th><?=$this->lang->line('mailandsms_usertype')?></th>
+            <th><?=$this->lang->line('mailandsms_users')?></th>
+            <th><?=$this->lang->line('mailandsms_type')?></th>
+            <th><?=$this->lang->line('mailandsms_dateandtime')?></th>
+            <th><?=$this->lang->line('mailandsms_message')?></th>
+            <?php if(permissionChecker('mailandsms_view')) { ?>
+                <th><?=$this->lang->line('action')?></th>
+            <?php } ?>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if(customCompute($mailandsmss)) { $i = 1; foreach($mailandsmss as $mailandsms) { ?>
+            <tr id="row_<?=$mailandsms->mailandsmsID?>">
+                <td><input type="checkbox" class="recordCheckbox" value="<?=$mailandsms->mailandsmsID?>"></td>
+                <td><?=$i?></td>
+                <td><?=($mailandsms->usertypeID !== NULL) ? $mailandsms->usertype : $this->lang->line('mailandsms_guest_user')?></td>
+                <td>
+                    <?php
+                        if(strlen($mailandsms->users) > 36) {
+                            echo substr($mailandsms->users, 0, 36). "..";
+                        } else {
+                            echo $mailandsms->users;
+                        }
+                    ?>
+                </td>
+                <td><?=$mailandsms->type?></td>
+                <td><?=date("d M Y h:i:s a", strtotime($mailandsms->create_date))?></td>
+                <td><?=substr(strip_tags($mailandsms->message), 0, 36).'..'?></td>
+
+                <?php if(permissionChecker('mailandsms_view')) { ?>
+                <td>
+
+                  <?php echo btn_view('mailandsms/view/'.$mailandsms->mailandsmsID.'/'.$mailandsms->campid, $this->lang->line('view')) ?>
+                  
+                    <button class="btn btn-danger btn-xs deleteSingle" data-id="<?=$mailandsms->mailandsmsID?>">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </td>
+                <?php } ?>
+            </tr>
+        <?php $i++; } } ?>
+    </tbody>
+</table>
+
                 </div>
    
 
@@ -96,3 +98,59 @@
         </div><!-- row -->
     </div><!-- Body -->
 </div><!-- /.box -->
+
+<script>
+$(document).ready(function () {
+    // ✅ Select all checkbox
+    $('#selectAll').on('change', function() {
+        $('.recordCheckbox').prop('checked', $(this).prop('checked'));
+    });
+
+    // ✅ Single delete
+    $('.deleteSingle').click(function () {
+        let id = $(this).data('id');
+        if (confirm('Are you sure you want to delete this record?')) {
+            $.ajax({
+                url: "<?=base_url('mailandsms/delete_mailandsms')?>",
+                type: "POST",
+                data: { id: id },
+                dataType: "json",
+                success: function (res) {
+                    if (res.status) {
+                        $('#row_' + id).remove();
+                    }
+                    alert(res.message);
+                }
+            });
+        }
+    });
+
+    // ✅ Bulk delete
+    $('#deleteSelected').click(function () {
+        let selected = [];
+        $('.recordCheckbox:checked').each(function () {
+            selected.push($(this).val());
+        });
+
+        if (selected.length === 0) {
+            alert('Please select at least one record.');
+            return;
+        }
+
+        if (confirm('Are you sure you want to delete selected records?')) {
+            $.ajax({
+                url: "<?=base_url('mailandsms/delete_mailandsms_bulk')?>",
+                type: "POST",
+                data: { ids: selected },
+                dataType: "json",
+                success: function (res) {
+                    if (res.status) {
+                        selected.forEach(id => $('#row_' + id).remove());
+                    }
+                    alert(res.message);
+                }
+            });
+        }
+    });
+});
+</script>

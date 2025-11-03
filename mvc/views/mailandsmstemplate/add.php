@@ -279,6 +279,8 @@
                                             </span>
                                         </div>
 
+                                    
+
                                         <div class="form-group">
                                             <div class="col-sm-offset-1 col-sm-8">
                                                 <input type="submit" class="btn btn-success" value="<?=$this->lang->line("add_template")?>" >
@@ -532,7 +534,7 @@
                                                 echo "<div class='form-group' >";
                                         ?>
                                             <label for="whatsapp_temp_name" class="col-sm-1 control-label">
-                                                Whatsap Template <span class="text-red">*</span>
+                                                Whatsapp Template <span class="text-red">*</span>
                                             </label>
                                             <div class="col-sm-8">
                                                 <textarea class="form-control" style="resize: vertical;" id="whatsapp_temp_name" name="whatsapp_temp_name" ><?=set_value('template')?></textarea>
@@ -558,6 +560,38 @@
                                                 <?php echo form_error('template_id'); ?>
                                             </span>
                                         </div>
+
+
+                                            <?php
+                                            if(form_error('short_name'))
+                                                echo "<div class='form-group has-error' >";
+                                            else
+                                                echo "<div class='form-group' >";
+                                        ?>
+                                            <label for="short_name" class="col-sm-1 control-label">
+                                                Short Name <span class="text-red">*</span>
+                                            </label>
+                                            <div class="col-sm-4">
+                                                <?php
+                                                    $shorts = array('select' => $this->lang->line('mailandsmstemplate_select_user'),
+                                                        'ATTENDANCE' => 'ATTENDANCE',
+                                                        'FEE_PAID' => 'FEE_PAID',
+                                                        'EXAM_MARKS' => 'EXAM_MARKS',
+                                                        'HOLIDAY_INTIMATION' => 'HOLIDAY_INTIMATION',
+                                                        'FEE_REMINDER' => 'FEE_REMINDER'
+                                                    );
+
+                                                    echo form_dropdown("short_name", $shorts, set_value("short_name"), "id='short_name' class='form-control select2'");
+                                                ?>
+                                            </div>
+                                            <span class="col-sm-4 control-label">
+                                                <?php echo form_error('short_name'); ?>
+                                            </span>
+                                        </div>
+
+                                        
+
+                                        
 
                                         <div class="form-group">
                                             <div class="col-sm-offset-1 col-sm-8">

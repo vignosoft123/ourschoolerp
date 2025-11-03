@@ -720,7 +720,9 @@ class Mailandsms extends Admin_Controller {
 										'message' => $this->input->post('whatsapp_message'),
 										'year' => date('Y'),
 										'senderusertypeID' => $this->session->userdata('usertypeID'),
-										'senderID' => $this->session->userdata('loginuserID')
+										'senderID' => $this->session->userdata('loginuserID'),
+										'short_name' => $this->input->post('short_name'),
+										 
 									);
 									$this->mailandsms_m->insert_mailandsms($array);
 									redirect(base_url('mailandsms/index'));
@@ -3758,6 +3760,62 @@ public function delete_whatsapp_logs()
         echo json_encode(['status' => 1, 'message' => 'Selected logs deleted successfully.']);
     } else {
         echo json_encode(['status' => 0, 'message' => 'No logs selected.']);
+    }
+}
+
+
+
+// ✅ Single delete via AJAX
+public function delete_mailandsms()
+{
+    $id = $this->input->post('id');
+    $response = ['status' => false, 'message' => 'Invalid request'];
+
+    if ($id) {
+        $this->db->where('mailandsmsID', $id);
+        $this->db->delete('mailandsms');
+        $response = ['status' => true, 'message' => 'Record deleted successfully'];
+    }
+
+    echo json_encode($response);
+}
+
+// ✅ Bulk delete via AJAX
+public function delete_mailandsms_bulk()
+{
+    $ids = $this->input->post('ids');
+    $response = ['status' => false, 'message' => 'No records selected'];
+
+    if (!empty($ids)) {
+        $this->db->where_in('mailandsmsID', $ids);
+        $this->db->delete('mailandsms');
+        $response = ['status' => true, 'message' => 'Selected records deleted successfully'];
+    }
+
+    echo json_encode($response);
+}
+
+
+public function delete_error_log($id = null)
+{
+    if ($id) {
+        $this->db->where('id', $id);
+        $this->db->delete('sms_error_logs');
+        echo json_encode(['status' => true, 'message' => 'Log deleted successfully']);
+    } else {
+        echo json_encode(['status' => false, 'message' => 'Invalid ID']);
+    }
+}
+
+public function delete_multiple_error_logs()
+{
+    $ids = $this->input->post('ids');
+    if (!empty($ids)) {
+        $this->db->where_in('id', $ids);
+        $this->db->delete('sms_error_logs');
+        echo json_encode(['status' => true, 'message' => 'Selected logs deleted successfully']);
+    } else {
+        echo json_encode(['status' => false, 'message' => 'No IDs selected']);
     }
 }
 
