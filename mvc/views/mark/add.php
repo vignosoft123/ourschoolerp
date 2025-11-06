@@ -697,6 +697,95 @@
                         </button>
 
                         <button type="button" class="btn btn-success " id="add_mark" name="add_mark" value="Save or Refresh Marks" > Save or Refresh Marks </button>
+
+                        <!-- Message Preview Modal -->
+                        <div class="modal fade" id="messagePreviewModal" role="dialog">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">
+                                            <span id="previewModalIcon"></span>
+                                            <span id="previewModalTitle"></span>
+                                        </h4>
+                                    </div>
+                                    <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                                        <div id="messagePreviewContent" class="message-preview-container"></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                                            <i class="fa fa-times"></i> Cancel
+                                        </button>
+                                        <button type="button" class="btn btn-primary" id="confirmSendMessage">
+                                            <i class="fa fa-paper-plane"></i> Confirm & Send
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <style>
+                            .sms-preview-container {
+                                padding: 10px;
+                            }
+                            .sms-preview-item {
+                                background-color: #f8f9fa;
+                                border: 1px solid #e9ecef;
+                                border-radius: 8px;
+                                padding: 15px;
+                                margin-bottom: 15px;
+                                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                                transition: all 0.3s ease;
+                            }
+                            .sms-preview-item:hover {
+                                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                                transform: translateY(-2px);
+                            }
+                            .sms-preview-item .recipient {
+                                color: #495057;
+                                font-weight: 600;
+                                margin-bottom: 10px;
+                                padding-bottom: 10px;
+                                border-bottom: 1px dashed #ced4da;
+                            }
+                            .sms-preview-item .message {
+                                color: #212529;
+                                line-height: 1.5;
+                                white-space: pre-line;
+                            }
+                            .modal-header.bg-info {
+                                background-color: #17a2b8;
+                                color: white;
+                            }
+                            .modal-header .close {
+                                color: white;
+                                opacity: 0.8;
+                            }
+                            .modal-header .close:hover {
+                                opacity: 1;
+                            }
+                        </style>
+
+                        <!-- SMS Preview Modal -->
+                        <div class="modal fade" id="smsPreviewModal" tabindex="-1" role="dialog">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Preview SMS Messages</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div id="smsPreviewContent">
+                                            <!-- Messages will be populated here -->
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" id="confirmSendSMS">Confirm & Send</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
 
@@ -707,22 +796,130 @@
 
 
                     <script type="text/javascript">
-                        window.addEventListener('load', function() {
-                            setTimeout(lazyLoad, 1000);
-                        });
+                        jQuery(document).ready(function($) {
+                            // SMS Preview and Send functionality
+                            $("#send_sms_marks_btn").on('click', function(e) {
+                                e.preventDefault();
+                                // If this click is initiated by the user (not programmatic), set preview type to SMS
+                                // event.isTrusted is true for user actions, false for script-triggered events
+                                if (e && e.isTrusted) {
+                                    window.previewMessageType = 'sms';
+                                }
+                                var selectedCheckboxes = $('input[name="send_sms_marks"]:checked');
+                                
+                                if (selectedCheckboxes.length === 0) {
+                                    toastr["warning"]("Please select at least one student");
+                                    return;
+                                }
 
-                        function lazyLoad() {
-                            var card_images = document.querySelectorAll('.card-image');
-                            card_images.forEach(function(card_image) {
-                                var image_url = card_image.getAttribute('data-image-full');
-                                var content_image = card_image.querySelector('img');
-                                content_image.src = image_url;
-                                content_image.addEventListener('load', function() {
-                                    card_image.style.backgroundImage = 'url(' + image_url + ')';
-                                    card_image.className = card_image.className + ' is-loaded';
+                                var previewHtml = '<div class="sms-preview-list">';
+                                
+                                selectedCheckboxes.each(function() {
+                                    var $checkbox = $(this);
+                                    var marks_template = $checkbox.attr('marks_template') || '';
+                                    
+                                    // Remove trailing comma if exists
+                                    var template1 = marks_template.endsWith(',') ? 
+                                        marks_template.slice(0, -1) : marks_template;
+                                    
+                                    var subs = template1.split(',');
+                                    
+                                    // Format the message
+                                    var message = 'Dear parent, your children ' + $checkbox.attr('st_names') + 
+                                                ' Exam name ' + $checkbox.attr('exam_name') + 
+                                                ' marks are ' + subs.join(' and ') +
+                                                '. Total: ' + $checkbox.attr('total_marks') + 
+                                                ' Grade:' + $checkbox.attr('marks_grade');
+
+                                    previewHtml += '<div class="sms-preview-item">';
+                                    previewHtml += '<div class="recipient"><i class="fa fa-user"></i> ' + 
+                                                 $checkbox.attr('st_names') + 
+                                                 ' <span style="color: #6c757d">(' + 
+                                                 $checkbox.attr('mobile_no') + ')</span></div>';
+                                    previewHtml += '<div class="message">' + message + '</div>';
+                                    previewHtml += '</div>';
+                                });
+                                
+                                previewHtml += '</div>';
+                                
+                                $('#smsPreviewContent').html(previewHtml);
+                                // mark preview type as SMS (default)
+                                window.previewMessageType = window.previewMessageType || 'sms';
+                                $('#smsPreviewModal').modal('show');
+                            });
+
+                            // WhatsApp button should reuse the same preview builder: set type and trigger click
+                            $("#send_whatsapp_marks_btn").on('click', function(e) {
+                                e.preventDefault();
+                                if ($('input[name="send_sms_marks"]:checked').length === 0) {
+                                    toastr["warning"]("Please select at least one student");
+                                    return;
+                                }
+                                // set preview type so confirm posts to whatsapp endpoint
+                                window.previewMessageType = 'whatsapp';
+                                // trigger the SMS preview builder to populate modal (it will read previewMessageType)
+                                $("#send_sms_marks_btn").trigger('click');
+                            });
+
+                            // Handle confirmation and sending
+                            $('#confirmSendSMS').on('click', function() {
+                                var selectedData = {
+                                    st_ids: [],
+                                    mobile_no: [],
+                                    marks_template: [],
+                                    st_names: [],
+                                    total_marks: [],
+                                    exam_name: [],
+                                    marks_grade: [],
+                                    sms_rank: [],
+                                    exam_date: []
+                                };
+
+                                $('input[name="send_sms_marks"]:checked').each(function() {
+                                    var $checkbox = $(this);
+                                    selectedData.st_ids.push($checkbox.attr('st_ids'));
+                                    selectedData.mobile_no.push($checkbox.attr('mobile_no'));
+                                    selectedData.marks_template.push($checkbox.attr('marks_template'));
+                                    selectedData.st_names.push($checkbox.attr('st_names'));
+                                    selectedData.total_marks.push($checkbox.attr('total_marks'));
+                                    selectedData.exam_name.push($checkbox.attr('exam_name'));
+                                    selectedData.marks_grade.push($checkbox.attr('marks_grade'));
+                                    selectedData.sms_rank.push($checkbox.attr('sms_rank'));
+                                    selectedData.exam_date.push($checkbox.attr('exam_date'));
+                                });
+
+                                var previewType = window.previewMessageType || 'sms';
+                                var url = previewType === 'whatsapp' ?
+                                    "<?=base_url('progresscardreport/send_marks_to_whatsapp')?>" :
+                                    "<?=base_url('progresscardreport/send_marks_to_sms')?>";
+
+                                $.ajax({
+                                    type: 'POST',
+                                    url: url,
+                                    data: selectedData,
+                                    success: function(response) {
+                                        $('#smsPreviewModal').modal('hide');
+                                        try {
+                                            var total = JSON.parse(response);
+                                            if (total > 0) {
+                                                toastr["success"]((previewType === 'whatsapp' ? "WhatsApp" : "SMS") + " sent successfully");
+                                            } else {
+                                                toastr["error"]("Failed to send " + (previewType === 'whatsapp' ? "WhatsApp" : "SMS"));
+                                            }
+                                        } catch (e) {
+                                            toastr["success"]((previewType === 'whatsapp' ? "WhatsApp" : "SMS") + " request completed");
+                                        }
+                                    },
+                                    error: function() {
+                                        $('#smsPreviewModal').modal('hide');
+                                        toastr["error"]("Failed to send " + (previewType === 'whatsapp' ? "WhatsApp" : "SMS"));
+                                    }
                                 });
                             });
-                        }
+
+                            // Lazy load images
+                                setTimeout(lazyLoad, 1000);
+                            });
 
                         $(document).on("keyup", ".mark", function() {
                             if (parseInt($(this).val())) {
@@ -931,67 +1128,30 @@
             });
 
  
-            $.ajax({
+            // $.ajax({
                             
-                type: "POST",
-                url: "<?php echo site_url('progresscardreport/send_marks_to_sms'); ?>",
-                // dataType: "json",
-                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"marks_grade":marks_grade,"sms_rank" : sms_rank},
-                success: function(result)
-                {
+            //     type: "POST",
+            //     url: "<?php echo site_url('progresscardreport/send_marks_to_sms1'); ?>",
+            //     // dataType: "json",
+            //     data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"marks_grade":marks_grade,"sms_rank" : sms_rank},
+            //     success: function(result)
+            //     {
                     
-                }
-            })
+            //     }
+            // })
         });
 
-        $(document).on("click","#send_whatsapp_marks_btn",function(){
-
+        // Override direct WhatsApp send: show preview modal first
+        $(document).on("click","#send_whatsapp_marks_btn",function(e){
+            e.preventDefault();
             if ($(".checkbox:checked").length === 0) {
                 alert("Please check at least one checkbox before proceeding.");
                 return false;
             }
-
-            
-            var sms_rank = [];
-            var marks_grade = [];
-            var st_ids = [];
-            st_names =[];
-            mobile_no = [];
-            exam_name = [];
-            total_marks = [] ;
-            marks_template = [];  
-            exam_date = [];  
-            i=j=k=l=m=n=o=p=q=0;
-
-            $('.checkbox:checked').each(function(){        
-                // var values = $(this).val();
-                // var sids = $(this).attr("st_ids");sms_rank
-                
-                sms_rank[q++] = $(this).attr("sms_rank");
-                marks_grade[p++] = $(this).attr("marks_grade");
-                st_ids[i++] = $(this).attr("st_ids");
-                st_names[j++] = $(this).attr("st_names");
-                mobile_no[k++] = $(this).attr("mobile_no");
-                exam_name[l++] = $(this).attr("exam_name");
-                total_marks[m++] = $(this).attr("total_marks");
-                marks_template[n++] = $(this).attr("marks_template");
-                exam_date[o++] = $(this).attr("exam_date");
-            });
-                 
-            var grade_rank = marks_grade + 'Rank ' + sms_rank;
-
-            $.ajax({
-                            
-                type: "POST",
-                url: "<?php echo site_url('progresscardreport/send_marks_to_whatsapp'); ?>",
-                // dataType: "json",
-                data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"exam_name":exam_name,"total_marks":total_marks,"marks_template":marks_template,"exam_date":exam_date,"marks_grade" :marks_grade,"sms_rank" : sms_rank},
-                success: function(result)
-                {
-                    
-                }
-            })
-            });
+            // set preview type and reuse SMS preview builder
+            window.previewMessageType = 'whatsapp';
+            //$("#send_sms_marks_btn").trigger('click');
+        });
 
             
 
