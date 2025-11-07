@@ -58,6 +58,13 @@
                                 <?=form_error('month')?>
                             </span>
                         </div>
+                        <div class="form-group <?=form_error('date') ? 'has-error' : '' ?>">
+                            <label for="salary_date">Salary Date <span class="text-red">*</span></label>
+                            <input type="date" name="salary_date" class="form-control" id="salary_date" value="<?=set_value('salary_date', date('Y-m-d'))?>">
+                            <span class="text-red">
+                                <?=form_error('salary_date')?>
+                            </span>
+                        </div>
 
                         <?php if($manage_salary->salary == 2) { ?>
                             <div class="form-group <?=form_error('total_hours') ? 'has-error' : '' ?>">
@@ -141,7 +148,7 @@
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('make_payment_date')?>">
-                                        <?php echo date("d M Y", strtotime($make_payment->create_date)); ?>
+                                        <?php echo date("d M Y", strtotime($make_payment->salary_date)); ?>
                                     </td>
 
                                     <td data-title="<?php if($manage_salary->salary == 2) { echo $this->lang->line('make_payment_net_salary_hourly'); } else { echo $this->lang->line('make_payment_net_salary'); } ?>">

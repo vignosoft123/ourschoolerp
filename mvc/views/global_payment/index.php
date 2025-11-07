@@ -340,7 +340,7 @@
                                             <tr>
                                                 <!-- <td>#</td> -->
                                                 <td style="width:3%" ><input type="checkbox" id="select_all"> 
-                                                <!-- <a style="    padding: 1px 5px;" id="update_selected" class=" btn btn-danger btn-xs mrg"  ><i class="fa fa-trash-o"></i></a> -->
+                                                <a style="    padding: 1px 5px;" id="update_selected" class=" btn btn-danger btn-xs mrg"  ><i class="fa fa-trash-o"></i></a>
                                             </td>
                                                  
                                                 <td><?=$this->lang->line('global_fees_name')?></td>
@@ -398,7 +398,7 @@
                                                             <!-- <td style="width:10%"><?=$i?></td> -->
                                                             <td><input type="checkbox" class="record_checkbox" value="<?= $invoice->invoiceID ?>" data-maininvoiceid="<?= $invoice->maininvoiceID ?>">
 
-                                                            <!-- <a style="    padding: 1px 5px;" class="update_single btn btn-danger btn-xs mrg" data-id="<?= $invoice->invoiceID ?>" data-mainid="<?= $invoice->maininvoiceID ?>"><i class="fa fa-trash-o"></i></a> -->
+                                                            <a style="    padding: 1px 5px;" class="update_single btn btn-danger btn-xs mrg" data-id="<?= $invoice->invoiceID ?>" data-mainid="<?= $invoice->maininvoiceID ?>"><i class="fa fa-trash-o"></i></a>
                                                         </td>
 
                                                           

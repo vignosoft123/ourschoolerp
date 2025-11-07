@@ -359,6 +359,8 @@
                                 <?php 
                                 $fee_paid_balance = $feeamount."^".$paid."^".$Balance;
                                 $fee_paid_balance = encrypt_data($fee_paid_balance); 
+                                // $fee_paid_balance = $Balance; 
+
                                 ?>
                                 <input type="checkbox" st_ids="<?=$student->studentID?>" st_names="<?=$student->name?>" mobile_no="<?=$student->phone?>" balance="<?=$fee_paid_balance?>" name="send_sms_balance" id="send_sms_balance" class="checkbox">
                             </td>
@@ -672,7 +674,20 @@ $.ajax({
     data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance,"date":date,"dynamic_term":dynamic_term},
     success: function(result)
     {
-        alert(result.message);
+        var msg = "";
+        try {
+            if (typeof result === "string") {
+                var parsed = JSON.parse(result);
+                msg = parsed.message || JSON.stringify(parsed);
+            } else if (typeof result === "object" && result !== null) {
+                msg = result.message || JSON.stringify(result);
+            } else {
+                msg = "Message sent successfully.";
+            }
+        } catch (e) {
+            msg = "Message sent successfully.";
+        }
+        alert(msg);
         console.log("whatsapp sent successfully:", result);
 
     }

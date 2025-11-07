@@ -1431,12 +1431,22 @@ public function send_balance_whatsapp()
     foreach ($st_names as $key => $student_name) {
         if (empty($mobile_no[$key])) continue;
 
+
+		 $decrypt_data1 =  decrypt_data($balance[$key]);
+		$decrypt_data = explode("^",$decrypt_data1);
+
+
+		// $user['fee_amount'] = 'Rs '.$decrypt_data[0].'.00';
+		// $user['paid_amount'] = 'Rs '.$decrypt_data[1].'.00';
+		// $user['balance_amount'] = 'Rs '.$decrypt_data[2].'.00';
+
+
         $param1 = $student_name;
-        $param2 = $balance[$key];
+        $param2 = 'Rs '.$decrypt_data[2];
         $param3 = $date;
         // $param4 = $registered_school_name;
 
-        $params = "{$param1},{$param2},{$param3},{$param4}";
+        $params = "{$param1},{$param2},{$param3}";
 
         $bulkMessages[] = [
             'phone'   => $mobile_no[$key],

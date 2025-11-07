@@ -31,9 +31,9 @@
                                 <th class="col-sm-2">Villege Name</th>
                                 <th class="col-sm-2">Database Id</th>
                                 <th class="col-sm-1"><?= $this->lang->line('village_status') ?></th>
-                                <?php if (permissionChecker('village_edit') || permissionChecker('village_delete')) { ?>
+                                <?php //if (permissionChecker('village_edit') || permissionChecker('village_delete')) { ?>
                                     <th class="col-sm-1"><?= $this->lang->line('action') ?></th>
-                                <?php } ?>
+                                <?php //} ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -65,11 +65,16 @@
                                             ?>
                                         </td>
 
-                                        <?php if (permissionChecker('village_edit') || permissionChecker('village_delete')) { ?>
+                                        <?php //if (permissionChecker('village_edit') || permissionChecker('village_delete')) { ?>
                                             <td data-title="<?= $this->lang->line('action') ?>">
-                                                <?php echo btn_edit('village/edit/' . $village->villageID, $this->lang->line('edit')); ?>
+                                              
+
+                                                <a href="<?php echo base_url('village/edit/' . $village->villageID) ?>">
+                                                    <i class="fa fa-pencil"></i> 
+                                                </a>
+
                                             </td>
-                                        <?php } ?>
+                                        <?php //} ?>
                                     </tr>
                             <?php $i++;
                                 }

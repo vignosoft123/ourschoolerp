@@ -250,6 +250,7 @@ class Make_payment extends Admin_Controller {
                                             'create_userID'     => $this->session->userdata('loginuserID'),
                                             'create_username'   => $this->session->userdata('username'),
                                             'create_usertype'   => $this->session->userdata('usertype'),
+                                            'salary_date'      => date("Y-m-d",strtotime($this->input->post('salary_date'))),
                                         );
 
                                         if($manageSalary->salary == 2) {

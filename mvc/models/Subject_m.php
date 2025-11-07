@@ -43,20 +43,21 @@ class Subject_m extends MY_Model {
     
 
 public function general_get_order_by_subject($array = NULL) {
-    $this->db->select('subject.*, examschedule.max_mark,examschedule.examID');
-    $this->db->from('subject');
-    $this->db->join('examschedule', 'examschedule.subjectID = subject.subjectID', 'LEFT');
+	$this->db->select('subject.*, MAX(examschedule.max_mark) as max_mark, MAX(examschedule.examID) as examID');
+	$this->db->from('subject');
+	$this->db->join('examschedule', 'examschedule.subjectID = subject.subjectID', 'LEFT');
 
-    if($array != NULL) {
-        // this will apply condition on subject table only
-        foreach ($array as $key => $value) {
-            $this->db->where('subject.'.$key, $value);
-        }
-    }
+	if($array != NULL) {
+		// this will apply condition on subject table only
+		foreach ($array as $key => $value) {
+			$this->db->where('subject.'.$key, $value);
+		}
+	}
 
-    $this->db->order_by('subject.subjectID', 'ASC');
-    $query = $this->db->get();
-    return $query->result();
+	$this->db->group_by('subject.subjectID');
+	$this->db->order_by('subject.subjectID', 'ASC');
+	$query = $this->db->get();
+	return $query->result();
 }
 
 
