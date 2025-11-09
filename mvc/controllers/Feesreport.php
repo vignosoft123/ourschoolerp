@@ -232,7 +232,7 @@ class Feesreport extends Admin_Controller{
 					$this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(),'feetypes','feetypesID');
 					$this->data['getFeesReports'] = $this->payment_m->get_all_payment_for_report($this->input->post());
 
-					// echo "<pre>";print_r($this->data['getFeesReports']);die;
+					// echo "<pre>";print_r($this->data);die;
 
 					$retArray['render'] = $this->load->view('report/fees/FeesReport', $this->data,true);
 					$retArray['status'] = TRUE;

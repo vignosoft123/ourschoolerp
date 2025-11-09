@@ -1442,7 +1442,7 @@ public function send_balance_whatsapp()
 
 
         $param1 = $student_name;
-        $param2 = 'Rs '.$decrypt_data[2];
+        $param2 = 'Rs '.str_replace(',', '', $decrypt_data[2]);
         $param3 = $date;
         // $param4 = $registered_school_name;
 

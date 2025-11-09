@@ -126,6 +126,7 @@
             <th><?=$this->lang->line('feesreport_payment_date')?></th>
             <th><?='Cashier Name'; ?></th>
             <th><?=$this->lang->line('feesreport_name')?></th>
+            <th>Roll No</th>
             <?php if(!($classesID > 0)) { ?>
                 <th><?=$this->lang->line('feesreport_class')?></th>
             <?php } ?>
@@ -170,6 +171,9 @@
             <td data-title="<?=$this->lang->line('feesreport_payment_date')?>"><?=date('d M Y',strtotime($getFeesReport->paymentdate))?></td>
             <td data-title=""><?=$getFeesReport->uname;?></td>
             <td data-title="<?=$this->lang->line('feesreport_name')?>"><?=isset($students[$getFeesReport->studentID]) ? $students[$getFeesReport->studentID]->srname : '' ?></td>
+            <td data-title="Roll No">
+                <?=isset($students[$getFeesReport->studentID]) ? $students[$getFeesReport->studentID]->srroll : '' ?>
+            </td>
 
             <?php if(!($classesID > 0)) {
                 echo "<td data-title='".$this->lang->line('feesreport_class')."'>";
@@ -248,7 +252,7 @@
 
         <?php
             // Adjust colspan logic based on class/section columns
-            $colspan = 6; // base columns without phone/reg no
+            $colspan = 7; // base columns now includes Roll No
             if($classesID == 0) $colspan++;
             if($sectionID == 0) $colspan++;
         ?>

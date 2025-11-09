@@ -22,7 +22,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
-        <div class="row">
+        const reader = new FileReader();
             <div class="col-sm-12">
 
                 <?php if ((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
@@ -89,6 +89,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                   <input type="text" id="last_name" name="last_name" class="form-control id_card" placeholder="Last Name">
                 </div>
                 <div class="col-md-3 form-group">
+}
                   <label>ID Card Name</label>
                   <input type="text" id="name_id" name="name" class="form-control" placeholder="Name on ID Card">
                 </div>
@@ -369,8 +370,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="<?= $this->lang->line('slno') ?>">
                                                             <?php echo $i; ?>
                                                         </td>
-                                                        <td onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
+                                                        <td class="student-photo-cell" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
                                                             <?= profileimage($student->photo); ?>
+                                                            <span class="photo-zoom-icon" data-img="<?= base_url('uploads/images/') . ($student->photo ? $student->photo : 'default.png') ?>" title="Preview">
+                                                                <i class="fa fa-search-plus" aria-hidden="true"></i>
+                                                            </span>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_registerNO') ?>">
                                                             <?php echo $student->srregisterNO; ?>
@@ -490,8 +494,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         </td>
                                                        
 
-                                                        <td onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
+                                                        <td class="student-photo-cell" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
                                                             <?= profileimage($student->photo); ?>
+                                                            <span class="photo-zoom-icon" data-img="<?= base_url('uploads/images/') . ($student->photo ? $student->photo : 'default.png') ?>" title="Preview">
+                                                                <i class="fa fa-search-plus" aria-hidden="true"></i>
+                                                            </span>
                                                         </td>
 
                                                         <td data-title="<?= $this->lang->line('student_registerNO') ?>">
@@ -625,30 +632,218 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
 
 <!-- photo  Modal  start Structure -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
 <div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="fileUploadModalLabel">Upload Photo</h5>
-                    <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
-                </div>
-                <div class="modal-body">
-                    <!-- Form for File Upload -->
-                    <form id="fileUploadForm" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="formFile" class="form-label">Choose a file to upload</label>
-                            <input class="form-control" type="file" id="formFile" name="file">
-                            <input class="form-control" type="hidden" id="student_id" name="studentID" value="">
-                        </div>
-                        <div class="mb-3">
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </div>
-                    </form>
-                </div>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileUploadModalLabel">Upload Photo</h5>
+                <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
+            </div>
+            <div class="modal-body">
+                <!-- Form for File Upload -->
+                <form id="fileUploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label">Choose a file to upload</label>
+                        <input class="form-control" type="file" id="formFile" name="file" accept="image/*">
+                        <input class="form-control" type="hidden" id="student_id" name="studentID" value="">
+                    </div>
+                    <div class="mb-3" id="imagePreviewContainer" style="display:none; text-align:center;">
+                        <img id="imagePreview" style="max-width:100%; max-height:300px;" />
+                    </div>
+                    <div class="mb-3" id="cropBtnContainer" style="display:none; text-align:center;">
+                        <button type="button" class="btn btn-secondary" id="cropImageBtn">Crop & Compress</button>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div> 
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+let cropper;
+let croppedBlob;
+let compressedBlob = null; // holds auto-compressed blob when original > limit
+const MAX_FILE_SIZE_MB = 0.05; // 0.05MB (50KB) limit
+const MAX_WIDTH = 400; // px
+const MAX_HEIGHT = 400; // px
+
+/**
+ * Compress image file to target max bytes by resizing and reducing JPEG quality.
+ * Returns a Promise<Blob>.
+ */
+function compressImage(file, maxBytes) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            img.onload = function() {
+                // compute scale to fit MAX_WIDTH / MAX_HEIGHT
+                let width = img.width;
+                let height = img.height;
+                const maxW = MAX_WIDTH;
+                const maxH = MAX_HEIGHT;
+                if (width > maxW || height > maxH) {
+                    const ratio = Math.min(maxW / width, maxH / height);
+                    width = Math.round(width * ratio);
+                    height = Math.round(height * ratio);
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // try decreasing quality until size under limit or quality too low
+                (function tryCompress(quality) {
+                    canvas.toBlob(function(blob) {
+                        if (!blob) {
+                            reject(new Error('Compression failed')); return;
+                        }
+                        if (blob.size <= maxBytes || quality <= 0.1) {
+                            resolve(blob);
+                        } else {
+                            // reduce quality and try again
+                            tryCompress(quality - 0.1);
+                        }
+                    }, 'image/jpeg', quality);
+                })(0.9);
+            };
+            img.onerror = function() { reject(new Error('Image load error')); };
+            img.src = e.target.result;
+        };
+        reader.onerror = function() { reject(new Error('File read error')); };
+        reader.readAsDataURL(file);
+    });
+}
+
+document.getElementById('formFile').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        // not an image, clear input
+        event.target.value = '';
+        return;
+    }
+
+    const maxBytes = Math.round(MAX_FILE_SIZE_MB * 1024 * 1024);
+    const proceedWithDataURL = function(dataURL) {
+        const image = document.getElementById('imagePreview');
+        image.src = dataURL;
+        document.getElementById('imagePreviewContainer').style.display = 'block';
+        document.getElementById('cropBtnContainer').style.display = 'block';
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(image, {
+            aspectRatio: 1,
+            viewMode: 1,
+            autoCropArea: 1,
+        });
+    };
+
+    if (file.size > maxBytes) {
+        // auto-compress, don't alert the user
+        compressImage(file, maxBytes).then(function(blob) {
+            compressedBlob = blob;
+            // show preview of compressed blob
+            const url = URL.createObjectURL(blob);
+            proceedWithDataURL(url);
+        }).catch(function(err) {
+            // fallback to original file preview if compression fails
+            const reader = new FileReader();
+            reader.onload = function(e) { proceedWithDataURL(e.target.result); };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        // keep original, clear any previous compressed blob
+        compressedBlob = null;
+        const reader = new FileReader();
+        reader.onload = function(e) { proceedWithDataURL(e.target.result); };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('cropImageBtn').addEventListener('click', function() {
+    if (!cropper) return;
+    const canvas = cropper.getCroppedCanvas({
+        width: MAX_WIDTH,
+        height: MAX_HEIGHT,
+        imageSmoothingQuality: 'high',
+    });
+    canvas.toBlob(function(blob) {
+        croppedBlob = blob;
+        // Show preview of cropped image
+        document.getElementById('imagePreview').src = URL.createObjectURL(blob);
+        alert('Image cropped and compressed. Now click Submit to upload.');
+    }, 'image/jpeg', 0.7); // 70% quality
+});
+
+document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var formData = new FormData();
+    var studentID = document.getElementById('student_id').value;
+    formData.append('studentID', studentID);
+    if (croppedBlob) {
+        formData.append('file', croppedBlob, 'cropped.jpg');
+    } else if (compressedBlob) {
+        // use auto-compressed blob when original was too large
+        formData.append('file', compressedBlob, 'compressed.jpg');
+    } else {
+        // fallback: use original file if not cropped or compressed
+        const fileInput = document.getElementById('formFile');
+        if (!fileInput.files[0]) {
+            alert('Please select an image.');
+            return;
+        }
+        formData.append('file', fileInput.files[0]);
+    }
+    fetch('<?php echo base_url('Student/uploadPhoto')?>', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.text())
+    .then(result => {
+        alert('Photo uploaded successfully!');
+        location.reload();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+});
+</script>
 <!-- photo upload modal end -->
+
+<!-- Photo zoom modal -->
+<div class="modal fade" id="photoZoomModal" tabindex="-1" role="dialog" aria-labelledby="photoZoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center" style="padding:10px;">
+                <img id="photoZoomImg" src="" style="max-width:100%; max-height:80vh; border:1px solid #ddd;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .photo-zoom-icon { margin-left:6px; color:#337ab7; cursor:pointer; display:inline-block; vertical-align:middle; }
+    .photo-zoom-icon i { font-size:14px; }
+    .student-photo-cell img { vertical-align:middle; }
+</style>
+
+<script>
+// Show preview when user clicks the zoom icon (click opens modal)
+$(document).on('click', '.photo-zoom-icon', function(e){
+    // stop propagation so the upload modal (parent cell) doesn't open
+    e.stopPropagation();
+    var imgUrl = $(this).attr('data-img');
+    if (!imgUrl) return;
+    $('#photoZoomImg').attr('src', imgUrl);
+    $('#photoZoomModal').modal('show');
+});
+</script>
 
 
 
@@ -821,30 +1016,7 @@ function getStudentID(studentID){
     // alert(studentID);
     $("#student_id").val(studentID);
 }
-
-document.getElementById('fileUploadForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    
-    var formData = new FormData(this);
-    
-    // Example: send form data to server via AJAX (you can adapt this to your own server-side code)
-    fetch('<?php echo base_url('Student/uploadPhoto')?>', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.text())
-    .then(result => {
-        alert('Photo uploaded successfully!');
-        // Close modal after successful upload
-        // var modal = bootstrap.Modal.getInstance(document.getElementById('fileUploadModal'));
-        // modal.hide();
-        location.reload();
-    })
-    .catch(error => {
-        // alert('Error uploading file');
-        console.error('Error:', error);
-    });
-});
+// upload submit handler is defined earlier (handles croppedBlob and compressedBlob fallback)
 </script>
 
 

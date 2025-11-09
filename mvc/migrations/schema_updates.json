@@ -1,4 +1,12 @@
 [
+     {
+        "query": "ALTER TABLE `make_payment` ADD `salary_date` VARCHAR(255) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "make_payment",
+            "column": "salary_date"
+        }
+    }, 
     {
         "query": "ALTER TABLE `student` ADD COLUMN `device_token` VARCHAR(255) DEFAULT NULL",
         "type": "alter",
@@ -7,6 +15,7 @@
             "column": "device_token"
         }
     },
+
     {
         "query": "ALTER TABLE `user` ADD COLUMN `rfid` VARCHAR(255) DEFAULT NULL",
         "type": "alter",

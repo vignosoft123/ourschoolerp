@@ -45,13 +45,13 @@ class Whatsapp_m extends MY_Model {
 	function sendWhatsapp($to, $message, $template_name = '') {  //send marks &
         // URL encode message and template name
         $msg = $message;
-		// echo $msg;die;
+		// echo $msg."<br>";
         $message = urlencode($message);
         $template_name = urlencode($template_name);
     
         // Construct API URL
         $url = "http://bwa.mindwhile.com/api/sendmsgutil.php?user={$this->username}&pass={$this->password}&sender={$this->senderID}&phone={$to}&text={$template_name}&priority=wa&stype=normal&Params={$message}";
-    		//echo $url;die;
+    		// echo $url;die;
         // Initialize cURL
         $ch = curl_init();
         curl_setopt_array($ch, [
