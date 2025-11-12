@@ -827,27 +827,27 @@ font-size: 13px;
 
                                         <td colspan="<?=$totalColumn-$leftColumn?>">
 
-<?php 
-if ($prcnt !== null) {
-    if ($prcnt >= 90 && $prcnt <= 100) {
-        $points = "<span style='color: green; font-size:16px; font-weight:bold;'>Excellent</span>";
-    } elseif ($prcnt >= 80 && $prcnt < 90) {
-        $points = "<span style='color: #28a745; font-size:16px; font-weight:bold;'>Very Good</span>";
-    } elseif ($prcnt >= 70 && $prcnt < 80) {
-        $points = "<span style='color: #007bff; font-size:16px; font-weight:bold;'>Good</span>";
-    } elseif ($prcnt >= 60 && $prcnt < 70) {
-        $points = "<span style='color: #ffc107; font-size:16px; font-weight:bold;'>Fair</span>";
-    } elseif ($prcnt >= 50 && $prcnt < 60) {
-        $points = "<span style='color: orange; font-size:16px; font-weight:bold;'>Average</span>";
-    } elseif ($prcnt < 50) {
-        $points = "<span style='color: red; font-size:16px; font-weight:bold;'>Need Improvement</span>";
-    } else {
-        $points = "";
-    }
+                                    <?php 
+                                    if ($prcnt !== null) {
+                                        if ($prcnt >= 90 && $prcnt <= 100) {
+                                            $points = "<span style='color: green; font-size:16px; font-weight:bold;'>Excellent</span>";
+                                        } elseif ($prcnt >= 80 && $prcnt < 90) {
+                                            $points = "<span style='color: #28a745; font-size:16px; font-weight:bold;'>Very Good</span>";
+                                        } elseif ($prcnt >= 70 && $prcnt < 80) {
+                                            $points = "<span style='color: #007bff; font-size:16px; font-weight:bold;'>Good</span>";
+                                        } elseif ($prcnt >= 60 && $prcnt < 70) {
+                                            $points = "<span style='color: #ffc107; font-size:16px; font-weight:bold;'>Fair</span>";
+                                        } elseif ($prcnt >= 50 && $prcnt < 60) {
+                                            $points = "<span style='color: orange; font-size:16px; font-weight:bold;'>Average</span>";
+                                        } elseif ($prcnt < 50) {
+                                            $points = "<span style='color: red; font-size:16px; font-weight:bold;'>Need Improvement</span>";
+                                        } else {
+                                            $points = "";
+                                        }
 
-    echo $points;
-}
-?>
+                                        echo $points;
+                                    }
+                                    ?>
 
 
 

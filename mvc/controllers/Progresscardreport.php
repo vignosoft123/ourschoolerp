@@ -905,7 +905,15 @@ class Progresscardreport extends Admin_Controller {
 
 					// $this->reportSendToMail('progresscardreport.css', $this->data, 'report/progresscard/ProgresscardReportPDF',$to, $subject,$message);
 
-					$attachment = $this->generateAttachment('progresscardreport.css', $this->data, 'report/progresscard/ProgresscardReportPDF'); 
+					// $attachment = $this->generateAttachment('progresscardreport.css', $this->data, 'report/progresscard/ProgresscardReportPDF'); 
+
+					$attachment = $this->generateAttachment(
+						'<style>' . file_get_contents(FCPATH.'assets/css/progresscardreport.css') . '</style>',
+						$this->data,
+						'report/progresscard/ProgresscardReportPDF'
+					);
+
+
 					$media_path = base_url().$attachment;
 
 					// prepare bulk arrays (initialized on first iteration)
@@ -948,11 +956,11 @@ class Progresscardreport extends Admin_Controller {
 					// unlink attachments and prepare response per phone
 					foreach($attachmentsToUnlink as $att) {
 						if (file_exists($att)) {
-							// if (unlink($att)) {
-							// 	$unlinkMsg = "File deleted successfully.";
-							// } else {
-							// 	$unlinkMsg = "Error deleting the file.";
-							// }
+							if (unlink($att)) {
+								$unlinkMsg = "File deleted successfully.";
+							} else {
+								$unlinkMsg = "Error deleting the file.";
+							}
 						} else {
 							$unlinkMsg = "File does not exist.";
 						}
