@@ -142,36 +142,68 @@ font-size: 13px;
         <button class="btn btn-default sendWhatsapp_btn"></span> Send Whatsapp</button>
     </div>
      
-    <div class="form-group col-sm-12" id="students_div">
-                    <label><?=$this->lang->line("progresscardreport_student")?></label>
+    <div class="form-group col-sm-12" id="students_div" style="margin-top: 20px;">
+    <label style="font-weight: 600; font-size: 15px; color: #333;">
+        <?=$this->lang->line("progresscardreport_student")?>
+    </label>
 
-                    <!-- <select name="stud_id[]" id="stud_id" class="form-control select2" multiple>
-                       <?php 
-                       $stds = (array) $students;
-                       
-                        foreach($stds as $stud){
-                       ?>
-                       <option value="<?php echo $stud->srstudentID?>"><?php echo $stud->srname;?></option>
-                       <?php }?>
-                    </select> -->
-
-                    <?php  foreach($stds as $stud){
-                         $stds = (array) $students;?>
-
-                        <input value="<?php echo $stud->srstudentID?>" type="checkbox" id="stud_id" class="stud_id">
-                        <?php echo $stud->srname;?>
-
-                    <?php }?>
-
-
-                    <p><b>Note :</b> For multi student selection please hold cntl + click</p>
-                    <span class="error" id="stud_error"></span>
-                    <span><button class="btn btn-success sendWhatsapp"><span class="fa fa-send"></span> Send Report to Whatsapp</button></span>
-
-
-                   
-
+    <div style="
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #f9fafb;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+    ">
+        <?php foreach((array)$students as $stud): ?>
+            <label style="
+                display: flex;
+                align-items: center;
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                padding: 6px 10px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            " onmouseover="this.style.background='#e8f5e9'" onmouseout="this.style.background='#fff'">
+                <input 
+                    type="checkbox" 
+                    class="stud_id" 
+                    value="<?=$stud->srstudentID?>" 
+                    style="margin-right: 8px; accent-color: #28a745;"
+                >
+                <span style="font-size: 14px; color: #333;"><?=$stud->srname?></span>
+            </label>
+        <?php endforeach; ?>
     </div>
+
+    <p style="margin: 5px 0 10px 0; color: #777; font-size: 13px;">
+        <b>Note:</b> Hold <b>Ctrl</b> (Windows) or <b>Cmd</b> (Mac) to select multiple students.
+    </p>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <span class="error text-danger" id="stud_error" style="font-size: 13px;"></span>
+
+        <button type="button" class="btn btn-success sendWhatsapp" style="
+            background-color: #25d366;
+            border: none;
+            font-weight: 600;
+            border-radius: 6px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        ">
+            <i class="fa fa-whatsapp"></i> Send Report to WhatsApp
+        </button>
+    </div>
+</div>
+
 
 
 </div>

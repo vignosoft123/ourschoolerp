@@ -815,73 +815,57 @@ class Progresscardreport extends Admin_Controller {
 								}
 
 
-								//code for student attendance in progress report
+								// code for student attendance in progress report
+$this->data['months'] = $months_array = array(
+    '6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec',
+    '1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May',
+);
 
-								$this->data['months'] = $months_array = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May',);
-									
-								$this->db->where('schoolyearID',$schoolyearID);
-								$this->data['schoolyear'] =  $schoolyear = $this->db->get('schoolyear')->row()->schoolyear;
-								 $schoolyear_exp = explode("-",$schoolyear);
+$this->db->where('schoolyearID', $schoolyearID);
+$this->data['schoolyear'] = $schoolyear = $this->db->get('schoolyear')->row()->schoolyear;
+$schoolyear_exp = explode("-", $schoolyear);
 
-								// for($m=6;$m<count($months_array)+6;$m++){
-									foreach($months_array as $mkey=>$v){
+foreach($months_array as $mkey => $v) {
 
-										if ($mkey < 10) {
-											$d_m = str_pad($mkey, 2, "0", STR_PAD_LEFT);
-										}else{$d_m = $mkey;}
+    // Handle month-year formatting
+    $d_m = str_pad($mkey, 2, "0", STR_PAD_LEFT);
+    $year = ($d_m <= 5) ? $schoolyear_exp[1] : $schoolyear_exp[0];
+    $monthyear = $d_m."-".$year;
 
-										if($d_m <= 5){
-											$year = $schoolyear_exp[1];
-										}else{
-											$year = $schoolyear_exp[0];
-										}
-									
-									$monthyear = $d_m."-".$year;
-								$this->db->where('monthyear',$monthyear);
-								$this->db->where('studentID',$studentID[$i]);
-								$attendace = $this->db->get('attendance')->result_array();
-								$absent = 0;
-								$present = 0;
-								
-								
-								for($j=0;$j<count($attendace);$j++){
-									if(!empty($attendace[$j])){
-								foreach($attendace[$j] as $k => $v){
-									for ($d=1; $d <= 31; $d++) { 
-										$acolumnname = 'a'.$d;
-										if($k == $acolumnname){
-											//  if(!empty($v[$k])){
-											// 	if($v[$k] == 'P'){
-											// 		$present += 1;
-											// 	}else if($v[$k] == 'A'){
-											// 		$absent += 1;
-											// 	}
-											//  }
+    // Get attendance for this month and student
+    $this->db->where('monthyear', $monthyear);
+    $this->db->where('studentID', $studentID[$i]);
+    $attendance = $this->db->get('attendance')->result_array();
 
-											if($v[$k] == 'P'){ 
-												$present += 1;
-										   }else{ 
-											   $present += 0;
-										   }
-										   
-										   if($v[$k] == 'A' ){ 
-												$absent += 1;
-										   }else{ 
-											   $absent += 0;
-										   }
-										   
-										}
-									}
-								}
-							}
-							}
-								$temp = array(
-									'absent' => $absent,
-									'present' => $present
-								 );
-								 $this->data['attendance'][$mkey][$studentID[$i]] =$temp;
-								}
-								//end code for attendance
+    $absent = 0;
+    $present = 0;
+
+    // Loop through each attendance record for the month
+    foreach($attendance as $row) {
+        // Check each day a1..a31
+        for ($d = 1; $d <= 31; $d++) {
+            $acolumnname = 'a'.$d;
+
+            if (isset($row[$acolumnname])) {
+                $status = trim($row[$acolumnname]);
+
+                if ($status === 'P') {
+                    $present++;
+                } elseif ($status === 'A') {
+                    $absent++;
+                }
+            }
+        }
+    }
+
+    $temp = array(
+        'absent' => $absent,
+        'present' => $present
+    );
+    $this->data['attendance'][$mkey][$studentID[$i]] = $temp;
+}
+// end code for attendance
+
 
 
 							}
