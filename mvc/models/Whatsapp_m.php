@@ -1,4 +1,4 @@
-<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+﻿<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Whatsapp_m extends MY_Model {
 
@@ -197,6 +197,97 @@ public function send_to_api($payload)
     $this->log_whatsapp_history($results);
 
     // ✅ Return summary
+    return [
+        'success_count' => $successCount,
+        'results'       => $results
+    ];
+}
+
+public function sendWhatsapp_bulk_batch_with_media($dataBatch, $templateName)
+{
+	// echo "<pre>";print_r($dataBatch);die;
+
+    $sent = 0;
+    $chunkSize = 50;
+    foreach (array_chunk($dataBatch, $chunkSize) as $batch) {
+        $payload = [
+            'template_name' => $templateName,
+            'messages' => $batch
+        ];
+        $response = $this->send_to_api_with_media($payload);
+        if ($response && isset($response['success_count'])) {
+            $sent += $response['success_count'];
+        }
+    }
+    return $sent;
+}
+
+public function send_to_api_with_media($payload)
+{
+    $templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
+    $messages     = isset($payload['messages']) ? $payload['messages'] : [];
+    if (empty($messages)) {
+        return ['success_count' => 0, 'results' => []];
+    }
+
+    $username  = $this->username;
+    $password  = $this->password;
+    $senderID  = $this->senderID;
+
+    $results = [];
+    $successCount = 0;
+
+    foreach ($messages as $msg) {
+        $to       = trim($msg['phone']);
+        $text     = urlencode($templateName);
+        $params   = isset($msg['message']) ? urlencode($msg['message']) : '';
+
+        // Construct API URL with base parameters
+        $url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
+             . "?user={$username}"
+             . "&pass={$password}"
+             . "&sender={$senderID}"
+             . "&phone={$to}"
+             . "&text={$text}"
+             . "&priority=wa"
+             . "&stype=normal"
+             . "&Params={$params}";
+
+        // Add media parameters if present (htype and url for documents)
+        if (!empty($msg['htype']) && !empty($msg['url'])) {
+            $url .= "&htype=" . urlencode($msg['htype']) . "&url=" . urlencode($msg['url']);
+        }
+			
+        // Execute API Request
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => 10,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        // Check if successful
+        $status = ($httpCode == 200 && stripos($response, 'success') !== false);
+        if ($status) $successCount++;
+
+        $results[] = [
+            'request_url'   => $url,
+            'api_response'  => $response,
+            'created_on'    => date("Y-m-d H:i:s"),
+            'type'          => "whatsapp",
+            'message'       => isset($msg['message']) ? $msg['message'] : '',
+            'template_name' => $templateName
+        ];
+    }
+
+    // Log to database
+    $this->log_whatsapp_history($results);
+
+    // Return summary
     return [
         'success_count' => $successCount,
         'results'       => $results

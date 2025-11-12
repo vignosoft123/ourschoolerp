@@ -905,27 +905,69 @@ class Progresscardreport extends Admin_Controller {
 
 					// $this->reportSendToMail('progresscardreport.css', $this->data, 'report/progresscard/ProgresscardReportPDF',$to, $subject,$message);
 
-					$attachment = $this->generateAttachment('progresscardreport.css', $this->data, 'report/progresscard/ProgresscardReportPDF');
+					$attachment = $this->generateAttachment('progresscardreport.css', $this->data, 'report/progresscard/ProgresscardReportPDF'); 
 					$media_path = base_url().$attachment;
-					// echo "<pre>";print_r($students);die;
-					
-					$params = array('whatsapp_number'=> $students[0]->phone,'media_path'=>$media_path,'whatsapp_msg'=>'Progress Report');
-					$api_response = $this->send_whatsapp_attachment($params);
- 					 
-					if (file_exists($attachment)) {
-						if (unlink($attachment)) {
-							$retArray[$students[0]->phone]['unlink']  = "File deleted successfully.";
-						} else {
-							$retArray[$students[0]->phone]['unlink']  =  "Error deleting the file.";
-						}
-					} else {
-						$retArray[$students[0]->phone]['unlink']  =  "File does not exist.";
+
+					// prepare bulk arrays (initialized on first iteration)
+					if(!isset($bulkMessages)) {
+						$bulkMessages = array();
+						$attachmentsToUnlink = array();
+						$phonesMap = array();
 					}
-					$retArray[$students[0]->phone]['attachment']  = $attachment;
-					$retArray[$students[0]->phone]['status'] = TRUE;
-					$retArray[$students[0]->phone]['api_response'] = $api_response;
+
+					$phone = isset($students[0]->phone) ? $students[0]->phone : '';
+					$student_name = isset($students[0]->srname) ? $students[0]->srname : (isset($students[0]->name) ? $students[0]->name : '');
+					$exam_name = isset($this->data['exams'][$examID]) ? $this->data['exams'][$examID] : '';
+
+					$params = "{$student_name},{$exam_name}";
+
+					$bulkMessages[] = array(
+						'phone' => $phone,
+						'message' => $params,
+						'url' => $media_path,
+						'htype' => 'document'
+					);
+
+					$attachmentsToUnlink[] = $attachment;
+					$phonesMap[$phone] = array('attachment' => $attachment, 'student_name' => $student_name, 'exam_name' => $exam_name);
+
+				}
+
+				// after loop - send all prepared messages in one batch
+				if(isset($bulkMessages) && customCompute($bulkMessages)) {
+					$template_sql = "select params,template_name from whatapp_templates where short_name like '%PROGRESS_CARD%' ";
+					$template = $this->db->query($template_sql)->row_array();
+
+					if($template && !empty($template['template_name'])) {
+						$this->load->model('Whatsapp_m');
+						$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media($bulkMessages, $template['template_name']);
+					} else {
+						$sentCount = 0;
+					}
+
+					// unlink attachments and prepare response per phone
+					foreach($attachmentsToUnlink as $att) {
+						if (file_exists($att)) {
+							// if (unlink($att)) {
+							// 	$unlinkMsg = "File deleted successfully.";
+							// } else {
+							// 	$unlinkMsg = "Error deleting the file.";
+							// }
+						} else {
+							$unlinkMsg = "File does not exist.";
+						}
+						foreach($phonesMap as $p => $info) {
+							if($info['attachment'] === $att) {
+								$retArray[$p]['unlink'] = $unlinkMsg;
+								$retArray[$p]['attachment'] = $att;
+								$retArray[$p]['status'] = TRUE;
+							}
+						}
+					}
+
+					$retArray['status'] = TRUE;
+					$retArray['sent'] = isset($sentCount) ? $sentCount : 0;
 					echo json_encode($retArray);
-    				//exit;
 				}
 			} else {
 				$retArray['message'] = $this->lang->line('progresscardreport_permissionmethod');
@@ -1170,7 +1212,8 @@ class Progresscardreport extends Admin_Controller {
 		    { 
 		        	$template1 = substr($marks_template[$key],0,-1);
 					 
-					$params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
+					// $params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
+					$params = $st_names[$key].','.$exam_name[$key];
 					
 
 					if (strpos($school_name, 'VIVEKA') !== false  ) {
@@ -1189,6 +1232,7 @@ class Progresscardreport extends Admin_Controller {
 					$message = $params.','.$final_messege.','.$school_name;
 
 					}
+					// echo $params;die;
 					// echo $message;die;
 					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,$template_name);
 		        
@@ -1470,4 +1514,46 @@ public function send_balance_whatsapp()
 }
 
 
+    /**
+     * Send progress card as WhatsApp document using template PROGRESS_CARD
+     * Uses sendWhatsapp_bulk_batch_with_media to handle document attachments
+     */
+    private function send_progresscard_whatsapp($phone, $student_name, $exam_name, $media_path)
+    {
+        $retArray = ['status' => false, 'message' => '', 'sent' => 0];
+
+        if (empty($phone) || empty($media_path)) {
+            $retArray['message'] = 'Missing phone or media path';
+            return $retArray;
+        }
+
+        // Get template with short_name like PROGRESS_CARD
+        $template_sql = "select params,template_name from whatapp_templates where short_name like '%PROGRESS_CARD%' ";
+        $template = $this->db->query($template_sql)->row_array();
+
+        if (!$template || empty($template['template_name'])) {
+            $retArray['message'] = 'Template PROGRESS_CARD not configured';
+            return $retArray;
+        }
+
+        // Params: student_name,exam_name (as stated in requirements)
+        $params = "{$student_name},{$exam_name}";
+
+        $bulkMessages = [];
+        $bulkMessages[] = [
+            'phone'   => $phone,
+            'message' => $params,
+            'url'     => $media_path,
+            'htype'   => 'document'
+        ];
+
+        $this->load->model('Whatsapp_m');
+        // Use sendWhatsapp_bulk_batch_with_media to handle htype and url parameters
+        $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media($bulkMessages, $template['template_name']);
+
+        $retArray['status'] = true;
+        $retArray['message'] = "Sent to {$sentCount} recipient(s)";
+        $retArray['sent'] = $sentCount;
+        return $retArray;
+    }
 }

@@ -22,7 +22,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
-        const reader = new FileReader();
             <div class="col-sm-12">
 
                 <?php if ((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
@@ -50,9 +49,9 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                 </a>
 
  
-<!-- Button to trigger modal -->
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#quickStudentModal">
-  Quick Student Creation
+<!-- Button to trigger modal (styled to match site 'Add' button) -->
+<button type="button" class="ose-btn create-btn btn btn-primary" data-toggle="modal" data-target="#quickStudentModal" style="margin-left:8px;">
+    <i class="fa fa-plus"></i> Quick Student Creation
 </button>
 
 <!-- Modal -->

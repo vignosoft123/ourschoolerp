@@ -1,454 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<!-- <head>
     <meta charset="UTF-8">
-</head>
-<style>
-       
+    <title>Progress Card</title>
+    <style type="text/css">
+    .grade-label { padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-block; font-size: 13px; }
+    .grade-a-plus { background-color: #e6f4ea; color: #2e7d32; }
+    .grade-a      { background-color: #e8f5e9; color: #388e3c; }
+    .grade-b-plus { background-color: #e3f2fd; color: #0288d1; }
+    .grade-b      { background-color: #e1f5fe; color: #039be5; }
+    .grade-c-plus { background-color: #fff9c4; color: #fbc02d; }
+    .grade-c      { background-color: #ffe0b2; color: #f57c00; }
+    .grade-d      { background-color: #ffcdd2; color: #d32f2f; }
+    .error{color:red;}
+    .row_background {background-color:#dce1ee;}
+    .row_absent{background-color: #f8e3e3;}
+    .row_head{background-color:#ea893b;}
+    .mainprogresscardreport{ margin: 0px auto 10px; padding:55px; max-width:794px; border:1px solid #ddd; min-height: 443px; }
+    .progresscard-contents { margin-top: 10px; }
+    .progresscard-contents table { width: 100%; border-collapse: collapse; }
+    .progresscard-contents table tr,.progresscard-contents table td,.progresscard-contents table th { border:1px solid #ddd; padding: 8px; font-size: 14px; text-align: center; }
+    .table-container { width: 100%; margin: 20px 0; border-collapse: collapse; }
+    .table-container td, .table-container th { padding: 12px; text-align: left; border: 1px solid #ddd; }
+    .table-container th { background-color: #f4f4f4; }
+    .text-red { color: #e74c3c; font-weight: bold; }
+    .text-green { color: #2ecc71; font-weight: bold; }
+    .full-width { width: 100%; }
+    @media print { * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; print-color-adjust: exact !important; } }
     </style>
+</head> -->
 <body>
-<?php 
-                // echo "<pre>";print_r($students);die;
-                if(customCompute($students)) { foreach($students as $student) { ?>
-                    <input type="hidden" name="st_ids[]" value="<?=$student->studentID?>">
-                    <input type="hidden" name="st_names[]" value="<?=$student->name?>">
-                    <input type="hidden" name="mobile_no[]" value="<?=$student->phone?>">
-                    <div class="mainprogresscardreport">
-                        <!-- <div class="progresscard-headers">
-                            <div class="progresscard-logo">
-                                <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="">
-                            </div>
-                            <div class="school-name">
-                                <h2><?=$siteinfos->sname?></h2>
-                            </div>
-                        </div> -->
+<?php if(customCompute($students)) { foreach($students as $student) { ?>
+    <div class="mainprogresscardreport">
+        <table width="100%" style="text-align:center; border:none;">
+            <tr>
+                <td style="width:15%; border:none;">
+                    <?php if($siteinfos->photo) { ?><img src="<?php echo base_url('uploads/images/'.$siteinfos->photo);?>" style="width:100px; height:auto; border-radius:50%;"><?php } ?>
+                </td>
+                <td style="width:70%; border:none;">
+                    <h2 style="margin:0"><?=$siteinfos->sname?></h2>
+                    <div style="margin-top:4px;"><span style="color:#9b00ff; display:block;"><?=$siteinfos->address?></span><span style="color:#0000ff; display:block;"><?= $siteinfos->email?></span></div>
+                    <div style="color:#0000ff; margin-top:4px;"><?=$siteinfos->phone?></div>
+                </td>
+                <td style="width:15%; border:none;">
+                    <img src="<?=imagelink($student->photo)?>" style="width:100px; height:auto; border-radius:50%;">
+                </td>
+            </tr>
+        </table>
 
-                        <table width="100%" style="text-align:center">
-                                    <tr>
-                                        <td id="logo" style="width:15%">
-                                            <?php
-                                                if($siteinfos->photo) {
-                                                    $array = array(
-                                                        "src" => base_url('uploads/images/'.$siteinfos->photo),
-                                                        'width' => '50px',
-                                                        'height' => '50px',
-                                                        // "style" => "margin-right:0px;"
-                                                    );
-                                                    // echo img($array);?>
+        <hr style="border:none; border-top:1px solid #ddd; margin:10px 0;">
 
-                                                    <img src="<?php echo base_url('uploads/images/'.$siteinfos->photo);?>" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <table class="table-container full-width">
+            <tr>
+                <th class="text-red">Name :</th>
+                <td class="text-green"><?= $student->srname ?></td>
+                <th class="text-red"><?=$this->lang->line('progresscardreport_reg_no')?> :</th>
+                <td class="text-green"><?= $student->srregisterNO ?></td>
+            </tr>
+            <tr>
+                <th class="text-red"><?=$this->lang->line('progresscardreport_class')?> :</th>
+                <td class="text-green"><?= isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : '' ?></td>
+                <th class="text-red"><?=$this->lang->line('progresscardreport_section')?> :</th>
+                <td class="text-green"><?= isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : '' ?></td>
+            </tr>
+            <tr>
+                <th class="text-red"><?=$this->lang->line('progresscardreport_roll_no')?> :</th>
+                <td class="text-green"><?= $student->srroll ?></td>
+                <th class="text-red">Father Name :</th>
+                <td class="text-green"><?= $student->father_name ?></td>
+            </tr>
+        </table>
 
-                                              <?php   }
-                                            ?>
-                                        </td>
-                                        <td style="width:70%"> 
-                                            <h2><?=$siteinfos->sname?></h2>
-                                            <h5><b style="color:#9b00ff;"><?=$siteinfos->address?></b>,<span style="color:#0000ff;"> <?= $siteinfos->email?></span></h5> 
-                                            <h5 style="color:#0000ff;"><?=$siteinfos->phone?></h5> 
-                                        </td>
-                                        <td style="width:15%">
-                                            <img src="<?=imagelink($student->photo)?>" alt="" style=" width: 100px; height: auto;  border-radius: 50%;   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-                                        </td>
-                                    </tr> 
-                                </table>
+        <div class="progresscard-contents">
+            <h3 style="text-align:center; margin:10px 0;"><?=isset($exams[$examID]) ? $exams[$examID] : ''?> Progress Card</h3>
 
+            <table>
+                <thead>
+                    <tr class="row_head">
+                        <th><?=$this->lang->line('progresscardreport_subjects')?></th>
+                        <?php if(customCompute($settingExam)) { foreach($settingExam as $examID) {
+                            $markpercentagesArr  = isset($markpercentagesclassArr[$examID]) ? $markpercentagesclassArr[$examID] : [];
+                            reset($markpercentagesArr);
+                            $firstindex = key($markpercentagesArr);
+                            $uniquepercentageArr = isset($markpercentagesArr[$firstindex]) ? $markpercentagesArr[$firstindex] : [];
+                            $markpercentages = $uniquepercentageArr[(($settingmarktypeID==4)||($settingmarktypeID==6)) ? 'unique' : 'own'];
+                        ?>
+                        <th>Max Marks</th>
+                        <th colspan="<?= customCompute($markpercentages) ?>">Obtained Marks</th>
+                        <input type="hidden" name="exam_name[]" value="<?=isset($exams[$examID]) ? $exams[$examID] : ''?>">
+                        <?php } } ?>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    $totalAllSubjectMark = 0; $marks_template = ''; $totalExMarks = 0; $total_max_marks = 0;
+                    if(customCompute($mandatorySubjects)) { foreach($mandatorySubjects as $mandatorySubject) {
+                        $totalExMarks += 0; // kept for compatibility
+                        $totalSubjectMark = 0; $totalGradeSubjectMark = 0;
+                        $total_max_marks += $mandatorySubject->max_mark;
+                    ?>
+                    <tr>
+                        <td class="text-blue"><?=$mandatorySubject->subject?></td>
+                        <td class="text-purple"><?=$mandatorySubject->max_mark?></td>
+                        <?php if(customCompute($settingExam)) { foreach($settingExam as $examID) {
+                            $examTotalSubjectMark = 0;
+                            $uniquepercentageArr = isset($markpercentagesclassArr[$examID][$mandatorySubject->subjectID]) ? $markpercentagesclassArr[$examID][$mandatorySubject->subjectID] : [];
+                            $markpercentages = [];
+                            if(customCompute($uniquepercentageArr)) { $markpercentages = $uniquepercentageArr[(($settingmarktypeID==4)||($settingmarktypeID==6)) ? 'unique' : 'own']; }
+                            if(customCompute($markpercentages)) { foreach($markpercentages as $markpercentageID) {
+                                $mark = 0;
+                                if(isset($markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID])) {
+                                    $mark = $markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID];
+                                }
+                                $sql = "select eattendance from mark where studentID = $student->srstudentID and examID = $examID and subjectID = $mandatorySubject->subjectID";
+                                $exam_status = $this->db->query($sql)->row()->eattendance;
+                                if($exam_status == 'Absent') { echo '<td><span class="text-red">Absent</span></td>'; }
+                                else { echo '<td>'.(($mark)?$mark:0).'</td>'; }
+                                $totalSubjectMark += $mark; $examTotalSubjectMark += $mark; $marks_template .= substr($mandatorySubject->subject,0,3).'='.$mark.'/'.' ,';
+                            } }
+                            $totalGradeSubjectMark += markCalculationView($examTotalSubjectMark, $mandatorySubject->max_mark, 0);
+                        } } ?>
+                    </tr>
+                    <?php } } ?>
 
-                        <div class="progresscard-infos">
-                            
-                            <!-- <div class="student-profile">
-                                <p> <span class="text-red">Name</span> &nbsp;&nbsp;&nbsp;:  <b><?=$student->srname?></b> </p>
-                                <p> <span class="text-red"><?=$this->lang->line('progresscardreport_academic_year')?></span> : <b><?=$schoolyearsessionobj->schoolyear;?></b>
-                                <p> <span class="text-red"><?=$this->lang->line('progresscardreport_reg_no')?></span> : <b><?=$student->srregisterNO?></b>,<br/> <span class="text-red"> <?=$this->lang->line('progresscardreport_class')?></span> : <b><?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?></b></p>
-                                <p> <span class="text-red"><?=$this->lang->line('progresscardreport_section')?></span> : <b><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></b>, <span class="text-red"> <?=$this->lang->line('progresscardreport_roll_no')?> </span>: <b><?=$student->srroll?></b></p>  
-                                <p> <span class="text-red"><?=$this->lang->line('progresscardreport_group')?></span> : <b><?=isset($groups[$student->srstudentgroupID]) ? $groups[$student->srstudentgroupID] : ''?></b></p> 
-                            </div> -->
+                    <tr>
+                        <td class="text-blue"><b>Total Marks </b></td>
+                        <td><b><?=ini_round($total_max_marks)?></b></td>
+                        <td><b><?=ini_round($totalAllSubjectMark)?></b></td>
+                    </tr>
 
-                            <table class="table-container full-width">
-                                <!-- <table width="100%" style="text-align:center"> -->
-        <tr>
-            <th class="text-red">Name :</th>
-            <td class="text-green"><?= $student->srname ?></td>
-            <th class="text-red"><?= $this->lang->line('progresscardreport_reg_no') ?> :</th>
-            <td class="text-green"><?= $student->srregisterNO ?></td>
-        </tr>
-        <tr>
-            <th class="text-red"><?= $this->lang->line('progresscardreport_class') ?> :</th>
-            <td class="text-green"><?= isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : '' ?></td>
-            <th class="text-red"><?= $this->lang->line('progresscardreport_section') ?> :</th>
-            <td class="text-green"><?= isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : '' ?></td>
-        </tr>
-        <tr>
-            <th class="text-red"><?= $this->lang->line('progresscardreport_roll_no') ?> :</th>
-            <td class="text-green"><?= $student->srroll ?></td>
-            <th class="text-red">Father Name :</th>
-            <td class="text-green"><?= $student->father_name ?></td>
-        </tr>
-    </table>
+                    <tr>
+                        <td class="text-blue"><b>Percentage</b></td>
+                        <td></td>
+                        <td><b><?php $prcnt = $total_max_marks != 0 ? ini_round(($totalAllSubjectMark * 100) / $total_max_marks) : 0; echo $prcnt . "%"; ?></b></td>
+                    </tr>
 
-                            <!-- <div class="school-address">
-                               
-                                <p> <span class="text-green"><?=$siteinfos->address?></span></p>
-                                <p> <span class="text-red"><?=$this->lang->line('progresscardreport_phone')?></span> : <?=$siteinfos->phone?></p>
-                                <p> <span class="text-red"><?=$this->lang->line('progresscardreport_email')?></span> : <?=$siteinfos->email?></p>
+                    <tr>
+                        <td class="text-blue"><b>Grade</b></td>
+                        <td></td>
+                        <td>
+                            <?php
+                                $out_of = $total_max_marks != 0 ? $total_max_marks : 1;
+                                $percent_cal = ($totalAllSubjectMark / $out_of) * 100;
+                                if ($percent_cal >= 95) { $grade = "A+"; $gradeClass = "grade-a-plus"; }
+                                else if ($percent_cal >= 90) { $grade = "A"; $gradeClass = "grade-a"; }
+                                else if ($percent_cal >= 80) { $grade = "B+"; $gradeClass = "grade-b-plus"; }
+                                else if ($percent_cal >= 70) { $grade = "B"; $gradeClass = "grade-b"; }
+                                else if ($percent_cal >= 60) { $grade = "C+"; $gradeClass = "grade-c-plus"; }
+                                else if ($percent_cal >= 50) { $grade = "C"; $gradeClass = "grade-c"; }
+                                else { $grade = "D"; $gradeClass = "grade-d"; }
+                                echo "<span class='grade-label {$gradeClass}'>$grade</span>";
+                            ?>
+                        </td>
+                    </tr>
 
-                                <p> <span class="text-red"><?=$this->lang->line('website')?></span> : <?=$siteinfos->website?></p>
-
-                            </div>
-
-                            <div class="student-profile-img">
-                                <img src="<?=imagelink($student->photo)?>" alt="">
-                            </div> -->
-                        </div>
-                        <div class="progresscard-contents progresscardreporttable">
-
-
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th ><?=$this->lang->line('progresscardreport_subjects')?></th>
-                                        <?php if(customCompute($settingExam)) { foreach($settingExam as $examID) {
-                                            $markpercentagesArr  = isset($markpercentagesclassArr[$examID]) ? $markpercentagesclassArr[$examID] : [];
-                                            reset($markpercentagesArr);
-                                            $firstindex          = key($markpercentagesArr);
-                                            $uniquepercentageArr = isset($markpercentagesArr[$firstindex]) ? $markpercentagesArr[$firstindex] : [];
-                                            $markpercentages     = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
-                                            ?>
-                                            <th ><?=isset($exams[$examID]) ? $exams[$examID] : ''?></th>
-                                            <input type="hidden" name="exam_name[]" value="<?=isset($exams[$examID]) ? $exams[$examID] : ''?>">
-                                        <?php } } ?>
-                                        <!-- <th rowspan="2"><?=$this->lang->line('progresscardreport_total')?></th>
-                                        <th rowspan="2"><?=$this->lang->line('progresscardreport_grade')?></th>
-                                        <th rowspan="2"><?=$this->lang->line('progresscardreport_point')?></th> -->
-                                    </tr>
-                                    <tr>
-                                        <?php 
-                                        $i = 0;
-                                        $totalColumn = 4;
-                                        $leftColumn  = 0;
-                                        $subjTotal = 0;
-                                        if(customCompute($settingExam)) { foreach($settingExam as $examID) { $i++;
-                                            $markpercentagesArr  = isset($markpercentagesclassArr[$examID]) ? $markpercentagesclassArr[$examID] : [];
-                                            reset($markpercentagesArr);
-                                            $firstindex          = key($markpercentagesArr);
-                                            $uniquepercentageArr = isset($markpercentagesArr[$firstindex]) ? $markpercentagesArr[$firstindex] : [];
-                                            $markpercentages     = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
-
-                                            if($i == 1) {
-                                                $leftColumn  = customCompute($markpercentages) + 1;
-                                            }
-                                            if(customCompute($markpercentages)) { foreach($markpercentages as $markpercentageID) { $totalColumn++;
-                                            $subjTotal = isset($percentageArr[$markpercentageID]) ? substr($percentageArr[$markpercentageID]->percentage, 0, 3) : 100;
-                                            ?>
-                                                <!-- <th>
-                                                    <?=isset($percentageArr[$markpercentageID]) ? substr($percentageArr[$markpercentageID]->percentage, 0, 3) : '';?>
-                                                </th> -->
-                                        <?php } } } } ?>
-                                    </tr>
-                                </thead>
+                    <?php if($is_display_attendance > 0) { ?>
+                        <tr><td colspan="3">
+                            <h5 class="text-blue"><b>Attendance</b></h5>
+                            <?php $months = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr'); ?>
+                            <table style="width:100%; border-collapse:collapse;">
+                                <thead><tr><th>Months</th><?php for($m=6;$m<count($months)+6;$m++){ $d_m = ($m>12)?$m-12:$m; ?><th><?= $months[$d_m]?></th><?php } ?></tr></thead>
                                 <tbody>
-                                    <?php 
-
-                                    $totalAllSubjectMark      = 0; 
-                                    $totalAllSubjectFinalMark = 0;
-                                    $total_gpa_point = 0;
-                                    $marks_template = '';
-                                    $totalExMarks = 0;
-                                    $total_max_marks = 0;
-                                    // echo "<pre>";print_r($mandatorySubjects);die;
-                                    if(customCompute($mandatorySubjects)) { foreach($mandatorySubjects  as $mandatorySubject) {
-                                        $totalExMarks += $subjTotal;
-                                        $totalSubjectMark = 0; $totalGradeSubjectMark=0 ;
-                                        $total_max_marks += $mandatorySubject->max_mark;?>
-
-                                        <tr>
-                                            <td><?=$mandatorySubject->subject?>  ( <?=$mandatorySubject->max_mark?> ) </td>
-                                            <?php 
-                                            if(customCompute($settingExam)) { foreach($settingExam as $examID) {
-                                                $examTotalSubjectMark = 0;
-
-                                                $uniquepercentageArr = isset($markpercentagesclassArr[$examID][$mandatorySubject->subjectID]) ? $markpercentagesclassArr[$examID][$mandatorySubject->subjectID] : [];
-                                                $markpercentages     = [];
-                                                if(customCompute($uniquepercentageArr)) {
-                                                    $markpercentages = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
-                                                }
-
-                                                $percentageMark      = 0;
-                                                if(customCompute($markpercentages)) { foreach($markpercentages as $markpercentageID) {
-                                                    
-                                                    if(isset($uniquepercentageArr['own']) && in_array($markpercentageID, $uniquepercentageArr['own'])) {
-                                                        $percentageMark   += isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : 0;
-                                                    }
-
-                                                ?>
-                                                <td>
-                                                    <?php
-                                                        $mark = 0;
-                                                        if(isset($markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID])) {
-                                                            $mark = $markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID];
-                                                        }
-                                                           $sql = "select eattendance from eattendance where studentID = $student->srstudentID and examID = $examID and sectionID = $student->srsectionID and subjectID = $mandatorySubject->subjectID"; 
-                                                          $exam_status = $this->db->query($sql)->row()->eattendance;
-
-                                                        if($exam_status == 'Absent'){
-                                                            $mark = 0;
-                                                            echo 'Absent';
-                                                        }else{
-                                                            echo ($mark) ? $mark : 0;
-                                                        }
-
-                                                        
-                                                        $totalSubjectMark     += $mark;
-                                                        $examTotalSubjectMark += $mark;
-                                                        $marks_template.=substr($mandatorySubject->subject,0,3).'='.$mark.'/'.$subjTotal.',';
-                                                    ?>
-                                                </td>
-                                            <?php } }
-                                            
-                                            // echo "<pre>";print_r($mandatorySubject);die;
-                                            
-                                            $totalGradeSubjectMark += markCalculationView($examTotalSubjectMark, $mandatorySubject->max_mark, $percentageMark);
-                                            } } ?>
-                                            <!-- <td><?php echo ($totalSubjectMark) ? $totalSubjectMark : "AB";?></td> -->
-                                            <?php
-                                            $totalAllSubjectMark      += $totalSubjectMark;
-                                            $subjectGradeMark          = $totalGradeSubjectMark / customCompute($settingExam);
-
-                                            if(customCompute($grades)) { foreach($grades as $grade) {
-                                                if(($grade->gradefrom <= floor($subjectGradeMark)) && ($grade->gradeupto >= floor($subjectGradeMark))) { ?>
-                                                    <!-- <td><?=$grade->grade?></td> -->
-                                                    <!-- <td>
-                                                        <?php
-                                                            echo $grade->point;
-                                                            $total_gpa_point += $grade->point;
-                                                        ?>
-                                                    </td> -->
-                                            <?php } } } ?>
-                                        </tr>
-                                    <?php } ?>
-                                    <?php if(($student->sroptionalsubjectID > 0) && isset($optionalSubjects[$student->sroptionalsubjectID])) {
-                                        $totalExMarks += $subjTotal;
-                                        $totalSubjectMark = 0; $totalGradeSubjectMark = 0;?>
-                                        <tr>
-                                            <td><?=$optionalSubjects[$student->sroptionalsubjectID]->subject?></td>
-                                            <?php if(customCompute($settingExam)) { foreach($settingExam as $examID) {
-                                                $examTotalSubjectMark  = 0;
-
-                                                $opuniquepercentageArr = isset($markpercentagesclassArr[$examID][$student->sroptionalsubjectID]) ? $markpercentagesclassArr[$examID][$student->sroptionalsubjectID] : [];
-
-                                                $markpercentages     = [];
-                                                if(customCompute($opuniquepercentageArr)) {
-                                                    $markpercentages = $opuniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
-                                                }
-
-                                                $percentageMark = 0;
-                                                if(customCompute($markpercentages)) { foreach($markpercentages as $markpercentageID) {
-                                                    if(isset($opuniquepercentageArr['own']) && in_array($markpercentageID, $opuniquepercentageArr['own'])) {
-                                                        $percentageMark   += isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : 0;
-                                                    }
-                                                    ?>
-                                                <td>
-                                                    <?php
-                                                        $mark   = 0;
-                                                        if(isset($markArray[$examID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID])) {
-                                                            $mark = $markArray[$examID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID];
-                                                        }
-                                                        echo ($mark) ? $mark : 0;
-                                                        $totalSubjectMark     += $mark;
-                                                        $examTotalSubjectMark += $mark;
-                                                    ?>
-                                                </td>
-                                            <?php } }
-                                            $totalGradeSubjectMark += markCalculationView($examTotalSubjectMark, $optionalSubjects[$student->sroptionalsubjectID]->max_mark, $percentageMark);
-                                            } } ?>
-                                            <td><?=$totalSubjectMark?></td>
-                                            <?php
-                                            $totalAllSubjectMark      += $totalSubjectMark;
-                                            $subjectGradeMark          = $totalGradeSubjectMark / customCompute($settingExam);
-
-                                            if(customCompute($grades)) { foreach($grades as $grade) {
-                                                if(($grade->gradefrom <= floor($subjectGradeMark)) && ($grade->gradeupto >= floor($subjectGradeMark))) { ?>
-                                                    <td><?=$grade->grade?></td>
-                                                    <td>
-                                                        <?php
-                                                            echo $grade->point;
-                                                            $total_gpa_point += $grade->point;
-                                                        ?>
-                                                    </td>
-                                            <?php } } } ?>
-                                        </tr>
-                                    <?php } ?>
-                                    <tr>
-                                        <td  ><?=$this->lang->line('progresscardreport_total_mark')?> </td>
-                                        <td  ><b><?=ini_round($totalAllSubjectMark)?></b></td>
-                                        <input type="hidden" name="total_marks[]" value="<?php echo ini_round($totalAllSubjectMark)."/".$totalExMarks;?>">
-                                    </tr>
-                                    <tr>
-                                        <td ><?=$this->lang->line('progresscardreport_average_mark')?> </td>
-                                       <td> 
-                                        <b>
-                                                <?php
-                                                    $tSubject     = $totalSubject;
-                                                    if($student->sroptionalsubjectID > 0) {
-                                                        $tSubject = $tSubject + 1;
-                                                    }
-                                                    $totalAllSubject = $tSubject * customCompute($settingExam);
-                                                    echo ini_round($totalAllSubjectMark / $totalAllSubject);
-                                                ?>
-                                            </b>
-                                    </td>
-                                        
-                                    </tr>
-
-                                    <tr>
-                                        <td class="text-blue"><b>Percentage</b> </td>
-                                       <td> 
-                                        <b>
-                                                <?php
-                                                 echo ini_round(($totalAllSubjectMark * 100) / $total_max_marks). "%";
-                                                ?>
-                                            </b> 
- 
-                                    </td>
-                                        
-                                    </tr>
-
-                                    <!-- <tr>
-                                        <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_gpa')?></td>
-                                        <td colspan="<?=$totalColumn-$leftColumn?>">
-                                            <?php 
-                                                echo ini_round($total_gpa_point / $tSubject);
-                                            ?>
-                                        </td>
-                                    </tr> -->
-                                    <!-- <tr>
-                                        <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_from_teacher_remarks')?></td>
-                                        <td colspan="<?=$totalColumn-$leftColumn?>"></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_house_teacher_remarks')?></td>
-                                        <td colspan="<?=$totalColumn-$leftColumn?>"></td>
-                                    </tr>
-                                    <tr>
-                                        <td colspan="<?=$leftColumn?>"><?=$this->lang->line('progresscardreport_principal_remarks')?></td>
-                                        <td colspan="<?=$totalColumn-$leftColumn?>"></td>
-                                    </tr> -->
-
-                                    <!-- <tr>
-                                        <td colspan="<?=$totalColumn?>">
-                                            <?=$this->lang->line('progresscardreport_interpretation')?> :
-                                            <b>
-                                                <?php if(customCompute($grades)) { $i = 1; foreach($grades as $grade) {
-                                                    if(customCompute($grades) == $i) {
-                                                        echo $grade->gradefrom.'-'.$grade->gradeupto." = ".$grade->point." [".$grade->grade."]";
-                                                    } else {
-                                                        echo $grade->gradefrom.'-'.$grade->gradeupto." = ".$grade->point." [".$grade->grade."], ";
-                                                    }
-                                                    $i++;
-                                                } } ?>
-                                            </b>
-                                        </td>
-                                    </tr> -->
-                                    <?php } ?>
+                                    <tr class="row_background"><td class="text-green"><b>Present</b></td><?php for($m=6;$m<count($months)+6;$m++){ $d_m = ($m>12)?$m-12:$m; ?><td><?= $attendance[$d_m][$student->studentID]['present'];?></td><?php } ?></tr>
+                                    <tr class="row_absent"><td class="text-red"><b>Absent</b></td><?php for($m=6;$m<count($months)+6;$m++){ $d_m = ($m>12)?$m-12:$m; ?><td><?= $attendance[$d_m][$student->studentID]['absent'];?></td><?php } ?></tr>
                                 </tbody>
                             </table>
+                        </td></tr>
+                    <?php } ?>
 
-                            <!-- code for attendance -->
-                            <br/>
-                                                <h5 class="text-blue"><b>Attendance</b></h5>
-                                                <table>
-                                                <thead>
-                                                <tr>
-                                                    <th><?php //echo $schoolyear;?>Months</th>
-                                                 
-                                                    <?php 
-                                                    // print_r($months);
-                                                        for($m=6;$m<count($months)+6;$m++){  
+                </tbody>
+            </table>
 
-                                                            if($m > 12)
-                                                                $d_m = $m - 12;
-                                                            else
-                                                                $d_m = $m 
-                                                    ?>
-                                                <th class="text-purple"><?= $months[$d_m]?></th>
-                                                <?php } ?>
-                                                </tr>                                               
-                                                </thead>
+            <div style="padding-top:30px; display:flex; justify-content:space-between;">
+                <span style="visibility:hidden;"><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;"></span>
+                <span style="visibility:hidden;"><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;"></span>
+                <span class="headmaster_signature"><img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width:150px;height:50px;"></span>
+            </div>
 
-                                                <tbody>
-                                                     
-                                                    <tr class="row_background">
-                                                    <td class="text-green"><b>Present</b></td>
-                                                    <?php  
-                                                        for($m=6;$m<count($months)+6;$m++){  
+            <div style="display:flex; justify-content:space-between; padding-top:20px;">
+                <span>Parent's Signature</span>
+                <span>Teacher's Signature</span>
+                <span>Principal's Signature</span>
+            </div>
 
-                                                            if($m > 12)
-                                                                $d_m = $m - 12;
-                                                            else
-                                                                $d_m = $m 
-                                                    ?>
-                                                        
-                                                        <td><?php echo $attendance[$d_m][$student->studentID]['present'];?></td>
-                                                        <?php }?>
-                                                    </tr>
-
-
-                                                    <tr class="row_absent">
-                                                        <td class="text-red"><b>Absent</b></td>
-                                                        <?php  
-                                                        for($m=6;$m<count($months)+6;$m++){  
-
-                                                            if($m > 12)
-                                                                $d_m = $m - 12;
-                                                            else
-                                                                $d_m = $m 
-                                                    ?>
-                                                       <td> <?php echo $attendance[$d_m][$student->srstudentID]['absent'];?></td>
-                                                    
-                                                    <?php }?>
-                                                </tr>
-                                                </tbody>
-                                            </table>
-
-                                            
-                            <!-- <div class="admitcardfooter" style="margin-top:500px !important">
-                                <span class="">Parent Signature </span>
-                                <span class="" style="margin-left:40%">Teacher Signature</span>
-                                <span class="headmaster_signature" style="margin-left:80%">Principal Signature</span>
-                            </div> -->
- 
-
-<table style="width: 100%; padding-top: 30px; border: none; border-collapse: collapse;">
-    <tr>
-        <td style="width: 33%; visibility: hidden; text-align: left; border: none;">
-            <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width: 150px; height: 50px;">
-        </td>
-        <td style="width: 33%; visibility: hidden; text-align: center; border: none;">
-            <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width: 150px; height: 50px;">
-        </td>
-        <td style="width: 33%; text-align: right; border: none;">
-            <img src="<?php echo base_url('/uploads/signatures/').$siteinfos->correspondent_signature ?>" style="width: 150px; height: 50px;">
-        </td>
-    </tr>
-
-    <tr>
-        <td style="width: 33%; text-align: left; border: none; padding-top: 20px;">Parent Signature</td>
-        <td style="width: 33%; text-align: center; border: none; padding-top: 20px;">Teacher Signature</td>
-        <td style="width: 33%; text-align: right; border: none; padding-top: 20px;">Principal Signature</td>
-    </tr>
-</table>
-
-
- 
-
-
-                            <input type="hidden" name="marks_template[]" value="<?php echo $marks_template;?>">
-                        </div>
-                    </div>
-                    <p style="page-break-after: always;">&nbsp;</p>
-                <?php } } else { ?>
-                    <div class="callout callout-danger">
-                        <p><b class="text-info"><?=$this->lang->line('progresscardreport_data_not_found')?></b></p>
-                    </div>
-                <?php } ?>
+            <input type="hidden" name="marks_template[]" value="<?php echo $marks_template;?>">
+        </div>
+    </div>
+    <p style="page-break-after: always;">&nbsp;</p>
+<?php } } else { ?>
+    <div class="callout callout-danger"><p><b class="text-info"><?=$this->lang->line('progresscardreport_data_not_found')?></b></p></div>
+<?php } ?>
 </body>
 </html>

@@ -1346,6 +1346,7 @@ $('.sendWhatsapp').click(function() {
             'classesID'  : '<?=$classesID?>',
             'sectionID'  : '<?=$sectionID?>',
             'examID'  : '<?=$examID?>',
+            'exam_name' : '<?=isset($exams[$examID]) ? $exams[$examID] : ''?>',
             // 'studentID'  : '<?=$studentID?>',
             // 'studentID[]'  : val1,
             'studentID[]'  : checkBox1,
