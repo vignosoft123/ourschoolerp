@@ -224,6 +224,8 @@ public function sendWhatsapp_bulk_batch_with_media($dataBatch, $templateName)
 
 public function send_to_api_with_media($payload)
 {
+	// echo "<pre>";print_r($payload);die;
+
     $templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
     $messages     = isset($payload['messages']) ? $payload['messages'] : [];
     if (empty($messages)) {
@@ -241,6 +243,9 @@ public function send_to_api_with_media($payload)
         $to       = trim($msg['phone']);
         $text     = urlencode($templateName);
         $params   = isset($msg['message']) ? urlencode($msg['message']) : '';
+        $htype   = isset($msg['htype']) ? urlencode($msg['htype']) : '';
+        $fname   = isset($msg['fname']) ? urlencode($msg['fname']) : '';
+        $media   = isset($msg['url']) ? urlencode($msg['url']) : '';
 
         // Construct API URL with base parameters
         $url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
@@ -251,8 +256,11 @@ public function send_to_api_with_media($payload)
              . "&text={$text}"
              . "&priority=wa"
              . "&stype=normal"
-             . "&Params={$params}";
-
+             . "&Params={$params}"
+             . "&htype={$htype}"
+             . "&fname={$fname}"
+             . "&url={$media}";
+		// echo $url;die;
         // Add media parameters if present (htype and url for documents)
         if (!empty($msg['htype']) && !empty($msg['url'])) {
             $url .= "&htype=" . urlencode($msg['htype']) . "&url=" . urlencode($msg['url']);

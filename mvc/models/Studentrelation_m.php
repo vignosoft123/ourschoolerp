@@ -157,6 +157,68 @@ class Studentrelation_m extends MY_Model {
     // echo $this->db->last_query(); die;
     return $query->result();
 }
+public function general_get_order_by_student_multi_selction($arrays = [], $studentExtend = FALSE, $photo_type = 0)
+{
+    // Load table prefixes (converts keys like 'srstudentID' → 'studentrelation.srstudentID')
+    $arrays = $this->prefixLoad($arrays);
+
+    $this->db->select('*, (SELECT father_name FROM parents WHERE parentsID = student.parentID) as father_name');
+    $this->db->from('studentrelation');
+    $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+    $this->db->join('villages', 'villages.villageID = student.villageID', 'LEFT');
+    $this->db->order_by('student.roll', 'asc');
+
+    if ($studentExtend) {
+        $this->db->join('studentextend', 'studentextend.studentID = studentrelation.srstudentID', 'LEFT');
+    }
+
+    /* ---------------------------------------
+       HANDLE MULTI-STUDENT & OTHER ARRAYS
+       --------------------------------------- */
+    $normalWhere = [];
+
+    if (customCompute($arrays)) {
+        foreach ($arrays as $key => $val) {
+
+            // For multi-select inputs → use where_in()
+            if (is_array($val)) {
+                $filtered = array_values(array_filter($val));
+
+                if (!empty($filtered)) {
+                    $this->db->where_in($key, $filtered);
+                }
+
+            } else {
+                // Store simple conditions
+                $normalWhere[$key] = $val;
+            }
+        }
+    }
+
+    // Apply simple key=value filters
+    if (!empty($normalWhere)) {
+        $this->db->where($normalWhere);
+    }
+
+    /* ---------------------------------------
+       PHOTO FILTER
+       --------------------------------------- */
+    if ($photo_type == 1) {
+        $this->db->where('student.photo !=', 'default.png');
+    } elseif ($photo_type == 2) {
+        $this->db->where('student.photo', 'default.png');
+    }
+
+    // Remove THIS — invalid & not needed
+    // $this->db->where('student.studentID !=', NULL);
+
+    $this->db->where('student.active', 1);
+
+    $query = $this->db->get();
+	// echo $this->db->last_query(); die;
+    return $query->result();
+}
+
 
 
 	public function general_get_order_by_student_bkp($arrays = [], $studentExtend = FALSE) {

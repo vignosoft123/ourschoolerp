@@ -917,19 +917,21 @@ foreach($months_array as $mkey => $v) {
 						'phone' => $phone,
 						'message' => $params,
 						'url' => $media_path,
-						'htype' => 'document'
+						'htype' => 'document',
+						'fname' => 'Progress_Card_'.$student_name.'.pdf'
 					);
 
 					$attachmentsToUnlink[] = $attachment;
 					$phonesMap[$phone] = array('attachment' => $attachment, 'student_name' => $student_name, 'exam_name' => $exam_name);
 
 				}
+				// echo "<pre>";print_r($bulkMessages);die;	
 
 				// after loop - send all prepared messages in one batch
 				if(isset($bulkMessages) && customCompute($bulkMessages)) {
 					$template_sql = "select params,template_name from whatapp_templates where short_name like '%PROGRESS_CARD%' ";
 					$template = $this->db->query($template_sql)->row_array();
-
+					// echo "<pre>";print_r($template);die;
 					if($template && !empty($template['template_name'])) {
 						$this->load->model('Whatsapp_m');
 						$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media($bulkMessages, $template['template_name']);

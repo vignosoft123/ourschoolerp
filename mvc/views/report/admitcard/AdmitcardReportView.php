@@ -47,7 +47,7 @@
                      ?>
                 </div>
 
-                <div class="form-group col-sm-4" id="studentDiv">
+                <!-- <div class="form-group col-sm-4" id="studentDiv">
                     <label><?=$this->lang->line("admitcardreport_student")?></label>
                     <?php
                         $studentArray = array(
@@ -55,7 +55,25 @@
                         );
                         echo form_dropdown("studentID", $studentArray, set_value("studentID"), "id='studentID' class='form-control select2'");
                      ?>
-                </div>
+                </div> -->
+
+                <div class="form-group col-sm-4" id="studentDiv">
+    <label><?=$this->lang->line("admitcardreport_student")?></label>
+    <?php
+        $studentArray = array(
+            "0" => $this->lang->line("admitcardreport_please_select"),
+        );
+
+        echo form_dropdown(
+            "studentID[]",          // ← IMPORTANT: [] makes it multiple
+            $studentArray,
+            set_value("studentID"),
+            "id='studentID' class='form-control select2' multiple"
+        );
+    ?>
+</div>
+
+
 
                 <div class="form-group col-sm-4" id="typeDiv">
                     <label><?=$this->lang->line("admitcardreport_type")?><span class="text-red"> * </span></label>
@@ -196,7 +214,9 @@
             'examID'      : $("#examID").val(),
             'classesID'   : $('#classesID').val(), 
             'sectionID'   : $('#sectionID').val(), 
-            'studentID'   : $('#studentID').val(), 
+            // 'studentID'   : $('#studentID').val(), 
+            'studentID'   : $('#studentID').val() || [],
+
             'typeID'      : $('#typeID').val(), 
             'backgroundID': $('#backgroundID').val(), 
         };
@@ -236,6 +256,14 @@
             $('#typeDiv').removeClass('has-error');
         }
 
+        if (field['studentID'].length === 0) {
+            $('#studentDiv').addClass('has-error');
+            error++;
+        } else {
+            $('#studentDiv').removeClass('has-error');
+        }
+
+
         if (field['backgroundID'] == 0) {
             $('#backgroundDiv').addClass('has-error');
             error++;
@@ -260,6 +288,7 @@
             type: 'POST',
             url: "<?=base_url('admitcardreport/getAdmitcardReport')?>",
             data: passData,
+            // data: $.param(passData, true),
             dataType: "html",
             success: function(data) {
                 var response = JSON.parse(data);

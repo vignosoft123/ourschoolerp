@@ -209,7 +209,7 @@ class Admitcardreport extends Admin_Controller {
 	}
 
 
-	public function getAdmitcardReport() {
+	public function getAdmitcardReport_single_student_selection() {
 		$retArray['status'] = FALSE;
 		$retArray['render'] = '';
 		if(permissionChecker('admitcardreport')) {
@@ -272,6 +272,112 @@ class Admitcardreport extends Admin_Controller {
 		    exit;
 		}
 	}
+
+public function getAdmitcardReport() {
+    $retArray['status'] = FALSE;
+    $retArray['render']  = '';
+
+    if (permissionChecker('admitcardreport')) {
+
+        $examID       = $this->input->post('examID');
+        $classesID    = $this->input->post('classesID');
+        $sectionID    = $this->input->post('sectionID');
+        $studentID    = $this->input->post('studentID');   // ARRAY for multi-select
+        $typeID       = $this->input->post('typeID');
+        $backgroundID = $this->input->post('backgroundID');
+
+        if ($_POST) {
+
+            $rules = $this->rules();
+            $this->form_validation->set_rules($rules);
+
+            if ($this->form_validation->run() == FALSE) {
+                $retArray = $this->form_validation->error_array();
+                $retArray['status'] = FALSE;
+                echo json_encode($retArray);
+                exit;
+            } else {
+
+                $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+                // Original query array
+                $queryArray = $this->queryArray($this->input->post());
+
+                // ==================================================
+                // 🚀 MULTI STUDENT LOGIC (ADDED WITHOUT CHANGING ANYTHING)
+                // ==================================================
+               $studentIDs = $this->input->post('studentID');
+
+					if (is_array($studentIDs)) {
+						$studentIDs = array_filter($studentIDs, function($v) {
+							return $v != "0" && $v != null && $v != "";
+						});
+
+						if (!empty($studentIDs)) {
+							// Correct key – prefixLoad() will handle table name
+							$queryArray['srstudentID'] = $studentIDs;
+						}
+					}
+
+
+                // ==================================================
+
+                // Your existing logic untouched
+                $students   = $this->studentrelation_m->general_get_order_by_student_multi_selction($queryArray);
+			 
+
+                $subjects   = $this->subject_m->general_get_order_by_subject_left_examschedule(
+                                $classesID, 
+                                $type = 1,
+                                $examID,
+                                $sectionID
+                              );
+
+                $exambyID   = $this->exam_m->get_exam($examID);
+                $classes    = $this->classes_m->general_get_classes();
+                $sections   = $this->section_m->general_get_section();
+                $schoolyearbyID = $this->schoolyear_m->get_single_schoolyear(['schoolyearID'=>$schoolyearID]);
+
+                // Assign data for view
+                $this->data['examID']       = $examID; 
+                $this->data['classesID']    = $classesID; 
+                $this->data['sectionID']    = $sectionID; 
+                $this->data['studentID']    = $studentID; 
+                $this->data['typeID']       = $typeID; 
+                $this->data['backgroundID'] = $backgroundID; 
+                $this->data['students']     = $students; 
+                $this->data['subjects']     = pluck($subjects,'obj','subjectID');
+                $this->data['examTitle']    = $exambyID->exam;
+                $this->data['examYear']     = $schoolyearbyID->schoolyear;
+                $this->data['classes']      = pluck($classes,'classes','classesID');
+                $this->data['sections']     = pluck($sections,'section','sectionID');
+
+                // Your original exam schedule report logic
+                $queryArray = [];
+                $this->getQuery($queryArray, $this->input->post());
+                $this->data['examScheduleReports'] = $this->subject_m->general_get_order_by_subject_with_exam($queryArray);
+
+                // Render
+                $retArray['render'] = $this->load->view('report/admitcard/AdmitcardReport', $this->data, true);
+                $retArray['status'] = TRUE;
+                echo json_encode($retArray);
+                exit;
+            }
+
+        } else {
+            $retArray['status'] = FALSE;
+            echo json_encode($retArray);
+            exit;
+        }
+
+    } else {
+        $retArray['render'] = $this->load->view('report/reporterror', $this->data, true);
+        $retArray['status'] = TRUE;
+        echo json_encode($retArray);
+        exit;
+    }
+}
+
 
 	public function pdf() {
 		if(permissionChecker('admitcardreport')) {

@@ -1,3 +1,6 @@
+ 
+
+
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
@@ -279,7 +282,7 @@
 
                                         </style>
                                    
-                                    <div class="admitcardstudentinfo">
+                                    <!-- <div class="admitcardstudentinfo">
                                         <div class="studentinfo">
                                             <p><b class="text-red namebold"><?=$this->lang->line('admitcardreport_name')?></b> : <?=$student->srname?> </p>
 
@@ -291,7 +294,54 @@
                                             <p><span class="text-red namebold">Father Name </span> : <?=$student->father_name?></p>
 
                                         </div>
-                                    </div>
+                                    </div> -->
+                                 <div class="admitcardstudentinfo">
+    <div class="studentinfo" style="display: flex; flex-wrap: wrap; line-height: 20px;">
+
+        <!-- Row 1 -->
+        <div style="width: 50%; padding: 2px 0;">
+            <span><b class="text-red namebold">
+                <?=$this->lang->line('admitcardreport_name')?>
+            </b> : <?=$student->srname?></span>
+        </div>
+
+        <div style="width: 35%; padding: 2px 0;">
+            <span><span class="text-red namebold">
+                <?=$this->lang->line('admitcardreport_class')?>
+            </span> :
+            <?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?>
+            </span>
+        </div>
+
+        <div style="width: 15%; padding: 2px 0;">
+            <span><span class="text-red namebold">
+                <?=$this->lang->line('admitcardreport_section')?>
+            </span> :
+            <?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?>
+            </span>
+        </div>
+
+        <!-- Row 2 -->
+        <div style="width: 50%; padding: 2px 0;">
+            <span><span class="text-red namebold">Father Name</span> :
+            <?=$student->father_name?></span>
+        </div>
+
+        <div style="width: 35%; padding: 2px 0;">
+            <span><span class="text-red namebold">
+                <?=$this->lang->line('admitcardreport_registerNO')?>
+            </span> : <?=$student->srregisterNO?></span>
+        </div>
+
+        <div style="width: 15%; padding: 2px 0;">
+            <span><span class="text-red namebold">
+                <?=$this->lang->line('admitcardreport_roll')?>
+            </span> : <?=$student->srroll?></span>
+        </div>
+
+    </div>
+</div>
+
                                     
                                     <div class="subjectlist">
                                         <!-- <h3><?=$this->lang->line('admitcardreport_subject_appear')?></h3> -->
@@ -339,38 +389,43 @@
                                         </table> -->
 
                                         <!-- vertical view start -->
-                                        <style>
+                             <style>
 .exam-table {
-    border-collapse: collapse;
     width: 100%;
+    border-collapse: collapse;
     margin-top: 25px;
     font-family: Arial, sans-serif;
     font-size: 13px;
     text-align: center;
+    border: 1px solid #000 !important; /* Force outer table border */
 }
 
-.exam-table th, .exam-table td {
-    border: 1px solid #bbb;
+/* Apply borders to ALL cells */
+.exam-table th,
+.exam-table td {
+    border: 1px solid #000 !important;  /* Force borders for rows + columns */
     padding: 8px;
 }
 
+/* Header styling */
 .exam-table th {
-    background-color: #eaf3ff; /* light sky blue */
+    background-color: #eaf3ff !important;
     color: #333;
     font-weight: bold;
     text-align: center;
 }
 
+/* Zebra rows */
 .exam-table tr:nth-child(even) td {
-    background-color: #f9f9f9; /* very light gray */
+    background-color: #f9f9f9 !important;
 }
 
 .exam-table tr:nth-child(odd) td {
-    background-color: #ffffff; /* white */
+    background-color: #ffffff !important;
 }
-
-
 </style>
+
+
 
 <table class="exam-table">
     <tr>
@@ -446,6 +501,19 @@
             } 
         } 
         ?>
+    </tr>
+      <tr>
+        <td>Invigilator Sign</td>
+        <?php
+          $i= 0; if(customCompute($subjects)) { 
+            foreach($subjects as $subject) { 
+                if($subject->type == 1) { 
+                    echo "<td></td>";
+                }
+            }   
+        }
+        ?>
+
     </tr>
 </table>
 
