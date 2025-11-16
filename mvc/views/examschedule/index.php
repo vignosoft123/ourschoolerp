@@ -88,6 +88,14 @@
                 
 
                 <?php if(customCompute($examschedules) > 0 ) { ?>
+                    <?php if(permissionChecker('examschedule_delete')) { ?>
+                        <form id="bulkDeleteForm" method="post" action="<?=base_url('examschedule/multi_delete')?>">
+                            <input type="hidden" name="classesID" value="<?= $set ?>">
+                            <input type="hidden" name="examID" value="<?= $exam_Id ?>">
+                            <input type="hidden" name="sectionID" value="<?= $section_ID ?>">
+                            <button type="submit" id="bulkDeleteBtn" class="ose-btn delete-btn btn btn-danger" style="margin-bottom:10px;color:#fff;border-color:#d43f3a;">Delete Selected</button>
+                    <?php } ?>
+
                     <div class="nav-tabs-custom">
                         <ul class="nav nav-tabs">
                             <li class="<?= $sec_id == 0 ? 'active' : ''?>"><a class="section_wise" sectionid='0' data-toggle="tab" href="#all" aria-expanded="true"><?=$this->lang->line("examschedule_all_examschedule")?></a></li>
@@ -103,6 +111,9 @@
                                     <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                                         <thead>
                                             <tr>
+                                                <?php if(permissionChecker('examschedule_delete')) { ?>
+                                                    <th><input type="checkbox" id="select_all"></th>
+                                                <?php } ?>
                                                 <th><?=$this->lang->line('slno')?></th>
                                                 <th><?=$this->lang->line('examschedule_name')?></th>
                                                 <th><?=$this->lang->line('examschedule_classes')?></th>
@@ -121,6 +132,9 @@
                                         <tbody>
                                             <?php if(customCompute($examschedules)) {$i = 1; foreach($examschedules as $examschedule) { ?>
                                                 <tr>
+                                                    <?php if(permissionChecker('examschedule_delete')) { ?>
+                                                        <td><input type="checkbox" class="select_item" name="selected[]" value="<?= $examschedule->examscheduleID ?>"></td>
+                                                    <?php } ?>
                                                     <td data-title="<?=$this->lang->line('slno')?>">
                                                         <?php echo $i; ?>
                                                     </td>
@@ -172,9 +186,12 @@
                                         
                                         <div id="hide-table">
                                             <table class="table table-bordered tableBorder dataTable no-footer">
-                                                <thead>
-                                                    <tr>
-                                                        <th><?=$this->lang->line('slno')?></th>
+                                                        <thead>
+                                                            <tr>
+                                                                <?php if(permissionChecker('examschedule_delete')) { ?>
+                                                                    <th><input type="checkbox" id="select_all_2"></th>
+                                                                <?php } ?>
+                                                                <th><?=$this->lang->line('slno')?></th>
                                                         <th><?=$this->lang->line('examschedule_name')?></th>
                                                         <th><?=$this->lang->line('examschedule_classes')?></th>
                                                         <th><?=$this->lang->line('examschedule_subject')?></th>
@@ -191,6 +208,9 @@
                                                 <tbody>
                                                     <?php if(customCompute($allsection[$section->section])) {$i = 1; foreach($allsection[$section->section] as $examschedule) { ?>
                                                         <tr>
+                                                            <?php if(permissionChecker('examschedule_delete')) { ?>
+                                                                <td><input type="checkbox" class="select_item" name="selected[]" value="<?= $examschedule->examscheduleID ?>"></td>
+                                                            <?php } ?>
                                                             <td data-title="<?=$this->lang->line('slno')?>">
                                                                 <?php echo $i; ?>
                                                             </td>
@@ -254,6 +274,9 @@
                                     <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
                                         <thead>
                                             <tr>
+                                                <?php if(permissionChecker('examschedule_delete')) { ?>
+                                                    <th><input type="checkbox" id="select_all_3"></th>
+                                                <?php } ?>
                                                 <th><?=$this->lang->line('slno')?></th>
                                                 <th><?=$this->lang->line('examschedule_name')?></th>
                                                 <th><?=$this->lang->line('examschedule_classes')?></th>
@@ -270,6 +293,9 @@
                                         <tbody>
                                             <?php if(customCompute($examschedules)) {$i = 1; foreach($examschedules as $examschedule) { ?>
                                                 <tr>
+                                                    <?php if(permissionChecker('examschedule_delete')) { ?>
+                                                        <td><input type="checkbox" class="select_item" name="selected[]" value="<?= $examschedule->examscheduleID ?>"></td>
+                                                    <?php } ?>
                                                     <td data-title="<?=$this->lang->line('slno')?>">
                                                         <?php echo $i; ?>
                                                     </td>
@@ -401,4 +427,26 @@
         }
     });
 
+</script>
+
+<script type="text/javascript">
+    // Select all handling for the various tables
+    $(document).on('change', '#select_all, #select_all_2, #select_all_3', function() {
+        var checked = $(this).prop('checked');
+        $('.select_item').prop('checked', checked);
+    });
+
+    // Ensure at least one item selected and confirm before submitting
+    $(document).on('submit', '#bulkDeleteForm', function(e) {
+        if(!$('[name="selected[]"]:checked').length) {
+            e.preventDefault();
+            alert('Please select at least one exam schedule to delete.');
+            return false;
+        }
+        if(!confirm('Are you sure you want to delete selected exam schedules?')) {
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    });
 </script>

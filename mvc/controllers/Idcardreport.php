@@ -36,11 +36,7 @@ class Idcardreport extends Admin_Controller {
                 'field' => 'usertypeID',
                 'label' => $this->lang->line('idcardreport_idcard'),
                 'rules' => 'trim|required|xss_clean|numeric|callback_unique_data'
-            ), array(
-                'field' => 'userID',
-                'label' => $this->lang->line('idcardreport_user'),
-                'rules' => 'trim|xss_clean|numeric'
-            ), 
+            ),
             // array(
             //     'field' => 'type',
             //     'label' => $this->lang->line('idcardreport_type'),
@@ -74,10 +70,6 @@ class Idcardreport extends Admin_Controller {
                 'field' => 'usertypeID',
                 'label' => $this->lang->line('idcardreport_idcard'),
                 'rules' => 'trim|required|xss_clean|numeric|callback_unique_data'
-            ), array(
-                'field' => 'userID',
-                'label' => $this->lang->line('idcardreport_user'),
-                'rules' => 'trim|xss_clean|numeric'
             ), array(
                 'field' => 'type',
                 'label' => $this->lang->line('idcardreport_type'),
@@ -217,8 +209,8 @@ class Idcardreport extends Admin_Controller {
         $usertypeID = $posts['usertypeID'];
         $classesID  = $posts['classesID'];
         $sectionID  = $posts['sectionID'];
-        $userID     = $posts['userID'];
-         $photo_type     = $posts['photo_type'] ?? 0;
+        $userID     = isset($posts['userID']) ? $posts['userID'] : 0;
+        $photo_type     = isset($posts['photo_type']) ? $posts['photo_type'] : 0;
 
         $queryArray = [];
         if($usertypeID == 1) {
@@ -237,10 +229,17 @@ class Idcardreport extends Admin_Controller {
             if($sectionID > 0) {
                 $queryArray['srsectionID'] = $sectionID;
             }
-            if($userID > 0) {
+            // Support single or multiple selected students
+            if(is_array($userID) && customCompute($userID)) {
+                // pass array to model method that handles where_in for student IDs
                 $queryArray['srstudentID'] = $userID;
-            } 
-            $users = $this->studentrelation_m->general_get_order_by_student($queryArray,$studentExtend = FALSE,$photo_type);
+                $users = $this->studentrelation_m->general_get_order_by_student_multi_selction($queryArray, FALSE, $photo_type);
+            } else {
+                if($userID > 0) {
+                    $queryArray['srstudentID'] = $userID;
+                }
+                $users = $this->studentrelation_m->general_get_order_by_student($queryArray, FALSE, $photo_type);
+            }
         } elseif($usertypeID == 4) {
             $users = [];
         } else {

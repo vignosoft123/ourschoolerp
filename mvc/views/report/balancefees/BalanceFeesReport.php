@@ -717,7 +717,10 @@ $.ajax({
 
             // Remove last 5 columns from each row
             for (var i = 0; i < clonedTable.rows.length; i++) {
-                for (var j = 0; j < 5; j++) {
+                // for (var j = 0; j < 5; j++) {
+                //     clonedTable.rows[i].deleteCell(clonedTable.rows[i].cells.length - 1);
+                // }
+                 for (var j = 0; j < 1; j++) {
                     clonedTable.rows[i].deleteCell(clonedTable.rows[i].cells.length - 1);
                 }
             }

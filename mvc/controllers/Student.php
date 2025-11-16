@@ -2736,6 +2736,52 @@ class Student extends Admin_Controller
 		}
 	}
 
+	public function multi_delete()
+	{
+		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
+			$ids = $this->input->post('ids');
+			$url = $this->input->post('url');
+			if ($ids) {
+				if (is_string($ids)) {
+					$ids = explode(',', $ids);
+				}
+				$ids = array_filter(array_map('intval', (array)$ids));
+				if (!customCompute($ids)) {
+					if ($url) redirect(base_url("student/index/$url"));
+					else redirect(base_url("student/index"));
+				}
+
+				// fetch students to remove photos
+				$this->db->where_in('studentID', $ids);
+				$students = $this->db->get('student')->result();
+				if (customCompute($students)) {
+					if (config_item('demo') == FALSE) {
+						foreach ($students as $stu) {
+							if (isset($stu->photo) && $stu->photo != 'default.png' && $stu->photo != 'defualt.png') {
+								if (file_exists(FCPATH . 'uploads/images/' . $stu->photo)) {
+									@unlink(FCPATH . 'uploads/images/' . $stu->photo);
+								}
+							}
+						}
+					}
+				}
+
+				// delete students and related extended rows
+				$this->student_m->delete_multiple_student($ids);
+
+				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+				if ($url) redirect(base_url("student/index/$url"));
+				else redirect(base_url("student/index"));
+			} else {
+				if ($url) redirect(base_url("student/index/$url"));
+				else redirect(base_url("student/index"));
+			}
+		} else {
+			$this->data["subview"] = "error";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
 	public function unique_roll()
 	{
 		$id = htmlentities(escapeString($this->uri->segment(3)));

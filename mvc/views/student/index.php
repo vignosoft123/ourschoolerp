@@ -25,20 +25,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
             <div class="col-sm-12">
 
                 <?php if ((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
-                    <div class="page-header">
-
-
-                        <!-- <div class="search-sec">
-                        <form name="g_search_form" action="<?php echo base_url('Student/global_student_search');?>" method="post">
-                                
-                                <div class="search">
-                                    <input type="text" name="global_search" class="search__input" placeholder="Global student search...">
-                                    <button class="search__button">
-                                    <i class="fa fa-search"></i>
-                                    </button>
-                                </div>                                
-                            </form>                             
-                        </div> -->
+                    <div class="page-header"> 
 
                         
                         <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
@@ -47,265 +34,62 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     <i class="fa fa-plus"></i>
                                     <?= $this->lang->line('add_title') ?>
                                 </a>
+                                <button type="button" class="ose-btn create-btn btn btn-primary" data-toggle="modal" data-target="#quickStudentModal" style="margin-left:8px;">
+                                    <i class="fa fa-plus"></i> Quick Student Creation
+                                </button>
 
- 
-<!-- Button to trigger modal (styled to match site 'Add' button) -->
-<button type="button" class="ose-btn create-btn btn btn-primary" data-toggle="modal" data-target="#quickStudentModal" style="margin-left:8px;">
-    <i class="fa fa-plus"></i> Quick Student Creation
-</button>
+                                <?php if (permissionChecker('student_delete') && customCompute($students) > 0) { ?>
+                                    <form id="multiDeleteForm" method="post" action="<?= base_url('student/multi_delete') ?>" style="display:inline-block; margin-left:8px;">
+                                        <input type="hidden" name="ids" id="multi_delete_ids" value="" />
+                                        <input type="hidden" name="url" value="<?= isset($set) ? $set : '' ?>" />
+                                        <button type="button" id="bulkDeleteBtn" class="ose-btn create-btn btn btn-danger" onclick="confirmMultiDelete()" style="background-color:#d9534f !important;border-color:#d43f3a !important;color:#ffffff !important;">
+                                            <i class="fa fa-trash"></i> <?= 'Delete Selected' ?>
+                                        </button>
+                                    </form>
+                                <?php } ?>
 
-<!-- Modal -->
-<div class="modal fade" id="quickStudentModal" tabindex="-1" role="dialog" aria-labelledby="quickStudentModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl" role="document">
-    <form id="quickStudentForm" method="post" action="<?= base_url('student/add') ?>">
-      <div class="modal-content">
+                                <span class="pull-right" style="display:inline-block; margin-left:auto;">
+                                <?php if ($this->session->userdata('usertypeID') != 3) { ?>
+                                    <?php
+                                    $array = array("0" => $this->lang->line("student_select_class"));
+                                    if (customCompute($classes)) {
+                                        foreach ($classes as $classa) {
+                                            $array[$classa->classesID] = $classa->classes;
+                                        }
+                                    }
+                                    echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2' style='display:inline-block; width:260px;'");
+                                    ?>
+                                <?php } ?>
+                                </span>
 
-        <!-- Header -->
-        <div class="modal-header bg-gradient-primary ">
-          <h5 class="modal-title" id="quickStudentModalLabel">
-            <i class="fa fa-user-plus"></i> Quick Student Creation
-          </h5>
-          <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
+                        </div>  
+                            <?php } ?> 
 
-        <!-- Body -->
-        <div class="modal-body" style="background-color: #4d93fb;">
-          <div class="container-fluid">
-
-            <!-- Basic Info -->
-            <fieldset class="border p-3 mb-4 bg-white shadow-sm rounded">
-              <legend class="w-auto text-primary font-weight-bold">Basic Information</legend>
-              <div class="row">
-                
-                <div class="col-md-3 form-group">
-                  <label>First Name <span class="text-danger">*</span></label>
-                  <input type="text" id="first_name" name="first_name" class="form-control id_card" placeholder="First Name" required>
-                </div>
-                <div class="col-md-3 form-group">
-                  <label>Last Name</label>
-                  <input type="text" id="last_name" name="last_name" class="form-control id_card" placeholder="Last Name">
-                </div>
-                <div class="col-md-3 form-group">
-}
-                  <label>ID Card Name</label>
-                  <input type="text" id="name_id" name="name" class="form-control" placeholder="Name on ID Card">
-                </div>
-
-                <div class="col-md-3 form-group">
-                  <label>Phone <span class="text-danger">*</span></label>
-                  <input type="text" name="phone" class="form-control" required>
-                </div>
-               
-              </div>
-
-              <div class="row">
-                <div class="col-md-3 form-group">
-                  <label>Class <span class="text-danger">*</span></label>
-                  <select class="form-control select2" name="classesID" id="classesID_popup" required>
-                    <option value="">Select Class</option>
-                    <?php foreach ($classes as $class): ?>
-                      <option value="<?= $class->classesID ?>"><?= $class->classes ?></option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-
-                <div class="col-md-3 form-group">
-                  <label>Section <span class="text-danger">*</span></label>
-                  <select class="form-control select2" name="sectionID" id="sectionID" required>
-                    <option value="">Select Section</option>
-                  </select>
-                </div>
-
-                 <div class="col-md-3 form-group">
-                  <label>Roll No <span class="text-danger">*</span></label>
-                  <input type="text" id="roll" name="roll" class="form-control" placeholder="Roll No" required>
-                </div>
-
-                <div class="col-md-3 form-group">
-                  <label>Admission No <span class="text-danger">*</span></label>
-                     <input type="text" class="form-control" id="registerNO" name="registerNO" value="<?= set_value('registerNO', $randomAdmissionCode) ?>" <?= $randomAdmissionCode ? 'readonly' : '';?> >
-                </div>
-
-                
-<!-- 
-                <div class="col-md-3 form-group">
-                  <label>Email</label>
-                  <input type="email" name="email" class="form-control">
-                </div> -->
-              </div>
-
-              <div class="row">
-                <div class="col-md-3 form-group">
-                  <label>Date of Birth</label> 
-                  <input type="text" class="form-control" id="dob" name="dob" value="<?= set_value('dob') ?>" required>
-                </div>
-                <div class="col-md-3 form-group">
-                  <label>Student Type <span class="text-danger">*</span></label>
-                  <select name="studentType" id="studentType" class="form-control" required>
-                    <option value="3">Day Scholar</option>
-                    <option value="1">Transport</option>
-                    <option value="2">Hostel</option>
-                  </select>
-                </div>
-                <div class="col-md-3 form-group">
-                  <label>Village Name</label>
-                 
-                  <select id="village_name" name="village_name" class='form-control select2' >
-                        <?php foreach($villages as $v){?>
-                            <option value="<?= $v['villageID']?>"> <?= $v['villageName']?> </option>
-                       <?php  }?>
-                    </select>
-
-                </div>
-                <div class="col-md-3 form-group">
-                  <label>Father Name</label>
-                  <input type="text" name="father_name" class="form-control" required>
-                </div>
-              </div>
-
-              <div class="row">
-                
-                <div class="col-md-3 form-group">
-                  <label>Student Type <span class="text-danger">*</span></label>
-                  <select name="sex" id="sex" class="form-control" required>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option> 
-                  </select>
-                </div>
-
-                <div class="col-md-3 form-group">
-                  <label>Refered By <span class="text-danger">*</span></label>
-                 <select id="refered_by" name="refered_by" class='form-control select2' >
-                    <option value=""> --Select-- </option>
-
-                        <?php foreach($teachers as $k=>$v){?>
-                            <option value="<?= $k?>"> <?= $v?> </option>
-                       <?php  }?>
-                    </select>
-                </div>
-
-                </div>
-
-            </fieldset>
-
-            <!-- Transport -->
-            <div id="transport_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
-              <legend class="w-auto text-success font-weight-bold">Transport Details</legend>
-              <div class="row">
-                <div class="col-md-4 form-group">
-                  <label>Transport Route</label>
-                  <select name="transportID" id="transportID" class="form-control clear-dropdown">
-                    <option value="">Select Route</option>
-                    <?php foreach ($transports as $transport): ?>
-                      <option value="<?= $transport->transportID ?>"><?= $transport->route ?></option>
-                    <?php endforeach; ?>
-                  </select>
-                </div> 
-
-
-
-             <?php 
-                   
-                    echo "<div class='col-md-4' >";
-            ?>
-                <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >
-                    Pickup Point <span class="text-red">*</span>
-                </label>
-                <div class="col1-sm-4 " >                    
-                    <select id="pickup_id" name ="pickup_id" class='form-control clear-dropdown select2'>
-                        <option>Select Pickup point</option>
-                         
-                    </select>
-                </div>
-                 
-            </div> 
-
-            <?php 
-                    if(form_error('tbalance')) 
-                        echo "<div class='col-md-4 has-error'>";
-                    else     
-                        echo "<div class='col-md-4'>";
-                ?>
-                    <label for="tbalance" class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
-                        <?=$this->lang->line("tmember_tfee")?> <span class="text-red">*</span>
-                    </label>
-                    <div class="col1-sm-4 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
-                        <input type="text" class="form-control clear-dropdown" id="tbalance" name="tbalance" value="<?=set_value('tbalance', "0.00")?>" readonly>
-                    </div>
-                    <span class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
-                        <?php echo form_error('tbalance'); ?>
-                    </span>
-                </div>
-
-
-
-              </div>
-            </div>
-
-            <!-- Hostel -->
-            <div id="hostel_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
-              <legend class="w-auto text-warning font-weight-bold">Hostel Details</legend>
-              <div class="row">
-                <div class="col-md-6 form-group">
-                  <label>Hostel Name</label>
-                  <select name="hostelID" id='hostelID' class="form-control clear-dropdown">
-                    <option value="">Select Hostel</option>
-                    <?php foreach ($hostels as $hostel): ?>
-                      <option value="<?= $hostel->hostelID ?>"><?= $hostel->name ?></option>
-                    <?php endforeach; ?>
-                  </select>
-                </div>
-                <?php 
-                if(form_error('categoryID')) 
-                    echo "<div class='col-md-4 has-error' >";
-                else     
-                    echo "<div class='col-md-4' >";
-            ?>
-                <label for="categoryID" class="control-label hostel  <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?>">
-                    <?=$this->lang->line("hmember_class_type")?> <span class="text-red">*</span>
-                </label>
-                <div class="coll-sm-6  <?= $this->input->post('studentType')=='2'  ? '' : 'show'; ?> hostel">
-                    <?php
-                        $array = array(0 => $this->lang->line("hmember_select_class_type"));
-                        if(customCompute($categorys)) {
-                            foreach ($categorys as $key => $category) {
-                                $array[$category->categoryID] = $category->class_type;
-                            }
-                        }
-                        echo form_dropdown("categoryID", $array, set_value("categoryID"), "id='categoryID' class='clear-dropdown form-control select2'");
-                    ?>
-                </div>
-                <span class="control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel" >
-                    <?php echo form_error('categoryID'); ?>
-                </span>
-            </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="modal-footer bg-white">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-success">
-            <i class="fa fa-save"></i> Save Student
-          </button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-
-
-                            <?php } ?>
                         <?php } ?>
 
+
+
+
+
+
+                     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         <?php if ($this->session->userdata('usertypeID') != 3) { ?>
-                            <div class="col-lg-3 col-sm-3 col-md-3 col-xs-12 pull-right">
+                            <div class="col-lg-3 col-sm-3 col-md-3 col-xs-12 pull-right" style="display:none;">
                                 <?php
                                 $array = array("0" => $this->lang->line("student_select_class"));
                                 if (customCompute($classes)) {
@@ -340,12 +124,14 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     <h3 class='err' style="margin-left:25%;color:green;"> </h3>
                                         <thead>
                                             <tr>
+                                                <th style="width:30px; text-align:center"><input type="checkbox" id="select_all_students" /></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
+                                                <th>WhatsApp</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                 <th>Class</th>
@@ -366,6 +152,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 // echo "<pre>";print_r($students);die;
                                                 foreach ($students as $student) { ?>
                                                     <tr>
+                                                        <td style="text-align:center"><input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" /></td>
                                                         <td data-title="<?= $this->lang->line('slno') ?>">
                                                             <?php echo $i; ?>
                                                         </td>
@@ -384,6 +171,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
                                                         <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td>
+                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
+                                                            <a href="tel:<?= $waPhone ?>"><?= $waPhone ?></a>
+                                                        </td>
                                                         
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->village_name; ?>
@@ -461,26 +252,28 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         
                                             <thead>
                                                 <tr>
-                                                <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
+                                                    <th style="width:30px; text-align:center"><input type="checkbox" class="select_all_section" /></th>
+                                                    <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
+                                                    <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
+                                                    <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
+                                                    <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
+                                                    <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
+                                                    <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
+                                                    <th>WhatsApp</th>
+                                                    <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
+                                                    <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
 
-                                                 <th>Class</th>
-                                                <th>Section</th>
-                                                <th>RFID</th>
-                                                <th>Invoice</th>
-                                                <?php if (permissionChecker('student_edit')) { ?>
-                                                    <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
-                                                <?php } ?>
-                                                <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                    <th class="col-sm-2"><?= $this->lang->line('action') ?></th>
-                                                <?php } ?>
-                                                </tr>
+                                                     <th>Class</th>
+                                                    <th>Section</th>
+                                                    <th>RFID</th>
+                                                    <th>Invoice</th>
+                                                    <?php if (permissionChecker('student_edit')) { ?>
+                                                        <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
+                                                    <?php } ?>
+                                                    <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
+                                                        <th class="col-sm-2"><?= $this->lang->line('action') ?></th>
+                                                    <?php } ?>
+                                                    </tr>
                                             </thead>
                                             <tbody>
                                                 <?php if (customCompute($allsection[$section->sectionID])) {
@@ -488,6 +281,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                     foreach ($allsection[$section->sectionID] as $student) {
                                                         if ($section->sectionID === $student->srsectionID) { ?>
                                                             <tr>
+                                                            <td style="text-align:center"><input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" /></td>
                                                             <td data-title="<?= $this->lang->line('slno') ?>">
                                                             <?php echo $i; ?>
                                                         </td>
@@ -509,6 +303,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
                                                         <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td>
+                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
+                                                            <a href="tel:<?= $waPhone ?>"><?= $waPhone ?></a>
+                                                        </td>
                                                         
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->village_name; ?>
@@ -604,6 +402,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
+                                                <th>WhatsApp</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                  <th>Class</th>
@@ -629,6 +428,250 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     </div><!-- Body -->
 </div><!-- /.box -->
 
+
+
+<!-- queck student popup start -->
+                         <div class="modal fade" id="quickStudentModal" tabindex="-1" role="dialog" aria-labelledby="quickStudentModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-xl" role="document">
+                                <form id="quickStudentForm" method="post" action="<?= base_url('student/add') ?>">
+                                <div class="modal-content">
+
+                                    <!-- Header -->
+                                    <div class="modal-header bg-gradient-primary ">
+                                    <h5 class="modal-title" id="quickStudentModalLabel">
+                                        <i class="fa fa-user-plus"></i> Quick Student Creation
+                                    </h5>
+                                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    </div>
+
+                                    <!-- Body -->
+                                    <div class="modal-body" style="background-color: #4d93fb;">
+                                    <div class="container-fluid">
+
+                                        <!-- Basic Info -->
+                                        <fieldset class="border p-3 mb-4 bg-white shadow-sm rounded">
+                                        <legend class="w-auto text-primary font-weight-bold">Basic Information</legend>
+                                        <div class="row">
+                                            
+                                            <div class="col-md-3 form-group">
+                                            <label>First Name <span class="text-danger">*</span></label>
+                                            <input type="text" id="first_name" name="first_name" class="form-control id_card" placeholder="First Name" required>
+                                            </div>
+                                            <div class="col-md-3 form-group">
+                                            <label>Last Name</label>
+                                            <input type="text" id="last_name" name="last_name" class="form-control id_card" placeholder="Last Name">
+                                            </div>
+                                                            <div class="col-md-3 form-group">
+                                                                <label>ID Card Name</label>
+                                            <input type="text" id="name_id" name="name" class="form-control" placeholder="Name on ID Card">
+                                            </div>
+
+                                            <div class="col-md-3 form-group">
+                                            <label>Phone <span class="text-danger">*</span></label>
+                                            <input type="text" name="phone" class="form-control" required>
+                                            </div>
+                                        
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-3 form-group">
+                                            <label>Class <span class="text-danger">*</span></label>
+                                            <select class="form-control select2" name="classesID" id="classesID_popup" required>
+                                                <option value="">Select Class</option>
+                                                <?php foreach ($classes as $class): ?>
+                                                <option value="<?= $class->classesID ?>"><?= $class->classes ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            </div>
+
+                                            <div class="col-md-3 form-group">
+                                            <label>Section <span class="text-danger">*</span></label>
+                                            <select class="form-control select2" name="sectionID" id="sectionID" required>
+                                                <option value="">Select Section</option>
+                                            </select>
+                                            </div>
+
+                                            <div class="col-md-3 form-group">
+                                            <label>Roll No <span class="text-danger">*</span></label>
+                                            <input type="text" id="roll" name="roll" class="form-control" placeholder="Roll No" required>
+                                            </div>
+
+                                            <div class="col-md-3 form-group">
+                                            <label>Admission No <span class="text-danger">*</span></label>
+                                                <input type="text" class="form-control" id="registerNO" name="registerNO" value="<?= set_value('registerNO', $randomAdmissionCode) ?>" <?= $randomAdmissionCode ? 'readonly' : '';?> >
+                                            </div>
+
+                                            
+
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-3 form-group">
+                                            <label>Date of Birth</label> 
+                                            <input type="text" class="form-control" id="dob" name="dob" value="<?= set_value('dob') ?>" required>
+                                            </div>
+                                            <div class="col-md-3 form-group">
+                                            <label>Student Type <span class="text-danger">*</span></label>
+                                            <select name="studentType" id="studentType" class="form-control" required>
+                                                <option value="3">Day Scholar</option>
+                                                <option value="1">Transport</option>
+                                                <option value="2">Hostel</option>
+                                            </select>
+                                            </div>
+                                            <div class="col-md-3 form-group">
+                                            <label>Village Name</label>
+                                            
+                                            <select id="village_name" name="village_name" class='form-control select2' >
+                                                    <?php foreach($villages as $v){?>
+                                                        <option value="<?= $v['villageID']?>"> <?= $v['villageName']?> </option>
+                                                <?php  }?>
+                                                </select>
+
+                                            </div>
+                                            <div class="col-md-3 form-group">
+                                            <label>Father Name</label>
+                                            <input type="text" name="father_name" class="form-control" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            
+                                            <div class="col-md-3 form-group">
+                                            <label>Student Type <span class="text-danger">*</span></label>
+                                            <select name="sex" id="sex" class="form-control" required>
+                                                <option value="Male">Male</option>
+                                                <option value="Female">Female</option> 
+                                            </select>
+                                            </div>
+
+                                            <div class="col-md-3 form-group">
+                                            <label>Refered By <span class="text-danger">*</span></label>
+                                            <select id="refered_by" name="refered_by" class='form-control select2' >
+                                                <option value=""> --Select-- </option>
+
+                                                    <?php foreach($teachers as $k=>$v){?>
+                                                        <option value="<?= $k?>"> <?= $v?> </option>
+                                                <?php  }?>
+                                                </select>
+                                            </div>
+
+                                            </div>
+
+                                        </fieldset>
+
+                                        <!-- Transport -->
+                                        <div id="transport_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
+                                        <legend class="w-auto text-success font-weight-bold">Transport Details</legend>
+                                        <div class="row">
+                                            <div class="col-md-4 form-group">
+                                            <label>Transport Route</label>
+                                            <select name="transportID" id="transportID" class="form-control clear-dropdown">
+                                                <option value="">Select Route</option>
+                                                <?php foreach ($transports as $transport): ?>
+                                                <option value="<?= $transport->transportID ?>"><?= $transport->route ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            </div> 
+
+
+
+                                        <?php 
+                                            
+                                                echo "<div class='col-md-4' >";
+                                        ?>
+                                            <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >
+                                                Pickup Point <span class="text-red">*</span>
+                                            </label>
+                                            <div class="col1-sm-4 " >                    
+                                                <select id="pickup_id" name ="pickup_id" class='form-control clear-dropdown select2'>
+                                                    <option>Select Pickup point</option>
+                                                    
+                                                </select>
+                                            </div>
+                                            
+                                        </div> 
+
+                                        <?php 
+                                                if(form_error('tbalance')) 
+                                                    echo "<div class='col-md-4 has-error'>";
+                                                else     
+                                                    echo "<div class='col-md-4'>";
+                                            ?>
+                                                <label for="tbalance" class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
+                                                    <?=$this->lang->line("tmember_tfee")?> <span class="text-red">*</span>
+                                                </label>
+                                                <div class="col1-sm-4 <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
+                                                    <input type="text" class="form-control clear-dropdown" id="tbalance" name="tbalance" value="<?=set_value('tbalance', "0.00")?>" readonly>
+                                                </div>
+                                                <span class="  control-label <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport">
+                                                    <?php echo form_error('tbalance'); ?>
+                                                </span>
+                                            </div>
+
+
+
+                                        </div>
+                                        </div>
+
+                                        <!-- Hostel -->
+                                        <div id="hostel_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
+                                        <legend class="w-auto text-warning font-weight-bold">Hostel Details</legend>
+                                        <div class="row">
+                                            <div class="col-md-6 form-group">
+                                            <label>Hostel Name</label>
+                                            <select name="hostelID" id='hostelID' class="form-control clear-dropdown">
+                                                <option value="">Select Hostel</option>
+                                                <?php foreach ($hostels as $hostel): ?>
+                                                <option value="<?= $hostel->hostelID ?>"><?= $hostel->name ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            </div>
+                                            <?php 
+                                            if(form_error('categoryID')) 
+                                                echo "<div class='col-md-4 has-error' >";
+                                            else     
+                                                echo "<div class='col-md-4' >";
+                                        ?>
+                                            <label for="categoryID" class="control-label hostel  <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?>">
+                                                <?=$this->lang->line("hmember_class_type")?> <span class="text-red">*</span>
+                                            </label>
+                                            <div class="coll-sm-6  <?= $this->input->post('studentType')=='2'  ? '' : 'show'; ?> hostel">
+                                                <?php
+                                                    $array = array(0 => $this->lang->line("hmember_select_class_type"));
+                                                    if(customCompute($categorys)) {
+                                                        foreach ($categorys as $key => $category) {
+                                                            $array[$category->categoryID] = $category->class_type;
+                                                        }
+                                                    }
+                                                    echo form_dropdown("categoryID", $array, set_value("categoryID"), "id='categoryID' class='clear-dropdown form-control select2'");
+                                                ?>
+                                            </div>
+                                            <span class="control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel" >
+                                                <?php echo form_error('categoryID'); ?>
+                                            </span>
+                                        </div>
+                                        </div>
+                                        </div>
+
+                                    </div>
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="modal-footer bg-white">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fa fa-save"></i> Save Student
+                                    </button>
+                                    </div>
+                                </div>
+                                </form>
+                          </div>
+                         
+                        <!-- queck student popup end -->
+
+                        
 
 <!-- photo  Modal  start Structure -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
@@ -1310,4 +1353,32 @@ $(document).ready(function(){
 
 
 
+</script>
+
+<script>
+// Bulk select / delete handlers
+$(document).on('change', '#select_all_students', function() {
+    var checked = $(this).prop('checked');
+    $('#example1').find('.student-checkbox').prop('checked', checked);
+});
+
+$(document).on('change', '.select_all_section', function() {
+    var checked = $(this).prop('checked');
+    $(this).closest('table').find('.student-checkbox').prop('checked', checked);
+});
+
+function confirmMultiDelete() {
+    var ids = [];
+    $('.student-checkbox:checked').each(function() {
+        ids.push($(this).val());
+    });
+    if (!ids.length) {
+        alert('Please select at least one student to delete.');
+        return;
+    }
+    if (!confirm('Are you sure you want to delete selected student(s)? This action cannot be undone.')) return;
+
+    $('#multi_delete_ids').val(ids.join(','));
+    $('#multiDeleteForm').submit();
+}
 </script>

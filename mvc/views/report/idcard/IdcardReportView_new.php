@@ -54,7 +54,8 @@
                     <label id="userDivlabel" for="userID"><?=$this->lang->line("idcardreport_user")?></label>
                     <?php
                         $userArray['0'] = $this->lang->line("idcardreport_please_select");
-                        echo form_dropdown("userID", $userArray, set_value("userID"), "id='userID' class='form-control select2'");
+                        // make this a multi select so users can choose multiple students
+                        echo form_dropdown("userID[]", $userArray, set_value("userID"), "id='userID' class='form-control select2' multiple='multiple'");
                      ?>
                 </div>
 
@@ -127,7 +128,7 @@
         $("#routinefor").val(0);
         $("#classesID").val(0);
         $("#sectionID").val(0);
-        $("#userID").val(0);
+        $("#userID").val(null).trigger('change');
         $("#type").val(0);
         $("#background").val(0);
         $('#classesDiv').hide('slow');
@@ -152,14 +153,14 @@
         } else if(usertypeID == '3') {
             $("#classesID").val(0);
             $("#sectionID").val(0);
-            $("#userID").val(0);
+            $("#userID").val(null).trigger('change');
             $('#classesDiv').show('slow');
             $('#sectionDiv').show('slow');
             $('#userDiv').show('slow');
         } else if(usertypeID != '0' && usertypeID !='3') {
             $("#classesID").val(0);
             $("#sectionID").val(0);
-            $("#userID").val(0);
+            $("#userID").val(null).trigger('change');
             $('#classesDiv').hide('slow');
             $('#sectionDiv').hide('slow');
             $('#userDiv').show('slow');

@@ -157,6 +157,22 @@ class student_m extends MY_Model {
 		parent::delete($id);
 	}
 
+	public function delete_multiple_student($ids) {
+		if(!is_array($ids) || !customCompute($ids)) {
+			return FALSE;
+		}
+		$this->db->trans_start();
+		$this->db->where_in('studentID', $ids);
+		$this->db->delete('student');
+
+		// remove related extended info
+		$this->db->where_in('studentID', $ids);
+		$this->db->delete('studentextend');
+
+		$this->db->trans_complete();
+		return $this->db->trans_status();
+	}
+
 	public function delete_parent($id){
 		$this->db->delete('parent', array('studentID' => $id));
 	}

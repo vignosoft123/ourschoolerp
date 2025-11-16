@@ -516,6 +516,29 @@ class Examschedule extends Admin_Controller {
 		}
 	}
 
+	public function multi_delete() {
+		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
+			if(!permissionChecker('examschedule_delete')) {
+				redirect(base_url('examschedule/index'));
+			}
+			$selected = $this->input->post('selected');
+			$classesID = htmlentities(escapeString($this->input->post('classesID')));
+			$exam_id = htmlentities(escapeString($this->input->post('examID')));
+			$section_id = htmlentities(escapeString($this->input->post('sectionID')));
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			if(is_array($selected) && customCompute($selected)) {
+				// use model bulk delete
+				$this->examschedule_m->delete_multiple_examschedule($selected);
+				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+			} else {
+				$this->session->set_flashdata('error', 'No items selected');
+			}
+			redirect(base_url("examschedule/index/$classesID/$exam_id/$section_id"));
+		} else {
+			redirect(base_url('examschedule/index'));
+		}
+	}
+
 	public function examschedule_list() {
 		$classID = $this->input->post('id');
 		$examID = $this->input->post('examID');

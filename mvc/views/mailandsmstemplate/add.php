@@ -578,7 +578,8 @@
                                                         'FEE_PAID' => 'FEE_PAID',
                                                         'EXAM_MARKS' => 'EXAM_MARKS',
                                                         'HOLIDAY_INTIMATION' => 'HOLIDAY_INTIMATION',
-                                                        'FEE_REMINDER' => 'FEE_REMINDER'
+                                                        'FEE_REMINDER' => 'FEE_REMINDER',
+                                                        'PROGRESS_CARD' => 'PROGRESS_CARD'
                                                     );
 
                                                     echo form_dropdown("short_name", $shorts, set_value("short_name"), "id='short_name' class='form-control select2'");

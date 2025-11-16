@@ -66,4 +66,13 @@ class Examschedule_m extends MY_Model {
 	public function delete_examschedule($id){
 		parent::delete($id);
 	}
+
+	public function delete_multiple_examschedule($ids) {
+		if(!is_array($ids) || !customCompute($ids)) {
+			return FALSE;
+		}
+		$this->db->where_in($this->_primary_key, $ids);
+		$this->db->delete($this->_table_name);
+		return TRUE;
+	}
 }
