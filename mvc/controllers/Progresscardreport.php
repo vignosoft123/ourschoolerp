@@ -941,15 +941,15 @@ foreach($months_array as $mkey => $v) {
 
 					// unlink attachments and prepare response per phone
 					foreach($attachmentsToUnlink as $att) {
-						if (file_exists($att)) {
-							if (unlink($att)) {
-								$unlinkMsg = "File deleted successfully.";
-							} else {
-								$unlinkMsg = "Error deleting the file.";
-							}
-						} else {
-							$unlinkMsg = "File does not exist.";
-						}
+						// if (file_exists($att)) {
+						// 	if (unlink($att)) {
+						// 		$unlinkMsg = "File deleted successfully.";
+						// 	} else {
+						// 		$unlinkMsg = "Error deleting the file.";
+						// 	}
+						// } else {
+						// 	$unlinkMsg = "File does not exist.";
+						// }
 						foreach($phonesMap as $p => $info) {
 							if($info['attachment'] === $att) {
 								$retArray[$p]['unlink'] = $unlinkMsg;
