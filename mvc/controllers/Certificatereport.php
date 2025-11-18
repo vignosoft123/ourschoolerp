@@ -29,20 +29,21 @@ class Certificatereport extends Admin_Controller {
 	}
 
 	public function index() {
-		$this->data['headerassets'] = array(
-			'css' => array(
-				'assets/select2/css/select2.css',
-				'assets/select2/css/select2-bootstrap.css'
-			),
-			'js' => array(
-				'assets/select2/select2.js'
-			)
-		);
+		// $this->data['headerassets'] = array(
+		// 	'css' => array(
+		// 		'assets/select2/css/select2.css',
+		// 		'assets/select2/css/select2-bootstrap.css'
+		// 	),
+		// 	'js' => array(
+		// 		'assets/select2/select2.js'
+		// 	)
+		// );
 
-		$this->data['classes']   = $this->classes_m->general_get_classes();
-		$this->data['templates'] = $this->certificate_template_m->get_certificate_template();
-		$this->data["subview"] = "report/certificate/CertificateReportView";
-		$this->load->view('_layout_main', $this->data);
+		// $this->data['classes']   = $this->classes_m->general_get_classes();
+		// $this->data['templates'] = $this->certificate_template_m->get_certificate_template();
+		// $this->data["subview"] = "report/certificate/CertificateReportView";
+		// $this->load->view('_layout_main', $this->data);
+		redirect('studycertificatereport');
 	}
 
 	protected function rules() {

@@ -3444,7 +3444,9 @@ class Student extends Admin_Controller
 		$this->load->view('_layout_main', $this->data);
 	
 	}
-public function study_certificate($sid=""){
+public function study_certificate($sid=""){ 
+	// error_reporting(E_ALL);
+	// ini_set('display_errors', 1);
 
 	$this->data['headerassets'] = array(
 		'css' => array(
@@ -3460,11 +3462,11 @@ public function study_certificate($sid=""){
 	$schoolyearID = $this->session->userdata('defaultschoolyearID');
 	$studentID = htmlentities(escapeString($this->uri->segment(3)));
 	$url = htmlentities(escapeString($this->uri->segment(4)));
-	if ((int)$studentID && (int)$url) {
+	if ((int)$studentID  ) {
 		$this->data['classes'] = $this->classes_m->get_classes();
 		$this->data['student'] = $objStudent = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
 	}
-	//echo "<pre>";print_r($this->data['student'] );
+	// echo "<pre>";print_r($this->data['student'] );die;
 	// $this->data["subview"] = "student/study_certificate";
 	$this->data["subview"] = "studycertificate_new";
 	$this->load->view('_layout_main', $this->data);

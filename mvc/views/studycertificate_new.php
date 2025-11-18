@@ -113,9 +113,20 @@ body{
         <div class="mainborder">
             <div class = "innder-border" style="height: 550px;">
                 <div class="header">
-                    <h1>Sri potti sriramulu degree College</h1>
-                    <span align ="center">(Affiliated to Acharya Nagarjuna University)</span>
-                    <p style="font-size:24px;;"><span style="font-weight: bolder;">DARSI</span><span>&nbsp;- 523 247,</span>  <span>Prakasam Dist. A.P</span></p>
+                    <h1>
+                        <?= isset($siteinfos->sname) && $siteinfos->sname ? htmlspecialchars($siteinfos->sname) : 'School Name' ?>
+                    </h1>
+                    <?php if (isset($siteinfos->affiliation) && $siteinfos->affiliation) { ?>
+                        <span align="center">(<?= htmlspecialchars($siteinfos->affiliation) ?>)</span>
+                    <?php } ?>
+                    <?php if (isset($siteinfos->address) && $siteinfos->address) { ?>
+                        <p style="font-size:24px;">
+                            <span><?= htmlspecialchars($siteinfos->address) ?></span>
+                            <?php if (isset($siteinfos->phone) && $siteinfos->phone) { ?>
+                                <span>&nbsp; | Phone: <?= htmlspecialchars($siteinfos->phone) ?></span>
+                            <?php } ?>
+                        </p>
+                    <?php } ?>
 
                   
 
@@ -129,14 +140,24 @@ body{
                     <p class="input">This is to certify that Mr / Miss</p> 
                     <p class="text-container"><span class="input_text">S/o. D/o</span><span class="border-after-text"></span><span>is / was a student</span></p>
 
-                    <p class="input">of &nbsp;<span class="institute_name">Sri Potti sriramulu Degree College,</span> &nbsp;<span class="address">Darsi</span>, During the years</span></p>
+                    <p class="input">of &nbsp;
+                        <span class="institute_name">
+                            <?= isset($siteinfos->sname) && $siteinfos->sname ? htmlspecialchars($siteinfos->sname) : '' ?>
+                        </span>,
+                        &nbsp;<span class="address">
+                            <?= isset($siteinfos->address) && $siteinfos->address ? htmlspecialchars($siteinfos->address) : '' ?>
+                        </span>,
+                        During the years</span>
+                    </p>
                     <p class="text-container"><span>with group</span><span class="border-after-text"></span>Medium His/Her Character and Conduct is <span class="border-after-text"></span></p>
                 </div>
 
                 <div></div>
                 <div class="footer">
                     <div class="left">
-                        <div class="footeraddress">DARSI</div>
+                        <div class="footeraddress">
+                            <?= isset($siteinfos->city) && $siteinfos->city ? htmlspecialchars($siteinfos->city) : (isset($siteinfos->address) && $siteinfos->address ? htmlspecialchars($siteinfos->address) : '') ?>
+                        </div>
                         
                         <div class="dateinput">Date</div>
                     </div>

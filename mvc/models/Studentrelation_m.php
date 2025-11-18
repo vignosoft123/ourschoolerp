@@ -301,6 +301,7 @@ public function general_get_order_by_student_multi_selction($arrays = [], $stude
         $this->db->where('student.studentID !=', NULL);
         $this->db->order_by('srroll asc');
         $query = $this->db->get();
+        // echo $this->db->last_query();die;
         return $query->row();
     }
 
