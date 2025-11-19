@@ -9,7 +9,33 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     label { 
     color: #ffff;
     }
-    </style>
+    .ose-btn1 {
+        background-color: #d9534f !important;
+        font-size: 16px;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .ose-btn2 {
+        background-color: #4fd96fff !important;
+        font-size: 16px;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 12px;
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+</style>
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-student"></i> <?= $this->lang->line('menu_student') ?></h3>
@@ -30,7 +56,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                         
                         <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if (permissionChecker('student_add')) { ?>
-                                <a class="ose-btn create-btn" href="<?php echo base_url('student/add') ?>">
+                                <a class="ose-btn2 create-btn" href="<?php echo base_url('student/add') ?>" style="margin-left: 35%;">
                                     <i class="fa fa-plus"></i>
                                     <?= $this->lang->line('add_title') ?>
                                 </a>
@@ -42,7 +68,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     <form id="multiDeleteForm" method="post" action="<?= base_url('student/multi_delete') ?>" style="display:inline-block; margin-left:8px;">
                                         <input type="hidden" name="ids" id="multi_delete_ids" value="" />
                                         <input type="hidden" name="url" value="<?= isset($set) ? $set : '' ?>" />
-                                        <button type="button" id="bulkDeleteBtn" class="ose-btn create-btn btn btn-danger" onclick="confirmMultiDelete()" style="background-color:#d9534f !important;border-color:#d43f3a !important;color:#ffffff !important;">
+                                        <button type="button" id="bulkDeleteBtn" class="ose-btn1 create-btn btn btn-danger" onclick="confirmMultiDelete()" style="background-color:#d9534f !important;border-color:#d43f3a !important;color:#ffffff !important;">
                                             <i class="fa fa-trash"></i> <?= 'Delete Selected' ?>
                                         </button>
                                     </form>
@@ -173,7 +199,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
                                                             <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
-                                                            <a href="tel:<?= $waPhone ?>"><?= $waPhone ?></a>
+                                                            <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
                                                         </td>
                                                         
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
@@ -305,7 +331,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
                                                             <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
-                                                            <a href="tel:<?= $waPhone ?>"><?= $waPhone ?></a>
+                                                            <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
                                                         </td>
                                                         
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
@@ -427,8 +453,48 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         </div><!-- row -->
     </div><!-- Body -->
 </div><!-- /.box -->
+<!-- photo  Modal  start Structure -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
+<div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileUploadModalLabel">Upload Photo</h5>
+                <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
+            </div>
+            <div class="modal-body">
+                <!-- Form for File Upload -->
+                <form id="fileUploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="formFile" class="form-label">Choose a file to upload</label>
+                        <input class="form-control" type="file" id="formFile" name="file" accept="image/*">
+                        <input class="form-control" type="hidden" id="student_id" name="studentID" value="">
+                    </div>
+                    <div class="mb-3" id="imagePreviewContainer" style="display:none; text-align:center;">
+                        <img id="imagePreview" style="max-width:100%; max-height:300px;" />
+                    </div>
+                    <div class="mb-3" id="cropBtnContainer" style="display:none; text-align:center;">
+                        <button type="button" class="btn btn-secondary" id="cropImageBtn">Crop & Compress</button>
+                    </div>
+                    <div class="mb-3">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-
+<!-- Photo zoom modal -->
+<div class="modal fade" id="photoZoomModal" tabindex="-1" role="dialog" aria-labelledby="photoZoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body text-center" style="padding:10px;">
+                <img id="photoZoomImg" src="" style="max-width:100%; max-height:80vh; border:1px solid #ddd;" />
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- queck student popup start -->
                          <div class="modal fade" id="quickStudentModal" tabindex="-1" role="dialog" aria-labelledby="quickStudentModalLabel" aria-hidden="true">
@@ -673,37 +739,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
                         
 
-<!-- photo  Modal  start Structure -->
-<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
-<div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="fileUploadModalLabel">Upload Photo</h5>
-                <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
-            </div>
-            <div class="modal-body">
-                <!-- Form for File Upload -->
-                <form id="fileUploadForm" enctype="multipart/form-data">
-                    <div class="mb-3">
-                        <label for="formFile" class="form-label">Choose a file to upload</label>
-                        <input class="form-control" type="file" id="formFile" name="file" accept="image/*">
-                        <input class="form-control" type="hidden" id="student_id" name="studentID" value="">
-                    </div>
-                    <div class="mb-3" id="imagePreviewContainer" style="display:none; text-align:center;">
-                        <img id="imagePreview" style="max-width:100%; max-height:300px;" />
-                    </div>
-                    <div class="mb-3" id="cropBtnContainer" style="display:none; text-align:center;">
-                        <button type="button" class="btn btn-secondary" id="cropImageBtn">Crop & Compress</button>
-                    </div>
-                    <div class="mb-3">
-                        <button type="submit" class="btn btn-primary">Submit</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>
 let cropper;
@@ -858,16 +894,7 @@ document.getElementById('fileUploadForm').addEventListener('submit', function(ev
 </script>
 <!-- photo upload modal end -->
 
-<!-- Photo zoom modal -->
-<div class="modal fade" id="photoZoomModal" tabindex="-1" role="dialog" aria-labelledby="photoZoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body text-center" style="padding:10px;">
-                <img id="photoZoomImg" src="" style="max-width:100%; max-height:80vh; border:1px solid #ddd;" />
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <style>
     .photo-zoom-icon { margin-left:6px; color:#337ab7; cursor:pointer; display:inline-block; vertical-align:middle; }
