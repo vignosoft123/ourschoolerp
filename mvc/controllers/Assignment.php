@@ -206,7 +206,7 @@ class Assignment extends Admin_Controller {
 		}
 	}
 
-	public function index($classID = 0, $sectionID = 0, $subjectID = 0, $date = 0) {
+public function index($classID = 0, $sectionID = 0, $subjectID = 0, $date = 0) {
     $this->data['headerassets'] = array(
         'css' => array(
             'assets/select2/css/select2.css',
@@ -248,7 +248,7 @@ class Assignment extends Admin_Controller {
             'classesID' => $classID
         ]), 'section', 'sectionID');
 
-$this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, $schoolyearID, $sectionID, $subjectID, $date);
+	$this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, $schoolyearID, $sectionID, $subjectID, $date);
 
         $this->data["subview"]     = "assignment/index";
         $this->load->view('_layout_main', $this->data);
@@ -813,4 +813,78 @@ public function student_list() {
 			redirect(base_url('assignment/index'));
 		}
 	}
+
+	public function send_homework_whatsapp() {
+        $retArray = ['status' => false, 'message' => ''];
+
+        $classesID = $this->input->post('classesID');
+        $sectionID = $this->input->post('sectionID');
+        $deadlinedate = $this->input->post('deadlinedate');
+
+        if (empty($classesID) || empty($sectionID)) {
+            $retArray['message'] = 'Class and Section are required.';
+            echo json_encode($retArray);
+            return;
+        }
+
+        $this->load->model('studentrelation_m');
+        $this->load->model('subject_m');
+        $this->load->model('assignment_m');
+        $this->load->model('section_m');
+        $this->load->model('whatsapp_m');
+
+        $students = $this->studentrelation_m->get_order_by_student(['srclassesID' => $classesID, 'srsectionID' => $sectionID]);
+        $assignments = $this->assignment_m->join_get_assignment($classesID, $this->session->userdata('defaultschoolyearID'), $sectionID, 0, $deadlinedate);
+        $section = $this->section_m->get_section($sectionID);
+		// print_r($assignments);die;
+
+        if (customCompute($students) && customCompute($assignments)) {
+
+			     // Handle file upload for WhatsApp message
+            if (!file_exists('uploads/homework')) {
+                mkdir('uploads/homework', 0777, true);
+            }
+
+            if (isset($_FILES['homework_file']) && $_FILES['homework_file']['error'] == UPLOAD_ERR_OK) {
+                $uploadDir = 'uploads/homework/';
+                $uploadFile = $uploadDir . basename($_FILES['homework_file']['name']);
+
+                if (move_uploaded_file($_FILES['homework_file']['tmp_name'], $uploadFile)) {
+                    $msg['media'] = base_url($uploadFile);
+                } else {
+                    // Handle upload error
+                    $msg['media'] = '';
+                }
+            } else {
+                $msg['media'] = '';
+            }
+
+
+            $homeworkDetails = "";
+            foreach ($assignments as $assignment) {
+                $homeworkDetails .= "{$assignment->subject} – {$assignment->description}\n";
+            }
+
+            $dataBatch = array_map(function($student) use ($classesID, $section, $deadlinedate, $homeworkDetails, $msg) {
+                return [
+                    'phone' => $student->phone,
+                    'message' => "{$classesID}, {$section->section}, {$deadlinedate}, {$homeworkDetails}",
+                    'media' => $msg['media']
+                ];
+            }, $students);
+
+       
+			// echo $msg['media'];die;
+
+            $templateName = 'homework_utility_text';
+            $sentCount = $this->whatsapp_m->send_homework_whatsapp($dataBatch, $templateName);
+
+            $retArray['status'] = true;
+            $retArray['message'] = "WhatsApp messages sent successfully to {$sentCount} recipients.";
+        } else {
+            $retArray['message'] = 'No students or assignments found for the selected criteria.';
+        }
+
+        echo json_encode($retArray);
+    }
 }

@@ -76,7 +76,10 @@
                         <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
                             <button class="btn btn-success" id="get_data" > Get Data</button> 
                         </div>
-                        
+
+                        <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
+                            <button class="btn btn-primary" id="send_whatsapp" >Send Homework on WhatsApp</button> 
+                        </div>
 
                         <?php } ?>
                     </h5>
@@ -176,6 +179,32 @@
     </div>
 </div>
 
+<!-- Add Modal for File Upload -->
+<div class="modal fade" id="uploadHomeworkModal" tabindex="-1" role="dialog" aria-labelledby="uploadHomeworkModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadHomeworkModalLabel">Upload Homework File</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="homeworkUploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="homeworkFile">Choose File</label>
+                        <input type="file" class="form-control" id="homeworkFile" name="homework_file" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="submitHomeworkFile">Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script type="text/javascript">
     $(".select2").select2();
     $("#deadlinedate").datepicker({
@@ -232,6 +261,19 @@
     });
 
 
+    $('#send_whatsapp').click(function() {
+        var classesID = $('#classesID').val();
+        var sectionID = $('#sectionID').val();
+        var deadlinedate = $('#deadlinedate').val();
+
+        if(classesID == 0 || sectionID == 0) {
+            alert("Please select Class and Section!");
+        } else {
+            $('#uploadHomeworkModal').modal('show');
+        }
+    });
+
+
     $('#classesID').change(function(event) {
     var classesID = $(this).val();
     if(classesID === '0') {
@@ -261,5 +303,37 @@
     }
 });
 
- 
+    $('#submitHomeworkFile').click(function() {
+        var formData = new FormData($('#homeworkUploadForm')[0]);
+        formData.append('classesID', $('#classesID').val());
+        formData.append('sectionID', $('#sectionID').val());
+        formData.append('deadlinedate', $('#deadlinedate').val());
+
+        $.ajax({
+            url: "<?=base_url('assignment/send_homework_whatsapp')?>",
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                $('#uploadHomeworkModal').modal('hide');
+                if(response.status) {
+                    alert("WhatsApp messages sent successfully!");
+                } else {
+                    alert("Failed to send WhatsApp messages. Please try again.");
+                }
+            },
+            error: function() {
+                alert("An error occurred while sending the WhatsApp messages.");
+            }
+        });
+    });
+
+    $(document).ready(function() {
+    var sectionID = "<?= $setsectionID ?>";
+    if (sectionID) {
+        $('#sectionID').val(sectionID).trigger('change');
+    }
+});
 </script>

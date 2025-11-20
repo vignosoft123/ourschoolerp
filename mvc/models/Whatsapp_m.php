@@ -122,6 +122,7 @@ class Whatsapp_m extends MY_Model {
 
 public function send_to_api($payload)
 {
+	// echo "<pre>";print_r($payload);die;
     $templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
     $messages     = isset($payload['messages']) ? $payload['messages'] : [];
 
@@ -144,7 +145,7 @@ public function send_to_api($payload)
 
         $to       = trim($msg['phone']);
         $text     = urlencode($templateName);
-        $params   = urlencode($msg['message']);
+        $params   = isset($msg['message']) ? $msg['message'] : '';
 
         // ✅ Construct API URL
         $url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
@@ -242,7 +243,7 @@ public function send_to_api_with_media($payload)
     foreach ($messages as $msg) {
         $to       = trim($msg['phone']);
         $text     = urlencode($templateName);
-        $params   = isset($msg['message']) ? urlencode($msg['message']) : '';
+        $params   = isset($msg['message']) ? $msg['message'] : '';
         $htype   = isset($msg['htype']) ? urlencode($msg['htype']) : '';
         $fname   = isset($msg['fname']) ? urlencode($msg['fname']) : '';
         $media   = isset($msg['url']) ? urlencode($msg['url']) : '';
@@ -613,6 +614,88 @@ private function log_whatsapp_history($results)
     return $this->db->get()->result();
 }
 
+public function send_homework_whatsapp($dataBatch, $templateName) {
+    $sent = 0;
+    $chunkSize = 50; // Limit batch size for API calls
 
+    foreach (array_chunk($dataBatch, $chunkSize) as $batch) {
+        $payload = [
+            'template_name' => $templateName,
+            'messages' => $batch
+        ];
 
+        $response = $this->send_to_api_homework($payload);
+
+        if ($response && isset($response['success_count'])) {
+            $sent += $response['success_count'];
+        }
+    }
+
+    return $sent;
 }
+
+	public function send_to_api_homework($payload) {
+		// echo "<pre>";print_r($payload);
+
+		$templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
+		$messages = isset($payload['messages']) ? $payload['messages'] : [];
+		$media = isset($payload['media']) ? urlencode($payload['media']) : '';
+
+		if (empty($messages)) {
+			return ['success_count' => 0, 'results' => []];
+		}
+
+		$username = $this->username;
+		$password = $this->password;
+		$senderID = $this->senderID;
+
+		$results = array_map(function($msg) use ($username, $password, $senderID, $templateName, $media) {
+			$to = trim($msg['phone']);
+			$text = urlencode($templateName);
+
+			// Ensure $params is properly constructed as a comma-separated string
+			$params = isset($msg['message']) ? $msg['message'] : '';
+
+			$url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
+				. "?user={$username}"
+				. "&pass={$password}"
+				. "&sender={$senderID}"
+				. "&phone={$to}"
+				. "&text={$text}"
+				. "&priority=wa"
+				. "&stype=normal"
+				. "&Params={$params}"
+				. "&htype=document"
+				. "&fname=Homework"
+				. "&url={$media}";
+				// echo $url;die;
+			$ch = curl_init();
+			curl_setopt_array($ch, [
+				CURLOPT_URL => $url,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_TIMEOUT => 10,
+			]);
+
+			$response = curl_exec($ch);
+			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_close($ch);
+
+			$status = ($httpCode == 200 && stripos($response, 'success') !== false);
+
+			return [
+				'request_url' => $url,
+				'api_response' => $response,
+				'status' => $status
+			];
+		}, $messages);
+
+		$successCount = count(array_filter($results, fn($result) => $result['status']));
+
+		$this->log_whatsapp_history($results);
+
+		return [
+			'success_count' => $successCount,
+			'results' => $results
+		];
+	}
+} // End of Whatsapp_m class
