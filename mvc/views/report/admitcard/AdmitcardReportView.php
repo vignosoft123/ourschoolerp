@@ -214,9 +214,7 @@
             'examID'      : $("#examID").val(),
             'classesID'   : $('#classesID').val(), 
             'sectionID'   : $('#sectionID').val(), 
-            // 'studentID'   : $('#studentID').val(), 
             'studentID'   : $('#studentID').val() || [],
-
             'typeID'      : $('#typeID').val(), 
             'backgroundID': $('#backgroundID').val(), 
         };
@@ -242,13 +240,6 @@
             $('#classesDiv').removeClass('has-error');
         }
 
-        if (field['sectionID'] == '0') { 
-            $('#sectionDiv').addClass('has-error');
-            error++;
-        } else { 
-            $('#sectionDiv').removeClass('has-error');
-        }
-        
         if (field['typeID'] == 0) {
             $('#typeDiv').addClass('has-error');
             error++;
@@ -256,22 +247,12 @@
             $('#typeDiv').removeClass('has-error');
         }
 
-        if (field['studentID'].length === 0) {
-            $('#studentDiv').addClass('has-error');
-            error++;
-        } else {
-            $('#studentDiv').removeClass('has-error');
-        }
-
-
         if (field['backgroundID'] == 0) {
             $('#backgroundDiv').addClass('has-error');
             error++;
         } else {
             $('#backgroundDiv').removeClass('has-error');
         }
-
-        
 
         if (error == 0) {
             makingPostDataPreviousofAjaxCall(field);
