@@ -443,7 +443,7 @@
                                    <th class="no-export"> Total (Out of <?php echo $out_of;?>)</th>
                                    <th class="no-export"> Grade </th>
                                    <th class="no-export"> Rank </th>
-                                   <th class="no-export"> Send SMS <input type="checkbox" class="" id="checkAll" name="send_sms_marks"> </th>
+                                   <th class="no-export"> Send SMS <input type="checkbox" class="" id="checkAll" name="checkAll"> </th>
 
 
 
@@ -452,7 +452,45 @@
                             <tbody>
                                 <?php if (customCompute($students)) {
                                     $i = 1;
-                                     foreach ($students as $student) {  ?>
+                                     foreach ($students as $student) {  
+                                         // Get backend calculated total and rank
+                                         $stuID = $student->studentID;
+                                         $backendTotal = isset($studentResults[$stuID]['total']) ? $studentResults[$stuID]['total'] : 0;
+                                         $backendRank = isset($studentResults[$stuID]['rank']) ? $studentResults[$stuID]['rank'] : '-';
+                                         $zero_mark = isset($studentResults[$stuID]['zero_mark']) ? $studentResults[$stuID]['zero_mark'] : 0;
+                                         
+                                         // Calculate percentage and grade using backend total
+                                         $out_of = 0;
+                                         foreach ($subjects as $subject) {
+                                             $out_of += $subject->max_mark;
+                                         }
+                                         $percent_cal = ($backendTotal / ($out_of ?: 1)) * 100;
+                                         
+                                         if ($percent_cal >= 95 && $zero_mark == 0) { 
+                                             $grade = 'A+'; 
+                                             $grade_rank = '<span class="grade-label grade-a-plus">A+</span>';
+                                         } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) { 
+                                             $grade = 'A'; 
+                                             $grade_rank = '<span class="grade-label grade-a">A</span>';
+                                         } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) { 
+                                             $grade = 'B+'; 
+                                             $grade_rank = '<span class="grade-label grade-b-plus">B+</span>';
+                                         } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) { 
+                                             $grade = 'B'; 
+                                             $grade_rank = '<span class="grade-label grade-b">B</span>';
+                                         } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) { 
+                                             $grade = 'C+'; 
+                                             $grade_rank = '<span class="grade-label grade-c-plus">C+</span>';
+                                         } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) { 
+                                             $grade = 'C'; 
+                                             $grade_rank = '<span class="grade-label grade-c">C</span>';
+                                         } else { 
+                                             $grade = 'D'; 
+                                             $grade_rank = '<span class="grade-label grade-d">D</span>';
+                                         }
+                                         
+                                         $sms_rank = $backendRank;
+                                         ?>
                                                 <tr>
                                                     <td class="no-export" data-title="<?= $this->lang->line('slno') ?>">
                                                         <?php echo $i; ?>
@@ -575,16 +613,26 @@
                                                             <!-- email end here -->
                                                         
                                                             <?php 
-                                                            $absent_or_mark = $mrk ? ($mrk."/".$subject->max_mark) : 'Ab';
+                                                            $absent_or_mark = ($mrk !== null && $mrk !== '') ? ($mrk."/".$subject->max_mark) : 'Ab';
                                                             $my_template .= $subject->subject."=".$absent_or_mark.",";
                                                         }
                                                         }
                                                     }
                                                 } 
-                                            echo "<td>".$tot."</td>"; 
+                                            
+                                            // Use backend calculated total instead of frontend calculation
+                                            $stuID = $student->studentID;
+                                            $backend_total = isset($studentResults[$stuID]) ? $studentResults[$stuID]['total'] : $tot;
+                                            
+                                            echo "<td>".$backend_total."</td>"; 
+                                            
+                                            // DEBUG: Add debugging for both calculations
+                                            if($student->studentID == 757 || $student->studentID == 761 || $student->studentID == 772) {
+                                                error_log("TOTAL DEBUG: Student {$student->studentID} - Frontend: $tot, Backend: $backend_total");
+                                            } 
 
                                             $out_of = $out_of != 0 ? $out_of : 1;
-                                            $percent_cal = ($tot / $out_of) * 100;
+                                            $percent_cal = ($backend_total / $out_of) * 100;
 
                                             if ($percent_cal >= 95 && $zero_mark == 0) {
                                                 $grade = "A+";
@@ -631,9 +679,9 @@
 
                                                     <!-- //CONSTRUCT SEND MARKS SMS -->
                                                     <td>
-                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam.' held on '.date("d-m-Y", strtotime($mark->date));?>" total_marks ="<?php echo $tot."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
+                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam.' held on '.date("d-m-Y", strtotime($mark->date));?>" total_marks ="<?php echo $backend_total."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
                                                         exam_date = "<?= $sendExam->date?>" marks_grade="<?= $grade_rank?>" sms_rank="<?= $sms_rank?>"
-                                                        name="send_sms_marks" id="send_sms_marks" class="checkbox">
+                                                        name="send_sms_marks" class="checkbox">
                                                     </td>
 
                    
@@ -674,7 +722,6 @@
                                                 </tr>
                                             <?php 
                                             $my_template = "";
-                                            $tot = 0;
                                             $zero_mark = 0;
                                             $i++; 
                                     }
@@ -918,7 +965,7 @@
                             });
 
                             // Lazy load images
-                                setTimeout(lazyLoad, 1000);
+                                // setTimeout(lazyLoad, 1000);
                             });
 
                         $(document).on("keyup", ".mark", function() {
@@ -1087,8 +1134,14 @@
 
     $(document).ready(function() {
 
-        $("#checkAll").click(function(){
-            $('input:checkbox').not(this).prop('checked', this.checked);
+        // Use event delegation for better compatibility
+        $(document).on('change', '#checkAll', function(){
+            var isChecked = this.checked;
+            console.log("Check All clicked, checked state:", isChecked);
+            $('input[name="send_sms_marks"].checkbox').each(function() {
+                $(this).prop('checked', isChecked);
+            });
+            console.log("Checkboxes updated. Count:", $('input[name="send_sms_marks"].checkbox').length);
         });
         
 

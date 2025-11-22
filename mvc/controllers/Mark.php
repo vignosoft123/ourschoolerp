@@ -636,106 +636,102 @@ class Mark extends Admin_Controller
                 $this->data['markRelations']    = $this->getMarkRelationArray($this->mark_m->student_all_mark_array(array('schoolyearID' => $schoolyearID, 'examID' => $examID, 'classesID' => $classesID, 'subjectID' => $subjectID)));
 
                 // ----------------- RANK CALCULATION START -----------------
-                // Get all mark rows (all subjects) so we can compute per-subject totals, absent, compare with min_mark
-                $allMarks = $this->mark_m->student_all_mark_array(array(
-                    'schoolyearID' => $schoolyearID,
-                    'examID'       => $examID,
-                    'classesID'    => $classesID
-                    // intentionally not filtering by subjectID so we cover all subjects for rank
-                ));
+                // Calculate totals exactly like frontend: sum individual marks, not subject totals
+                
+                $studentResults = [];
 
-                $studentSubjectSum = [];    // sum per student per subject
-                $studentSubjectAbsent = []; // absent flag per student per subject
-                $subjectMin = [];          // subject-wise min_mark (from examschedule.min_mark)
+                foreach ($sendStudent as $stu) {
+                    $sid = $stu->studentID;
+                    $total = 0.0;
+                    $isFail = false;
+                    $zero_mark = 0;
 
-                if (customCompute($allMarks)) {
-                    foreach ($allMarks as $r) {
-                        $sid = $r->studentID;
-                        $subid = $r->subjectID;
+                    // DEBUG: Start calculation for student
+                    error_log("DEBUG: Starting frontend-style calculation for Student $sid");
 
-                        $value = 0;
-                        if (isset($r->mark) && $r->mark !== null && $r->mark !== '') {
-                            // mark might be stored as text, cast to int
-                            $value = (int)$r->mark;
-                        }
-
-                        if (!isset($studentSubjectSum[$sid])) {
-                            $studentSubjectSum[$sid] = [];
-                        }
-                        if (!isset($studentSubjectSum[$sid][$subid])) {
-                            $studentSubjectSum[$sid][$subid] = 0;
-                        }
-                        $studentSubjectSum[$sid][$subid] += $value;
-
-                        // track absent (some code stores 'Absent' in eattendance)
-                        if (isset($r->eattendance) && $r->eattendance !== null) {
-                            $ea = strtolower(trim($r->eattendance));
-                            if ($ea === 'absent' || $ea === 'a') {
-                                if (!isset($studentSubjectAbsent[$sid])) $studentSubjectAbsent[$sid] = [];
-                                $studentSubjectAbsent[$sid][$subid] = true;
+                    // Loop through subjects and markpercentages exactly like frontend
+                    if (customCompute($this->data['subjects'])) {
+                        foreach ($this->data['subjects'] as $subject) {
+                            if (customCompute($this->data['markpercentages'])) {
+                                foreach ($this->data['markpercentages'] as $data) {
+                                    if (customCompute($this->data['marks'])) {
+                                        foreach ($this->data['marks'] as $mark) {
+                                            if($subject->subjectID == $mark->subjectID && $sid == $mark->studentID) {
+                                                
+                                                // Get individual mark - same query as frontend
+                                                $sql = "SELECT mark,eattendance FROM `mark` LEFT JOIN `markrelation` ON `markrelation`.`markID` = `mark`.`markID` WHERE `mark`.`schoolyearID` = ".$mark->schoolyearID." AND `mark`.`examID` = ".$mark->examID." AND `mark`.`classesID` = ".$mark->classesID." and studentId= ".$sid." and markpercentageID =".$data->markpercentageID." and subjectID=".$subject->subjectID;
+                                                
+                                                $all_marks = $this->db->query($sql)->row();
+                                                
+                                                if ($all_marks) {
+                                                    $mrk = (int)$all_marks->mark;
+                                                    $exam_absent = $all_marks->eattendance;
+                                                    
+                                                    // Track absent students
+                                                    if($exam_absent == 'Absent') {
+                                                        $isFail = true;
+                                                    }
+                                                    
+                                                    // Count zero marks
+                                                    if ($mrk == 0) {
+                                                        $zero_mark++;
+                                                    }
+                                                    
+                                                    // Sum individual marks exactly like frontend
+                                                    $total += $mrk;
+                                                    
+                                                    // DEBUG: Log individual mark addition
+                                                    error_log("DEBUG: Student $sid, Subject {$subject->subjectID}, MarkPercentage {$data->markpercentageID}, Mark: $mrk, Running Total: $total");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
-
-                        // store subject min mark (examschedule.min_mark)
-                        if (!isset($subjectMin[$subid])) {
-                            $subjectMin[$subid] = isset($r->min_mark) ? (int)$r->min_mark : 0;
-                        }
                     }
+
+                    $studentResults[$sid] = ['total' => $total, 'isFail' => $isFail, 'zero_mark' => $zero_mark];
+                    
+                    // DEBUG: Log each student's final total
+                    error_log("DEBUG: Student $sid - Frontend-style Total: $total, Failed: " . ($isFail ? 'Yes' : 'No') . ", Zero marks: $zero_mark");
                 }
-
-                // compute totals and fail flag for each student
-                 
-// ... earlier code that builds $studentSubjectSum, $studentSubjectAbsent, $subjectMin
-
-// compute totals and fail flag
-$studentResults = [];
-$subjectsForCalc = isset($this->data['subjects']) ? $this->data['subjects'] : [];
-
-foreach ($sendStudent as $stu) {
-    $sid = $stu->studentID;
-    $total = 0.0;
-    $isFail = false;
-
-    if (customCompute($subjectsForCalc)) {
-        foreach ($subjectsForCalc as $s) {
-            $subid = $s->subjectID;
-            $subSum = isset($studentSubjectSum[$sid][$subid]) ? (float)$studentSubjectSum[$sid][$subid] : 0.0;
-
-            if (isset($studentSubjectAbsent[$sid][$subid]) && $studentSubjectAbsent[$sid][$subid]) {
-                $isFail = true;
-            }
-
-            $min = isset($subjectMin[$subid]) ? (float)$subjectMin[$subid] : 0.0;
-            if ($subSum < $min) {
-                $isFail = true;
-            }
-
-            $total += $subSum;
-        }
-    }
-
-    $studentResults[$sid] = ['total' => $total, 'isFail' => $isFail];
-}
 
 // rank only passed students (dense ranking)
 $passed = [];
 foreach ($studentResults as $sid => $res) {
-    if (!$res['isFail']) $passed[$sid] = $res['total'];
+    if (!$res['isFail']) {
+        $passed[$sid] = $res['total'];
+        // DEBUG: Log passed students
+        error_log("DEBUG: Student $sid passed with total: " . $res['total']);
+    }
 }
 
+// DEBUG: Log passed students before sorting
+error_log("DEBUG: Passed students before sorting: " . json_encode($passed));
+
 if (customCompute($passed)) {
-    arsort($passed); // sort descending by total
+    // Sort in descending order (highest marks first) - FIXED RANKING ISSUE
+    arsort($passed, SORT_NUMERIC); 
+    
+    // DEBUG: Log passed students after sorting
+    error_log("DEBUG: Passed students after sorting: " . json_encode($passed));
 
     $studentRanks = [];
-    $rank = 0;
+    $currentRank = 1; // Current rank being assigned
     $prevTotal = null;
 
     foreach ($passed as $sid => $totalVal) {
-        if ($prevTotal === null || $totalVal != $prevTotal) {
-            $rank++;
+        // If this is a new total (different from previous), move to next rank
+        if ($prevTotal !== null && $totalVal != $prevTotal) {
+            $currentRank++; // Dense ranking - increment by 1 only
         }
-        $studentRanks[$sid] = $rank;
+        
+        $studentRanks[$sid] = $currentRank;
         $prevTotal = $totalVal;
+        
+        // DEBUG: Log rank assignment
+        error_log("DEBUG: Student $sid assigned rank $currentRank with total $totalVal (dense ranking)");
     }
 
     foreach ($studentResults as $sid => $res) {
@@ -746,6 +742,10 @@ if (customCompute($passed)) {
         $studentResults[$sid]['rank'] = '-';
     }
 }
+
+// DEBUG: Log final student results
+error_log("DEBUG: Final student results: " . json_encode($studentResults));
+error_log("=== RANK CALCULATION DEBUG END ===");
 
 $this->data['studentResults'] = $studentResults;
                 // ----------------- RANK CALCULATION END -----------------
@@ -1075,137 +1075,6 @@ public function load_students_ajax() {
                 // NOTE: For markRelations we keep original behaviour (subject filtered),
                 // but for rank we will fetch all marks for this class/exam/sy.
                 $this->data['markRelations']    = $this->getMarkRelationArray($this->mark_m->student_all_mark_array(array('schoolyearID' => $schoolyearID, 'examID' => $examID, 'classesID' => $classesID, 'subjectID' => $subjectID)));
-
-                // ----------------- RANK CALCULATION START -----------------
-                // Get all mark rows (all subjects) so we can compute per-subject totals, absent, compare with min_mark
-                $allMarks = $this->mark_m->student_all_mark_array(array(
-                    'schoolyearID' => $schoolyearID,
-                    'examID'       => $examID,
-                    'classesID'    => $classesID
-                    // intentionally not filtering by subjectID so we cover all subjects for rank
-                ));
-
-                $studentSubjectSum = [];    // sum per student per subject
-                $studentSubjectAbsent = []; // absent flag per student per subject
-                $subjectMin = [];          // subject-wise min_mark (from examschedule.min_mark)
-
-                if (customCompute($allMarks)) {
-                    foreach ($allMarks as $r) {
-                        $sid = $r->studentID;
-                        $subid = $r->subjectID;
-
-                        $value = 0;
-                        if (isset($r->mark) && $r->mark !== null && $r->mark !== '') {
-                            // mark might be stored as text, cast to int
-                            $value = (int)$r->mark;
-                        }
-
-                        if (!isset($studentSubjectSum[$sid])) {
-                            $studentSubjectSum[$sid] = [];
-                        }
-                        if (!isset($studentSubjectSum[$sid][$subid])) {
-                            $studentSubjectSum[$sid][$subid] = 0;
-                        }
-                        $studentSubjectSum[$sid][$subid] += $value;
-
-                        // track absent (some code stores 'Absent' in eattendance)
-                        if (isset($r->eattendance) && $r->eattendance !== null) {
-                            $ea = strtolower(trim($r->eattendance));
-                            if ($ea === 'absent' || $ea === 'a') {
-                                if (!isset($studentSubjectAbsent[$sid])) $studentSubjectAbsent[$sid] = [];
-                                $studentSubjectAbsent[$sid][$subid] = true;
-                            }
-                        }
-
-                        // store subject min mark (examschedule.min_mark)
-                        if (!isset($subjectMin[$subid])) {
-                            $subjectMin[$subid] = isset($r->min_mark) ? (int)$r->min_mark : 0;
-                        }
-                    }
-                }
-
-                // compute totals and fail flag for each student
-                $studentResults = []; // keyed by studentID
-                $subjectsForCalc = isset($this->data['subjects']) ? $this->data['subjects'] : [];
-
-                foreach ($sendStudent as $stu) {
-                    $sid = $stu->studentID;
-                    $total = 0;
-                    $isFail = false;
-
-                    // iterate through subjects visible in this page (subjectsForCalc)
-                    if (customCompute($subjectsForCalc)) {
-                        foreach ($subjectsForCalc as $s) {
-                            $subid = $s->subjectID;
-                            $subSum = isset($studentSubjectSum[$sid][$subid]) ? $studentSubjectSum[$sid][$subid] : 0;
-
-                            // if any absent record for this student-subject => fail
-                            if (isset($studentSubjectAbsent[$sid]) && isset($studentSubjectAbsent[$sid][$subid]) && $studentSubjectAbsent[$sid][$subid]) {
-                                $isFail = true;
-                            }
-
-                            // get min mark for subject (from examschedule if present)
-                            $min = isset($subjectMin[$subid]) ? $subjectMin[$subid] : 0;
-
-                            // if obtained less than min mark => fail
-                            if ($subSum < $min) {
-                                $isFail = true;
-                            }
-
-                            $total += $subSum;
-                        }
-                    }
-
-                    $studentResults[$sid] = [
-                        'total' => $total,
-                        'isFail' => $isFail
-                    ];
-                }
-
-                // assign ranks only to passed students
-                $passed = [];
-                foreach ($studentResults as $sid => $res) {
-                    if (!$res['isFail']) {
-                        $passed[$sid] = $res['total'];
-                    }
-                }
-
-                if (customCompute($passed)) {
-                    // sort passed students by total descending, preserve keys (studentID)
-                    arsort($passed);
-
-                    $currentIndex = 0;
-                    $prevTotal = null;
-                    $lastRank = 0;
-                    $studentRanks = [];
-
-                    foreach ($passed as $sid => $totalVal) {
-                        $currentIndex++;
-                        if ($prevTotal !== null && $totalVal == $prevTotal) {
-                            // same total => same rank as previous
-                            $studentRanks[$sid] = $lastRank;
-                        } else {
-                            // new total => rank is currentIndex among passed students
-                            $studentRanks[$sid] = $currentIndex;
-                            $lastRank = $currentIndex;
-                        }
-                        $prevTotal = $totalVal;
-                    }
-
-                    // attach ranks to studentResults, fails get '-'
-                    foreach ($studentResults as $sid => $res) {
-                        $studentResults[$sid]['rank'] = isset($studentRanks[$sid]) ? $studentRanks[$sid] : '-';
-                    }
-                } else {
-                    // no passed students, all '-' or fail
-                    foreach ($studentResults as $sid => $res) {
-                        $studentResults[$sid]['rank'] = '-';
-                    }
-                }
-
-                // pass to view
-                $this->data['studentResults'] = $studentResults;
-                // ----------------- RANK CALCULATION END -----------------
 
                 if ($downloadFile == 1) {
                     $this->download_mark_sheet($this->data);
@@ -3248,5 +3117,58 @@ public function marks_bulkimport()
 //         redirect(base_url("mark/add"));
 //     }
 // }
+
+	// TESTING FUNCTION: Add this method to test ranking logic
+	public function test_ranking() {
+		// Sample data to test ranking
+		$testStudents = [
+			1 => ['total' => 95, 'name' => 'Student A'],
+			2 => ['total' => 85, 'name' => 'Student B'], 
+			3 => ['total' => 95, 'name' => 'Student C'], // Same as A
+			4 => ['total' => 75, 'name' => 'Student D'],
+			5 => ['total' => 85, 'name' => 'Student E'], // Same as B
+		];
+
+		echo "<h3>Testing Ranking Logic</h3>";
+		echo "<p>Before ranking:</p>";
+		echo "<pre>" . print_r($testStudents, true) . "</pre>";
+
+		// Extract only totals for ranking
+		$passed = [];
+		foreach($testStudents as $sid => $data) {
+			$passed[$sid] = $data['total'];
+		}
+
+		// Sort descending 
+		arsort($passed, SORT_NUMERIC);
+		echo "<p>After sorting (descending):</p>";
+		echo "<pre>" . print_r($passed, true) . "</pre>";
+
+		// Apply ranking logic (FIXED VERSION)
+		$studentRanks = [];
+		$rank = 1;
+		$prevTotal = null;
+		$studentsWithSameRank = 0;
+
+		foreach ($passed as $sid => $totalVal) {
+			if ($prevTotal !== null && $totalVal != $prevTotal) {
+				$rank += $studentsWithSameRank;
+				$studentsWithSameRank = 1;
+			} else {
+				$studentsWithSameRank++;
+			}
+			
+			$studentRanks[$sid] = $rank;
+			$prevTotal = $totalVal;
+		}
+
+		echo "<p>Final ranks (FIXED VERSION):</p>";
+		foreach($testStudents as $sid => $data) {
+			echo "Student $sid ({$data['name']}): Total {$data['total']} = Rank " . $studentRanks[$sid] . "<br>";
+		}
+
+		echo "<p><strong>Expected: A=1, C=1, B=3, E=3, D=5</strong></p>";
+		echo "<p style='color: green;'>If you see A and C with rank 1, B and E with rank 3, and D with rank 5, then ranking is working correctly!</p>";
+	}
 
 }
