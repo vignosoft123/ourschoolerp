@@ -638,8 +638,7 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 		// echo "<pre>";print_r($payload);
 
 		$templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
-		$messages = isset($payload['messages']) ? $payload['messages'] : [];
-		$media = isset($payload['media']) ? urlencode($payload['media']) : '';
+		$messages = isset($payload['messages']) ? $payload['messages'] : '';
 
 		if (empty($messages)) {
 			return ['success_count' => 0, 'results' => []];
@@ -649,9 +648,10 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 		$password = $this->password;
 		$senderID = $this->senderID;
 
-		$results = array_map(function($msg) use ($username, $password, $senderID, $templateName, $media) {
+		$results = array_map(function($msg) use ($username, $password, $senderID, $templateName) {
 			$to = trim($msg['phone']);
 			$text = urlencode($templateName);
+			$media = isset($msg['media']) ? urlencode($msg['media']) : '';
 
 			// Ensure $params is properly constructed as a comma-separated string
 			$params = isset($msg['message']) ? $msg['message'] : '';
@@ -668,7 +668,7 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 				. "&htype=document"
 				. "&fname=Homework"
 				. "&url={$media}";
-				// echo $url;die;
+				echo $url;die;
 			$ch = curl_init();
 			curl_setopt_array($ch, [
 				CURLOPT_URL => $url,

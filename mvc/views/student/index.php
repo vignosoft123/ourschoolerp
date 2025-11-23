@@ -35,6 +35,237 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         gap: 6px;
     }
 
+    /* Enhanced Table Styling */
+    #example1 {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        background: #fff !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        margin: 15px 0 !important;
+        width: 100% !important;
+        border: 1px solid #e0e0e0 !important;
+    }
+
+    #example1 thead {
+        background: linear-gradient(135deg, #0cc035 0%, #0cc035 100%) !important;
+        color: white !important;
+    }
+
+    #example1 thead th {
+        /* padding: 15px 12px !important; */
+        text-align: center !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        letter-spacing: 0.5px !important;
+        border: none !important;
+        border-right: 1px solid rgba(255,255,255,0.2) !important;
+        color: white !important;
+        position: relative !important;
+    }
+
+    #example1 thead th:last-child {
+        border-right: none !important;
+    }
+
+    #example1 tbody tr {
+        transition: all 0.3s ease !important;
+        border-bottom: 1px solid #f0f0f0 !important;
+    }
+
+    #example1 tbody tr:hover {
+        background: linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2) !important;
+    }
+
+    #example1 tbody td {
+        padding: 12px 10px !important;
+        vertical-align: middle !important;
+        border: 1px solid gray !important;
+        font-size: 13px !important;
+        text-align: center !important;
+        position: relative !important;
+    }
+
+    #example1 tbody td:last-child {
+        border: 1px solid gray !important;
+    }
+
+    /* Zebra striping for better readability */
+    #example1 tbody tr:nth-child(even) {
+        background: rgba(255, 235, 238, 0.3) !important;
+    }
+
+    #example1 tbody tr:nth-child(odd) {
+        background: #fff !important;
+    }
+
+    /* Student photo styling */
+    .student-photo-cell {
+        position: relative !important;
+        cursor: pointer !important;
+        padding: 8px !important;
+    }
+
+    .student-photo-cell img {
+        border-radius: 50% !important;
+        border: 2px solid #e0e0e0 !important;
+        transition: all 0.3s ease !important;
+        width: 40px !important;
+        height: 40px !important;
+        object-fit: cover !important;
+    }
+
+    .student-photo-cell:hover img {
+        border-color: #0cc035 !important;
+        transform: scale(1.1) !important;
+    }
+
+    /* Action buttons styling */
+    .action-btns .btn {
+        margin: 2px !important;
+        border-radius: 4px !important;
+        font-size: 11px !important;
+        padding: 4px 8px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .action-btns .btn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    }
+
+    /* Editable cells styling */
+    td[contenteditable="true"] {
+        cursor: text !important;
+        position: relative !important;
+        transition: all 0.3s ease !important;
+    }
+
+    td[contenteditable="true"]:hover {
+        background: rgba(255, 107, 107, 0.1) !important;
+        border-color: #0cc035 !important;
+    }
+
+    td[contenteditable="true"]:focus {
+        outline: 2px solid #0cc035 !important;
+        outline-offset: -2px !important;
+        background: #fff !important;
+        box-shadow: inset 0 0 5px rgba(255, 107, 107, 0.3) !important;
+    }
+
+    /* Checkbox styling */
+    input[type="checkbox"] {
+        width: 16px !important;
+        height: 16px !important;
+        accent-color: #0cc035 !important;
+        cursor: pointer !important;
+    }
+
+    /* Status switch styling */
+    .onoffswitch-small {
+        position: relative !important;
+        width: 50px !important;
+        height: 24px !important;
+        margin: 0 auto !important;
+    }
+
+    .onoffswitch-small-checkbox {
+        display: none !important;
+    }
+
+    .onoffswitch-small-label {
+        display: block !important;
+        overflow: hidden !important;
+        cursor: pointer !important;
+        border: 2px solid #ccc !important;
+        border-radius: 20px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .onoffswitch-small-inner {
+        display: block !important;
+        width: 200% !important;
+        margin-left: -100% !important;
+        transition: margin 0.3s ease-in 0s !important;
+    }
+
+    .onoffswitch-small-switch {
+        display: block !important;
+        width: 18px !important;
+        height: 18px !important;
+        margin: 1px !important;
+        background: #fff !important;
+        position: absolute !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        right: 24px !important;
+        border: 2px solid #ccc !important;
+        border-radius: 20px !important;
+        transition: all 0.3s ease-in 0s !important;
+    }
+
+    .onoffswitch-small-checkbox:checked + .onoffswitch-small-label .onoffswitch-small-inner {
+        margin-left: 0 !important;
+    }
+
+    .onoffswitch-small-checkbox:checked + .onoffswitch-small-label .onoffswitch-small-switch {
+        right: 0 !important;
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+
+    /* Responsive table container */
+    .responsive {
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+    }
+
+    /* Tab content styling */
+    .tab-content {
+        background: #fff !important;
+        border-radius: 0 0 8px 8px !important;
+        padding: 20px !important;
+    }
+
+    .nav-tabs > li > a {
+        border-radius: 8px 8px 0 0 !important;
+        margin-right: 2px !important;
+        transition: all 0.3s ease !important;
+    }
+
+    .nav-tabs > li.active > a {
+        background: linear-gradient(135deg, #0cc035 0%, #0cc035 100%) !important;
+        color: white !important;
+        border-color: #0cc035 !important;
+    }
+
+    /* Download button for sections */
+    .section-download-btn {
+        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 10px 16px !important;
+        color: white !important;
+        font-weight: 600 !important;
+        text-decoration: none !important;
+        transition: all 0.3s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    }
+
+    .section-download-btn:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4) !important;
+        color: white !important;
+        text-decoration: none !important;
+    }
+
 </style>
 <div class="box">
     <div class="box-header">
@@ -56,13 +287,17 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                         
                         <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if (permissionChecker('student_add')) { ?>
-                                <a class="ose-btn2 create-btn" href="<?php echo base_url('student/add') ?>" style="margin-left: 35%;">
+                                <a class="ose-btn2 create-btn" href="<?php echo base_url('student/add') ?>" style="margin-left: 15%;">
                                     <i class="fa fa-plus"></i>
                                     <?= $this->lang->line('add_title') ?>
                                 </a>
                                 <button type="button" class="ose-btn create-btn btn btn-primary" data-toggle="modal" data-target="#quickStudentModal" style="margin-left:8px;">
                                     <i class="fa fa-plus"></i> Quick Student Creation
                                 </button>
+                                
+                                <a href="<?= base_url('student/export_comprehensive_excel/' . (isset($set) ? $set : '0')) ?>" class="ose-btn2 create-btn" style="margin-left:8px; background-color:#28a745 !important;">
+                                    <i class="fa fa-file-excel-o"></i> Download Comprehensive Excel
+                                </a>
 
                                 <?php if (permissionChecker('student_delete') && customCompute($students) > 0) { ?>
                                     <form id="multiDeleteForm" method="post" action="<?= base_url('student/multi_delete') ?>" style="display:inline-block; margin-left:8px;">
@@ -153,7 +388,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th style="width:30px; text-align:center"><input type="checkbox" id="select_all_students" /></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
+                                                <th class="col-sm-1">Adm No</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
@@ -188,15 +423,15 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 <i class="fa fa-search-plus" aria-hidden="true"></i>
                                                             </span>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_registerNO') ?>">
+                                                        <td data-title="Adm No">
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
                                                             <?php echo $student->srname; ?>
                                                         </td>
-                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
+                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:1px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
-                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
                                                             <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
                                                             <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
@@ -273,6 +508,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
                             <?php foreach ($sections as $key => $section) { ?>
                                 <div id="tab<?= $section->classesID . $section->sectionID ?>" class="tab-pane">
+                                    <div style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                                        <a href="<?= base_url('student/export_comprehensive_excel/' . $section->classesID . '/' . $section->sectionID) ?>" class="section-download-btn">
+                                            <i class="fa fa-file-excel-o"></i> Download <?= $section->section ?> Students Excel
+                                        </a>
+                                    </div>
                                     <div id="hide-table">
                                         <table id="example1" class="table table-bordered   tableBorder dataTable no-footer" style="width:100%">
                                         
@@ -281,7 +521,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                     <th style="width:30px; text-align:center"><input type="checkbox" class="select_all_section" /></th>
                                                     <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                    <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
+                                                    <th class="col-sm-1">Adm No</th>
                                                     <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                     <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
@@ -320,15 +560,15 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             </span>
                                                         </td>
 
-                                                        <td data-title="<?= $this->lang->line('student_registerNO') ?>">
+                                                        <td data-title="Adm No">
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
                                                             <?php echo $student->srname; ?>
                                                         </td>
-                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:2px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
+                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:1px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
-                                                        <td style="color:green;border:2px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
                                                             <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
                                                             <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
@@ -424,7 +664,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                             <tr>
                                             <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_registerNO') ?></th>
+                                                <th class="col-sm-1">Adm No</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>

@@ -875,8 +875,15 @@ public function student_list() {
 
        
 			// echo $msg['media'];die;
+ 		// Get template with short_name like PROGRESS_CARD
+        $template_sql = "select params,template_name from whatapp_templates where short_name like '%HOMEWORK%' ";
+        $template = $this->db->query($template_sql)->row_array();
 
-            $templateName = 'homework_utility_text';
+        if (!$template || empty($template['template_name'])) {
+            $retArray['message'] = 'Template PROGRESS_CARD not configured';
+            return $retArray;
+        }
+            $templateName = $template['template_name'];
             $sentCount = $this->whatsapp_m->send_homework_whatsapp($dataBatch, $templateName);
 
             $retArray['status'] = true;

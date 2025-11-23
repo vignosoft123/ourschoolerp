@@ -3888,5 +3888,300 @@ private function addRemarksColumn() {
 	}
 }
 
+public function export_comprehensive_excel()
+{
+	if (!permissionChecker('student_view')) {
+		$this->data["subview"] = "errorpermission";
+		$this->load->view('_layout_main', $this->data);
+		return;
+	}
+
+	$this->load->library('phpspreadsheet');
+	$sheet = $this->phpspreadsheet->spreadsheet->getActiveSheet();
+	
+	// Set column widths
+	$sheet->getDefaultColumnDimension()->setWidth(15);
+	$sheet->getDefaultRowDimension()->setRowHeight(20);
+	
+	// Headers
+	$headers = [
+		'A1' => 'Sl No',
+		'B1' => 'Register No',
+		'C1' => 'Admission Date', 
+		'D1' => 'First Name',
+		'E1' => 'Last Name',
+		'F1' => 'Full Name',
+		'G1' => 'Roll Number',
+		'H1' => 'Class',
+		'I1' => 'Section',
+		'J1' => 'Gender',
+		'K1' => 'Date of Birth',
+		'L1' => 'Religion',
+		'M1' => 'Caste',
+		'N1' => 'Sub Caste',
+		'O1' => 'Blood Group',
+		'P1' => 'Father Name',
+		'Q1' => 'Father Aadhar',
+		'R1' => 'Mother Name',
+		'S1' => 'Mother Aadhar',
+		'T1' => 'Phone',
+		'U1' => 'Alternative Phone 1',
+		'V1' => 'Alternative Phone 2',
+		'W1' => 'Email',
+		'X1' => 'Address',
+		'Y1' => 'Village',
+		'Z1' => 'State',
+		'AA1' => 'Country',
+		'AB1' => 'Aadhar Card Number',
+		'AC1' => 'Ration Card',
+		'AD1' => 'Bank Name',
+		'AE1' => 'Account Number',
+		'AF1' => 'IFSC Code',
+		'AG1' => 'Branch Name',
+		'AH1' => 'RFID',
+		'AI1' => 'Student Type',
+		'AJ1' => 'Transport Fee',
+		'AK1' => 'PEN Number',
+		'AL1' => 'Child ID',
+		'AM1' => 'Medium',
+		'AN1' => 'Mother Tongue',
+		'AO1' => 'Mole 1',
+		'AP1' => 'Mole 2',
+		'AQ1' => 'Remarks',
+		'AR1' => 'Active Status',
+		'AS1' => 'Username',
+		'AT1' => 'Referred By'
+	];
+	
+	// Set headers
+	foreach ($headers as $cell => $value) {
+		$sheet->setCellValue($cell, $value);
+	}
+	
+	// Style headers
+	$headerStyle = [
+		'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFF']],
+		'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => '366092']],
+		'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
+		'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]]
+	];
+	$sheet->getStyle('A1:AT1')->applyFromArray($headerStyle);
+	
+	// Get comprehensive student data
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+	$classesID = htmlentities(escapeString($this->uri->segment(3)));
+	$sectionID = htmlentities(escapeString($this->uri->segment(4)));
+	
+	if ((int)$classesID) {
+		if ((int)$sectionID) {
+			// Filter by both class and section
+			$students = $this->getComprehensiveStudentDataBySection($classesID, $sectionID, $schoolyearID);
+		} else {
+			// Filter by class only
+			$students = $this->getComprehensiveStudentData($classesID, $schoolyearID);
+		}
+	} else {
+		// Get all students
+		$students = $this->getAllComprehensiveStudentData($schoolyearID);
+	}
+	
+	// Populate data
+	$row = 2;
+	$i = 1;
+	foreach ($students as $student) {
+		$studentType = ['', 'TRANSPORT', 'HOSTEL', 'DAY SCHOLAR'];
+		$genderMap = ['1' => 'Male', '2' => 'Female', '3' => 'Other'];
+		
+		$sheet->setCellValue('A' . $row, $i);
+		$sheet->setCellValue('B' . $row, $student->srregisterNO ?? $student->registerNO);
+		$sheet->setCellValue('C' . $row, $student->admission_date ? date('d-m-Y', strtotime($student->admission_date)) : '');
+		$sheet->setCellValue('D' . $row, $student->first_name);
+		$sheet->setCellValue('E' . $row, $student->last_name);
+		$sheet->setCellValue('F' . $row, $student->srname ?? $student->name);
+		$sheet->setCellValue('G' . $row, $student->srroll ?? $student->roll);
+		$sheet->setCellValue('H' . $row, $student->srclasses ?? $student->class_name);
+		$sheet->setCellValue('I' . $row, $student->srsection ?? $student->section_name);
+		$sheet->setCellValue('J' . $row, $genderMap[$student->sex] ?? $student->sex);
+		$sheet->setCellValue('K' . $row, $student->dob ? date('d-m-Y', strtotime($student->dob)) : '');
+		$sheet->setCellValue('L' . $row, $student->religion);
+		$sheet->setCellValue('M' . $row, $student->caste);
+		$sheet->setCellValue('N' . $row, $student->sub_caste);
+		$sheet->setCellValue('O' . $row, $student->bloodgroup);
+		$sheet->setCellValue('P' . $row, $student->father_name);
+		$sheet->setCellValue('Q' . $row, $student->father_aadhar);
+		$sheet->setCellValue('R' . $row, $student->mother_name);
+		$sheet->setCellValue('S' . $row, $student->mother_aadhar);
+		$sheet->setCellValue('T' . $row, $student->phone);
+		$sheet->setCellValue('U' . $row, $student->alternative_phone1);
+		$sheet->setCellValue('V' . $row, $student->alternative_phone2);
+		$sheet->setCellValue('W' . $row, $student->email);
+		$sheet->setCellValue('X' . $row, $student->address);
+		$sheet->setCellValue('Y' . $row, $student->village_name ?? $student->villageName);
+		$sheet->setCellValue('Z' . $row, $student->state);
+		$sheet->setCellValue('AA' . $row, $student->country);
+		$sheet->setCellValue('AB' . $row, $student->aadharCardNumber);
+		$sheet->setCellValue('AC' . $row, $student->ration_card);
+		$sheet->setCellValue('AD' . $row, $student->bank_name);
+		$sheet->setCellValue('AE' . $row, $student->account_no);
+		$sheet->setCellValue('AF' . $row, $student->ifsc_code);
+		$sheet->setCellValue('AG' . $row, $student->branch_name);
+		$sheet->setCellValue('AH' . $row, $student->rf_id);
+		$sheet->setCellValue('AI' . $row, $studentType[$student->studentType] ?? 'DAY SCHOLAR');
+		$sheet->setCellValue('AJ' . $row, $student->tbalance ?? '');
+		$sheet->setCellValue('AK' . $row, $student->pen_number);
+		$sheet->setCellValue('AL' . $row, $student->child_id);
+		$sheet->setCellValue('AM' . $row, $student->medium);
+		$sheet->setCellValue('AN' . $row, $student->mother_toungue);
+		$sheet->setCellValue('AO' . $row, $student->mole1);
+		$sheet->setCellValue('AP' . $row, $student->mole2);
+		$sheet->setCellValue('AQ' . $row, $student->remarks);
+		$sheet->setCellValue('AR' . $row, $student->active ? 'Active' : 'Inactive');
+		$sheet->setCellValue('AS' . $row, $student->username);
+		$sheet->setCellValue('AT' . $row, $student->referred_teacher_name ?? '');
+		
+		$row++;
+		$i++;
+	}
+	
+	// Auto-size columns
+	foreach (range('A', 'AT') as $column) {
+		$sheet->getColumnDimension($column)->setAutoSize(true);
+	}
+	
+	// Apply border to all data
+	if ($row > 2) {
+		$dataRange = 'A1:AT' . ($row - 1);
+		$borderStyle = ['borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]]];
+		$sheet->getStyle($dataRange)->applyFromArray($borderStyle);
+	}
+	
+	// Generate file
+	$filename = 'comprehensive_student_data';
+	if ((int)$classesID) {
+		if ((int)$sectionID) {
+			// Get section name for filename
+			$this->db->select('classes.classes, section.section');
+			$this->db->from('classes');
+			$this->db->join('section', 'section.classesID = classes.classesID');
+			$this->db->where('classes.classesID', $classesID);
+			$this->db->where('section.sectionID', $sectionID);
+			$sectionInfo = $this->db->get()->row();
+			if ($sectionInfo) {
+				$filename .= '_' . str_replace(' ', '_', $sectionInfo->classes) . '_' . str_replace(' ', '_', $sectionInfo->section);
+			}
+		} else {
+			// Get class name for filename
+			$this->db->select('classes');
+			$this->db->from('classes');
+			$this->db->where('classesID', $classesID);
+			$classInfo = $this->db->get()->row();
+			if ($classInfo) {
+				$filename .= '_' . str_replace(' ', '_', $classInfo->classes);
+			}
+		}
+	}
+	$filename .= '_' . date('Y-m-d_H-i-s') . '.xlsx';
+	
+	header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+	header('Content-Disposition: attachment;filename="' . $filename . '"');
+	header('Cache-Control: max-age=0');
+	header('Cache-Control: max-age=1'); // IE 9
+	header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+	header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT'); // always modified
+	header('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+	header('Pragma: public'); // HTTP/1.0
+	
+	$this->phpspreadsheet->output($this->phpspreadsheet->spreadsheet);
+}
+
+private function getComprehensiveStudentData($classesID, $schoolyearID)
+{
+	$this->db->select('
+		student.*,
+		studentrelation.*,
+		villages.villageName,
+		parents.father_name,
+		parents.mother_name,
+		parents.father_aadhar,
+		parents.mother_aadhar,
+		classes.classes as class_name,
+		section.section as section_name,
+		tmember.tbalance
+	');
+	$this->db->from('studentrelation');
+	$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+	$this->db->join('villages', 'villages.villageID = student.villageID', 'LEFT');
+	$this->db->join('parents', 'parents.parentsID = student.parentID', 'LEFT');
+	$this->db->join('classes', 'classes.classesID = studentrelation.srclassesID', 'LEFT');
+	$this->db->join('section', 'section.sectionID = studentrelation.srsectionID', 'LEFT');
+	$this->db->join('tmember', 'tmember.studentID = student.studentID', 'LEFT');
+	$this->db->where('studentrelation.srclassesID', $classesID);
+	$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+	$this->db->where('student.active', 1);
+	$this->db->order_by('studentrelation.srroll', 'ASC');
+	
+	$query = $this->db->get();
+	return $query->result();
+}
+
+private function getAllComprehensiveStudentData($schoolyearID)
+{
+	$this->db->select('
+		student.*,
+		studentrelation.*,
+		villages.villageName,
+		parents.father_name,
+		parents.mother_name,
+		parents.father_aadhar,
+		parents.mother_aadhar,
+		classes.classes as class_name,
+		section.section as section_name,
+		tmember.tbalance
+	');
+	$this->db->from('studentrelation');
+	$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+	$this->db->join('villages', 'villages.villageID = student.villageID', 'LEFT');
+	$this->db->join('parents', 'parents.parentsID = student.parentID', 'LEFT');
+	$this->db->join('classes', 'classes.classesID = studentrelation.srclassesID', 'LEFT');
+	$this->db->join('section', 'section.sectionID = studentrelation.srsectionID', 'LEFT');
+	$this->db->join('tmember', 'tmember.studentID = student.studentID', 'LEFT');
+	$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+	$this->db->where('student.active', 1);
+	$this->db->order_by('studentrelation.srclassesID, studentrelation.srroll', 'ASC');
+	
+	$query = $this->db->get();
+	return $query->result();
+}
+
+private function getComprehensiveStudentDataBySection($classesID, $sectionID, $schoolyearID)
+{
+	$this->db->select('
+		student.*,
+		studentrelation.*,
+		villages.villageName,
+		parents.father_name,
+		parents.mother_name,
+		parents.father_aadhar,
+		parents.mother_aadhar,
+		classes.classes as class_name,
+		section.section as section_name,
+		tmember.tbalance
+	');
+	$this->db->from('studentrelation');
+	$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
+	$this->db->join('villages', 'villages.villageID = student.villageID', 'LEFT');
+	$this->db->join('parents', 'parents.parentsID = student.parentID', 'LEFT');
+	$this->db->join('classes', 'classes.classesID = studentrelation.srclassesID', 'LEFT');
+	$this->db->join('section', 'section.sectionID = studentrelation.srsectionID', 'LEFT');
+	$this->db->join('tmember', 'tmember.studentID = student.studentID', 'LEFT');
+	$this->db->where('studentrelation.srclassesID', $classesID);
+	$this->db->where('studentrelation.srsectionID', $sectionID);
+	$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+	$this->db->where('student.active', 1);
+	$this->db->order_by('studentrelation.srroll', 'ASC');
+	
+	$query = $this->db->get();
+	return $query->result();
+}
 
 }
