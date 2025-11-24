@@ -668,7 +668,7 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 				. "&htype=document"
 				. "&fname=Homework"
 				. "&url={$media}";
-				echo $url;die;
+				// echo $url;die;
 			$ch = curl_init();
 			curl_setopt_array($ch, [
 				CURLOPT_URL => $url,

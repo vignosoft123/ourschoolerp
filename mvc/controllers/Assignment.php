@@ -247,6 +247,11 @@ public function index($classID = 0, $sectionID = 0, $subjectID = 0, $date = 0) {
         $this->data['sections']    = pluck($this->section_m->general_get_order_by_section([
             'classesID' => $classID
         ]), 'section', 'sectionID');
+		// echo "<pre>Sections data in index: "; var_dump($this->data['sections']); echo "</pre>";die;
+
+        $this->data['subjects']    = $this->subject_m->general_get_order_by_subject([
+            'classesID' => $classID
+        ]);
 
 	$this->data['assignments'] = $this->assignment_m->join_get_assignment($classID, $schoolyearID, $sectionID, $subjectID, $date);
 
@@ -255,6 +260,7 @@ public function index($classID = 0, $sectionID = 0, $subjectID = 0, $date = 0) {
     } else {
         $this->data['set']         = 0;
         $this->data['sections']    = [];
+        $this->data['subjects']    = [];
         $this->data['assignments'] = [];
 
         $this->data["subview"]     = "assignment/index";

@@ -45,10 +45,28 @@
 
                         <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
                             <?php
+                                // Debug: Let's see what sections contains
+                                // echo "<pre>Sections data: "; var_dump($sections); echo "</pre>";
+                                // echo "<pre>Set section ID: "; var_dump($setsectionID); echo "</pre>";
+                                
                                  $array = array('0' => 'Select Section');
-                                if($sections != "empty") {
-                                    foreach ($sections as $section) {
-                                        $array[$section->sectionID] = $section->section;
+                                if(isset($sections) && $sections && $sections != "empty") {
+                                    // Check if sections is already an associative array (from pluck function)
+                                    if(is_array($sections) && !empty($sections)) {
+                                        $firstElement = reset($sections);
+                                        if(!is_object($firstElement)) {
+                                            // It's an associative array from pluck
+                                            foreach ($sections as $sectionId => $sectionName) {
+                                                $array[$sectionId] = $sectionName;
+                                            }
+                                        } else {
+                                            // Handle object format
+                                            foreach ($sections as $section) {
+                                                if(is_object($section)) {
+                                                    $array[$section->sectionID] = $section->section;
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                                 
@@ -59,7 +77,7 @@
                         <div class="col-lg-2 col-sm-2 col-md-2 col-xs-4 drop-marg">
                             <?php
                                 $array = array('0' => $this->lang->line("assignment_select_subject"));
-                                if($subjects != "empty") {
+                                if(isset($subjects) && $subjects && $subjects != "empty") {
                                     foreach ($subjects as $subject) {
                                         $array[$subject->subjectID] = $subject->subject;
                                     }
@@ -118,13 +136,17 @@
                                         <?php  
                                         // print_r($assignment);die;
                                         if($assignment->sectionID == 'false') {
-                                            if(customCompute($sections)) foreach ($sections as $section) {
-                                                echo $this->lang->line('assignment_section').' '.$section.'<br>';
+                                            if(customCompute($sections)) {
+                                                foreach ($sections as $sectionId => $sectionName) {
+                                                    echo $this->lang->line('assignment_section').' '.$sectionName.'<br>';
+                                                }
                                             }
                                         } else {
                                             $dbSections = json_decode($assignment->sectionID);
                                             if(customCompute($dbSections)) foreach ($dbSections as $dbSectionID) {
-                                                echo $this->lang->line('assignment_section').' '. $sections[$dbSectionID].'<br>';
+                                                if(isset($sections[$dbSectionID])) {
+                                                    echo $this->lang->line('assignment_section').' '. $sections[$dbSectionID].'<br>';
+                                                }
                                             } 
                                         }
                                         ?>
@@ -331,9 +353,62 @@
     });
 
     $(document).ready(function() {
+    var classesID = "<?= $set ?>";
     var sectionID = "<?= $setsectionID ?>";
-    if (sectionID) {
-        $('#sectionID').val(sectionID).trigger('change');
+    var subjectID = "<?= $setsubjectID ?>";
+    
+    // If we have URL parameters, set the dropdown values
+    if (classesID && classesID != '0') {
+        // Set the class dropdown
+        $('#classesID').val(classesID).trigger('change.select2');
+        
+        // Check if sections and subjects are already loaded from server
+        var sectionOptions = $('#sectionID option').length;
+        var subjectOptions = $('#subjectID option').length;
+        
+        if (sectionOptions <= 1) {
+            // Load sections if not already loaded
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('assignment/sectioncall')?>",
+                data: "id=" + classesID,
+                dataType: "html",
+                success: function(data) {
+                   $('#sectionID').html(data);
+                   // Set the section value after options are loaded
+                   if (sectionID && sectionID != '0') {
+                       $('#sectionID').val(sectionID).trigger('change.select2');
+                   }
+                }
+            });
+        } else {
+            // Sections already loaded, just set the value
+            if (sectionID && sectionID != '0') {
+                $('#sectionID').val(sectionID).trigger('change.select2');
+            }
+        }
+
+        if (subjectOptions <= 1) {
+            // Load subjects if not already loaded
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('assignment/subjectcall')?>",
+                data: "id=" + classesID,
+                dataType: "html",
+                success: function(data) {
+                   $('#subjectID').html(data);
+                   // Set the subject value after options are loaded
+                   if (subjectID && subjectID != '0') {
+                       $('#subjectID').val(subjectID).trigger('change.select2');
+                   }
+                }
+            });
+        } else {
+            // Subjects already loaded, just set the value
+            if (subjectID && subjectID != '0') {
+                $('#subjectID').val(subjectID).trigger('change.select2');
+            }
+        }
     }
 });
 </script>

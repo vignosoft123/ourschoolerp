@@ -48,7 +48,7 @@
             <th><?=$this->lang->line('slno')?></th>
             <th><?=$this->lang->line('mailandsms_usertype')?></th>
             <th><?=$this->lang->line('mailandsms_users')?></th>
-            <th><?=$this->lang->line('mailandsms_type')?></th>
+            <th>Campaign ID</th>
             <th><?=$this->lang->line('mailandsms_dateandtime')?></th>
             <th><?=$this->lang->line('mailandsms_message')?></th>
             <?php if(permissionChecker('mailandsms_view')) { ?>
@@ -71,7 +71,7 @@
                         }
                     ?>
                 </td>
-                <td><?=$mailandsms->type?></td>
+                <td><?=$mailandsms->campid?></td>
                 <td><?=date("d M Y h:i:s a", strtotime($mailandsms->create_date))?></td>
                 <td><?=substr(strip_tags($mailandsms->message), 0, 36).'..'?></td>
 
