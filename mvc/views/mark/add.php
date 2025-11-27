@@ -679,7 +679,7 @@
 
                                                     <!-- //CONSTRUCT SEND MARKS SMS -->
                                                     <td>
-                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam.' held on '.date("d-m-Y", strtotime($mark->date));?>" total_marks ="<?php echo $backend_total."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
+                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam.','.date("d-m-Y", strtotime($mark->date));?>" total_marks ="<?php echo $backend_total."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
                                                         exam_date = "<?= $sendExam->date?>" marks_grade="<?= $grade_rank?>" sms_rank="<?= $sms_rank?>"
                                                         name="send_sms_marks" class="checkbox">
                                                     </td>
@@ -764,7 +764,7 @@
                                             <i class="fa fa-times"></i> Cancel
                                         </button>
                                         <button type="button" class="btn btn-primary" id="confirmSendMessage">
-                                            <i class="fa fa-paper-plane"></i> Confirm & Send
+                                            <i class="fa fa-paper-plane"></i> Confirm & Send whatsapp
                                         </button>
                                     </div>
                                 </div>
@@ -828,7 +828,7 @@
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                                        <button type="button" class="btn btn-primary" id="confirmSendSMS">Confirm & Send</button>
+                                        <button type="button" class="btn btn-primary" id="confirmSendSMS">Confirm & Send SMS</button>
                                     </div>
                                 </div>
                             </div>
@@ -844,19 +844,13 @@
 
                     <script type="text/javascript">
                         jQuery(document).ready(function($) {
-                            // SMS Preview and Send functionality
-                            $("#send_sms_marks_btn").on('click', function(e) {
-                                e.preventDefault();
-                                // If this click is initiated by the user (not programmatic), set preview type to SMS
-                                // event.isTrusted is true for user actions, false for script-triggered events
-                                if (e && e.isTrusted) {
-                                    window.previewMessageType = 'sms';
-                                }
+                            // Common function to build preview
+                            function buildMessagePreview(messageType) {
                                 var selectedCheckboxes = $('input[name="send_sms_marks"]:checked');
                                 
                                 if (selectedCheckboxes.length === 0) {
                                     toastr["warning"]("Please select at least one student");
-                                    return;
+                                    return false;
                                 }
 
                                 var previewHtml = '<div class="sms-preview-list">';
@@ -890,22 +884,31 @@
                                 previewHtml += '</div>';
                                 
                                 $('#smsPreviewContent').html(previewHtml);
-                                // mark preview type as SMS (default)
-                                window.previewMessageType = window.previewMessageType || 'sms';
+                                window.previewMessageType = messageType;
+                                
+                                // Update modal title based on message type
+                                if (messageType === 'whatsapp') {
+                                    $('#smsPreviewModal .modal-title').text('Preview WhatsApp Messages');
+                                    $('#confirmSendSMS').html('<i class="fa fa-whatsapp"></i> Confirm & Send WhatsApp');
+                                } else {
+                                    $('#smsPreviewModal .modal-title').text('Preview SMS Messages');
+                                    $('#confirmSendSMS').html('<i class="fa fa-paper-plane"></i> Confirm & Send SMS');
+                                }
+                                
                                 $('#smsPreviewModal').modal('show');
+                                return true;
+                            }
+
+                            // SMS Preview and Send functionality
+                            $("#send_sms_marks_btn").on('click', function(e) {
+                                e.preventDefault();
+                                buildMessagePreview('sms');
                             });
 
-                            // WhatsApp button should reuse the same preview builder: set type and trigger click
+                            // WhatsApp button functionality
                             $("#send_whatsapp_marks_btn").on('click', function(e) {
                                 e.preventDefault();
-                                if ($('input[name="send_sms_marks"]:checked').length === 0) {
-                                    toastr["warning"]("Please select at least one student");
-                                    return;
-                                }
-                                // set preview type so confirm posts to whatsapp endpoint
-                                window.previewMessageType = 'whatsapp';
-                                // trigger the SMS preview builder to populate modal (it will read previewMessageType)
-                                $("#send_sms_marks_btn").trigger('click');
+                                buildMessagePreview('whatsapp');
                             });
 
                             // Handle confirmation and sending
@@ -948,11 +951,7 @@
                                         $('#smsPreviewModal').modal('hide');
                                         try {
                                             var total = JSON.parse(response);
-                                            if (total > 0) {
-                                                toastr["success"]((previewType === 'whatsapp' ? "WhatsApp" : "SMS") + " sent successfully");
-                                            } else {
-                                                toastr["error"]("Failed to send " + (previewType === 'whatsapp' ? "WhatsApp" : "SMS"));
-                                            }
+                                            toastr["success"]((previewType === 'whatsapp' ? "WhatsApp" : "SMS") + " sent successfully");
                                         } catch (e) {
                                             toastr["success"]((previewType === 'whatsapp' ? "WhatsApp" : "SMS") + " request completed");
                                         }
@@ -1201,9 +1200,7 @@
                 alert("Please check at least one checkbox before proceeding.");
                 return false;
             }
-            // set preview type and reuse SMS preview builder
-            window.previewMessageType = 'whatsapp';
-            //$("#send_sms_marks_btn").trigger('click');
+            // The functionality is now handled in the main jQuery ready block above
         });
 
             

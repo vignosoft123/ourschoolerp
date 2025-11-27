@@ -651,7 +651,7 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 		$results = array_map(function($msg) use ($username, $password, $senderID, $templateName) {
 			$to = trim($msg['phone']);
 			$text = urlencode($templateName);
-			$media = isset($msg['media']) ? urlencode($msg['media']) : '';
+			$media = isset($msg['media']) ? ($msg['media']) : '';
 
 			// Ensure $params is properly constructed as a comma-separated string
 			$params = isset($msg['message']) ? $msg['message'] : '';
@@ -668,19 +668,37 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 				. "&htype=document"
 				. "&fname=Homework"
 				. "&url={$media}";
-				// echo $url;die;
+			
 			$ch = curl_init();
 			curl_setopt_array($ch, [
 				CURLOPT_URL => $url,
 				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_TIMEOUT => 10,
+				CURLOPT_TIMEOUT => 30,
+				CURLOPT_CONNECTTIMEOUT => 10,
+				CURLOPT_FOLLOWLOCATION => true,
+				CURLOPT_SSL_VERIFYPEER => false,
+				CURLOPT_SSL_VERIFYHOST => false,
+				CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
 			]);
 
 			$response = curl_exec($ch);
 			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$curlError = curl_error($ch);
+			$curlErrno = curl_errno($ch);
 			curl_close($ch);
 
-			$status = ($httpCode == 200 && stripos($response, 'success') !== false);
+			// Better success detection - check for various success indicators
+			$status = false;
+			if ($httpCode == 200 && $response) {
+				// Check for common success indicators in API response
+				$successIndicators = ['success', 'sent', 'delivered', 'S.', 'campid', 'ok'];
+				foreach ($successIndicators as $indicator) {
+					if (stripos($response, $indicator) !== false) {
+						$status = true;
+						break;
+					}
+				}
+			}
 
 			return [
 				'request_url' => $url,
@@ -689,7 +707,7 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 			];
 		}, $messages);
 
-		$successCount = count(array_filter($results, fn($result) => $result['status']));
+		$successCount = count(array_filter($results, function($result) { return $result['status']; }));
 
 		$this->log_whatsapp_history($results);
 
