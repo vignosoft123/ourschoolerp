@@ -51,6 +51,7 @@ class Subdomains_m extends MY_Model {
 			$this->db->or_like('site_name', $search);
 			$this->db->or_like('server', $search);
 			$this->db->or_like('status', $search);
+			$this->db->or_like('main_domain', $search);
 			$this->db->group_end();
 		}
 		
@@ -71,6 +72,7 @@ class Subdomains_m extends MY_Model {
 			$this->db->or_like('site_name', $search);
 			$this->db->or_like('server', $search);
 			$this->db->or_like('status', $search);
+			$this->db->or_like('main_domain', $search);
 			$this->db->group_end();
 		}
 		

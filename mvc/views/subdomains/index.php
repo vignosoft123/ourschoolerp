@@ -22,13 +22,14 @@
                         <thead>
                             <tr>
                                 <th width="5%">#</th>
-                                <th width="12%">Server</th>
-                                <th width="15%">SubDomain</th>
-                                <th width="15%">DB Host</th>
-                                <th width="15%">DB Name</th>
-                                <th width="15%">Site Name</th>
-                                <th width="10%">Status</th>
-                                <th width="13%">Actions</th>
+                                <th width="10%">Server</th>
+                                <th width="12%">SubDomain</th>
+                                <th width="12%">DB Host</th>
+                                <th width="12%">DB Name</th>
+                                <th width="12%">Site Name</th>
+                                <th width="12%">Main Domain</th>
+                                <th width="8%">Status</th>
+                                <th width="20%">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -57,8 +58,9 @@ $(document).ready(function() {
             { "data": 3 },
             { "data": 4 },
             { "data": 5 },
-            { "data": 6, "orderable": false },
-            { "data": 7, "orderable": false }
+            { "data": 6 },
+            { "data": 7, "orderable": false },
+            { "data": 8, "orderable": false }
         ],
         "order": [[ 1, "desc" ]],
         "pageLength": 10,
@@ -118,5 +120,19 @@ $(document).ready(function() {
 
 .badge-danger {
     background-color: #d9534f;
+}
+
+.btn-success {
+    background-color: #5cb85c;
+    border-color: #4cae4c;
+}
+
+.btn-success:hover {
+    background-color: #449d44;
+    border-color: #398439;
+}
+
+.btn-group .btn {
+    margin-right: 2px;
 }
 </style>

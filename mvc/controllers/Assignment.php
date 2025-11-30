@@ -880,9 +880,13 @@ public function student_list() {
             }, $students);
 
        
-			// echo $msg['media'];die;
+			if(!empty($msg['media'])) {
+				$short_name = 'HOMEWORK_PDF';
+			} else {
+				$short_name = 'HOMEWORK';
+			}	
  		// Get template with short_name like PROGRESS_CARD
-        $template_sql = "select params,template_name from whatapp_templates where short_name like '%HOMEWORK%' ";
+        $template_sql = "select params,template_name from whatapp_templates where short_name like '$short_name' ";
         $template = $this->db->query($template_sql)->row_array();
 
         if (!$template || empty($template['template_name'])) {

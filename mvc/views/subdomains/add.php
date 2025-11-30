@@ -114,6 +114,16 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="main_domain" class="col-sm-2 control-label">
+                            Main Domain
+                        </label>
+                        <div class="col-sm-6">
+                            <?php echo form_input(array('id' => 'main_domain', 'name' => 'main_domain', 'value' => set_value('main_domain'), 'class' => 'form-control', 'placeholder' => 'Main domain will auto-fill', 'readonly' => 'readonly')); ?>
+                            <?php echo form_error('main_domain', '<div class="error-message">', '</div>'); ?>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <label for="status" class="col-sm-2 control-label">
                             Status <span class="text-red">*</span>
                         </label>
@@ -158,16 +168,20 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         $('#db_host').val(response.db_host);
+                        $('#main_domain').val(response.main_domain);
                     } else {
                         $('#db_host').val('');
+                        $('#main_domain').val('');
                     }
                 },
                 error: function() {
                     $('#db_host').val('');
+                    $('#main_domain').val('');
                 }
             });
         } else {
             $('#db_host').val('');
+            $('#main_domain').val('');
         }
     });
 });

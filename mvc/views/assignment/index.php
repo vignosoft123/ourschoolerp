@@ -203,25 +203,65 @@
 
 <!-- Add Modal for File Upload -->
 <div class="modal fade" id="uploadHomeworkModal" tabindex="-1" role="dialog" aria-labelledby="uploadHomeworkModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="uploadHomeworkModalLabel">Upload Homework File</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="uploadHomeworkModalLabel">
+                    <i class="fa fa-whatsapp"></i> Send Homework via WhatsApp
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fa fa-info-circle"></i> 
+                    <strong>Note: File is Optional</strong> 
+                </div>
+                
                 <form id="homeworkUploadForm" enctype="multipart/form-data">
                     <div class="form-group">
-                        <label for="homeworkFile">Choose File</label>
-                        <input type="file" class="form-control" id="homeworkFile" name="homework_file" required>
+                        <label for="homeworkFile" class="control-label">
+                            <i class="fa fa-file-pdf-o"></i> Choose File 
+                            <small class="text-muted">(Optional)</small>
+                        </label>
+                        <div class="input-group">
+                            <input type="file" class="form-control" id="homeworkFile" name="homework_file" 
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style="padding: 6px 12px;">
+                            <span class="input-group-addon">
+                                <i class="fa fa-paperclip"></i>
+                            </span>
+                        </div>
+                        <small class="help-block text-muted">
+                            <i class="fa fa-lightbulb-o"></i> 
+                            Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max: 10MB)
+                        </small>
                     </div>
+                    
+                  <!--  <div class="form-group">
+                        <label class="control-label">
+                            <i class="fa fa-users"></i> Recipients
+                        </label>
+                         <div class="well well-sm">
+                            <p class="margin-bottom-5">
+                                <strong>Class:</strong> <span id="selectedClass">-</span> | 
+                                <strong>Section:</strong> <span id="selectedSection">-</span>
+                            </p>
+                            <p class="margin-bottom-0 text-muted">
+                                <i class="fa fa-clock-o"></i> 
+                                Messages will be sent to all students and parents in the selected class & section.
+                            </p>
+                        </div>
+                    </div> -->
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="submitHomeworkFile">Submit</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">
+                    <i class="fa fa-times"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-success" id="submitHomeworkFile">
+                    <i class="fa fa-paper-plane"></i> Send WhatsApp Messages
+                </button>
             </div>
         </div>
     </div>
@@ -291,6 +331,13 @@
         if(classesID == 0 || sectionID == 0) {
             alert("Please select Class and Section!");
         } else {
+            // Update modal with selected class and section info
+            var selectedClassName = $('#classesID option:selected').text();
+            var selectedSectionName = $('#sectionID option:selected').text();
+            
+            $('#selectedClass').text(selectedClassName);
+            $('#selectedSection').text(selectedSectionName);
+            
             $('#uploadHomeworkModal').modal('show');
         }
     });

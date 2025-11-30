@@ -650,11 +650,12 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 
 		$results = array_map(function($msg) use ($username, $password, $senderID, $templateName) {
 			$to = trim($msg['phone']);
-			$text = urlencode($templateName);
 			$media = isset($msg['media']) ? ($msg['media']) : '';
+			 
+			$text = urlencode($templateName); 
 
-			// Ensure $params is properly constructed as a comma-separated string
-			$params = isset($msg['message']) ? $msg['message'] : '';
+			// Properly URL encode the message parameters
+			$params = isset($msg['message']) ? urlencode($msg['message']) : '';
 
 			$url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
 				. "?user={$username}"
@@ -664,10 +665,15 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 				. "&text={$text}"
 				. "&priority=wa"
 				. "&stype=normal"
-				. "&Params={$params}"
-				. "&htype=document"
-				. "&fname=Homework"
-				. "&url={$media}";
+				. "&Params={$params}";
+			
+			// Only append media parameters if media URL is provided
+			if (!empty($media)) {
+				$url .= "&htype=document"
+					. "&fname=Homework"
+					. "&url=" . urlencode($media);
+			}
+			// echo $url;die;
 			
 			$ch = curl_init();
 			curl_setopt_array($ch, [
@@ -703,12 +709,17 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 			return [
 				'request_url' => $url,
 				'api_response' => $response,
+				'created_on' => date("Y-m-d H:i:s"),
+				'type' => "whatsapp",
+				'message' => isset($msg['message']) ? $msg['message'] : '',
+				'template_name' => $templateName,
 				'status' => $status
 			];
 		}, $messages);
 
 		$successCount = count(array_filter($results, function($result) { return $result['status']; }));
 
+		// echo "<pre>";print_r($results);die;
 		$this->log_whatsapp_history($results);
 
 		return [
