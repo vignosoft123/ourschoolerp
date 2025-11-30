@@ -1,4 +1,12 @@
 [
+    {
+        "query": "ALTER TABLE `student` ADD `rank` VARCHAR(55) NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "student",
+            "column": "rank"
+        }
+    }, 
      {
         "query": "ALTER TABLE `make_payment` ADD `salary_date` VARCHAR(255) NULL DEFAULT NULL",
         "type": "alter",

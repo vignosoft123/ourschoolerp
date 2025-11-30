@@ -2,27 +2,177 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
 <style>
-    /* thead th {
-        background: linear-gradient(90deg, #007bff, #3399ff);
+    /* Modern Button Styles */
+    .btn {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 13px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover:before {
+        left: 100%;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Success Button */
+    .btn-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
-        text-align: center;
-        font-weight: bold;
-        vertical-align: middle;
-        padding: 10px;
-    } */
+    }
 
+    .btn-success:hover {
+        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+        color: white;
+    }
+
+    /* Warning Button */
+    .btn-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+        color: #212529;
+    }
+
+    .btn-warning:hover {
+        background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+        color: #212529;
+    }
+
+    /* Primary Button */
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff 0%, #667eea 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #667eea 0%, #007bff 100%);
+        color: white;
+    }
+
+    /* Info Button */
+    .btn-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-info:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #17a2b8 100%);
+        color: white;
+    }
+
+    /* Black Button */
+    .btn-black {
+        background: linear-gradient(135deg, #343a40 0%, #495057 100%);
+        color: white;
+    }
+
+    .btn-black:hover {
+        background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+        color: white;
+    }
+
+    /* Default Button */
+    .btn-default {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        color: #495057;
+        border: 1px solid #dee2e6;
+    }
+
+    .btn-default:hover {
+        background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+        color: #495057;
+    }
+
+    /* File Upload Button */
+    .fileUpload {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .fileUpload:hover {
+        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+    }
+
+    /* Special styling for action buttons */
+    .mark_btn {
+        background: linear-gradient(135deg, #28a745 0%, #34ce57 100%);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .mark_btn:hover {
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        background: linear-gradient(135deg, #34ce57 0%, #28a745 100%);
+    }
+
+    #generateRankBtn {
+        background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%);
+        box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+    }
+
+    #generateRankBtn:hover {
+        box-shadow: 0 8px 25px rgba(255, 193, 7, 0.4);
+        background: linear-gradient(135deg, #ffb300 0%, #ffc107 100%);
+    }
+
+    /* Load More Buttons */
+    #loadMoreBtn, #loadAllBtn {
+        border-radius: 25px;
+        padding: 12px 25px;
+        font-weight: 600;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    #loadMoreBtn {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    #loadAllBtn {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    /* Excel-only class remains unchanged */
     .excel-only {
-    display: none;
-}
-
+        display: none;
+    }
 
     .grade-label {
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-weight: bold;
-    display: inline-block;
-    font-size: 13px;
-}
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: inline-block;
+        font-size: 13px;
+    }
 
 .grade-a-plus { background-color: #e6f4ea; color: #2e7d32; }
 .grade-a      { background-color: #e8f5e9; color: #388e3c; }
@@ -31,9 +181,6 @@
 .grade-c-plus { background-color: #fff9c4; color: #fbc02d; }
 .grade-c      { background-color: #ffe0b2; color: #f57c00; }
 .grade-d      { background-color: #ffcdd2; color: #d32f2f; }
-
-
-
 
    .grade-label {
     padding: 3px 8px;
@@ -145,7 +292,142 @@
             }
 
             .icon-eattendance {
-                display: none !important; /* Hide input fields when printing */
+                cursor: pointer;
+                margin-right: 10px;
+                color: #337ab7;
+                font-size: 16px;
+            }
+            
+            .icon-eattendance:hover {
+                color: #23527c;
+            }
+            
+            @media print {
+                .icon-eattendance {
+                    display: none !important; /* Hide only when printing */
+                }
+            }
+
+            /* Enhanced Modal Styles */
+            .modal-content {
+                border: none;
+                transition: all 0.3s ease;
+                border-radius: 12px;
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            }
+            
+            .modal-header {
+                border-bottom: none;
+                position: relative;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 12px 12px 0 0;
+                padding: 20px 25px;
+            }
+            
+            .modal-header .close {
+                color: white;
+                opacity: 0.8;
+                font-size: 24px;
+                font-weight: 300;
+            }
+            
+            .modal-header .close:hover {
+                opacity: 1;
+            }
+            
+            .modal-header::after {
+                content: '';
+                position: absolute;
+                bottom: -10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 50px;
+                height: 3px;
+                background: rgba(255,255,255,0.3);
+                border-radius: 3px;
+            }
+            
+            .modal-body {
+                border-radius: 0;
+                padding: 25px;
+            }
+            
+            .modal-footer {
+                border-top: 1px solid #e9ecef;
+                justify-content: space-between;
+                padding: 20px 25px;
+                border-radius: 0 0 12px 12px;
+            }
+            
+            .modal-fade .modal-dialog {
+                transform: scale(0.7);
+                transition: transform 0.3s ease;
+            }
+            
+            .modal-fade.in .modal-dialog {
+                transform: scale(1);
+            }
+            
+            /* Modal Button Styles */
+            .modal-footer .btn {
+                min-width: 120px;
+                padding: 12px 20px;
+                border-radius: 25px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 12px;
+            }
+            
+            .modal-footer .btn-default {
+                background: linear-gradient(135deg, #6c757d 0%, #adb5bd 100%);
+                color: white;
+                border: none;
+            }
+            
+            .modal-footer .btn-default:hover {
+                background: linear-gradient(135deg, #adb5bd 0%, #6c757d 100%);
+                color: white;
+            }
+            
+            .modal-footer .btn-primary {
+                background: linear-gradient(135deg, #007bff 0%, #667eea 100%);
+                border: none;
+            }
+            
+            .modal-footer .btn-primary:hover {
+                background: linear-gradient(135deg, #667eea 0%, #007bff 100%);
+            }
+            
+            /* Save/Action Button Styles in Modals */
+            .save-attendance-btn, .save-subject-attendance-btn, .save-all-attendance-btn {
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                border: none;
+                border-radius: 20px;
+                padding: 10px 25px;
+                font-weight: 600;
+                color: white;
+                transition: all 0.3s ease;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 12px;
+            }
+            
+            .save-attendance-btn:hover, .save-subject-attendance-btn:hover, .save-all-attendance-btn:hover {
+                background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+                color: white;
+            }
+            
+            .alert {
+                margin-bottom: 20px;
+            }
+            
+            .form-control:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
             }
 
             .hide-in-print {
@@ -289,8 +571,14 @@
                             <div class="row">
                                 <div class="col-md-12 col-xs-12">
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-success col-md-12 col-xs-12 mark_btn" style="margin-top: 20px;">Get Marks</button>
-
+                                        <button type="button" id="getMarksBtn" class="btn btn-success col-md-12 col-xs-12 mark_btn" style="margin-top: 20px;">
+                                            <span class="btn-text">Get Marks</span>
+                                            <span class="btn-loading" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Loading...</span>
+                                        </button>
+                                        <button type="button" class="btn btn-warning col-md-12 col-xs-12" id="generateRankBtn" style="margin-top: 5px; display:none;">
+                                            <span class="fa fa-trophy"></span> Generate Rank
+                                            <span id="rankLoading" style="display:none;"><i class="fa fa-spinner fa-spin"></i></span>
+                                        </button>
                                         <!-- <input class="btn btn-black" type="reset" value="Clear"> -->
                                     </div>
                                 </div>
@@ -298,6 +586,13 @@
                         </div>
                     </div>
                 </form>
+                
+                <!-- Important Note for Users -->
+                <div class="alert alert-info" style="margin-top: 15px; border-left: 4px solid #17a2b8; background-color: #f8f9fa; border-radius: 6px; font-size: 16px; color: #dc3545;">
+                    <i class="fa fa-info-circle" style="margin-right: 8px; color: #dc3545; font-size: 18px;"></i>
+                    <strong style="color: #dc3545;">Note:</strong> After any marks changes, please click the <strong style="color: #dc3545;">Generate Rank</strong> button to ensure correct data and updated rankings.
+                </div>
+
                 <?php if (customCompute($students)) { ?>
                     <!-- <form enctype="multipart/form-data" style="" action="<?= base_url('mark/mark_bulkimport'); ?>" class="form-horizontal" role="form" method="post">
                         <input  type="hidden"name="classId" value="" class="classId" />
@@ -344,49 +639,42 @@
 
  <div class="row" style="margin-top: 20px;">
     <!-- Left: Info Box -->
-    <?php if (customCompute($sendExam) && customCompute($sendClasses) && customCompute($sendSection) ) { ?>
-        <div class="col-sm-6 box-layout-fame">
-            <div class="panel panel-default" style="padding: 10px; background-color: #f9f9f9;">
-                <h5><center><?php echo $this->lang->line('mark_details'); ?></center></h5>
-                <h5><center><?php echo $this->lang->line('mark_exam') . ' : ' . $sendExam->exam; ?></center></h5>
-                <h5><center><?php echo $this->lang->line('mark_classes') . ' : ' . $sendClasses->classes; ?></center></h5>
-                <h5><center><?php echo $this->lang->line('mark_section') . ' : ' . $sendSection->section; ?></center></h5>   
-                <br/>
-                <br/>
-               
-                <div class="form-group">
- <button class="btn btn-black col-md-3 "   id="printBtn"><span class="fa fa-print"> &nbsp;</span >Print Sheet</button>
+    <div class="col-sm-6 box-layout-fame" style="display:none;">
+        <div class="panel panel-default" style="padding: 10px; background-color: #f9f9f9;">
+            <h5><center><?php echo $this->lang->line('mark_details'); ?></center></h5>
+            <h5 id="examDetailsText"><center>Exam: </center></h5>
+            <h5 id="classDetailsText"><center>Class: </center></h5>
+            <h5 id="sectionDetailsText"><center>Section: </center></h5>   
+            <br/>
+            <br/>
+           
+            <div class="form-group">
+                <button class="btn btn-black col-md-3" id="printBtn"><span class="fa fa-print"> &nbsp;</span>Print Sheet</button>
 
-                
+            
                 <button id="exportButton" class="btn btn-info col-md-3"><i class="fa fa-download"></i>  Download Sample</button>
 
-<form enctype="multipart/form-data" style="padding:1%" action="<?=base_url('Mark/marks_bulkimport');?>" class="form-horizontal" role="form" method="post">
+                <form enctype="multipart/form-data" style="padding:1%" action="<?=base_url('Mark/marks_bulkimport');?>" class="form-horizontal" role="form" method="post">
                     
-                        
-
-                        <div class="col-sm-4 col-xs-6 col-md-3">
-                            <div class="fileUpload btn btn-success form-control">
-                                <span class="fa fa-repeat"></span>
-                                <span>Upload Excel Marks</span>
-                                <input id="uploadBtn" type="file" class="upload questionUpload" name="csvMarks" />
-                            </div>
+                    <div class="col-sm-4 col-xs-6 col-md-3">
+                        <div class="fileUpload btn btn-success form-control">
+                            <span class="fa fa-repeat"></span>
+                            <span>Upload Excel Marks</span>
+                            <input id="uploadBtn" type="file" class="upload questionUpload" name="csvMarks" />
                         </div>
+                    </div>
 
-                        <div class="col-md-1 rep-mar">
-                            <input type="submit" class="btn btn-success" value="Save Marks" >
-                        </div>
- 
-                 
+                    <div class="col-md-1 rep-mar">
+                        <input type="submit" class="btn btn-success" value="Save Marks">
+                    </div>
                 </form>
-
             </div>       
-                </div>
         </div>
-    
+    </div>
 
     <!-- Right: Grade Legend -->
     <div class="col-sm-6">
-        <div class="grade-legend" style="background-color: #fdfdfd; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+        <div class="grade-legend" style="background-color: #fdfdfd; border: 1px solid #ddd; padding: 10px; border-radius: 4px; display:none;">
             <strong>Note:</strong>
             <ul>
                 <li><span class="grade-label grade-a-plus">A+</span> – 95% and above</li>
@@ -399,8 +687,6 @@
             </ul>
         </div>
     </div>
-    <?php } ?>
-
 </div>
 
 
@@ -409,341 +695,52 @@
             
             
             <div class="col-sm-12">
-                <?php if (customCompute($students)) { ?>
-                    <div id="hide-table">
- 
+                <div id="hide-table" style="display:none;">
                     <button onclick="exportTableToCSV('myTable','table_data.csv')" class="btn btn-primary">📥 Download CSV</button>
-
-
-
-
-                        <table class="table table-striped table-bordered table-hover dataTable no-footer" id="myTable">
-                            <thead>
-                                <tr>
-                                    <th class="no-export"><?= $this->lang->line('slno') ?></th>
-                                    
-                                    <th class="no-export"><?= $this->lang->line('mark_photo') ?></th>
-                                    <th class="excel-only1">studentID</th>
-                                    <th><?= $this->lang->line('mark_name') ?>(<?= $this->lang->line('mark_roll') ?>)</th>
-
-                                      
-                                    
-                                   <?php
-                                        $out_of = 0;
-                                        foreach ($subjects as $subject) {
-                                            // Visible column
-                                            echo "<th class='no-export'>{$subject->subject} ({$subject->max_mark})</th>";
-
-                                            // Hidden column for Excel
-                                            echo "<th class='excel-only'>{$subject->subject}^{$subject->subjectID}</th>";
-
-                                            $out_of += $subject->max_mark;
-                                        }
-                                        ?>
-                                   <th class="no-export"> Total (Out of <?php echo $out_of;?>)</th>
-                                   <th class="no-export"> Grade </th>
-                                   <th class="no-export"> Rank </th>
-                                   <th class="no-export"> Send SMS <input type="checkbox" class="" id="checkAll" name="checkAll"> </th>
-
-
-
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (customCompute($students)) {
-                                    $i = 1;
-                                     foreach ($students as $student) {  
-                                         // Get backend calculated total and rank
-                                         $stuID = $student->studentID;
-                                         $backendTotal = isset($studentResults[$stuID]['total']) ? $studentResults[$stuID]['total'] : 0;
-                                         $backendRank = isset($studentResults[$stuID]['rank']) ? $studentResults[$stuID]['rank'] : '-';
-                                         $zero_mark = isset($studentResults[$stuID]['zero_mark']) ? $studentResults[$stuID]['zero_mark'] : 0;
-                                         
-                                         // Calculate percentage and grade using backend total
-                                         $out_of = 0;
-                                         foreach ($subjects as $subject) {
-                                             $out_of += $subject->max_mark;
-                                         }
-                                         $percent_cal = ($backendTotal / ($out_of ?: 1)) * 100;
-                                         
-                                         if ($percent_cal >= 95 && $zero_mark == 0) { 
-                                             $grade = 'A+'; 
-                                             $grade_rank = '<span class="grade-label grade-a-plus">A+</span>';
-                                         } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) { 
-                                             $grade = 'A'; 
-                                             $grade_rank = '<span class="grade-label grade-a">A</span>';
-                                         } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) { 
-                                             $grade = 'B+'; 
-                                             $grade_rank = '<span class="grade-label grade-b-plus">B+</span>';
-                                         } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) { 
-                                             $grade = 'B'; 
-                                             $grade_rank = '<span class="grade-label grade-b">B</span>';
-                                         } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) { 
-                                             $grade = 'C+'; 
-                                             $grade_rank = '<span class="grade-label grade-c-plus">C+</span>';
-                                         } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) { 
-                                             $grade = 'C'; 
-                                             $grade_rank = '<span class="grade-label grade-c">C</span>';
-                                         } else { 
-                                             $grade = 'D'; 
-                                             $grade_rank = '<span class="grade-label grade-d">D</span>';
-                                         }
-                                         
-                                         $sms_rank = $backendRank;
-                                         ?>
-                                                <tr>
-                                                    <td class="no-export" data-title="<?= $this->lang->line('slno') ?>">
-                                                        <?php echo $i; ?>
-                                                    </td>
-                                                    <td data-title="<?= $this->lang->line('mark_photo') ?>">
-                                                        <?= profileproimage($student->photo) ?>
-                                                    </td>
-                                                    <td  class='excel-only1'>
-                                                        <?php echo $student->studentID; ?>
-                                                    </td> 
-                                                    <td data-title="<?= $this->lang->line('mark_name') ?>">
-                                                        <?php echo $student->name; ?> ( <?php echo $student->roll; ?>)
-                                                        <br>
-                                                         <button type="button" class="btn btn-warning btn-xs" data-toggle="modal"   data-target="#attendance-all-modal_<?= $student->studentID?>">   All Subjects Absent  </button>
-                                                    </td>
-                                                   
-                                                    <?php 
-                                                        foreach ($subjects as $subject) { 
-
-                                                    foreach ($markpercentages as $data) { 
-                                                          
-                                                        foreach ($marks as $mark) { 
-                                                            if($subject->subjectID == $mark->subjectID && $student->studentID == $mark->studentID ){
-
-                                                                 $sql = "SELECT mark,eattendance FROM `mark` LEFT JOIN `markrelation` ON `markrelation`.`markID` = `mark`.`markID` WHERE `mark`.`schoolyearID` = ".$mark->schoolyearID." AND `mark`.`examID` = ".$mark->examID." AND `mark`.`classesID` = ".$mark->classesID." and studentId= ".$student->studentID." and markpercentageID =".$data->markpercentageID." and subjectID=".$subject->subjectID;
-                                                                //  echo "<br/>";       
-                                                                $all_marks =  $this->db->query($sql)->row();
-                                                               $mrk = $all_marks->mark;
-                                                               $exam_absent = $all_marks->eattendance;
-
-                                                               $readonly = "";
-                                                               $A = "";
-                                                               if($exam_absent == 'Absent'){
-                                                                $readonly = "readonly";
-                                                                $A = "a";
-                                                               }
-
-
-                                                               $mrk = (int)$mrk;
-
-                                                               if ($mrk == 0) {
-                                                                   ++$zero_mark;
-                                                               }
-                                                               $tot += $mrk;
-                                                                
-
-
-                                                        echo "<td data-title='$data->markpercentagetype'>";
-
-                                                        echo "<a href='#' ><i class='fa icon-eattendance pull-left' title='add exam attendance' data-toggle='modal' data-target='#attendance-modal_".$mark->markID."'></i></a>";
-
-
-                                                        if($A == 'a'){
-                                                            echo '<span class="attendance-circle">A</span>';
-
-
-                                                        }else{
-                                                            
-                                                            echo  "<input subj_id = '".$subject->subjectID."'  class='form-control mark input_mark' type='' style='width: 100px !important;' name='".$subject->subjectID."mark-" . $mark->markID . "' id='" . $data->markpercentageID . "' value='" . $mrk . "' min='0' max='" . $subject->max_mark . "' $readonly  />
-                                                            
-                                                            ";
-                                                        
-                                                        }
-
-
-                                                        echo "</td>";
-                                                        
-                                                         ?>
-
-
-
-                                                            <!-- email modal starts here -->
-                                                            <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAttendance');?>" method="post">
-                                                                <div class="modal fade" id="attendance-modal_<?= $mark->markID?>">
-                                                                <div class="modal-dialog">
-                                                                    <div class="modal-content">
-                                                                        <div class="modal-header">
-                                                                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                                                                            <h4 class="modal-title">Add Attendance</h4>
-                                                                        </div>
-                                                                        <div class="modal-body">
-                                                                        <input type="hidden" name="percentage_id" value="<?= $data->markpercentageID?>">
-                                                                            <?php 
-                                                                                if(form_error('to')) 
-                                                                                    echo "<div class='form-group has-error' >";
-                                                                                else     
-                                                                                    echo "<div class='form-group' >";
-                                                                            ?>
-                                                                                <label for="to" class="col-sm-2 control-label">
-                                                                                    Attendance</span>
-                                                                                </label>
-                                                                                <div class="col-sm-6">
-                                                                                    <select name="attendance" id="attendance" class="form-control">
-                                                                                        <option value="Present">Present</option>
-                                                                                        <option value="Absent">Absent</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <input type="hidden" name="examID" value="<?= $set_exam?>" class="form-control">
-                                                                                <input type="hidden" name="classesID" value="<?= $set_classes?>" class="form-control">
-                                                                                <input type="hidden" name="subjectID" value="<?= $subject->subjectID?>" class="form-control">
-                                                                                <input type="hidden" name="sectionID" value="<?= $set_section?>" class="form-control">
-                                                                                <input type="hidden" name="studentID" value="<?= $student->studentID?>" class="form-control">
-                                                                                <input type="hidden" name="markID" value="<?= $mark->markID?>" class="form-control">
-                                                                                <span class="col-sm-4 control-label" id="to_error">
-                                                                                </span>
-                                                                            </div>
-
-                                                                        
-
-                                                                        
-                                                                        </div>
-                                                                        <div class="modal-footer">
-                                                                            <button type="button" class="btn btn-default" style="margin-bottom:0px;" data-dismiss="modal"><?=$this->lang->line('close')?></button>
-                                                                            <input type="submit" id="send_pdf" class="btn btn-success" value="Save" />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                </div>
-                                                            </form>
-                                                            <!-- email end here -->
-                                                        
-                                                            <?php 
-                                                            $absent_or_mark = ($mrk !== null && $mrk !== '') ? ($mrk."/".$subject->max_mark) : 'Ab';
-                                                            $my_template .= $subject->subject."=".$absent_or_mark.",";
-                                                        }
-                                                        }
-                                                    }
-                                                } 
-                                            
-                                            // Use backend calculated total instead of frontend calculation
-                                            $stuID = $student->studentID;
-                                            $backend_total = isset($studentResults[$stuID]) ? $studentResults[$stuID]['total'] : $tot;
-                                            
-                                            echo "<td>".$backend_total."</td>"; 
-                                            
-                                            // DEBUG: Add debugging for both calculations
-                                            if($student->studentID == 757 || $student->studentID == 761 || $student->studentID == 772) {
-                                                error_log("TOTAL DEBUG: Student {$student->studentID} - Frontend: $tot, Backend: $backend_total");
-                                            } 
-
-                                            $out_of = $out_of != 0 ? $out_of : 1;
-                                            $percent_cal = ($backend_total / $out_of) * 100;
-
-                                            if ($percent_cal >= 95 && $zero_mark == 0) {
-                                                $grade = "A+";
-                                                $gradeClass = "grade-a-plus";
-                                            } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
-                                                $grade = "A";
-                                                $gradeClass = "grade-a";
-                                            } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
-                                                $grade = "B+";
-                                                $gradeClass = "grade-b-plus";
-                                            } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
-                                                $grade = "B";
-                                                $gradeClass = "grade-b";
-                                            } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
-                                                $grade = "C+";
-                                                $gradeClass = "grade-c-plus";
-                                            } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
-                                                $grade = "C";
-                                                $gradeClass = "grade-c";
-                                            } else {
-                                                $grade = "D";
-                                                $gradeClass = "grade-d";
-                                            }
-
-                                            echo "<td><span class='grade-label {$gradeClass}'>$grade</span></td>";
-
-                                                    ?>
-
-
-                                                <td>
-                                                    <?php 
-                                                        $stuID = $student->studentID;
-                                                        if(isset($studentResults[$stuID])) {
-                                                            // echo $sms_rank = $studentResults[$stuID]['isFail'] ? "Fail" : $studentResults[$stuID]['rank'];
-                                                            echo $sms_rank = $studentResults[$stuID]['rank'];
-                                                        }  
-
-                                                            $grade_rank = $grade .' Rank ' .$sms_rank;
-
-                                                    ?>
-                                                </td>
-
-
-
-                                                    <!-- //CONSTRUCT SEND MARKS SMS -->
-                                                    <td>
-                                                        <input type="checkbox" st_ids="<?php echo $student->studentID;?>" st_names="<?php echo $student->name;?>" mobile_no="<?php echo $student->phone;?>" exam_name ="<?php echo $mark->exam.','.date("d-m-Y", strtotime($mark->date));?>" total_marks ="<?php echo $backend_total."/". $out_of;?>"  marks_template ="<?php echo $my_template;?>" 
-                                                        exam_date = "<?= $sendExam->date?>" marks_grade="<?= $grade_rank?>" sms_rank="<?= $sms_rank?>"
-                                                        name="send_sms_marks" class="checkbox">
-                                                    </td>
-
-                   
-
-
-                            <form class="form-horizontal" role="form" action="<?=base_url('Mark/saveAllAttendance');?>" method="post">
-                                <div class="modal fade" id="attendance-all-modal_<?= $student->studentID?>">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                                                <h4 class="modal-title">Mark All Subjects Attendance</h4>
-                                            </div>
-                                            <div class="modal-body">
-                                                <div class="form-group">
-                                                    <label class="col-sm-3 control-label">Attendance</label>
-                                                    <div class="col-sm-6">
-                                                        <select name="attendance" class="form-control">
-                                                            <option value="Present">Present</option>
-                                                            <option value="Absent">Absent</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <input type="hidden" name="examID" value="<?= $set_exam?>">
-                                                <input type="hidden" name="classesID" value="<?= $set_classes?>">
-                                                <input type="hidden" name="sectionID" value="<?= $set_section?>">
-                                                <input type="hidden" name="studentID" value="<?= $student->studentID?>">
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-default" data-dismiss="modal"><?=$this->lang->line('close')?></button>
-                                                <input type="submit" class="btn btn-success" value="Save" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-
-                                                </tr>
-                                            <?php 
-                                            $my_template = "";
-                                            $zero_mark = 0;
-                                            $i++; 
-                                    }
-                                } ?>
-                            </tbody>
-                        </table>
-                    </div>
-                   
-
-                    <div class="text-right">
-
-                       
                     
-                        <button class="btn btn-info sendSms" id="send_sms_marks_btn">
-                            <span class="fa fa-comment"></span> Send Marks - SMS
+                    <table class="table table-striped table-bordered table-hover dataTable no-footer" id="myTable">
+                        <thead id="tableHeaders">
+                            <!-- Headers will be dynamically loaded -->
+                        </thead>
+                        <tbody id="studentsTableBody">
+                            <!-- Students will be dynamically loaded -->
+                        </tbody>
+                    </table>
+                    
+                    <!-- Loading States -->
+                    <div id="loadMoreContainer" class="text-center" style="display:none; padding: 20px;">
+                        <button id="loadMoreBtn" class="btn btn-primary" style="margin-right: 10px;">
+                            <span class="load-text">Load More Students</span>
+                            <span class="load-spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Loading...</span>
                         </button>
-
-                        <button class="btn btn-primary sendSms" id="send_whatsapp_marks_btn">
-                            <span class="fa fa-whatsapp"></span> Send Marks - Whatsapp
+                        <button id="loadAllBtn" class="btn btn-success">
+                            <span class="load-all-text">Load All Students</span>
+                            <span class="load-all-spinner" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Loading All...</span>
                         </button>
+                    </div>
+                    
+                    <div id="noMoreData" class="text-center" style="display:none; padding: 20px;">
+                        <p class="text-muted"><i class="fa fa-check"></i> All students loaded</p>
+                    </div>
+                </div>
 
-                        <button type="button" class="btn btn-success " id="add_mark" name="add_mark" value="Save or Refresh Marks" > Save or Refresh Marks </button>
+                <!-- Initial Loading State -->
+                <div id="initialLoading" class="text-center" style="display:none; padding: 50px;">
+                    <i class="fa fa-spinner fa-spin fa-3x"></i>
+                    <p class="mt-3">Loading students data...</p>
+                </div>
+
+                <div class="text-right" id="actionButtons" style="display:none;">
+                    <button class="btn btn-info sendSms" id="send_sms_marks_btn">
+                        <span class="fa fa-comment"></span> Send Marks - SMS
+                    </button>
+
+                    <button class="btn btn-primary sendSms" id="send_whatsapp_marks_btn">
+                        <span class="fa fa-whatsapp"></span> Send Marks - Whatsapp
+                    </button>
+
+                    <button type="button" class="btn btn-success " id="add_mark" name="add_mark" value="Save or Refresh Marks" > Save or Refresh Marks </button>
+                </div>
 
                         <!-- Message Preview Modal -->
                         <div class="modal fade" id="messagePreviewModal" role="dialog">
@@ -843,7 +840,333 @@
 
 
                     <script type="text/javascript">
+                        // Global variables for lazy loading
+                        let currentOffset = 0;
+                        let isLoading = false;
+                        let hasMoreData = true;
+                        let currentFilters = {};
+
                         jQuery(document).ready(function($) {
+                            // Enhanced Toastr Configuration
+                            toastr.options = {
+                                "closeButton": true,
+                                "debug": false,
+                                "newestOnTop": true,
+                                "progressBar": true,
+                                "positionClass": "toast-top-right",
+                                "preventDuplicates": true,
+                                "onclick": null,
+                                "showDuration": "300",
+                                "hideDuration": "300",
+                                "timeOut": "4000",
+                                "extendedTimeOut": "1000",
+                                "showEasing": "swing",
+                                "hideEasing": "linear",
+                                "showMethod": "fadeIn",
+                                "hideMethod": "fadeOut",
+                                "toastClass": "toast-enhanced",
+                                "iconClass": "toast-icon",
+                                "titleClass": "toast-title",
+                                "messageClass": "toast-message"
+                            };
+                            
+                            // Add custom CSS for enhanced toasts
+                            if (!$('#toast-enhanced-styles').length) {
+                                $('<style id="toast-enhanced-styles">')
+                                .html(`
+                                    .toast-enhanced {
+                                        border-radius: 8px !important;
+                                        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+                                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+                                    }
+                                    .toast-success.toast-enhanced,
+                                    #toast-container > .toast-success {
+                                        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+                                        background-color: #28a745 !important;
+                                        color: white !important;
+                                    }
+                                    .toast-error.toast-enhanced,
+                                    #toast-container > .toast-error {
+                                        background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%) !important;
+                                        background-color: #dc3545 !important;
+                                        color: white !important;
+                                    }
+                                    .toast-warning.toast-enhanced,
+                                    #toast-container > .toast-warning {
+                                        background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%) !important;
+                                        background-color: #ffc107 !important;
+                                        color: #212529 !important;
+                                    }
+                                    .toast-info.toast-enhanced,
+                                    #toast-container > .toast-info {
+                                        background: linear-gradient(135deg, #17a2b8 0%, #667eea 100%) !important;
+                                        background-color: #17a2b8 !important;
+                                        color: white !important;
+                                    }
+                                    .toast-title {
+                                        font-weight: 600 !important;
+                                        color: inherit !important;
+                                    }
+                                    .toast-message {
+                                        font-size: 13px !important;
+                                        opacity: 0.95;
+                                        color: inherit !important;
+                                    }
+                                `)
+                                .appendTo('head');
+                            }
+
+                            // Handle Get Marks button click
+                            $('#getMarksBtn').on('click', function() {
+                                var classesID = $('#classesID').val();
+                                var examID = $('#examID').val();
+                                var sectionID = $('#sectionID').val();
+                                
+                                if (!classesID || classesID == '0') {
+                                    toastr["warning"]("Please select a class");
+                                    return;
+                                }
+                                if (!examID || examID == '0') {
+                                    toastr["warning"]("Please select an exam");
+                                    return;
+                                }
+                                if (!sectionID || sectionID == '0') {
+                                    toastr["warning"]("Please select a section");
+                                    return;
+                                }
+
+                                // Reset pagination
+                                currentOffset = 0;
+                                hasMoreData = true;
+                                currentFilters = {
+                                    classesID: classesID,
+                                    examID: examID,
+                                    sectionID: sectionID
+                                };
+
+                                // Clear previous data
+                                $('#studentsTableBody').empty();
+                                $('#hide-table').hide();
+                                $('#actionButtons').hide();
+                                $('#loadMoreContainer').hide();
+                                $('#noMoreData').hide();
+
+                                // Show loading
+                                $('#initialLoading').show();
+                                
+                                loadStudentsData(true);
+                            });
+
+                            // Handle Load More button click
+                            $('#loadMoreBtn').on('click', function() {
+                                if (!isLoading && hasMoreData) {
+                                    loadStudentsData(false);
+                                }
+                            });
+
+                            // Handle Load All Students button click
+                            $('#loadAllBtn').on('click', function() {
+                                if (!isLoading && hasMoreData) {
+                                    loadAllStudents();
+                                }
+                            });
+
+                            // Function to load all remaining students
+                            function loadAllStudents() {
+                                isLoading = true;
+                                $('.load-all-text').hide();
+                                $('.load-all-spinner').show();
+                                $('#loadAllBtn').prop('disabled', true);
+                                $('#loadMoreBtn').prop('disabled', true);
+                                
+                                // Load all remaining students by setting offset to current position and limit to remaining count
+                                $.ajax({
+                                    type: 'POST',
+                                    url: '<?= base_url("mark/loadStudentsAjax") ?>',
+                                    data: {
+                                        classesID: currentFilters.classesID,
+                                        examID: currentFilters.examID,
+                                        sectionID: currentFilters.sectionID,
+                                        offset: currentOffset,
+                                        loadAll: true // Special flag to load all remaining
+                                    },
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        if (response.status && response.data) {
+                                            // Append all remaining students
+                                            $('#studentsTableBody').append(response.data);
+                                            
+                                            // Append modals
+                                            if (response.modals) {
+                                                $('body').append(response.modals);
+                                            }
+                                            
+                                            // Update counters
+                                            currentOffset += response.count;
+                                            
+                                            // Hide both buttons and show completion message
+                                            $('#loadMoreContainer').hide();
+                                            $('#noMoreData').show();
+                                            hasMoreData = false;
+                                            
+                                            toastr["success"]("All " + response.totalStudents + " students loaded successfully!");
+                                        } else {
+                                            toastr["error"](response.message || "Failed to load all students");
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.error('Load All Students Error:', error);
+                                        toastr["error"]("Failed to load all students: " + error);
+                                    },
+                                    complete: function() {
+                                        isLoading = false;
+                                        $('.load-all-text').show();
+                                        $('.load-all-spinner').hide();
+                                        $('#loadAllBtn').prop('disabled', false);
+                                        $('#loadMoreBtn').prop('disabled', false);
+                                    }
+                                });
+                            }
+
+                            // Handle Generate Rank button click
+                            $('#generateRankBtn').on('click', function() {
+                                var btn = $(this);
+                                var btnText = btn.find('span:not(#rankLoading)').first();
+                                var loading = $('#rankLoading');
+                                
+                                btn.prop('disabled', true);
+                                btnText.hide();
+                                loading.show();
+                                
+                                $.ajax({
+                                    type: 'POST',
+                                    url: "<?= base_url('mark/generateRanks') ?>",
+                                    data: {
+                                        classesID: currentFilters.classesID,
+                                        examID: currentFilters.examID,
+                                        sectionID: currentFilters.sectionID
+                                    },
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        if (response.status) {
+                                            toastr["success"](response.message || "Ranks generated successfully!");
+                                            // Reload the current data to show updated ranks
+                                            currentOffset = 0;
+                                            hasMoreData = true;
+                                            $('#studentsTableBody').empty();
+                                            loadStudentsData(true);
+                                        } else {
+                                            toastr["error"](response.message || "Failed to generate ranks");
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        toastr["error"]("Error generating ranks: " + error);
+                                    },
+                                    complete: function() {
+                                        btn.prop('disabled', false);
+                                        btnText.show();
+                                        loading.hide();
+                                    }
+                                });
+                            });
+
+                            function loadStudentsData(isInitialLoad) {
+                                if (isLoading) return;
+                                
+                                isLoading = true;
+                                
+                                if (isInitialLoad) {
+                                    $('.btn-text').hide();
+                                    $('.btn-loading').show();
+                                } else {
+                                    $('.load-text').hide();
+                                    $('.load-spinner').show();
+                                }
+
+                                $.ajax({
+                                    type: 'POST',
+                                    url: "<?= base_url('mark/loadStudentsAjax') ?>",
+                                    data: {
+                                        classesID: currentFilters.classesID,
+                                        examID: currentFilters.examID,
+                                        sectionID: currentFilters.sectionID,
+                                        offset: currentOffset
+                                    },
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        if (response.status) {
+                                            if (isInitialLoad) {
+                                                // Set static info
+                                                if (response.staticData) {
+                                                    $('#examInfo').html('Exam: ' + response.staticData.examName);
+                                                    $('#classInfo').html('Class: ' + response.staticData.className);
+                                                    $('#sectionInfo').html('Section: ' + response.staticData.sectionName);
+                                                    $('#marksInfo').show();
+                                                    
+                                                    // Update the box-layout-fame panel details
+                                                    $('#examDetailsText').html('<center>Exam : ' + response.staticData.examName + '</center>');
+                                                    $('#classDetailsText').html('<center>Class : ' + response.staticData.className + '</center>');
+                                                    $('#sectionDetailsText').html('<center>Section : ' + response.staticData.sectionName + '</center>');
+                                                    
+                                                    // Show the static info panels and buttons
+                                                    $('.box-layout-fame').show();
+                                                    $('.grade-legend').show();
+                                                }
+                                                
+                                                // Set table headers
+                                                $('#tableHeaders').html(response.headers);
+                                                $('#hide-table').show();
+                                                $('#actionButtons').show();
+                                                $('#generateRankBtn').show();
+                                                $('#initialLoading').hide();
+                                            }
+                                            
+                                            // Append student rows
+                                            $('#studentsTableBody').append(response.data);
+                                            
+                                            // Append modals to body (for attendance functionality)
+                                            if (response.modals) {
+                                                $('body').append(response.modals);
+                                            }
+                                            
+                                            currentOffset += response.count;
+                                            
+                                            // Check if more data exists
+                                            if (response.count < 20) {
+                                                hasMoreData = false;
+                                                $('#loadMoreContainer').hide();
+                                                $('#noMoreData').show();
+                                            } else {
+                                                $('#loadMoreContainer').show();
+                                            }
+                                            
+                                        } else {
+                                            toastr["error"](response.message || "Failed to load students data");
+                                            if (isInitialLoad) {
+                                                $('#initialLoading').hide();
+                                            }
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        toastr["error"]("Error loading students data: " + error);
+                                        if (isInitialLoad) {
+                                            $('#initialLoading').hide();
+                                        }
+                                    },
+                                    complete: function() {
+                                        isLoading = false;
+                                        
+                                        if (isInitialLoad) {
+                                            $('.btn-text').show();
+                                            $('.btn-loading').hide();
+                                        } else {
+                                            $('.load-text').show();
+                                            $('.load-spinner').hide();
+                                        }
+                                    }
+                                });
+                            }
+
                             // Common function to build preview
                             function buildMessagePreview(messageType) {
                                 var selectedCheckboxes = $('input[name="send_sms_marks"]:checked');
@@ -961,13 +1284,301 @@
                                         toastr["error"]("Failed to send " + (previewType === 'whatsapp' ? "WhatsApp" : "SMS"));
                                     }
                                 });
-                            });
+                        });
 
-                            // Lazy load images
+                        // AJAX handler for save all attendance
+                        $(document).on('click', '.save-all-attendance-btn', function(e) {
+                            e.preventDefault();
+                            
+                            var studentId = $(this).data('student-id');
+                            var form = $('.attendance-all-form[data-student-id="' + studentId + '"]');
+                            var modalId = '#attendance-all-modal_' + studentId;
+                            
+                            // Get form data
+                            var formData = {
+                                attendance: form.find('select[name="attendance"]').val(),
+                                examID: form.find('input[name="examID"]').val(),
+                                classesID: form.find('input[name="classesID"]').val(),
+                                sectionID: form.find('input[name="sectionID"]').val(),
+                                studentID: form.find('input[name="studentID"]').val()
+                            };
+                            
+                            // Disable button and show loading
+                            var saveBtn = $(this);
+                            saveBtn.prop('disabled', true).text('Saving...');
+                            
+                            $.ajax({
+                                type: 'POST',
+                                url: "<?= base_url('Mark/saveAllAttendance') ?>",
+                                data: formData,
+                                success: function(response) {
+                                    try {
+                                        // Try to parse as JSON
+                                        var jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
+                                        
+                                        if (jsonResponse.status) {
+                                            toastr["success"](jsonResponse.message || "Attendance saved successfully");
+                                            $(modalId).modal('hide');
+                                            
+                                            // Update the UI directly instead of page reload
+                                            var studentRow = $('tr').filter(function() {
+                                                return $(this).find('input[st_ids="' + studentId + '"]').length > 0;
+                                            });
+                                            
+                                            if (formData.attendance === 'Absent') {
+                                                // Show "A" for absent in all subject columns with icons
+                                                studentRow.find('input.input_mark').each(function() {
+                                                    var subjectId = $(this).attr('subj_id');
+                                                    var iconHtml = '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' + studentId + '_' + subjectId + '"></i>';
+                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                                                    $(this).closest('td').html(iconHtml + absentHtml);
+                                                });
+                                                
+                                                // Update total and grade
+                                                var totalCell = studentRow.find('td').eq(-3); // Total column (3rd from end)
+                                                var gradeCell = studentRow.find('td').eq(-2);  // Grade column (2nd from end)
+                                                
+                                                totalCell.text('0');
+                                                gradeCell.html('<span class="grade-label grade-d">D</span>');
+                                                
+                                                // Update SMS checkbox attributes
+                                                var smsCheckbox = studentRow.find('input[st_ids="' + studentId + '"]');
+                                                if (smsCheckbox.length) {
+                                                    var currentTotalMarks = smsCheckbox.attr('total_marks');
+                                                    if (currentTotalMarks) {
+                                                        var outOf = currentTotalMarks.split('/')[1] || '0';
+                                                        smsCheckbox.attr('total_marks', '0/' + outOf);
+                                                        smsCheckbox.attr('marks_grade', 'D Rank -');
+                                                    }
+                                                }
+                                            } else {
+                                                // For Present - would need to reload marks data, so show message
+                                                toastr["info"]("Please reload the page to see updated marks for present status");
+                                            }
+                                        } else {
+                                            toastr["error"](jsonResponse.message || "Failed to save attendance");
+                                        }
+                                    } catch (e) {
+                                        // If JSON parsing fails, treat as HTML error response
+                                        console.error('Response parsing error:', e);
+                                        console.log('Server response:', response);
+                                        
+                                        if (response.includes('success') || response.includes('saved')) {
+                                            toastr["success"]("Attendance saved successfully");
+                                            $(modalId).modal('hide');
+                                            
+                                            // Update UI for absent status
+                                            var studentRow = $('tr').filter(function() {
+                                                return $(this).find('input[st_ids="' + studentId + '"]').length > 0;
+                                            });
+                                            
+                                            if (formData.attendance === 'Absent') {
+                                                studentRow.find('input.input_mark').each(function() {
+                                                    var subjectId = $(this).attr('subj_id');
+                                                    var iconHtml = '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' + studentId + '_' + subjectId + '"></i>';
+                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                                                    $(this).closest('td').html(iconHtml + absentHtml);
+                                                });
+                                                
+                                                var totalCell = studentRow.find('td').eq(-3);
+                                                var gradeCell = studentRow.find('td').eq(-2);
+                                                
+                                                totalCell.text('0');
+                                                gradeCell.html('<span class="grade-label grade-d">D</span>');
+                                                
+                                                // Update SMS checkbox
+                                                var smsCheckbox = studentRow.find('input[st_ids="' + studentId + '"]');
+                                                if (smsCheckbox.length) {
+                                                    var currentTotalMarks = smsCheckbox.attr('total_marks');
+                                                    if (currentTotalMarks) {
+                                                        var outOf = currentTotalMarks.split('/')[1] || '0';
+                                                        smsCheckbox.attr('total_marks', '0/' + outOf);
+                                                        smsCheckbox.attr('marks_grade', 'D Rank -');
+                                                    }
+                                                }
+                                            } else {
+                                                toastr["info"]("Please reload the page to see updated marks for present status");
+                                            }
+                                        } else {
+                                            toastr["error"]("Server returned an unexpected response. Please check browser console for details.");
+                                        }
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('AJAX Error Details:', {
+                                        status: status,
+                                        error: error,
+                                        responseText: xhr.responseText,
+                                        statusCode: xhr.status
+                                    });
+                                    
+                                    if (xhr.status === 404) {
+                                        toastr["error"]("Server endpoint not found. Please check the URL.");
+                                    } else if (xhr.status === 500) {
+                                        toastr["error"]("Server error occurred. Please check server logs.");
+                                    } else {
+                                        toastr["error"]("Failed to save attendance: " + error);
+                                    }
+                                },
+                                complete: function() {
+                                    // Re-enable button
+                                    saveBtn.prop('disabled', false).text('Save');
+                                }
+                            });
+                        });
+
+                        // AJAX handler for subject-specific attendance
+                        $(document).on('click', '.save-subject-attendance-btn', function(e) {
+                            e.preventDefault();
+                            
+                            var studentId = $(this).data('student-id');
+                            var subjectId = $(this).data('subject-id');
+                            var form = $('.attendance-subject-form[data-student-id="' + studentId + '"][data-subject-id="' + subjectId + '"]');
+                            var modalId = '#attendance-subject-modal_' + studentId + '_' + subjectId;
+                            
+                            // Get form data
+                            var formData = {
+                                attendance: form.find('select[name="attendance"]').val(),
+                                examID: form.find('input[name="examID"]').val(),
+                                classesID: form.find('input[name="classesID"]').val(),
+                                sectionID: form.find('input[name="sectionID"]').val(),
+                                studentID: form.find('input[name="studentID"]').val(),
+                                subjectID: form.find('input[name="subjectID"]').val()
+                            };
+                            
+                            // Disable button and show loading
+                            var saveBtn = $(this);
+                            saveBtn.prop('disabled', true).text('Saving...');
+                            
+                            $.ajax({
+                                type: 'POST',
+                                url: "<?= base_url('Mark/saveSubjectAttendance') ?>",
+                                data: formData,
+                                success: function(response) {
+                                    try {
+                                        var jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
+                                        
+                                        if (jsonResponse.status) {
+                                            toastr["success"](jsonResponse.message || "Subject attendance saved successfully");
+                                            $(modalId).modal('hide');
+                                            
+                                            // Update the specific mark input based on attendance status
+                                            var targetInput = $('input[subj_id="' + subjectId + '"][name*="mark-"]').filter(function() {
+                                                return $(this).closest('tr').find('input[st_ids="' + studentId + '"]').length > 0;
+                                            });
+                                            
+                                            var targetCell = null;
+                                            if (targetInput.length) {
+                                                targetCell = targetInput.closest('td');
+                                            } else {
+                                                // If no input found, look for the absent cell
+                                                targetCell = $('tr').filter(function() {
+                                                    return $(this).find('input[st_ids="' + studentId + '"]').length > 0;
+                                                }).find('td').filter(function() {
+                                                    return $(this).find('span.attendance-circle').length > 0 && 
+                                                           $(this).find('i[data-target*="_' + subjectId + '"]').length > 0;
+                                                });
+                                            }
+                                            
+                                            if (targetCell && targetCell.length) {
+                                                var iconHtml = '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' + studentId + '_' + subjectId + '"></i>';
+                                                
+                                                if (jsonResponse.attendance === 'Absent') {
+                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                                                    targetCell.html(iconHtml + absentHtml);
+                                                } else if (jsonResponse.attendance === 'Present') {
+                                                    // Present - create input field with server-provided values
+                                                    var markValue = jsonResponse.markValue || 0;
+                                                    var maxMark = jsonResponse.maxMark || 100;
+                                                    var markName = jsonResponse.markName || (subjectId + 'mark-0');
+                                                    var markId = jsonResponse.markID || '1';
+                                                    
+                                                    var inputHtml = '<input id="' + markId + '" subj_id="' + subjectId + '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" ' +
+                                                                   'name="' + markName + '" value="' + markValue + '" min="0" max="' + maxMark + '">';
+                                                    targetCell.html(iconHtml + inputHtml);
+                                                }
+                                            }
+                                        } else {
+                                            toastr["error"](jsonResponse.message || "Failed to save subject attendance");
+                                        }
+                                    } catch (e) {
+                                        console.error('Response parsing error:', e);
+                                        toastr["error"]("Server returned an unexpected response for subject attendance.");
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Subject Attendance AJAX Error:', {
+                                        status: status,
+                                        error: error,
+                                        responseText: xhr.responseText
+                                    });
+                                    toastr["error"]("Failed to save subject attendance: " + error);
+                                },
+                                complete: function() {
+                                    saveBtn.prop('disabled', false).text('Save');
+                                }
+                            });
+                        });
+
+                        // AJAX handler for individual attendance
+                        $(document).on('click', '.save-attendance-btn', function(e) {
+                            e.preventDefault();
+                            
+                            var studentId = $(this).data('student-id');
+                            var form = $('.attendance-form[data-student-id="' + studentId + '"]');
+                            var modalId = '#attendance-modal_' + studentId;
+                            
+                            // Get form data
+                            var formData = {
+                                attendance: form.find('select[name="attendance"]').val(),
+                                examID: form.find('input[name="examID"]').val(),
+                                classesID: form.find('input[name="classesID"]').val(),
+                                sectionID: form.find('input[name="sectionID"]').val(),
+                                studentID: form.find('input[name="studentID"]').val()
+                            };
+                            
+                            // Disable button and show loading
+                            var saveBtn = $(this);
+                            saveBtn.prop('disabled', true).text('Saving...');
+                            
+                            $.ajax({
+                                type: 'POST',
+                                url: "<?= base_url('Mark/saveIndividualAttendance') ?>",
+                                data: formData,
+                                success: function(response) {
+                                    try {
+                                        var jsonResponse = typeof response === 'string' ? JSON.parse(response) : response;
+                                        
+                                        if (jsonResponse.status) {
+                                            toastr["success"](jsonResponse.message || "Individual attendance saved successfully");
+                                            $(modalId).modal('hide');
+                                            // Note: Individual attendance affects specific exam records
+                                            toastr["info"]("Individual attendance updated. You may need to refresh to see grade changes.");
+                                        } else {
+                                            toastr["error"](jsonResponse.message || "Failed to save individual attendance");
+                                        }
+                                    } catch (e) {
+                                        console.error('Response parsing error:', e);
+                                        toastr["error"]("Server returned an unexpected response for individual attendance.");
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('Individual Attendance AJAX Error:', {
+                                        status: status,
+                                        error: error,
+                                        responseText: xhr.responseText
+                                    });
+                                    toastr["error"]("Failed to save individual attendance: " + error);
+                                },
+                                complete: function() {
+                                    saveBtn.prop('disabled', false).text('Save');
+                                }
+                            });
+                        });
+
+                        // Lazy load images
                                 // setTimeout(lazyLoad, 1000);
-                            });
-
-                        $(document).on("keyup", ".mark", function() {
+                            });                        $(document).on("keyup", ".mark", function() {
                             if (parseInt($(this).val())) {
                                 var val = parseInt($(this).val());
                                 var minMark = parseInt($(this).attr('min'));
@@ -1002,8 +1613,8 @@
                                 type: 'POST',
                                 url: "<?= base_url('mark/mark_send') ?>",
                                 data: {
-                                    "examID": "<?= $set_exam ?>",
-                                    "classesID": "<?= $set_classes ?>", 
+                                    "examID": $("#examID").val(),
+                                    "classesID": $("#classesID").val(), 
                                     "subjectID":subj_id ,
                                     "inputs": mark
                                 },
@@ -1077,7 +1688,6 @@
                             });
                         });
                     </script>
-                <?php } ?>
             </div>
         </div>
     </div>

@@ -2634,6 +2634,817 @@ public function get_students_page() {
 		
 
 	}
+
+public function loadStudentsAjax() {
+    $classesID = $this->input->post('classesID');
+    $examID = $this->input->post('examID');
+    $sectionID = $this->input->post('sectionID');
+    $offset = (int)$this->input->post('offset', TRUE) ?: 0;
+    $loadAll = $this->input->post('loadAll', TRUE) ?: false;
+    $limit = $loadAll ? null : 20; // No limit if loading all
+
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    if (!$classesID || !$examID || !$sectionID) {
+        echo json_encode(['status' => false, 'message' => 'Missing required parameters']);
+        return;
+    }
+
+    // Get exam details for all batches (needed for proper checkbox attributes)
+    $exam = $this->exam_m->get_single_exam(['examID' => $examID]);
+    $examDetails = [
+        'examName' => $exam ? $exam->exam : '',
+        'examDate' => $exam ? $exam->date : '',
+    ];
+    
+    // Get static data for first load only
+    $staticData = null;
+    if ($offset == 0) {
+        $classes = $this->classes_m->get_single_classes(['classesID' => $classesID]);
+        $section = $this->section_m->get_single_section(['sectionID' => $sectionID]);
+        
+        $staticData = [
+            'examName' => $exam ? $exam->exam : '',
+            'className' => $classes ? $classes->classes : '',
+            'sectionName' => $section ? $section->section : ''
+        ];
+    }
+
+    // Get students using same logic as original add method
+    $studentArray = [
+        'srclassesID'   => $classesID,
+        'srsectionID'   => $sectionID,
+        'srschoolyearID' => $schoolyearID,
+    ];
+    
+    // Get all students first (same as original add method - this applies proper filtering)
+    $allStudents = $this->studentrelation_m->get_order_by_student($studentArray);
+    
+    // Apply pagination to the filtered student list
+    $totalStudents = count($allStudents);
+    if ($loadAll) {
+        // Load all remaining students from offset
+        $students = array_slice($allStudents, $offset);
+    } else {
+        // Load only the specified limit
+        $students = array_slice($allStudents, $offset, $limit);
+    }
+
+    if (!$students) {
+        echo json_encode(['status' => false, 'message' => 'No students found']);
+        return;
+    }
+
+    // Get subjects for this class, exam, and section (same as original add method)
+    $subjects = $this->subject_m->get_order_by_subject(['classesID' => $classesID], $examID, $sectionID);
+    
+    // Get mark percentages
+    $markpercentages = $this->markpercentage_m->get_markpercentage();
+
+    // Get marks data with relations
+    $marks = $this->mark_m->get_order_by_mark_new([
+        'schoolyearID' => $schoolyearID,
+        'examID' => $examID,
+        'classesID' => $classesID
+    ]);
+
+    // Get markrelation data for actual marks
+    $markrelations = [];
+    if (!empty($marks)) {
+        $markIDs = array_column($marks, 'markID');
+        if (!empty($markIDs)) {
+            $this->db->where_in('markID', $markIDs);
+            $markrelations = $this->db->get('markrelation')->result();
+        }
+    }
+
+    // Create a lookup for marks by student and subject
+    $marksLookup = [];
+    foreach ($marks as $mark) {
+        foreach ($markrelations as $relation) {
+            if ($relation->markID == $mark->markID) {
+                $marksLookup[$mark->studentID][$mark->subjectID] = [
+                    'markID' => $mark->markID,
+                    'mark' => $relation->mark,
+                    'eattendance' => $mark->eattendance ?? 'Present'
+                ];
+                break;
+            }
+        }
+    }
+    
+    // Debug: Log the marksLookup for troubleshooting
+    error_log("DEBUG: Total marks found: " . count($marks));
+    error_log("DEBUG: Total markrelations found: " . count($markrelations));
+    error_log("DEBUG: MarksLookup structure: " . json_encode(array_keys($marksLookup)));
+
+    // Calculate totals and grades for current batch students only
+    // Ranks will be read from database (pre-calculated using Generate Rank button)
+    $studentResults = [];
+    
+    foreach ($students as $student) {
+        $total = 0;
+        $zero_mark = 0;
+        $isFail = false;
+
+        // Calculate total using markrelations data (same as original)
+        // Sum up all marks for this student across all subjects
+        foreach ($subjects as $subject) {
+            if (isset($marksLookup[$student->studentID][$subject->subjectID])) {
+                $markData = $marksLookup[$student->studentID][$subject->subjectID];
+                $mrk = (int)$markData['mark'];
+                $exam_absent = $markData['eattendance'];
+                
+                // Track absent students
+                if($exam_absent == 'Absent') {
+                    $isFail = true;
+                }
+                
+                // Count zero marks
+                if ($mrk == 0) {
+                    $zero_mark++;
+                }
+                
+                // Sum marks for total (this should match what's shown in individual columns)
+                $total += $mrk;
+                
+                // Debug individual mark addition
+                error_log("DEBUG - Student {$student->studentID}, Subject {$subject->subjectID}, Mark: $mrk, Running Total: $total");
+            } else {
+                // Debug missing marks
+                error_log("DEBUG - Student {$student->studentID}, Subject {$subject->subjectID}: NO MARK FOUND");
+            }
+        }
+
+        // Get rank from database (pre-calculated)
+        $rank = $student->rank ?: '-';
+
+        $studentResults[$student->studentID] = [
+            'total' => $total,
+            'zero_mark' => $zero_mark,
+            'isFail' => $isFail,
+            'rank' => $rank
+        ];
+        
+        // Debug log for troubleshooting
+        error_log("DEBUG Total Calc - Student ID: {$student->studentID}, Name: {$student->name}, Calculated Total: $total");
+    }
+
+    // Generate table headers (only for first load)
+    $headers = '';
+    $out_of = 0; // Initialize total marks
+    
+    if ($offset == 0) {
+        // Calculate total out_of marks properly
+        foreach ($subjects as $subject) {
+            $out_of += (int)$subject->max_mark;
+        }
+        
+        $headers = '<tr>';
+        $headers .= '<th class="no-export">SL No</th>';
+        $headers .= '<th class="no-export">Photo</th>';
+        $headers .= '<th class="excel-only1">studentID</th>';
+        $headers .= '<th>Name (Roll)</th>';
+        
+        foreach ($subjects as $subject) {
+            // Visible column
+            $headers .= '<th class="no-export">' . $subject->subject . ' (' . $subject->max_mark . ')</th>';
+            // Hidden column for Excel export
+            $headers .= '<th class="excel-only" style="display:none;">' . $subject->subject . '^' . $subject->subjectID . '</th>';
+        }
+        
+        $headers .= '<th class="no-export">Total (Out of ' . $out_of . ')</th>';
+        $headers .= '<th class="no-export">Grade</th>';
+        $headers .= '<th class="no-export">Rank</th>';
+        $headers .= '<th class="no-export">Send SMS <input type="checkbox" class="" id="checkAll" name="checkAll"></th>';
+        $headers .= '</tr>';
+    }
+
+    // Generate student rows
+    $rowsHtml = '';
+    $counter = $offset + 1;
+    
+    // Get first markpercentage ID for input IDs (simplified approach)
+    $firstMarkPercentageID = !empty($markpercentages) ? $markpercentages[0]->markpercentageID : '1';
+    
+    // Calculate total out_of marks for grade calculation
+    $out_of = 0;
+    foreach ($subjects as $subject) {
+        $out_of += (int)$subject->max_mark;
+    }
+    
+    foreach ($students as $student) {
+        $stuID = $student->studentID;
+        $backendTotal = $studentResults[$stuID]['total'];
+        $zero_mark = $studentResults[$stuID]['zero_mark'];
+        
+        // Get proper rank and total for this student from backend calculation
+        $studentRank = $studentResults[$stuID]['rank'];
+        $backendTotal = $studentResults[$stuID]['total'];
+        $zero_mark = $studentResults[$stuID]['zero_mark'];
+
+        // Calculate grade exactly like original
+        $percent_cal = $out_of > 0 ? ($backendTotal / $out_of) * 100 : 0;
+        
+        // Debug logging
+        error_log("DEBUG Grade Calc - Student: {$student->studentID}, Total: $backendTotal, Out of: $out_of, Percentage: $percent_cal, Zero marks: $zero_mark");
+        
+        if ($percent_cal >= 95 && $zero_mark == 0) {
+            $grade = 'A+';
+            $gradeClass = 'grade-a-plus';
+        } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
+            $grade = 'A';
+            $gradeClass = 'grade-a';
+        } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
+            $grade = 'B+';
+            $gradeClass = 'grade-b-plus';
+        } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
+            $grade = 'B';
+            $gradeClass = 'grade-b';
+        } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
+            $grade = 'C+';
+            $gradeClass = 'grade-c-plus';
+        } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
+            $grade = 'C';
+            $gradeClass = 'grade-c';
+        } else {
+            $grade = 'D';
+            $gradeClass = 'grade-d';
+        }
+
+        $rowsHtml .= '<tr>';
+        $rowsHtml .= '<td class="no-export">' . $counter . '</td>';
+        $rowsHtml .= '<td>' . profileproimage($student->photo) . '</td>';
+        $rowsHtml .= '<td class="excel-only1">' . $student->studentID . '</td>';
+        $rowsHtml .= '<td>' . $student->name . ' (' . $student->roll . ')';
+        $rowsHtml .= '<br><button type="button" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#attendance-all-modal_' . $student->studentID . '">All Subjects Absent</button></td>';
+
+        // Subject marks and total calculation
+        $my_template = '';
+        $totalFromColumns = 0; // Calculate total from what's actually displayed
+        
+        foreach ($subjects as $subject) {
+            $markFound = false;
+            if (isset($marksLookup[$student->studentID][$subject->subjectID])) {
+                $markData = $marksLookup[$student->studentID][$subject->subjectID];
+                $mrk = (int)$markData['mark'];
+                $exam_absent = $markData['eattendance'];
+                $markID = $markData['markID'];
+                
+                // Add to total what's actually displayed in the column
+                if ($exam_absent !== 'Absent') {
+                    $totalFromColumns += $mrk;
+                }
+                
+                // Visible column
+                $rowsHtml .= '<td>';
+                if ($exam_absent == 'Absent') {
+                    $rowsHtml .= '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' . $student->studentID . '_' . $subject->subjectID . '"></i>';
+                    $rowsHtml .= '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                } else {
+                    $rowsHtml .= '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' . $student->studentID . '_' . $subject->subjectID . '"></i>';
+                    $rowsHtml .= '<input id="' . $firstMarkPercentageID . '" subj_id="' . $subject->subjectID . '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" 
+                                 name="' . $subject->subjectID . 'mark-' . $markID . '" value="' . $mrk . '" 
+                                 min="0" max="' . $subject->max_mark . '">';
+                }
+                $rowsHtml .= '</td>';
+                
+                // Hidden Excel-only column
+                $rowsHtml .= '<td class="excel-only" style="display:none;">' . $mrk . '</td>';
+                
+                $absent_or_mark = ($mrk !== null && $mrk !== '') ? ($mrk . "/" . $subject->max_mark) : 'Ab';
+                $my_template .= $subject->subject . "=" . $absent_or_mark . ",";
+                
+                $markFound = true;
+            }
+            
+            if (!$markFound) {
+                // Create empty input for subjects with no existing marks
+                // We'll need to create a mark record when user enters data
+                $rowsHtml .= '<td>';
+                $rowsHtml .= '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' . $student->studentID . '_' . $subject->subjectID . '"></i>';
+                $rowsHtml .= '<input id="' . $firstMarkPercentageID . '" subj_id="' . $subject->subjectID . '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" 
+                             name="' . $subject->subjectID . 'mark-0" value="0" 
+                             min="0" max="' . $subject->max_mark . '">';
+                $rowsHtml .= '</td>';
+                $rowsHtml .= '<td class="excel-only" style="display:none;">0</td>';
+                $my_template .= $subject->subject . "=0/" . $subject->max_mark . ",";
+            }
+        }
+
+        // Use the total calculated from displayed columns instead of studentResults
+        $displayTotal = $totalFromColumns;
+        
+        // Recalculate grade using the correct total
+        $percent_cal = $out_of > 0 ? ($displayTotal / $out_of) * 100 : 0;
+        
+        if ($percent_cal >= 95 && $zero_mark == 0) {
+            $grade = 'A+';
+            $gradeClass = 'grade-a-plus';
+        } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
+            $grade = 'A';
+            $gradeClass = 'grade-a';
+        } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
+            $grade = 'B+';
+            $gradeClass = 'grade-b-plus';
+        } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
+            $grade = 'B';
+            $gradeClass = 'grade-b';
+        } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
+            $grade = 'C+';
+            $gradeClass = 'grade-c-plus';
+        } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
+            $grade = 'C';
+            $gradeClass = 'grade-c';
+        } else {
+            $grade = 'D';
+            $gradeClass = 'grade-d';
+        }
+
+        // Get exam details for checkbox
+        $examName = '';
+        $examDate = '';
+        if ($examDetails) {
+            $examName = $examDetails['examName'] . ' held on ' . date('d-m-Y', strtotime($examDetails['examDate']));
+            $examDate = $examDetails['examDate'];
+        }
+
+        // Total, Grade, Rank, SMS checkbox (use displayTotal)
+        $rowsHtml .= '<td>' . $displayTotal . '</td>';
+        $rowsHtml .= '<td><span class="grade-label ' . $gradeClass . '">' . $grade . '</span></td>';
+        $rowsHtml .= '<td>' . $studentRank . '</td>';
+        $rowsHtml .= '<td><input type="checkbox" st_ids="' . $student->studentID . '" st_names="' . $student->name . '" 
+                     mobile_no="' . $student->phone . '" exam_name="' . $examName . '" 
+                     total_marks="' . $displayTotal . '/' . $out_of . '" exam_date="' . $examDate . '" 
+                     marks_template="' . rtrim($my_template, ',') . '" marks_grade="' . $grade . ' Rank ' . $studentRank . '" 
+                     sms_rank="' . $studentRank . '" name="send_sms_marks" class="checkbox"></td>';
+        $rowsHtml .= '</tr>';
+        
+        // Debug final total
+        error_log("DEBUG Final - Student {$student->studentID}: Display Total = $displayTotal, Grade = $grade, Rank = $studentRank");
+
+        $counter++;
+    }
+    
+    // Generate attendance modals for all students in this batch
+    $modalsHtml = '';
+    foreach ($students as $student) {
+        $modalsHtml .= $this->generateAttendanceModal($student, $examID, $classesID, $sectionID, $subjects);
+    }
+
+    echo json_encode([
+        'status' => true,
+        'headers' => $headers,
+        'data' => $rowsHtml,
+        'modals' => $modalsHtml,
+        'count' => count($students),
+        'offset' => $offset,
+        'staticData' => $staticData,
+        'examDetails' => $examDetails,
+        'totalStudents' => $totalStudents
+    ]);
+}
+
+private function generateAttendanceModal($student, $examID, $classesID, $sectionID, $subjects) {
+    $modalsHtml = '';
+    
+    // Individual Subject Attendance Modals (one for each subject)
+    foreach ($subjects as $subject) {
+        $modalsHtml .= '<form class="form-horizontal attendance-subject-form" role="form" data-student-id="' . $student->studentID . '" data-subject-id="' . $subject->subjectID . '">
+            <div class="modal fade" id="attendance-subject-modal_' . $student->studentID . '_' . $subject->subjectID . '">
+                <div class="modal-dialog modal-md">
+                    <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px 8px 0 0;">
+                            <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 0.8;"><span>&times;</span></button>
+                            <h4 class="modal-title">
+                                <i class="fa fa-user-check" style="margin-right: 8px;"></i>
+                                Subject Attendance
+                            </h4>
+                            <small style="display: block; margin-top: 5px; opacity: 0.9;">
+                                <i class="fa fa-user"></i> ' . $student->name . ' • 
+                                <i class="fa fa-book"></i> ' . $subject->subject . '
+                            </small>
+                        </div>
+                        <div class="modal-body" style="padding: 25px; background-color: #f8f9fa;">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group" style="margin-bottom: 20px;">
+                                        <label class="col-sm-4 control-label" style="font-weight: 600; color: #495057;">
+                                            <i class="fa fa-calendar-check" style="margin-right: 5px; color: #667eea;"></i>
+                                            Attendance Status
+                                        </label>
+                                        <div class="col-sm-8">
+                                            <select name="attendance" class="form-control" style="border-radius: 6px; border: 2px solid #e9ecef; padding: 10px;">
+                                                <option value="Present" style="color: #28a745;">📍 Present</option>
+                                                <option value="Absent" style="color: #dc3545;">❌ Absent</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="examID" value="' . $examID . '">
+                            <input type="hidden" name="classesID" value="' . $classesID . '">
+                            <input type="hidden" name="sectionID" value="' . $sectionID . '">
+                            <input type="hidden" name="studentID" value="' . $student->studentID . '">
+                            <input type="hidden" name="subjectID" value="' . $subject->subjectID . '">
+                        </div>
+                        <div class="modal-footer" style="background-color: #f8f9fa; border-radius: 0 0 8px 8px; padding: 15px 25px;">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 6px; padding: 8px 20px;">
+                                <i class="fa fa-times"></i> Cancel
+                            </button>
+                            <button type="button" class="btn btn-primary save-subject-attendance-btn" data-student-id="' . $student->studentID . '" data-subject-id="' . $subject->subjectID . '" 
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 6px; padding: 8px 20px;">
+                                <i class="fa fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>';
+    }
+    
+    // Individual Attendance Modal
+    $modalsHtml .= '<form class="form-horizontal attendance-form" role="form" data-student-id="' . $student->studentID . '">
+        <div class="modal fade" id="attendance-modal_' . $student->studentID . '">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-radius: 8px 8px 0 0;">
+                        <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 0.8;"><span>&times;</span></button>
+                        <h4 class="modal-title">
+                            <i class="fa fa-clipboard-check" style="margin-right: 8px;"></i>
+                            Individual Exam Attendance
+                        </h4>
+                        <small style="display: block; margin-top: 5px; opacity: 0.9;">
+                            <i class="fa fa-user"></i> ' . $student->name . ' (' . $student->roll . ')
+                        </small>
+                    </div>
+                    <div class="modal-body" style="padding: 25px; background-color: #f8f9fa;">
+                        <div class="alert alert-info" style="border-radius: 6px; border-left: 4px solid #17a2b8;">
+                            <i class="fa fa-info-circle"></i>
+                            This will update the exam attendance record for this student.
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="col-sm-4 control-label" style="font-weight: 600; color: #495057;">
+                                <i class="fa fa-calendar-check" style="margin-right: 5px; color: #28a745;"></i>
+                                Attendance Status
+                            </label>
+                            <div class="col-sm-8">
+                                <select name="attendance" class="form-control" style="border-radius: 6px; border: 2px solid #e9ecef; padding: 10px;">
+                                    <option value="Present" style="color: #28a745;">📍 Present</option>
+                                    <option value="Absent" style="color: #dc3545;">❌ Absent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" name="examID" value="' . $examID . '">
+                        <input type="hidden" name="classesID" value="' . $classesID . '">
+                        <input type="hidden" name="sectionID" value="' . $sectionID . '">
+                        <input type="hidden" name="studentID" value="' . $student->studentID . '">
+                    </div>
+                    <div class="modal-footer" style="background-color: #f8f9fa; border-radius: 0 0 8px 8px; padding: 15px 25px;">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 6px; padding: 8px 20px;">
+                            <i class="fa fa-times"></i> Cancel
+                        </button>
+                        <button type="button" class="btn btn-success save-attendance-btn" data-student-id="' . $student->studentID . '" 
+                            style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; border-radius: 6px; padding: 8px 20px;">
+                            <i class="fa fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>';
+    
+    // All Subjects Absent Modal
+    $modalsHtml .= '<form class="form-horizontal attendance-all-form" role="form" data-student-id="' . $student->studentID . '">
+        <div class="modal fade" id="attendance-all-modal_' . $student->studentID . '">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); color: white; border-radius: 8px 8px 0 0;">
+                        <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 0.8;"><span>&times;</span></button>
+                        <h4 class="modal-title">
+                            <i class="fa fa-exclamation-triangle" style="margin-right: 8px;"></i>
+                            Mark All Subjects Attendance
+                        </h4>
+                        <small style="display: block; margin-top: 5px; opacity: 0.9;">
+                            <i class="fa fa-user"></i> ' . $student->name . ' (' . $student->roll . ')
+                        </small>
+                    </div>
+                    <div class="modal-body" style="padding: 25px; background-color: #f8f9fa;">
+                        <div class="alert alert-warning" style="border-radius: 6px; border-left: 4px solid #ffc107;">
+                            <i class="fa fa-exclamation-triangle"></i>
+                            <strong>Warning:</strong> This will affect all subjects for this student in the current exam.
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label class="col-sm-4 control-label" style="font-weight: 600; color: #495057;">
+                                <i class="fa fa-list-check" style="margin-right: 5px; color: #dc3545;"></i>
+                                Attendance Status
+                            </label>
+                            <div class="col-sm-8">
+                                <select name="attendance" class="form-control" style="border-radius: 6px; border: 2px solid #e9ecef; padding: 10px;">
+                                    <option value="Present" style="color: #28a745;">📍 Present (All Subjects)</option>
+                                    <option value="Absent" style="color: #dc3545;">❌ Absent (All Subjects)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" name="examID" value="' . $examID . '">
+                        <input type="hidden" name="classesID" value="' . $classesID . '">
+                        <input type="hidden" name="sectionID" value="' . $sectionID . '">
+                        <input type="hidden" name="studentID" value="' . $student->studentID . '">
+                    </div>
+                    <div class="modal-footer" style="background-color: #f8f9fa; border-radius: 0 0 8px 8px; padding: 15px 25px;">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 6px; padding: 8px 20px;">
+                            <i class="fa fa-times"></i> Cancel
+                        </button>
+                        <button type="button" class="btn btn-danger save-all-attendance-btn" data-student-id="' . $student->studentID . '" 
+                            style="background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%); border: none; border-radius: 6px; padding: 8px 20px;">
+                            <i class="fa fa-save"></i> Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>';
+    
+    return $modalsHtml;
+}
+
+public function generateRanks() {
+    $classesID = $this->input->post('classesID');
+    $examID = $this->input->post('examID');
+    $sectionID = $this->input->post('sectionID');
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    if (!$classesID || !$examID || !$sectionID) {
+        echo json_encode(['status' => false, 'message' => 'Missing required parameters']);
+        return;
+    }
+
+    // Get students using same logic as original add method
+    $studentArray = [
+        'srclassesID'   => $classesID,
+        'srsectionID'   => $sectionID,
+        'srschoolyearID' => $schoolyearID,
+    ];
+    
+    $allStudents = $this->studentrelation_m->get_order_by_student($studentArray);
+    
+    if (empty($allStudents)) {
+        echo json_encode(['status' => false, 'message' => 'No students found']);
+        return;
+    }
+
+    // Get subjects for this class, exam, and section (same as original add method)
+    $subjects = $this->subject_m->get_order_by_subject(['classesID' => $classesID], $examID, $sectionID);
+    
+    // Get mark percentages
+    $markpercentages = $this->markpercentage_m->get_markpercentage();
+
+    // Get marks data with relations for proper total calculation
+    $marks = $this->mark_m->get_order_by_mark_new([
+        'schoolyearID' => $schoolyearID,
+        'examID' => $examID,
+        'classesID' => $classesID
+    ]);
+
+    // Get markrelation data for actual marks
+    $markrelations = [];
+    if (!empty($marks)) {
+        $markIDs = array_column($marks, 'markID');
+        if (!empty($markIDs)) {
+            $this->db->where_in('markID', $markIDs);
+            $markrelations = $this->db->get('markrelation')->result();
+        }
+    }
+
+    // Create a lookup for marks by student and subject (same as loadStudentsAjax)
+    $marksLookup = [];
+    foreach ($marks as $mark) {
+        foreach ($markrelations as $relation) {
+            if ($relation->markID == $mark->markID) {
+                $marksLookup[$mark->studentID][$mark->subjectID] = [
+                    'markID' => $mark->markID,
+                    'mark' => $relation->mark,
+                    'eattendance' => $mark->eattendance ?? 'Present'
+                ];
+                break;
+            }
+        }
+    }
+
+    // Calculate totals for ALL students using same corrected logic as loadStudentsAjax
+    $allStudentResults = [];
+    
+    foreach ($allStudents as $student) {
+        $total = 0;
+        $zero_mark = 0;
+        $isFail = false;
+
+        // Calculate total using same approach as loadStudentsAjax - from displayed subject columns
+        foreach ($subjects as $subject) {
+            if (isset($marksLookup[$student->studentID][$subject->subjectID])) {
+                $markData = $marksLookup[$student->studentID][$subject->subjectID];
+                $mrk = (int)$markData['mark'];
+                $exam_absent = $markData['eattendance'];
+                
+                // Track absent students
+                if($exam_absent == 'Absent') {
+                    $isFail = true;
+                }
+                
+                // Count zero marks
+                if ($mrk == 0) {
+                    $zero_mark++;
+                }
+                
+                // Sum marks for total (same logic as loadStudentsAjax)
+                if ($exam_absent !== 'Absent') {
+                    $total += $mrk;
+                }
+            }
+        }
+
+        $allStudentResults[$student->studentID] = [
+            'total' => $total,
+            'zero_mark' => $zero_mark,
+            'isFail' => $isFail,
+            'rank' => '-'
+        ];
+        
+        // Debug log for rank generation
+        error_log("RANK DEBUG - Student {$student->studentID}: Total = $total, Failed = " . ($isFail ? 'Yes' : 'No'));
+    }
+
+    // Calculate ranks for passed students only (exactly like original) - across ALL students
+    $passed = [];
+    foreach ($allStudentResults as $sid => $res) {
+        if (!$res['isFail']) {
+            $passed[$sid] = $res['total'];
+        }
+    }
+
+    $ranksUpdated = 0;
+    if (customCompute($passed)) {
+        // Sort in descending order (highest marks first)
+        arsort($passed, SORT_NUMERIC); 
+        
+        $studentRanks = [];
+        $currentRank = 1;
+        $prevTotal = null;
+
+        foreach ($passed as $sid => $totalVal) {
+            if ($prevTotal !== null && $totalVal != $prevTotal) {
+                $currentRank++;
+            }
+            
+            $studentRanks[$sid] = $currentRank;
+            $prevTotal = $totalVal;
+        }
+
+        // Update ranks in database - save to student table
+        foreach ($allStudentResults as $sid => $res) {
+            $rank = isset($studentRanks[$sid]) ? $studentRanks[$sid] : null;
+            
+            // Update student table with rank
+            $this->db->where('studentID', $sid);
+            $this->db->update('student', ['rank' => $rank]);
+            
+            if ($this->db->affected_rows() > 0) {
+                $ranksUpdated++;
+            }
+        }
+    }
+
+    echo json_encode([
+        'status' => true,
+        'message' => "Ranks generated successfully! Updated {$ranksUpdated} students."
+    ]);
+}
+
+public function saveSubjectAttendance() {
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    $examID     = $this->input->post('examID');
+    $classesID  = $this->input->post('classesID');
+    $sectionID  = $this->input->post('sectionID');
+    $studentID  = $this->input->post('studentID');
+    $subjectID  = $this->input->post('subjectID');
+    $attendance = $this->input->post('attendance');
+
+    // Get subject details for max mark
+    $subject = $this->subject_m->get_single_subject(['subjectID' => $subjectID]);
+    $maxMark = $subject ? $subject->max_mark : 100;
+
+    if ($attendance == 'Absent') {
+        // Find the markID for this specific student, exam, class, and subject
+        $mark = $this->db->select('markID')
+            ->from('mark')
+            ->where('schoolyearID', $schoolyearID)
+            ->where('examID', $examID)
+            ->where('classesID', $classesID)
+            ->where('studentID', $studentID)
+            ->where('subjectID', $subjectID)
+            ->get()
+            ->row();
+
+        if ($mark) {
+            // Reset markrelation for this specific subject
+            $this->db->where('markID', $mark->markID);
+            $this->db->update('markrelation', ['mark' => 0]);
+            
+            // Update attendance in mark table for this subject
+            $this->db->where('markID', $mark->markID);
+            $this->db->update('mark', ['eattendance' => 'Absent']);
+        }
+        
+        $responseData = [
+            'status' => true,
+            'message' => 'Subject attendance updated successfully',
+            'attendance' => 'Absent'
+        ];
+    } else {
+        // For Present status, get current mark value and update attendance
+        $currentMark = $this->db->select('mark.markID, markrelation.mark as current_mark')
+            ->from('mark')
+            ->join('markrelation', 'markrelation.markID = mark.markID', 'left')
+            ->where('mark.schoolyearID', $schoolyearID)
+            ->where('mark.examID', $examID)
+            ->where('mark.classesID', $classesID)
+            ->where('mark.studentID', $studentID)
+            ->where('mark.subjectID', $subjectID)
+            ->get()
+            ->row();
+        
+        $markValue = $currentMark && $currentMark->current_mark !== null ? $currentMark->current_mark : 0;
+        
+        // Update attendance to Present
+        $this->db->where('schoolyearID', $schoolyearID)
+                 ->where('examID', $examID)
+                 ->where('classesID', $classesID)
+                 ->where('studentID', $studentID)
+                 ->where('subjectID', $subjectID);
+        $this->db->update('mark', ['eattendance' => 'Present']);
+        
+        $responseData = [
+            'status' => true,
+            'message' => 'Subject attendance updated successfully',
+            'attendance' => 'Present',
+            'markValue' => $markValue,
+            'maxMark' => $maxMark,
+            'markID' => $currentMark ? $currentMark->markID : 0,
+            'markName' => $subjectID . 'mark-' . ($currentMark ? $currentMark->markID : 0)
+        ];
+    }
+
+    echo json_encode($responseData);
+}
+
+public function saveIndividualAttendance() {
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+    $examID     = $this->input->post('examID');
+    $classesID  = $this->input->post('classesID');
+    $sectionID  = $this->input->post('sectionID');
+    $studentID  = $this->input->post('studentID');
+    $attendance = $this->input->post('attendance');
+
+    // Update attendance in the eattendance table (individual exam attendance)
+    $data = ['eattendance' => $attendance];
+    
+    // Check if record exists
+    $existing = $this->db->select('*')
+        ->from('eattendance')
+        ->where('schoolyearID', $schoolyearID)
+        ->where('examID', $examID)
+        ->where('classesID', $classesID)
+        ->where('sectionID', $sectionID)
+        ->where('studentID', $studentID)
+        ->get()
+        ->row();
+    
+    if ($existing) {
+        // Update existing record
+        $this->db->where('schoolyearID', $schoolyearID);
+        $this->db->where('examID', $examID);
+        $this->db->where('classesID', $classesID);
+        $this->db->where('sectionID', $sectionID);
+        $this->db->where('studentID', $studentID);
+        $this->db->update('eattendance', $data);
+    } else {
+        // Insert new record
+        $data['schoolyearID'] = $schoolyearID;
+        $data['examID'] = $examID;
+        $data['classesID'] = $classesID;
+        $data['sectionID'] = $sectionID;
+        $data['studentID'] = $studentID;
+        $this->db->insert('eattendance', $data);
+    }
+
+    echo json_encode([
+        'status' => true,
+        'message' => 'Individual exam attendance updated successfully'
+    ]);
+}
+
 public function saveAllAttendance() {
     $schoolyearID = $this->session->userdata('defaultschoolyearID');
 
@@ -2681,8 +3492,10 @@ public function saveAllAttendance() {
     $this->db->where('studentID', $studentID);
     $this->db->update('eattendance', $data);
 
-    $this->session->set_flashdata('success', 'Successfully updated all subjects attendance');
-    redirect(base_url("mark/add"));
+    echo json_encode([
+        'status' => true,
+        'message' => 'Successfully updated all subjects attendance'
+    ]);
 }
 
 

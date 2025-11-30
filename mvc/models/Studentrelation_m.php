@@ -561,21 +561,24 @@ public function general_get_order_by_student_multi_selction($arrays = [], $stude
 
 public function get_students_batch($where = [], $limit = 20, $offset = 0) {
     // Ensure table exists and columns are correct
-    $this->db->select('sr.studentrelationID, sr.srclassesID, sr.srsectionID, sr.sroptionalsubjectID, s.studentID, s.name, s.photo, s.roll');
+    $this->db->select('sr.studentrelationID, sr.srclassesID, sr.srsectionID, sr.sroptionalsubjectID, s.studentID, s.name, s.photo, s.roll, s.phone');
     $this->db->from('studentrelation sr');
-    $this->db->join('student s', 'sr.studentID = s.srstudentID', 'left');
+    $this->db->join('student s', 'sr.srstudentID = s.studentID', 'left');
 
     // Apply conditions if provided
     if (!empty($where)) {
         $this->db->where($where);
     }
 
+    // Order by roll number
+    $this->db->order_by('sr.srroll', 'ASC');
+
     // Pagination
     $this->db->limit($limit, $offset);
 
     // Execute query
     $query = $this->db->get();
-// echo $this->db->last_query();die;
+    
     // Check if query failed
     if (!$query) {
         $error = $this->db->error(); // CI DB error array
