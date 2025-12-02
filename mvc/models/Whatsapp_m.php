@@ -242,13 +242,13 @@ public function send_to_api_with_media($payload)
 
     foreach ($messages as $msg) {
         $to       = trim($msg['phone']);
-        $text     = urlencode($templateName);
+        $text     = $templateName;
         $params   = isset($msg['message']) ? $msg['message'] : '';
-        $htype   = isset($msg['htype']) ? urlencode($msg['htype']) : '';
-        $fname   = isset($msg['fname']) ? urlencode($msg['fname']) : '';
-        $media   = isset($msg['url']) ? urlencode($msg['url']) : '';
+        $htype   = isset($msg['htype']) ? $msg['htype'] : '';
+        $fname   = isset($msg['fname']) ? $msg['fname'] : '';
+        $media   = isset($msg['url']) ? $msg['url'] : '';
 
-        // Construct API URL with base parameters
+        // Construct API URL manually without encoding
         $url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
              . "?user={$username}"
              . "&pass={$password}"
@@ -257,14 +257,17 @@ public function send_to_api_with_media($payload)
              . "&text={$text}"
              . "&priority=wa"
              . "&stype=normal"
-             . "&Params={$params}"
-             . "&htype={$htype}"
-             . "&fname={$fname}"
-             . "&url={$media}";
-		// echo $url;die;
-        // Add media parameters if present (htype and url for documents)
-        if (!empty($msg['htype']) && !empty($msg['url'])) {
-            $url .= "&htype=" . urlencode($msg['htype']) . "&url=" . urlencode($msg['url']);
+             . "&Params={$params}";
+             
+        // Add media parameters if present
+        if (!empty($htype)) {
+            $url .= "&htype={$htype}";
+        }
+        if (!empty($fname)) {
+            $url .= "&fname={$fname}";
+        }
+        if (!empty($media)) {
+            $url .= "&url={$media}";
         }
 			
         // Execute API Request
@@ -652,11 +655,20 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 			$to = trim($msg['phone']);
 			$media = isset($msg['media']) ? ($msg['media']) : '';
 			 
-			$text = urlencode($templateName); 
+			$text = $templateName;
 
-			// Properly URL encode the message parameters
-			$params = isset($msg['message']) ? urlencode($msg['message']) : '';
+			// Clean the message parameters to make them URL-safe
+			$params = isset($msg['message']) ? $msg['message'] : '';
+			
+			// Clean the params to remove problematic characters
+			$params = str_replace(["\n", "\r"], ' ', $params); // Replace newlines with spaces
+			$params = str_replace('–', '-', $params); // Replace special dash with regular dash
+			$params = trim(preg_replace('/\s+/', ' ', $params)); // Replace multiple spaces with single space
+			// $params = urlencode($params); // Avoid URL encoding to match working manual URL
+			$params = rawurlencode($params); // Avoid URL encoding to match working manual URL
 
+
+			// Build URL manually without encoding - this matches your working manual URL
 			$url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
 				. "?user={$username}"
 				. "&pass={$password}"
@@ -671,37 +683,35 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 			if (!empty($media)) {
 				$url .= "&htype=document"
 					. "&fname=Homework"
-					. "&url=" . urlencode($media);
+					. "&url={$media}";
 			}
-			// echo $url;die;
+			// echo 'whatsapp url='.$url;
 			
-			$ch = curl_init();
-			curl_setopt_array($ch, [
-				CURLOPT_URL => $url,
-				CURLOPT_RETURNTRANSFER => true,
-				CURLOPT_TIMEOUT => 30,
-				CURLOPT_CONNECTTIMEOUT => 10,
-				CURLOPT_FOLLOWLOCATION => true,
-				CURLOPT_SSL_VERIFYPEER => false,
-				CURLOPT_SSL_VERIFYHOST => false,
-				CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-			]);
+			// Use file_get_contents instead of cURL - it's simpler for GET requests
+			$response = @file_get_contents($url);
+			$httpCode = ($response !== false) ? 200 : 0;
+			$curlError = ($response === false) ? 'file_get_contents failed' : '';
 
-			$response = curl_exec($ch);
-			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-			$curlError = curl_error($ch);
-			$curlErrno = curl_errno($ch);
-			curl_close($ch);
-
-			// Better success detection - check for various success indicators
+			// Improved success detection - check for response and known success indicators
 			$status = false;
-			if ($httpCode == 200 && $response) {
-				// Check for common success indicators in API response
-				$successIndicators = ['success', 'sent', 'delivered', 'S.', 'campid', 'ok'];
-				foreach ($successIndicators as $indicator) {
-					if (stripos($response, $indicator) !== false) {
+			if ($response !== false && !empty($response)) {
+				// Check for success indicators like S.255799
+				if (stripos($response, 'S.') !== false) {
+					$status = true;
+				} else {
+					// Only mark as failed if we see explicit error messages
+					$errorIndicators = ['error', 'fail', 'invalid', 'unauthorized', 'denied', 'false'];
+					$response_lower = strtolower(trim($response));
+					$hasError = false;
+					foreach ($errorIndicators as $errorIndicator) {
+						if (stripos($response_lower, $errorIndicator) !== false) {
+							$hasError = true;
+							break;
+						}
+					}
+					// If no error indicators, consider it successful
+					if (!$hasError) {
 						$status = true;
-						break;
 					}
 				}
 			}
@@ -713,13 +723,14 @@ public function send_homework_whatsapp($dataBatch, $templateName) {
 				'type' => "whatsapp",
 				'message' => isset($msg['message']) ? $msg['message'] : '',
 				'template_name' => $templateName,
-				'status' => $status
+				'status' => $status,
+				'http_code' => $httpCode,
+				'error' => $curlError
 			];
 		}, $messages);
 
 		$successCount = count(array_filter($results, function($result) { return $result['status']; }));
 
-		// echo "<pre>";print_r($results);die;
 		$this->log_whatsapp_history($results);
 
 		return [

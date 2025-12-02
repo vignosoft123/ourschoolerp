@@ -1,0 +1,324 @@
+/* Custom Table Styling for Enhanced Look */
+
+/* Filter Box Styling */
+.filter-box {
+    background-color: hsl(133, 46.30%, 75.90%);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Button Styling */
+.ose-btn {
+    background-color: #28a745;
+    font-size: 14px;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ose-btn:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    color: #fff;
+    text-decoration: none;
+}
+
+.create-btn {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+/* Enhanced Table Styling */
+#example1 {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    background: #fff !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    margin: 20px 0 !important;
+    width: 100% !important;
+    border: none !important;
+}
+
+#example1 thead {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+}
+
+#example1 thead th {
+    padding: 18px 15px !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    font-size: 13px !important;
+    letter-spacing: 0.5px !important;
+    border: none !important;
+    border-right: 1px solid rgba(255,255,255,0.2) !important;
+    color: white !important;
+    position: relative !important;
+    text-transform: uppercase !important;
+}
+
+#example1 thead th:last-child {
+    border-right: none !important;
+}
+
+#example1 tbody tr {
+    transition: all 0.3s ease !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+#example1 tbody tr:hover {
+    background: linear-gradient(90deg, #f8f9ff 0%, #e8f2ff 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.15) !important;
+}
+
+#example1 tbody td {
+    padding: 15px 12px !important;
+    vertical-align: middle !important;
+    border-right: 1px solid #e9ecef !important;
+    font-size: 13px !important;
+    text-align: center !important;
+    position: relative !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+#example1 tbody td:last-child {
+    border-right: none !important;
+}
+
+/* Zebra striping for better readability */
+#example1 tbody tr:nth-child(even) {
+    background: rgba(102, 126, 234, 0.05) !important;
+}
+
+#example1 tbody tr:nth-child(odd) {
+    background: #fff !important;
+}
+
+/* Action buttons styling */
+.action-btns {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.action-btns .btn {
+    margin: 2px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    padding: 6px 10px !important;
+    transition: all 0.3s ease !important;
+    min-width: 70px !important;
+    text-align: center !important;
+}
+
+.action-btns .btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+}
+
+/* Download button styling */
+.btn-download {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-download:hover {
+    background: linear-gradient(135deg, #138496 0%, #117a8b 100%) !important;
+    color: white !important;
+}
+
+/* View button styling */
+.btn-view {
+    background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-view:hover {
+    background: linear-gradient(135deg, #5a32a3 0%, #4e2a8e 100%) !important;
+    color: white !important;
+}
+
+/* Edit button styling */
+.btn-edit {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+    border: none !important;
+    color: #212529 !important;
+}
+
+.btn-edit:hover {
+    background: linear-gradient(135deg, #e0a800 0%, #d39e00 100%) !important;
+    color: #212529 !important;
+}
+
+/* Delete button styling */
+.btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%) !important;
+    color: white !important;
+}
+
+/* Upload button styling */
+.btn-upload {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+    border: none !important;
+    color: white !important;
+}
+
+.btn-upload:hover {
+    background: linear-gradient(135deg, #1e7e34 0%, #155724 100%) !important;
+    color: white !important;
+}
+
+/* Responsive table container */
+.responsive {
+    border-radius: 10px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+}
+
+/* Tab content styling */
+.tab-content {
+    background: #fff !important;
+    border-radius: 0 0 10px 10px !important;
+    padding: 25px !important;
+}
+
+.nav-tabs > li > a {
+    border-radius: 8px 8px 0 0 !important;
+    margin-right: 3px !important;
+    transition: all 0.3s ease !important;
+    font-weight: 500 !important;
+}
+
+.nav-tabs > li.active > a {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border-color: #667eea !important;
+}
+
+.nav-tabs > li > a:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%) !important;
+}
+
+/* Section table styling for assignments */
+.section-table {
+    margin-bottom: 20px !important;
+}
+
+/* Subject column styling */
+.subject-column {
+    font-weight: 600 !important;
+    color: #495057 !important;
+}
+
+/* Title column styling */
+.title-column {
+    font-weight: 500 !important;
+    color: #212529 !important;
+    max-width: 200px !important;
+    word-wrap: break-word !important;
+}
+
+/* Description column styling */
+.description-column {
+    color: #6c757d !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+}
+
+/* Date column styling */
+.date-column {
+    font-weight: 500 !important;
+    color: #495057 !important;
+    white-space: nowrap !important;
+}
+
+/* Uploader column styling */
+.uploader-column {
+    font-style: italic !important;
+    color: #6c757d !important;
+}
+
+/* Section badge styling */
+.section-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    margin: 2px;
+    white-space: nowrap;
+}
+
+/* Box styling enhancements */
+.box {
+    border-radius: 10px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+    border: none !important;
+}
+
+.box-body {
+    padding: 25px !important;
+    background: #fff !important;
+    border-radius: 0 0 10px 10px !important;
+}
+
+/* Breadcrumb styling */
+.breadcrumb {
+    background: none !important;
+    padding: 0 !important;
+    margin: 10px 0 0 0 !important;
+}
+
+.breadcrumb > li + li:before {
+    color: #6c757d !important;
+}
+
+/* Form control enhancements */
+.form-control {
+    border-radius: 6px !important;
+    border: 1px solid #ced4da !important;
+    transition: all 0.3s ease !important;
+}
+
+.form-control:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+}
+
+/* Select2 enhancement */
+.select2-container--default .select2-selection--single {
+    border-radius: 6px !important;
+    border: 1px solid #ced4da !important;
+    height: 38px !important;
+}
+
+/* Dropdown margin adjustments */
+.drop-marg {
+    margin-bottom: 10px !important;
+}

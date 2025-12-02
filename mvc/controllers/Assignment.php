@@ -842,6 +842,7 @@ public function student_list() {
         $students = $this->studentrelation_m->get_order_by_student(['srclassesID' => $classesID, 'srsectionID' => $sectionID]);
         $assignments = $this->assignment_m->join_get_assignment($classesID, $this->session->userdata('defaultschoolyearID'), $sectionID, 0, $deadlinedate);
         $section = $this->section_m->get_section($sectionID);
+        $class = $this->classes_m->get_classes($classesID);
 		// print_r($assignments);die;
 
         if (customCompute($students) && customCompute($assignments)) {
@@ -868,13 +869,13 @@ public function student_list() {
 
             $homeworkDetails = "";
             foreach ($assignments as $assignment) {
-                $homeworkDetails .= "{$assignment->subject} – {$assignment->description}\n";
+                $homeworkDetails .= $assignment->subject . ': ' . $assignment->description . ' ';
             }
 
-            $dataBatch = array_map(function($student) use ($classesID, $section, $deadlinedate, $homeworkDetails, $msg) {
+            $dataBatch = array_map(function($student) use ($class, $section, $deadlinedate, $homeworkDetails, $msg) {
                 return [
                     'phone' => $student->phone,
-                    'message' => "{$classesID}, {$section->section}, {$deadlinedate}, {$homeworkDetails}",
+                    'message' => "{$class->classes},{$section->section},{$deadlinedate},{$homeworkDetails}",
                     'media' => $msg['media']
                 ];
             }, $students);
