@@ -590,7 +590,7 @@
                 <!-- Important Note for Users -->
                 <div class="alert alert-info" style="margin-top: 15px; border-left: 4px solid #17a2b8; background-color: #f8f9fa; border-radius: 6px; font-size: 16px; color: #dc3545;">
                     <i class="fa fa-info-circle" style="margin-right: 8px; color: #dc3545; font-size: 18px;"></i>
-                    <strong style="color: #dc3545;">Note:</strong> After any marks changes, please click the <strong style="color: #dc3545;">Generate Rank</strong> button to ensure correct data and updated rankings.
+                    <strong style="color: #dc3545;">Note:</strong> After any marks changes, please click the <strong style="color: rgba(13, 57, 115, 1);">Generate Rank</strong> button to ensure correct data and updated rankings.
                 </div>
 
                 <?php if (customCompute($students)) { ?>
@@ -739,7 +739,7 @@
                         <span class="fa fa-whatsapp"></span> Send Marks - Whatsapp
                     </button>
 
-                    <button type="button" class="btn btn-success " id="add_mark" name="add_mark" value="Save or Refresh Marks" > Save or Refresh Marks </button>
+                    <!-- <button type="button" class="btn btn-success " id="add_mark" name="add_mark" value="Save or Refresh Marks" > Save or Refresh Marks </button> -->
                 </div>
 
                         <!-- Message Preview Modal -->
@@ -1493,7 +1493,7 @@
                                                     var markName = jsonResponse.markName || (subjectId + 'mark-0');
                                                     var markId = jsonResponse.markID || '1';
                                                     
-                                                    var inputHtml = '<input id="' + markId + '" subj_id="' + subjectId + '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" ' +
+                                                    var inputHtml = '<input id="' + markId + '" subj_id="' + subjectId + '" class="aaa form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" ' +
                                                                    'name="' + markName + '" value="' + markValue + '" min="0" max="' + maxMark + '">';
                                                     targetCell.html(iconHtml + inputHtml);
                                                 }
@@ -1597,6 +1597,12 @@
                             // $(document).on('keyup','.input_mark',function() {
                             $(document).on('focusout','.input_mark',function() {
                                 var subj_id = $(this).attr('subj_id');
+                                var $inputField = $(this);
+                                
+                                // Get student ID from the closest row
+                                var studentId = $inputField.closest('tr').find('input[name*="st_ids"], input[st_ids]').attr('st_ids') || 
+                                               $inputField.closest('tr').find('input[name="studentID"]').val() ||
+                                               $inputField.closest('tr').data('student-id');
                                
                             var inputs = "";
                             var inputs_value = "";
@@ -1615,7 +1621,8 @@
                                 data: {
                                     "examID": $("#examID").val(),
                                     "classesID": $("#classesID").val(), 
-                                    "subjectID":subj_id ,
+                                    "subjectID":subj_id,
+                                    "studentID": studentId,
                                     "inputs": mark
                                 },
                                 dataType: "html",

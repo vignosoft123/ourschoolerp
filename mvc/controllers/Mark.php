@@ -1994,38 +1994,144 @@ public function get_students_page() {
 				$inputs 		= $this->input->post("inputs");
 				$schoolyearID 	= $this->data['siteinfos']->school_year;
 
+				// Debug logging
+				log_message('debug', 'Mark Send - Payload: ' . json_encode($_POST));
+				log_message('debug', 'Mark Send - School Year ID: ' . $schoolyearID);
+
 				$markRelationArray = [];
 				if (customCompute($inputs)) {
 					foreach ($inputs as $key => $value) {
-						$data = explode('-', $value['mark']); 
-
-
-							// $this->db->where('markpercentageID',$value['markpercentageid']);
-							// $this->db->where('markID',$data[1]);
-							// $this->db->update('markrelation',array('mark' => abs($value['value']) ));
-
-
-
-							$this->db->where('markpercentageID', $value['markpercentageid']);
-							$this->db->where('markID', $data[1]);
-							$query = $this->db->get('markrelation');
-
-							if($query->num_rows() > 0) {
-								// record exists → update
-								$this->db->where('markpercentageID', $value['markpercentageid']);
-								$this->db->where('markID', $data[1]);
-								$this->db->update('markrelation', array('mark' => abs($value['value'])));
-							} else {
-								// record does not exist → insert
-								$this->db->insert('markrelation', array(
-									'markpercentageID' => $value['markpercentageid'],
-									'markID'           => $data[1],
-									'mark'             => abs($value['value']),
-								));
+						// Debug each input
+						log_message('debug', 'Processing input: ' . json_encode($value));
+						
+						// Parse the mark name format: {subjectID}mark-{markID}
+						$data = explode('-', $value['mark']);
+						
+						if (count($data) != 2) {
+							log_message('error', 'Invalid mark name format: ' . $value['mark']);
+							continue; // Skip invalid format
+						}
+						
+						$markIDFromName = $data[1];
+						$markpercentageID = $value['markpercentageid'];
+						$markValue = abs($value['value']);
+						
+						log_message('debug', "Parsed - MarkID from name: $markIDFromName, MarkPercentageID: $markpercentageID, Value: $markValue");
+						
+						// If markID is 0, we need to create a new mark record first
+						if ($markIDFromName == '0') {
+							log_message('debug', "Creating new mark record for markIDFromName = 0");
+							
+							// Extract subjectID from the name (remove 'mark' suffix)
+							$subjectPart = $data[0];
+							$extractedSubjectID = str_replace('mark', '', $subjectPart);
+							
+							// Get student ID from the AJAX request
+							$studentID = $this->input->post('studentID');
+							
+							log_message('debug', "Extracted SubjectID: $extractedSubjectID, StudentID: $studentID");
+							
+							if (!$studentID || $studentID == '0') {
+								// Log error and skip this entry
+								log_message('error', "Cannot create mark record: invalid student ID for subject $extractedSubjectID");
+								continue;
 							}
+							
+							// First, check if the main mark record exists
+							$this->db->where('examID', $examID);
+							$this->db->where('classesID', $classesID);
+							$this->db->where('subjectID', $extractedSubjectID);
+							$this->db->where('studentID', $studentID);
+							$this->db->where('schoolyearID', $schoolyearID);
+							$existingMarkQuery = $this->db->get('mark');
+							
+							log_message('debug', "Checking existing mark: " . $this->db->last_query());
+							
+							if ($existingMarkQuery->num_rows() > 0) {
+								// Mark record exists, get the markID
+								$markID = $existingMarkQuery->row()->markID;
+								log_message('debug', "Found existing mark record with ID: $markID");
+							} else {
+								log_message('debug', "Creating new mark record");
+								
+								// Get exam name for the exam field
+								$this->db->select('exam');
+								$this->db->where('examID', $examID);
+								$examQuery = $this->db->get('exam');
+								$examName = '';
+								if ($examQuery->num_rows() > 0) {
+									$examName = $examQuery->row()->exam;
+								}
+								
+								// Get subject name for the subject field
+								$this->db->select('subject');
+								$this->db->where('subjectID', $extractedSubjectID);
+								$subjectQuery = $this->db->get('subject');
+								$subjectName = '';
+								if ($subjectQuery->num_rows() > 0) {
+									$subjectName = $subjectQuery->row()->subject;
+								}
+								
+								log_message('debug', "Fetched exam name: $examName, subject name: $subjectName");
+								
+								// Create new mark record
+								$markData = [
+									'examID' => $examID,
+									'classesID' => $classesID,
+									'subjectID' => $extractedSubjectID,
+									'studentID' => $studentID,
+									'schoolyearID' => $schoolyearID,
+									'create_date' => date('Y-m-d H:i:s'),
+									'create_userID' => $this->session->userdata('loginuserID'),
+									'create_usertypeID' => $this->session->userdata('usertypeID'),
+									'year' => date('Y'),
+									'exam' => $examName,
+									'subject' => $subjectName,
+									'eattendance' => NULL
+								];
+								
+								$this->db->insert('mark', $markData);
+								$markID = $this->db->insert_id();
+								
+								log_message('debug', "Created new mark record with ID: $markID");
+								log_message('debug', "Insert query: " . $this->db->last_query());
+								
+								if (!$markID) {
+									log_message('error', "Failed to create mark record for subject $extractedSubjectID, student $studentID");
+									continue;
+								}
+							}
+						} else {
+							$markID = $markIDFromName;
+							log_message('debug', "Using existing markID: $markID");
+						}
+						
+						// Now handle the mark relation
+						log_message('debug', "Handling mark relation - MarkID: $markID, MarkPercentageID: $markpercentageID, Value: $markValue");
+						
+						$this->db->where('markpercentageID', $markpercentageID);
+						$this->db->where('markID', $markID);
+						$query = $this->db->get('markrelation');
 
+						log_message('debug', "Check existing markrelation: " . $this->db->last_query());
 
-						 
+						if($query->num_rows() > 0) {
+							// Record exists → update
+							log_message('debug', "Updating existing markrelation");
+							$this->db->where('markpercentageID', $markpercentageID);
+							$this->db->where('markID', $markID);
+							$this->db->update('markrelation', array('mark' => $markValue));
+							log_message('debug', "Update query: " . $this->db->last_query());
+						} else {
+							// Record does not exist → insert
+							log_message('debug', "Inserting new markrelation");
+							$this->db->insert('markrelation', array(
+								'markpercentageID' => $markpercentageID,
+								'markID' => $markID,
+								'mark' => $markValue,
+							));
+							log_message('debug', "Insert query: " . $this->db->last_query());
+						}
 					}
 				}
 
@@ -2041,6 +2147,40 @@ public function get_students_page() {
 			echo json_encode($retArray);
 			exit;
 		}
+	}
+
+	/**
+	 * Helper method to get student ID when creating new mark records
+	 */
+	private function getStudentIDFromContext($examID, $classesID, $subjectID) {
+		// Option 1: Get from the current AJAX request
+		$studentID = $this->input->post('studentID');
+		if ($studentID && $studentID != '0') {
+			return $studentID;
+		}
+		
+		// Option 2: Get from session if stored
+		$sessionStudentID = $this->session->userdata('current_student_id');
+		if ($sessionStudentID) {
+			return $sessionStudentID;
+		}
+		
+		// Option 3: Try to find any existing mark for this exam/class/subject and get a student ID
+		$this->db->select('studentID');
+		$this->db->from('mark');
+		$this->db->where('examID', $examID);
+		$this->db->where('classesID', $classesID);
+		$this->db->where('subjectID', $subjectID);
+		$this->db->limit(1);
+		$existingMarkQuery = $this->db->get();
+		
+		if ($existingMarkQuery->num_rows() > 0) {
+			return $existingMarkQuery->row()->studentID;
+		}
+		
+		// Option 4: Default fallback - log an error and return 0
+		log_message('error', "Could not determine student ID for examID: $examID, classesID: $classesID, subjectID: $subjectID");
+		return 0;
 	}
 
 	public function print_preview()
