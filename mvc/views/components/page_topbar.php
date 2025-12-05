@@ -56,6 +56,18 @@
                          </ul>
                 </div>
 
+                <!-- School Selection Dropdown -->
+                <!-- <div class="navbar-left">
+                    <ul class="nav navbar-nav top-navigation-icons">
+                        <li class="dropdown">
+                            <select id="schoolDropdown" class="form-control" style="margin-top: 8px; margin-left: 10px; min-width: 150px;">
+                                <option value="">Select College</option>
+                                <option value="https://pw-vijbc.ourcollegeerp.com/signin/index">PW-VIJBC</option>
+                                <option value="https://pw-vspdn.ourcollegeerp.com/signin/index">PW-VSPDN</option>
+                            </select>
+                        </li>
+                    </ul>
+                </div> -->
 
                 <div class="navbar-right">
 
@@ -188,6 +200,16 @@
 
 <script>
 $(document).ready(function(){
+    // Auto-select current school based on URL
+    var currentUrl = window.location.hostname;
+    var dropdown = $('#schoolDropdown');
+    
+    if (currentUrl.includes('pw-vijbc.ourcollegeerp.com')) {
+        dropdown.val('https://pw-vijbc.ourcollegeerp.com/signin/index');
+    } else if (currentUrl.includes('pw-vspdn.ourcollegeerp.com')) {
+        dropdown.val('https://pw-vspdn.ourcollegeerp.com/signin/index');
+    }
+
     $('#qr-icon').on('click', function(e){
         e.preventDefault();
 
@@ -203,6 +225,28 @@ $(document).ready(function(){
 
 $(document).on("click",'#search_icon',function(){
         document.getElementById('g_search_form').submit();
+});
 
+// Handle school dropdown selection
+$(document).on("change",'#schoolDropdown',function(){
+    var selectedUrl = $(this).val();
+    var currentUrl = window.location.href;
+    
+    if(selectedUrl && selectedUrl !== '') {
+        // Check if the selected URL is different from current site
+        if (!currentUrl.includes(selectedUrl.replace('/signin/index', ''))) {
+            window.open(selectedUrl, '_blank');
+        }
+        
+        // Reset to the current school selection
+        var currentHostname = window.location.hostname;
+        if (currentHostname.includes('pw-vijbc.ourcollegeerp.com')) {
+            $(this).val('https://pw-vijbc.ourcollegeerp.com/signin/index');
+        } else if (currentHostname.includes('pw-vspdn.ourcollegeerp.com')) {
+            $(this).val('https://pw-vspdn.ourcollegeerp.com/signin/index');
+        } else {
+            $(this).val('');
+        }
+    }
 });
 </script>
