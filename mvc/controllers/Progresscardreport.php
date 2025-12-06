@@ -934,7 +934,7 @@ foreach($months_array as $mkey => $v) {
 					// echo "<pre>";print_r($template);die;
 					if($template && !empty($template['template_name'])) {
 						$this->load->model('Whatsapp_m');
-						$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media($bulkMessages, $template['template_name']);
+						$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media_progresscard($bulkMessages, $template['template_name']);
 					} else {
 						$sentCount = 0;
 					}
@@ -1551,7 +1551,10 @@ public function send_balance_whatsapp()
 
         $this->load->model('Whatsapp_m');
         // Use sendWhatsapp_bulk_batch_with_media to handle htype and url parameters
-        $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media($bulkMessages, $template['template_name']);
+        // $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media($bulkMessages, $template['template_name']);
+        $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media_progresscard($bulkMessages, $template['template_name']);
+
+		
 
         $retArray['status'] = true;
         $retArray['message'] = "Sent to {$sentCount} recipient(s)";
