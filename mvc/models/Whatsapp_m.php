@@ -306,17 +306,163 @@ public function send_to_api_with_media($payload)
     ];
 }
 
+
+
+public function sendWhatsapp_bulk_batch_with_media_progresscard($dataBatch, $templateName)
+{
+	// echo "<pre>";print_r($dataBatch);die;
+
+    $sent = 0;
+    $chunkSize = 50;
+    foreach (array_chunk($dataBatch, $chunkSize) as $batch) {
+        $payload = [
+            'template_name' => $templateName,
+            'messages' => $batch
+        ];
+        $response = $this->send_to_api_with_media_progresscard($payload);
+        if ($response && isset($response['success_count'])) {
+            $sent += $response['success_count'];
+        }
+    }
+    return $sent;
+}
+
+public function send_to_api_with_media_progresscard($payload)
+{
+	// echo "<pre>";print_r($payload);die;
+
+    $templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
+    $messages     = isset($payload['messages']) ? $payload['messages'] : [];
+    if (empty($messages)) {
+        return ['success_count' => 0, 'results' => []];
+    }
+
+    $username  = $this->username;
+    $password  = $this->password;
+    $senderID  = $this->senderID;
+
+    $results = [];
+    $successCount = 0;
+
+    foreach ($messages as $msg) {
+        $to       = trim($msg['phone']);
+        $text     = $templateName;
+        $params   = isset($msg['message']) ? $msg['message'] : '';
+        $htype   = isset($msg['htype']) ? $msg['htype'] : '';
+        $fname   = isset($msg['fname']) ? $msg['fname'] : '';
+        $media   = isset($msg['url']) ? $msg['url'] : '';
+
+        // Clean the params and encode properly for URL
+        $params = str_replace(["\n", "\r"], ' ', $params);
+        $params = str_replace('–', '-', $params);
+        $params = trim(preg_replace('/\s+/', ' ', $params));
+        
+        // URL encode only the parameters that can contain special characters
+        $encodedParams = urlencode($params);
+        $encodedFname = urlencode($fname);
+
+        // Build URL with proper encoding for problematic parameters only
+        $url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
+             . "?user=" . $username
+             . "&pass=" . $password
+             . "&sender=" . $senderID
+             . "&phone=" . $to
+             . "&text=" . $text
+             . "&priority=wa"
+             . "&stype=normal"
+             . "&Params=" . $encodedParams;
+             
+        // Add media parameters if present
+        if (!empty($htype)) {
+            $url .= "&htype=" . $htype;
+        }
+        if (!empty($fname)) {
+            $url .= "&fname=" . $encodedFname; // Encode filename to handle spaces
+        }
+        if (!empty($media)) {
+            $url .= "&url=" . urlencode($media); // Encode URL to handle special characters
+        }
+
+        // Debug: Log the URL being called
+        error_log("WhatsApp API URL: " . $url);
+        
+        // Use the exact same method as your working sendWhatsapp function
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CUSTOMREQUEST  => 'GET',
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_TIMEOUT        => 30
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+
+        // Debug: Log the response
+        error_log("WhatsApp API Response: " . ($response ? $response : 'FALSE/EMPTY'));
+        error_log("HTTP Code: " . $httpCode);
+        if ($curlError) {
+            error_log("CURL Error: " . $curlError);
+        }
+
+        // Improved success detection
+        $status = false;
+        if ($response !== false && !empty($response) && $httpCode == 200) {
+            // Check for success indicators like S.190644
+            if (preg_match('/S\.\d+/', $response) || 
+                stripos($response, 'success') !== false ||
+                stripos($response, 'sent') !== false) {
+                $status = true;
+            }
+        }
+        
+        if ($status) $successCount++;
+
+        $results[] = [
+            'request_url'   => $url,
+            'api_response'  => $response !== false ? $response : ($curlError ? 'CURL Error: ' . $curlError : 'No response'),
+            'created_on'    => date("Y-m-d H:i:s"),
+            'type'          => "whatsapp",
+            'message'       => isset($msg['message']) ? $msg['message'] : '',
+            'template_name' => $templateName
+        ];
+    }
+
+    // Log to database
+    $this->log_whatsapp_history($results);
+
+    // Return summary
+    return [
+        'success_count' => $successCount,
+        'results'       => $results
+    ];
+}
+
 private function log_whatsapp_history($results)
 {
     foreach ($results as $r) {
-        $this->db->insert('whatsapp_logs', [
+        $logData = [
             'request_url'        => $r['request_url'],
             'api_response'     => $r['api_response'],
             'type'      => $r['type'],
             'message'     => $r['message'],
             'template_name'       => $r['template_name'],
             'created_on'  => date('Y-m-d H:i:s')
-        ]);
+        ];
+        
+        // Add additional fields if they exist
+        if (isset($r['http_code'])) {
+            $logData['http_code'] = $r['http_code'];
+        }
+        if (isset($r['curl_error'])) {
+            $logData['curl_error'] = $r['curl_error'];
+        }
+        
+        $this->db->insert('whatsapp_logs', $logData);
 		// echo $this->db->last_query();die;
     }
 }
