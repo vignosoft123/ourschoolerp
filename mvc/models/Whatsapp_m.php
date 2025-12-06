@@ -248,13 +248,7 @@ public function send_to_api_with_media($payload)
         $fname   = isset($msg['fname']) ? $msg['fname'] : '';
         $media   = isset($msg['url']) ? $msg['url'] : '';
 
-        // Clean the params to remove problematic characters like in send_to_api_homework
-        $params = str_replace(["\n", "\r"], ' ', $params); // Replace newlines with spaces
-        $params = str_replace('–', '-', $params); // Replace special dash with regular dash
-        $params = trim(preg_replace('/\s+/', ' ', $params)); // Replace multiple spaces with single space
-        $params = rawurlencode($params); // URL encode to handle special characters
-
-        // Construct API URL manually
+        // Construct API URL manually without encoding
         $url = "http://bwa.mindwhile.com/api/sendmsgutil.php"
              . "?user={$username}"
              . "&pass={$password}"
@@ -275,55 +269,21 @@ public function send_to_api_with_media($payload)
         if (!empty($media)) {
             $url .= "&url={$media}";
         }
-        
-        // Debug: Print URL for testing
-        echo "WhatsApp URL: " . $url . "\n";
-        // echo $url;die;
-        
-        // Execute API Request with improved cURL options
+			
+        // Execute API Request
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT => 10,
-            CURLOPT_CUSTOMREQUEST => 'GET',
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         ]);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
         curl_close($ch);
 
-        // Improved success detection - check for S. prefix in response
-        $status = false;
-        if ($httpCode == 200 && $response !== false && !empty($response)) {
-            if (stripos($response, 'S.') !== false) {
-                $status = true;
-            } else {
-                // Check for explicit error indicators
-                $errorIndicators = ['error', 'fail', 'invalid', 'unauthorized', 'denied', 'false'];
-                $response_lower = strtolower(trim($response));
-                $hasError = false;
-                foreach ($errorIndicators as $errorIndicator) {
-                    if (stripos($response_lower, $errorIndicator) !== false) {
-                        $hasError = true;
-                        break;
-                    }
-                }
-                // If no error indicators, consider it successful
-                if (!$hasError && !empty(trim($response))) {
-                    $status = true;
-                }
-            }
-        }
-        
-        // Debug: Print response for testing
-        echo "API Response: " . $response . " | Status: " . ($status ? 'SUCCESS' : 'FAILED') . "\n";
-        
+        // Check if successful
+        $status = ($httpCode == 200 && stripos($response, 'success') !== false);
         if ($status) $successCount++;
 
         $results[] = [
