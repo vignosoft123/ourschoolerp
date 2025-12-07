@@ -493,6 +493,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['id_card_template_file
 
                     $array['website']  =  $this->input->post('website');
                     $array['school_telugu']  =  $this->input->post('school_telugu');
+                    $array['app_link']  =  $this->input->post('app_link');
+                    $array['village_name']  =  $this->input->post('village_name');
                     $array['teacher_present_time']  =  $this->input->post('teacher_present_time');
                     $array['is_biometric']  =  $this->input->post('is_biometric');
                     $array['is_display_attendance_on_progresscard']  =  $this->input->post('is_display_attendance_on_progresscard');

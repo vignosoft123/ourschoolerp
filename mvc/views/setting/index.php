@@ -83,6 +83,19 @@
                     </div>
 
                     <div class="col-sm-4">
+                        <div class="form-group <?= form_error('village_name') ? 'has-error' : '' ?>">
+                            <div class="col-sm-12">
+                                <label for="village_name">Village Name&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="right" title="village name"></i>
+                                </label>
+                                <input type="text" class="form-control" id="village_name" name="village_name" value="<?= set_value('village_name', isset($setting->village_name) ? $setting->village_name : '') ?>">
+                                <span class="control-label">
+                                    <?php echo form_error('village_name'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
                         <div class="form-group <?= form_error('footer') ? 'has-error' : '' ?>">
                             <div class="col-sm-12">
                                 <label for="footer"><?= $this->lang->line("setting_school_footer") ?>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="right" title="Set site footer text here"></i>
@@ -90,20 +103,6 @@
                                 <input type="text" class="form-control" id="footer" name="footer" value="<?= set_value('footer', $setting->footer) ?>">
                                 <span class="control-label">
                                     <?= form_error('footer'); ?>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-sm-4">
-                        <div class="form-group <?= form_error('currency_code') ? 'has-error' : '' ?>">
-                            <div class="col-sm-12">
-                                <label for="currency_code">
-                                    <?= $this->lang->line("setting_school_currency_code") ?>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Set organization currency code like USD or GBP"></i>
-                                </label>
-                                <input type="text" class="form-control" id="currency_code" name="currency_code" value="<?= set_value('currency_code', $setting->currency_code) ?>">
-                                <span class="control-label">
-                                    <?= form_error('currency_code'); ?>
                                 </span>
                             </div>
                         </div>
@@ -487,6 +486,21 @@
                                 <input type="text" class="form-control" id="school_telugu" name="school_telugu" value="<?= set_value('school_telugu', isset($setting->school_telugu) ? $setting->school_telugu : '') ?>">
                                 <span class="control-label">
                                     <?php echo form_error('school_telugu'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group <?= form_error('app_link') ? 'has-error' : '' ?>">
+                            <div class="col-sm-12">
+                                <label for="app_link">App Link&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="right" title="app link"></i>
+                                </label>
+                                <input type="text" class="form-control" id="app_link" name="app_link" value="<?= set_value('app_link', isset($setting->app_link) ? $setting->app_link : '') ?>">
+                                <span class="control-label">
+                                    <?php echo form_error('app_link'); ?>
                                 </span>
                             </div>
                         </div>

@@ -3602,9 +3602,13 @@ public function send_whatsapp_message()
         return;
     }
 
-    // ✅ Step 7: Send in batches (faster than one-by-one)
+    // ✅ Step 7: Send in batches with media support
     $this->load->model('Whatsapp_m');
-    $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
+    if (!empty($media_path)) {
+        $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media_progresscard($bulkMessages, $template['template_name']);
+    } else {
+        $sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
+    }
 
     $retArray['status'] = true;
     $retArray['message'] = "WhatsApp messages sent successfully to {$sentCount} recipients.";
@@ -3624,7 +3628,8 @@ public function send_whatsapp_static_message()
     $sectionID    = $this->input->post('whatsapp_section');
     $users        = $this->input->post('whatsapp_users');
     $messageText  = $this->input->post('whatsapp_message');
-	$other_whatsapp_numbers = $this->input->post('other_whatsapp_numbers'); // e.g. "8500595656,9989876545" 
+	$other_whatsapp_numbers = $this->input->post('other_whatsapp_numbers'); // e.g. "8500595656,9989876545"
+	$media_path   = $this->input->post('dynamic_file1_path'); // Media file path from upload 
 
     // ✅ Step 1: Basic validation
     if (!$templateID || !$schoolyearID || !$classesID || !$sectionID) {
@@ -3670,50 +3675,65 @@ public function send_whatsapp_static_message()
     // ✅ Step 4: Prepare payload directly (no secondary parent query)
    
 
-$bulkMessages = [];
+	$bulkMessages = [];
 
-// ✅ 1. Add student numbers
-foreach ($students as $student) {
-    if (!empty($student->phone)) {
-        $bulkMessages[] = [
-            'phone'   => preg_replace('/\D/', '', $student->phone), // sanitize to digits
-            'message' => $messageText,
-        ];
-    }
-}
+	// ✅ 1. Add student numbers
+	foreach ($students as $student) {
+		if (!empty($student->phone)) {
+			$msgData = [
+				'phone'   => preg_replace('/\D/', '', $student->phone), // sanitize to digits
+				'message' => $messageText,
+			];
+			
+			// Add media parameters if file uploaded
+			if (!empty($media_path)) {
+				$msgData['htype'] = 'document';
+				$msgData['fname'] = 'bulk whatsapp';
+				$msgData['url'] = $media_path;
+			}
+			
+			$bulkMessages[] = $msgData;
+		}
+	}
 
-// ✅ 2. Add other custom numbers
-if (!empty($other_whatsapp_numbers)) {
-    // Split by comma, remove spaces
-    $otherNumbers = array_map('trim', explode(',', $other_whatsapp_numbers));
+	// ✅ 2. Add other custom numbers
+	if (!empty($other_whatsapp_numbers)) {
+		// Split by comma, remove spaces
+		$otherNumbers = array_map('trim', explode(',', $other_whatsapp_numbers));
 
-    foreach ($otherNumbers as $num) {
-        if (preg_match('/^[0-9]{10,15}$/', $num)) { // simple number validation
-            $bulkMessages[] = [
-                'phone'   => $num,
-                'message' => $messageText,
-            ];
-        }
-    }
-}
+		foreach ($otherNumbers as $num) {
+			if (preg_match('/^[0-9]{10,15}$/', $num)) { // simple number validation
+				$msgData = [
+					'phone'   => $num,
+					'message' => $messageText,
+				];
+				
+				// Add media parameters if file uploaded
+				if (!empty($media_path)) {
+					$msgData['htype'] = 'document';
+					$msgData['fname'] = 'WhatsApp_Media_' . $num . '.pdf';
+					$msgData['url'] = $media_path;
+				}
+				
+				$bulkMessages[] = $msgData;
+			}
+		}
+	}
 
-  if (empty($bulkMessages)) {
-        $retArray['message'] = "No numbers found for the selected filters.";
-        echo json_encode($retArray);
-        return;
-    }
+	// ✅ 3. Check before sending
+	if (empty($bulkMessages)) {
+		$retArray['message'] = "No valid phone numbers found.";
+		echo json_encode($retArray);
+		return;
+	}
 
-// ✅ 3. Check before sending
-if (empty($bulkMessages)) {
-    $retArray['message'] = "No valid phone numbers found.";
-    echo json_encode($retArray);
-    return;
-}
-
-// ✅ 4. Send in batches
-$this->load->model('Whatsapp_m');
-$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
-
+	// ✅ 4. Send in batches with media support
+	$this->load->model('Whatsapp_m');
+	if (!empty($media_path)) {
+		$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media_progresscard($bulkMessages, $template['template_name']);
+	} else {
+		$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
+	}
 
     $retArray['status'] = true;
     $retArray['message'] = "WhatsApp messages sent successfully to {$sentCount} recipients.";

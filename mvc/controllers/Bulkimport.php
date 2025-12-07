@@ -417,6 +417,25 @@ class Bulkimport extends Admin_Controller
         }
     }
 
+    // Method to clean and normalize CSV data
+    private function cleanCsvData($data) {
+        if(is_array($data)) {
+            $cleaned = [];
+            foreach($data as $key => $value) {
+                $cleaned[$key] = $this->cleanCsvData($value);
+            }
+            return $cleaned;
+        } else {
+            // Remove BOM (Byte Order Mark) if present
+            $data = preg_replace('/^\xEF\xBB\xBF/', '', $data);
+            // Normalize whitespace - replace multiple spaces/tabs/newlines with single space
+            $data = preg_replace('/\s+/', ' ', trim($data));
+            // Remove non-printable characters except basic punctuation
+            $data = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]/', '', $data);
+            return trim($data);
+        }
+    }
+
     public function student_bulkimport()
     {
         if(isset($_FILES["csvStudent"])) {
@@ -473,6 +492,9 @@ class Bulkimport extends Admin_Controller
                         $i       = 1;
                         $csv_col = [];
                         foreach($csv_array as $row) {
+                            // Clean all CSV data to remove special characters and normalize whitespace
+                            $row = $this->cleanCsvData($row);
+                            
                             if($i == 1) {
                                 $csv_col = array_keys($row);
                             }
@@ -1167,7 +1189,18 @@ class Bulkimport extends Admin_Controller
             //     $retArray['error']['optionalsubject'] = 'Invalid OptionalSubject Subject';
             // }
             if(!$checkStudent) {
-                $retArray['error']['checkStudent'] = 'Student can not add in section';
+                // Provide more specific error message based on what failed
+                $class_check = $this->get_student_class($array['class']);
+                if($class_check == 0) {
+                    $retArray['error']['checkStudent'] = 'Class not found: "' . $array['class'] . '"';
+                } else {
+                    $section_check = $this->get_student_section($class_check, $array['section']);
+                    if($section_check == 0) {
+                        $retArray['error']['checkStudent'] = 'Section not found: "' . $array['section'] . '" in class "' . $array['class'] . '"';
+                    } else {
+                        $retArray['error']['checkStudent'] = 'Section capacity exceeded for "' . $array['section'] . '" in class "' . $array['class'] . '"';
+                    }
+                }
             }
         }
         return $retArray;
@@ -1228,31 +1261,79 @@ class Bulkimport extends Admin_Controller
     // Student Valiadtion Check
     private function trim_check_section_student( $array )
     {
-        $classes = strtolower(trim($array['class']));
-        $section = strtolower(trim($array['section']));
+        // Normalize class and section names using our improved logic
+        $classes = preg_replace('/\s+/', ' ', trim($array['class']));
+        $classes = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]/', '', $classes);
+        $classes = strtolower(trim($classes));
+        
+        $section = preg_replace('/\s+/', ' ', trim($array['section']));
+        $section = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]/', '', $section);
+        $section = strtolower(trim($section));
 
         if($classes && $section) {
-            $result = $this->classes_m->general_get_single_classes(['LOWER(classes)' => $classes]);
-            if(customCompute($result)) {
-                $result = $this->section_m->general_get_single_section([
-                    'classesID'      => $result->classesID,
+            // First try exact match for class
+            $class_result = $this->classes_m->general_get_single_classes(['LOWER(classes)' => $classes]);
+            
+            // If no exact match, try to find similar class names
+            if(!customCompute($class_result)) {
+                $all_classes = $this->classes_m->general_get_classes();
+                if(customCompute($all_classes)) {
+                    foreach($all_classes as $class) {
+                        $db_class = preg_replace('/\s+/', ' ', trim($class->classes));
+                        $db_class = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]/', '', $db_class);
+                        $db_class = strtolower(trim($db_class));
+                        
+                        if($classes === $db_class) {
+                            $class_result = $class;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if(customCompute($class_result)) {
+                // First try exact match for section
+                $section_result = $this->section_m->general_get_single_section([
+                    'classesID'      => $class_result->classesID,
                     'LOWER(section)' => $section
                 ]);
-                if(customCompute($result)) {
-                    $capacity     = $result->capacity;
+                
+                // If no exact match, try to find similar section names
+                if(!customCompute($section_result)) {
+                    $all_sections = $this->section_m->general_get_order_by_section(['classesID' => $class_result->classesID]);
+                    if(customCompute($all_sections)) {
+                        foreach($all_sections as $sect) {
+                            $db_section = preg_replace('/\s+/', ' ', trim($sect->section));
+                            $db_section = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]/', '', $db_section);
+                            $db_section = strtolower(trim($db_section));
+                            
+                            if($section === $db_section) {
+                                $section_result = $sect;
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                if(customCompute($section_result)) {
+                    $capacity     = $section_result->capacity;
                     $schoolyearID = $this->session->userdata('defaultschoolyearID');
                     $students     = $this->studentrelation_m->general_get_order_by_student([
-                        'srclassesID'    => $result->classesID,
-                        'srsectionID'    => $result->sectionID,
+                        'srclassesID'    => $section_result->classesID,
+                        'srsectionID'    => $section_result->sectionID,
                         'srschoolyearID' => $schoolyearID
                     ]);
                     $totalStudent = customCompute($students);
-                    if($totalStudent <= $capacity) {
+                    
+                    if($totalStudent < $capacity) {
                         return TRUE;
+                    } else {
+                        return FALSE;
                     }
                 }
             }
         }
+        
         return FALSE;
     }
 
@@ -1339,11 +1420,30 @@ class Bulkimport extends Admin_Controller
 
     private function trim_required_class_Check( $classes )
     {
+        // Normalize the class name
+        $classes = preg_replace('/\s+/', ' ', trim($classes)); // Replace multiple spaces with single space
+        $classes = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $classes); // Remove non-printable characters
         $classes = strtolower(trim($classes));
+        
         if($classes) {
+            // First try exact match
             $result = $this->classes_m->general_get_single_classes(['LOWER(classes)' => $classes]);
             if(customCompute($result)) {
                 return $result;
+            }
+            
+            // If no exact match, try to find similar class names
+            $all_classes = $this->classes_m->general_get_classes();
+            if(customCompute($all_classes)) {
+                foreach($all_classes as $class) {
+                    $db_class = preg_replace('/\s+/', ' ', trim($class->classes));
+                    $db_class = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $db_class);
+                    $db_class = strtolower(trim($db_class));
+                    
+                    if($classes === $db_class) {
+                        return $class;
+                    }
+                }
             }
         }
         return FALSE;
@@ -1367,17 +1467,59 @@ class Bulkimport extends Admin_Controller
 
     private function trim_required_section_Check( $classes, $section )
     {
+        // Normalize class and section names
+        $classes = preg_replace('/\s+/', ' ', trim($classes));
+        $classes = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $classes);
         $classes = strtolower(trim($classes));
+        
+        $section = preg_replace('/\s+/', ' ', trim($section));
+        $section = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $section);
         $section = strtolower(trim($section));
+        
         if($classes && $section) {
-            $result = $this->classes_m->general_get_single_classes(['LOWER(classes)' => $classes]);
-            if(customCompute($result)) {
-                $result = $this->section_m->general_get_single_section([
-                    'classesID'      => $result->classesID,
+            // First find the class
+            $class_result = $this->classes_m->general_get_single_classes(['LOWER(classes)' => $classes]);
+            
+            if(!customCompute($class_result)) {
+                // Try to find similar class names
+                $all_classes = $this->classes_m->general_get_classes();
+                if(customCompute($all_classes)) {
+                    foreach($all_classes as $class) {
+                        $db_class = preg_replace('/\s+/', ' ', trim($class->classes));
+                        $db_class = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $db_class);
+                        $db_class = strtolower(trim($db_class));
+                        
+                        if($classes === $db_class) {
+                            $class_result = $class;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if(customCompute($class_result)) {
+                // Now find the section
+                $section_result = $this->section_m->general_get_single_section([
+                    'classesID'      => $class_result->classesID,
                     'LOWER(section)' => $section
                 ]);
-                if(customCompute($result)) {
-                    return $result;
+                
+                if(customCompute($section_result)) {
+                    return $section_result;
+                }
+                
+                // Try to find similar section names
+                $all_sections = $this->section_m->general_get_order_by_section(['classesID' => $class_result->classesID]);
+                if(customCompute($all_sections)) {
+                    foreach($all_sections as $sect) {
+                        $db_section = preg_replace('/\s+/', ' ', trim($sect->section));
+                        $db_section = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $db_section);
+                        $db_section = strtolower(trim($db_section));
+                        
+                        if($section === $db_section) {
+                            return $sect;
+                        }
+                    }
                 }
             }
         }
@@ -1549,11 +1691,30 @@ class Bulkimport extends Admin_Controller
     // For Only Student Import Check Query
     public function get_student_class( $classes )
     {
+        // Normalize the class name - remove extra spaces, tabs, non-breaking spaces, and special chars
+        $classes = preg_replace('/\s+/', ' ', trim($classes)); // Replace multiple spaces with single space
+        $classes = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $classes); // Remove non-printable characters
         $classes = strtolower(trim($classes));
+        
         if($classes) {
+            // First try exact match
             $result = $this->classes_m->general_get_single_classes(['LOWER(classes)' => $classes]);
             if(customCompute($result)) {
                 return $result->classesID;
+            }
+            
+            // If no exact match, try to find similar class names
+            $all_classes = $this->classes_m->general_get_classes();
+            if(customCompute($all_classes)) {
+                foreach($all_classes as $class) {
+                    $db_class = preg_replace('/\s+/', ' ', trim($class->classes));
+                    $db_class = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $db_class);
+                    $db_class = strtolower(trim($db_class));
+                    
+                    if($classes === $db_class) {
+                        return $class->classesID;
+                    }
+                }
             }
         }
         return 0;
@@ -1561,14 +1722,33 @@ class Bulkimport extends Admin_Controller
 
     public function get_student_section( $classesID, $section )
     {
+        // Normalize the section name - remove extra spaces, tabs, non-breaking spaces, and special chars
+        $section = preg_replace('/\s+/', ' ', trim($section)); // Replace multiple spaces with single space
+        $section = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $section); // Remove non-printable characters
         $section = strtolower(trim($section));
-        if($classesID) {
+        
+        if($classesID && $section) {
+            // First try exact match
             $result = $this->section_m->general_get_single_section([
                 'classesID'      => $classesID,
                 'LOWER(section)' => $section
             ]);
             if(customCompute($result)) {
                 return $result;
+            }
+            
+            // If no exact match, try to find similar section names
+            $all_sections = $this->section_m->general_get_order_by_section(['classesID' => $classesID]);
+            if(customCompute($all_sections)) {
+                foreach($all_sections as $sect) {
+                    $db_section = preg_replace('/\s+/', ' ', trim($sect->section));
+                    $db_section = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $db_section);
+                    $db_section = strtolower(trim($db_section));
+                    
+                    if($section === $db_section) {
+                        return $sect;
+                    }
+                }
             }
         }
         return 0;

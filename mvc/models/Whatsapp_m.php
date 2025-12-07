@@ -98,7 +98,7 @@ class Whatsapp_m extends MY_Model {
 
 
 	public function sendWhatsapp_bulk_batch($dataBatch, $templateName)
-{
+{	//from bulk whatsapp send
     $sent = 0;
 
     // You can send 50–100 numbers per API call (depending on provider)
@@ -121,7 +121,7 @@ class Whatsapp_m extends MY_Model {
 
 
 public function send_to_api($payload)
-{
+{	//from bulk whatsapp send
 	// echo "<pre>";print_r($payload);die;
     $templateName = isset($payload['template_name']) ? $payload['template_name'] : '';
     $messages     = isset($payload['messages']) ? $payload['messages'] : [];
@@ -156,7 +156,7 @@ public function send_to_api($payload)
              . "&text={$text}"
              . "&priority=wa"
              . "&stype=normal"
-             . "&Params={$params}";
+             . "&Params=" . urlencode($params);
 
 			//  echo $url;die;
         // ✅ Execute API Request
@@ -269,7 +269,7 @@ public function send_to_api_with_media($payload)
         if (!empty($media)) {
             $url .= "&url={$media}";
         }
-			
+			// echo $url;die;
         // Execute API Request
         $ch = curl_init();
         curl_setopt_array($ch, [

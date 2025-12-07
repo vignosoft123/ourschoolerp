@@ -1083,14 +1083,17 @@
                                             <input type="hidden" name="dynamic_file1_path" id="dynamic_file1_path" value="">
                                             
                                             <div class='form-group'>
-                                                <label for="from_call" class="col-sm-2 control-label">
-                                                    New File
+                                                <label for="whatsapp_media" class="col-sm-2 control-label">
+                                                    Media File (PDF/Image)
                                                 </label>
                                                 <div class="col-sm-6">
-                                                    <input type="file" id="csv_file1" class="form-control" name="individual_attachment1" >
+                                                    <input type="file" id="csv_file1" class="form-control" name="individual_attachment1" accept=".pdf,.jpg,.jpeg,.png,.gif" >
                                                 </div>
                                                 <div class="col-sm-2">
                                                     <a href="javascript:void(0)" id="upload_btn1" class="btn btn-success upload_btn1" onclick="uploadFile1()">Upload </a>
+                                                </div>
+                                                <div class="col-sm-2">
+                                                    <span id="upload_status1" class="text-success" style="display:none;">File uploaded successfully!</span>
                                                 </div>
                                             </div>
 
@@ -1856,6 +1859,8 @@ function uploadFile1() {
     var data = new FormData($('#whatsapp_form')[0]);
     data.append("realname", realname);
     $('.upload_btn1').addClass('disabled');
+    $('#upload_status1').hide();
+    
     $.ajax({
         url: '<?php echo base_url();?>mailandsms/upload_file',
         type: 'POST',
@@ -1870,15 +1875,17 @@ function uploadFile1() {
             
             if ($resp.success) {                
                 $("#dynamic_file1_path").val($resp.new_file_path);
-                alert('File Successfully uploaded.');
+                $('#upload_status1').show().text('Media file uploaded successfully!');
+                alert('Media file uploaded successfully! This will be sent with WhatsApp messages.');
             } else {
                 alert($resp.msg);
             }
-           $('.upload_btn').removeClass('disabled');
+           $('.upload_btn1').removeClass('disabled');
         },
         error: function () {
             console.log('Server Error, Please try again');
-            $('.upload_btn').removeClass('disabled');
+            alert('Upload failed. Please try again.');
+            $('.upload_btn1').removeClass('disabled');
         },
         complete: function () {
 
