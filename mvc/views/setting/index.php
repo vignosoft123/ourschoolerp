@@ -111,6 +111,20 @@
 
                 <div class="row">
                     <div class="col-sm-4">
+                        <div class="form-group <?= form_error('currency_code') ? 'has-error' : '' ?>">
+                            <div class="col-sm-12">
+                                <label for="currency_code">
+                                    <?= $this->lang->line("setting_school_currency_code") ?>&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Set organization currency code like USD or GBP"></i>
+                                </label>
+                                <input type="text" class="form-control" id="currency_code" name="currency_code" value="<?= set_value('currency_code', $setting->currency_code) ?>">
+                                <span class="control-label">
+                                    <?= form_error('currency_code'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
                         <div class="form-group <?= form_error('currency_symbol') ? 'has-error' : '' ?>">
                             <div class="col-sm-12">
                                 <label for="currency_symbol"><?= $this->lang->line("setting_school_currency_symbol") ?> &nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" title="Set organization currency system here like $ or £"></i>

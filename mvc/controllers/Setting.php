@@ -166,6 +166,11 @@ Class Setting extends Admin_Controller {
                 'label' => $this->lang->line("setting_school_code"),
                 'rules' => 'trim|required|xss_clean|min_length[2]|max_length[6]'
             ],
+            [
+                'field' => 'village_name',
+                'label' => 'Village Name',
+                'rules' => 'trim|xss_clean|max_length[100]'
+            ],
 
         ];
 

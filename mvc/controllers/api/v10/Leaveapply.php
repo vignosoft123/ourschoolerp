@@ -83,14 +83,41 @@ public function index_get()
                         $this->retdata['leaveapply']->leaveavabledays = $this->lang->line('leaveapply_deleted');
                     }
 
-                    $this->retdata['applicant']= getObjectByUserTypeIDAndUserID($this->retdata['leaveapply']->create_usertypeID, $this->retdata['leaveapply']->create_userID, $schoolyearID);
+                    $applicant = getObjectByUserTypeIDAndUserID($this->retdata['leaveapply']->create_usertypeID, $this->retdata['leaveapply']->create_userID, $schoolyearID);
+                    $daysArray = $this->leavedayscustomCompute($this->retdata['leaveapply']->from_date, $this->retdata['leaveapply']->to_date);
 
-                    $this->retdata['daysArray'] = $this->leavedayscustomCompute($this->retdata['leaveapply']->from_date, $this->retdata['leaveapply']->to_date);
+                    // Create optimized response with only necessary data
+                    $optimizedData = [
+                        'leaveapply' => [
+                            'leaveapplicationID' => $this->retdata['leaveapply']->leaveapplicationID,
+                            'leavecategoryID' => $this->retdata['leaveapply']->leavecategoryID,
+                            'from_date' => $this->retdata['leaveapply']->from_date,
+                            'to_date' => $this->retdata['leaveapply']->to_date,
+                            'leave_days' => $this->retdata['leaveapply']->leave_days,
+                            'reason' => $this->retdata['leaveapply']->reason,
+                            'status' => $this->retdata['leaveapply']->status,
+                            'od_status' => $this->retdata['leaveapply']->od_status,
+                            'category' => $this->retdata['leaveapply']->category,
+                            'leaveavabledays' => $this->retdata['leaveapply']->leaveavabledays
+                        ],
+                        'applicant' => [
+                            'name' => $applicant->name ?? '',
+                            'email' => $applicant->email ?? '',
+                            'phone' => $applicant->phone ?? '',
+                            'usertype' => $applicant->usertype ?? ''
+                        ],
+                        'daysArray' => [
+                            'fromdate' => $daysArray['fromdate'],
+                            'todate' => $daysArray['todate'],
+                            'leavedayCount' => $daysArray['leavedayCount'],
+                            'totaldayCount' => $daysArray['totaldayCount']
+                        ]
+                    ];
 
                     $this->response([
                         'status'    => true,
                         'message'   => 'Success',
-                        'data'      => $this->retdata
+                        'data'      => $optimizedData
                     ], REST_Controller::HTTP_OK);
                 } else {
                     $this->response([

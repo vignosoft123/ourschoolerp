@@ -32,6 +32,7 @@ class Examschedule_m extends MY_Model {
 		$this->db->join('subject', 'subject.subjectID = examschedule.subjectID', 'LEFT');
 		$this->db->where($array)->order_by('edate');
 		$query = $this->db->get();
+		// echo $this->db->last_query();die;
 		return $query->result();
 	}
 
