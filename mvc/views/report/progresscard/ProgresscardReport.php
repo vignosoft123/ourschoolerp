@@ -612,10 +612,10 @@ font-size: 13px;
                                                 $leftColumn  = customCompute($markpercentages) + 1;
                                             }
                                             if(customCompute($markpercentages)) { foreach($markpercentages as $markpercentageID) { $totalColumn++;
-                                            $subjTotal = isset($percentageArr[$markpercentageID]) ? substr($percentageArr[$markpercentageID]->percentage, 0, 3) : 100;
+                                            $subjTotal = isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : 100;
                                             ?>
                                                 <!-- <th>
-                                                    <?=isset($percentageArr[$markpercentageID]) ? substr($percentageArr[$markpercentageID]->percentage, 0, 3) : '';?>
+                                                    <?=isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : '';?>
                                                 </th> -->
                                         <?php } } } } ?>
                                     </tr>
@@ -739,6 +739,7 @@ font-size: 13px;
                                             } } ?>
                                             <td><?=$totalSubjectMark?></td>
                                             <?php
+                                            $marks_template.=substr($optionalSubjects[$student->sroptionalsubjectID]->subject,0,3).'='.$totalSubjectMark.'/'.$optionalSubjects[$student->sroptionalsubjectID]->max_mark.',';
                                             $totalAllSubjectMark      += $totalSubjectMark;
                                             $subjectGradeMark          = $totalGradeSubjectMark / customCompute($settingExam);
 

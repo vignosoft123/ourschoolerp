@@ -1033,13 +1033,14 @@ foreach($months_array as $mkey => $v) {
 
 		$sql1 = "select * from smssettings where types='msg91' and field_names='msg91_register_school_name'";
 		$registered_school_name = $this->db->query($sql1)->row()->field_values;
-
+			// echo $senderid;die;
 		foreach($st_ids as $key => $student)
 		{
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
 		    {
 				if( $senderid=='VGNSSP'){
-		        	$template1 = substr($marks_template[$key],0,-1);
+		        	$template1 = rtrim($marks_template[$key], ',');
+					
 					
 		        	$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$template1.'. Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$school_name.'. VGNSSP';
 
@@ -1067,7 +1068,7 @@ foreach($months_array as $mkey => $v) {
 
 				// }
 				else if($senderid=='GGSDRS'){ //ggs darshi
-					$template1 = substr($marks_template[$key],0,-1);
+					$template1 = rtrim($marks_template[$key], ',');
 
 					$subs = explode(',',$template1);
 					// echo "<pre>";print_r($subs);die;
@@ -1080,7 +1081,7 @@ foreach($months_array as $mkey => $v) {
 
 					
 					}else if($senderid=='SDHEDU'){  //siddardha school
-						$template1 = substr($marks_template[$key],0,-1);
+						$template1 = rtrim($marks_template[$key], ',');
 	
 						$subs = explode(',',$template1);
 						// echo "<pre>";print_r($subs);die;
@@ -1101,7 +1102,7 @@ foreach($months_array as $mkey => $v) {
 	
 						
 					} else if($senderid=='SVJCPM'){ //srivenkateswara school - sender id is different 
-		        	$template1 = substr($marks_template[$key],0,-1);
+		        	$template1 = rtrim($marks_template[$key], ',');
 					$sndid = 'SVES';
 
 					$subs = explode(',',$template1);
@@ -1114,7 +1115,7 @@ foreach($months_array as $mkey => $v) {
 					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.'.'.$senderid;
  
 				} else if($senderid=='SSEMRK'){ //sadana
-		        	$template1 = substr($marks_template[$key],0,-1);
+		        	$template1 = rtrim($marks_template[$key], ',');
 
 					$subs = explode(',',$template1);
  					$var1 = ($subs[0]?$subs[0]:'-').','.($subs[1]?$subs[1]:'-');
@@ -1130,7 +1131,8 @@ foreach($months_array as $mkey => $v) {
 
 					
 				} else{
-		        	$template1 = substr($marks_template[$key],0,-1);
+ 		        	$template1 = rtrim($marks_template[$key], ',');
+					// echo $template1;die;
 
 					$subs = explode(',',$template1);
 					// echo "<pre>";print_r($subs);die;
@@ -1151,8 +1153,7 @@ foreach($months_array as $mkey => $v) {
 
 					
 				}
-
-		        $campid = $res = $this->userConfigSMS($template,$mobile_no[$key]);
+ 		        $campid = $res = $this->userConfigSMS($template,$mobile_no[$key]);
 		        // if($res==TRUE)
 		        if((int)$campid)
 		        {
@@ -1204,7 +1205,7 @@ foreach($months_array as $mkey => $v) {
 		{
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
 		    { 
-		        	$template1 = substr($marks_template[$key],0,-1);
+		        	$template1 = rtrim($marks_template[$key], ',');
 					 
 					// $params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
 					$params = $st_names[$key].','.$exam_name[$key];

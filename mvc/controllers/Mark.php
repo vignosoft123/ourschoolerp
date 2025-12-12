@@ -1995,14 +1995,14 @@ public function get_students_page() {
 				$schoolyearID 	= $this->data['siteinfos']->school_year;
 
 				// Debug logging
-				log_message('debug', 'Mark Send - Payload: ' . json_encode($_POST));
-				log_message('debug', 'Mark Send - School Year ID: ' . $schoolyearID);
+				// log_message('debug', 'Mark Send - Payload: ' . json_encode($_POST));
+				// log_message('debug', 'Mark Send - School Year ID: ' . $schoolyearID);
 
 				$markRelationArray = [];
 				if (customCompute($inputs)) {
 					foreach ($inputs as $key => $value) {
 						// Debug each input
-						log_message('debug', 'Processing input: ' . json_encode($value));
+						// log_message('debug', 'Processing input: ' . json_encode($value));
 						
 						// Parse the mark name format: {subjectID}mark-{markID}
 						$data = explode('-', $value['mark']);
@@ -2016,11 +2016,11 @@ public function get_students_page() {
 						$markpercentageID = $value['markpercentageid'];
 						$markValue = abs($value['value']);
 						
-						log_message('debug', "Parsed - MarkID from name: $markIDFromName, MarkPercentageID: $markpercentageID, Value: $markValue");
+						// log_message('debug', "Parsed - MarkID from name: $markIDFromName, MarkPercentageID: $markpercentageID, Value: $markValue");
 						
 						// If markID is 0, we need to create a new mark record first
 						if ($markIDFromName == '0') {
-							log_message('debug', "Creating new mark record for markIDFromName = 0");
+							// log_message('debug', "Creating new mark record for markIDFromName = 0");
 							
 							// Extract subjectID from the name (remove 'mark' suffix)
 							$subjectPart = $data[0];
@@ -2029,11 +2029,11 @@ public function get_students_page() {
 							// Get student ID from the AJAX request
 							$studentID = $this->input->post('studentID');
 							
-							log_message('debug', "Extracted SubjectID: $extractedSubjectID, StudentID: $studentID");
+							// log_message('debug', "Extracted SubjectID: $extractedSubjectID, StudentID: $studentID");
 							
 							if (!$studentID || $studentID == '0') {
 								// Log error and skip this entry
-								log_message('error', "Cannot create mark record: invalid student ID for subject $extractedSubjectID");
+								// log_message('error', "Cannot create mark record: invalid student ID for subject $extractedSubjectID");
 								continue;
 							}
 							
@@ -3452,7 +3452,7 @@ public function generateRanks() {
                 $ranksUpdated++;
             }
         }
-    }
+    } 
 
     echo json_encode([
         'status' => true,
@@ -3474,6 +3474,8 @@ public function saveSubjectAttendance() {
     $subject = $this->subject_m->get_single_subject(['subjectID' => $subjectID]);
     $maxMark = $subject ? $subject->max_mark : 100;
 
+	
+
     if ($attendance == 'Absent') {
         // Find the markID for this specific student, exam, class, and subject
         $mark = $this->db->select('markID')
@@ -3494,7 +3496,66 @@ public function saveSubjectAttendance() {
             // Update attendance in mark table for this subject
             $this->db->where('markID', $mark->markID);
             $this->db->update('mark', ['eattendance' => 'Absent']);
-        }
+        }else {
+			// Get exam name for the exam field
+			$this->db->select('exam');
+			$this->db->where('examID', $examID);
+			$examQuery = $this->db->get('exam');
+			$examName = '';
+			if ($examQuery->num_rows() > 0) {
+				$examName = $examQuery->row()->exam;
+			}
+			
+			// Get subject name for the subject field
+			$this->db->select('subject');
+			$this->db->where('subjectID', $subjectID);
+			$subjectQuery = $this->db->get('subject');
+			$subjectName = '';
+			if ($subjectQuery->num_rows() > 0) {
+				$subjectName = $subjectQuery->row()->subject;
+			}
+
+			// If no mark record exists, create one with Absent status
+			// Create new mark record
+			$markData = [
+				'examID' => $examID,
+				'classesID' => $classesID,
+				'subjectID' => $subjectID,
+				'studentID' => $studentID,
+				'schoolyearID' => $schoolyearID,
+				'create_date' => date('Y-m-d H:i:s'),
+				'create_userID' => $this->session->userdata('loginuserID'),
+				'create_usertypeID' => $this->session->userdata('usertypeID'),
+				'year' => date('Y'),
+				'exam' => $examName,
+				'subject' => $subjectName,
+				'eattendance' => "Absent"
+			];
+			
+			$this->db->insert('mark', $markData);
+			$markID = $this->db->insert_id();
+
+			if ($markID) { 
+
+				$markpercentage_res = $this->db->select('markpercentageID')
+				->from('markpercentage')
+				->where('markpercentagetype', 'EXAM')
+				->get();
+				$markpercentage_row = $markpercentage_res->row_array();
+
+				// Create corresponding markrelation record with mark = 0
+				$markRelationData = [
+					'markID' => $markID,
+					'markpercentageID' => $markpercentage_row['markpercentageID']??0, // Assuming 0 means no specific percentage
+					'mark' => 0
+				];	
+				$this->db->insert('markrelation', $markRelationData);
+			}
+
+		}
+
+		
+
         
         $responseData = [
             'status' => true,
