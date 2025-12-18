@@ -3052,7 +3052,12 @@ public function loadStudentsAjax() {
                 // Hidden Excel-only column
                 $rowsHtml .= '<td class="excel-only" style="display:none;">' . $mrk . '</td>';
                 
-                $absent_or_mark = ($mrk !== null && $mrk !== '') ? ($mrk . "/" . $subject->max_mark) : 'Ab';
+                // Check attendance status for marks template
+                if ($exam_absent == 'Absent') {
+                    $absent_or_mark = 'A';
+                } else {
+                    $absent_or_mark = $mrk . "/" . $subject->max_mark;
+                }
                 $my_template .= $subject->subject . "=" . $absent_or_mark . ",";
                 
                 $markFound = true;

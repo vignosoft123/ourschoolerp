@@ -1188,10 +1188,18 @@
                                     
                                     var subs = template1.split(',');
                                     
+                                    // Process each mark to display properly
+                                    var processedMarks = subs.map(function(mark) {
+                                        var trimmedMark = mark.trim();
+                                        // Backend now sends SUBJECT=A for absent and SUBJECT=0/35 for present but scored 0
+                                        // No processing needed, just return as is
+                                        return trimmedMark;
+                                    });
+                                    
                                     // Format the message
                                     var message = 'Dear parent, your children ' + $checkbox.attr('st_names') + 
                                                 ' Exam name ' + $checkbox.attr('exam_name') + 
-                                                ' marks are ' + subs.join(' and ') +
+                                                ' marks are ' + processedMarks.join(' and ') +
                                                 '. Total: ' + $checkbox.attr('total_marks') + 
                                                 ' Grade:' + $checkbox.attr('marks_grade');
 

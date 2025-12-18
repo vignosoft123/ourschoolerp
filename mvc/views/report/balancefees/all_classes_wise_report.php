@@ -64,8 +64,34 @@
         </ol>
     </div><!-- /.box-header -->
 
- 
+    <!-- Filter Form -->
+    <div class="box-body no-print">
+        <div class="form-horizontal" role="form">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label"><?=$this->lang->line("balancefeesreport_class")?></label>
+                        <div class="col-sm-9">
+                            <select name="classesID[]" id="classesID" class="form-control select2" multiple="multiple" data-placeholder="Select Classes">
+                                <option value="0"><?=$this->lang->line("balancefeesreport_all_class")?></option>
+                                <?php if(customCompute($classes)) { foreach($classes as $classe) { ?>
+                                    <option value="<?=$classe->classesID?>"><?=$classe->classes?></option>
+                                <?php }} ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
 
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <button type="button" class="btn btn-success" id="get_balance_fees_report"><?=$this->lang->line("balancefeesreport_get_report")?></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- form start -->
     <div class="box-body">
@@ -79,6 +105,7 @@
         <button id="exportBtn" onclick="exportToExcel()" style="background-color: #2196F3; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">Export to Excel</button>
       </div>
 
+                    <div id="results-container">
                     <table border='1' cellpadding='5' class="table table-bordered" id="myTable">
                         <thead>
                             <tr>
@@ -126,6 +153,7 @@
                             ?>
                         </tbody>
                     </table>
+                    </div>
                 </div>
             </div>
 
@@ -136,13 +164,60 @@
  
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
-
 <script>
-        $(document).ready(function () {
-            $("#exportBtn").click(function () {
-                var table = document.getElementById("myTable");
-                var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
-                XLSX.writeFile(wb, "AllClassWise Report.xlsx");
-            });
+$(document).ready(function() {
+    $('.select2').select2();
+
+    // Handle class change to load sections
+    $('#classesID').on('change', function() {
+        // No need to load sections anymore since we removed section filter
+    });
+
+    // Handle form submission
+    $('#get_balance_fees_report').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var classesID = $('#classesID').val();
+        
+        var formData = {
+            'classesID': classesID
+        };
+        
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('balancefeesreport/getClassWiseReport')?>",
+            data: formData,
+            dataType: 'json',
+            beforeSend: function() {
+                $('#get_balance_fees_report').html('Loading...');
+                $('#get_balance_fees_report').prop('disabled', true);
+            },
+            success: function(response) {
+                if(response.status) {
+                    $('#results-container').html(response.render);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('AJAX Error:', error);
+                console.log('Response:', xhr.responseText);
+                alert('Error occurred while processing the request.');
+            },
+            complete: function() {
+                $('#get_balance_fees_report').html('<?=$this->lang->line("balancefeesreport_get_report")?>');
+                $('#get_balance_fees_report').prop('disabled', false);
+            }
         });
-    </script>
+        
+        return false;
+    });
+
+    $("#exportBtn").click(function () {
+        var table = document.getElementById("myTable");
+        var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+        XLSX.writeFile(wb, "AllClassWise Report.xlsx");
+    });
+});
+</script>

@@ -1019,7 +1019,6 @@ private function totalPaymentAndWeaver_split_working($arrays) {
 	
 	
     public function all_class_wise() {
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
 		$this->data['headerassets'] = array(
 			'css' => array(
 				'assets/datepicker/datepicker.css',
@@ -1031,37 +1030,433 @@ private function totalPaymentAndWeaver_split_working($arrays) {
 				'assets/select2/select2.js'
 			)
 		);
-		$sql = "SELECT 
-					c.classes AS Classname,
-					SUM(i.amount) AS TotalFee,
-					SUM(IFNULL(payments.totalPayment, 0)) AS TotalPaid,
-					SUM(IFNULL(i.discount, 0) + IFNULL(waver.totalWeaver, 0)) AS TotalDiscount,
-					SUM(i.amount - (IFNULL(i.discount, 0) + IFNULL(waver.totalWeaver, 0)) - IFNULL(payments.totalPayment, 0)) AS TotalBalance
-				FROM invoice i
-				LEFT JOIN (
-					SELECT 
-						invoiceID, 
-						SUM(paymentamount) AS totalPayment
-					FROM payment
-					WHERE schoolyearID = $schoolyearID
-					GROUP BY invoiceID
-				) payments ON payments.invoiceID = i.invoiceID
-				LEFT JOIN (
-					SELECT 
-						invoiceID, 
-						SUM(weaver) AS totalWeaver
-					FROM weaverandfine
-					GROUP BY invoiceID
-				) waver ON waver.invoiceID = i.invoiceID
-				LEFT JOIN classes c ON c.classesID = i.classesID
-				WHERE i.schoolyearID = $schoolyearID
-				AND i.deleted_at = 1
-				GROUP BY i.classesID
-				ORDER BY c.classes";
-				$this->data['result'] = $this->db->query($sql)->result();
+
+		$this->data['date'] = date("d-m-Y");		
+		$this->data['classes'] = $this->classes_m->general_get_classes();
+
+		// If filters are submitted, process them
+		if($_POST) {
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			$_POST['schoolyearID'] = $schoolyearID;
+			
+			$villageID    = $this->input->post('villageID'); 
+			$classesID    = $this->input->post('classesID'); 
+			$sectionID    = $this->input->post('sectionID'); 
+			$studentID    = $this->input->post('studentID'); 
+			$feetypeIDs   = $this->input->post('feetypeID');
+
+			// Handle array inputs - convert to single values for model compatibility
+			$postData = array('schoolyearID' => $schoolyearID);
+			
+			// For class filter, if multiple classes selected, we'll process each separately
+			// For now, use the first selected class for the invoice query
+			if(!empty($classesID) && is_array($classesID) && $classesID[0] != '0') {
+				$postData['classesID'] = $classesID[0]; // Use first selected class
+			}
+			
+			if(!empty($sectionID) && is_array($sectionID) && $sectionID[0] != '0') {
+				$postData['sectionID'] = $sectionID[0]; // Use first selected section
+			}
+			
+			if(!empty($studentID)) {
+				$postData['studentID'] = $studentID;
+			}
+			
+			if(!empty($feetypeIDs) && is_array($feetypeIDs)) {
+				$postData['feetypeID'] = $feetypeIDs; // This can handle arrays
+			}
+
+			// Use the exact same data source as getBalanceFeesReport
+			$invoiceData = $this->invoice_m->get_all_balancefees_for_report_multi($postData);
+			$paymentData = $this->payment_m->get_order_by_payment_new_multi($schoolyearID, $feetypeIDs, $studentID);
+			$weaverData = $this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID' => $schoolyearID));
+
+			// Process the same way as getBalanceFeesReport
+			$totalAmountAndDiscount = $this->totalAmountAndDiscustomCompute($invoiceData);
+			$totalPayment = $this->totalPaymentAndWeaver($paymentData);
+			$totalweavar = $this->totalWeaver($weaverData);
+
+			// Group by class
+			$classTotals = [];
+			$classes = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+
+			// Get all students that match the criteria
+			$studentArray = [];
+			
+			// Handle multi-select filters for student filtering
+			if(!empty($classesID) && is_array($classesID)) {
+				$selectedClasses = array_filter($classesID, function($id) { return $id != '0'; });
+				if(!empty($selectedClasses)) {
+					// We'll filter students by multiple classes later
+				}
+			}
+			
+			if(!empty($sectionID) && is_array($sectionID)) {
+				$selectedSections = array_filter($sectionID, function($id) { return $id != '0'; });
+				if(!empty($selectedSections)) {
+					// We'll filter students by multiple sections later
+				}
+			}
+			
+			if(!empty($villageID) && is_array($villageID)) {
+				$selectedVillages = array_filter($villageID, function($id) { return $id != '0'; });
+				if(!empty($selectedVillages)) {
+					// We'll filter students by multiple villages later
+				}
+			}
+			
+			$studentArray['srschoolyearID'] = $schoolyearID;
+			$students = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
+			// Process each student to get class totals
+			foreach($students as $student) {
+				// Apply multi-select filters
+				$includeStudent = true;
+				
+				// Filter by selected classes
+				if(!empty($selectedClasses)) {
+					if(!in_array($student->srclassesID, $selectedClasses)) {
+						$includeStudent = false;
+					}
+				}
+				
+				// Filter by selected sections
+				if($includeStudent && !empty($selectedSections)) {
+					if(!in_array($student->srsectionID, $selectedSections)) {
+						$includeStudent = false;
+					}
+				}
+				
+				// Filter by selected villages
+				if($includeStudent && !empty($selectedVillages)) {
+					if(!in_array($student->villageID, $selectedVillages)) {
+						$includeStudent = false;
+					}
+				}
+				
+				if($includeStudent && !empty($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
+					$classID = $student->srclassesID;
+					$className = isset($classes[$classID]) ? $classes[$classID] : 'Unknown';
+
+					if(!isset($classTotals[$classID])) {
+						$classTotals[$classID] = [
+							'Classname' => $className,
+							'TotalFee' => 0,
+							'TotalPaid' => 0,
+							'TotalDiscount' => 0,
+							'TotalWeaver' => 0,
+							'TotalBalance' => 0
+						];
+					}
+
+					// Add amounts
+					$classTotals[$classID]['TotalFee'] += $totalAmountAndDiscount[$student->srstudentID]['amount'];
+					$classTotals[$classID]['TotalDiscount'] += $totalAmountAndDiscount[$student->srstudentID]['discount'];
+
+					// Add payments
+					if(isset($totalPayment[$student->srstudentID]['payment'])) {
+						$classTotals[$classID]['TotalPaid'] += $totalPayment[$student->srstudentID]['payment'];
+					}
+
+					// Add weavers
+					if(isset($totalweavar[$student->srstudentID]['weaver'])) {
+						$classTotals[$classID]['TotalWeaver'] += $totalweavar[$student->srstudentID]['weaver'];
+					}
+				}
+			}
+
+			// Calculate balances and format result
+			$result = [];
+			foreach($classTotals as $classID => $classData) {
+				$totalDiscountWithWeaver = $classData['TotalDiscount'] + $classData['TotalWeaver'];
+				$totalBalance = $classData['TotalFee'] - $totalDiscountWithWeaver - $classData['TotalPaid'];
+
+				$result[] = (object)[
+					'Classname' => $classData['Classname'],
+					'TotalFee' => $classData['TotalFee'],
+					'TotalPaid' => $classData['TotalPaid'],
+					'TotalDiscount' => $totalDiscountWithWeaver,
+					'TotalBalance' => $totalBalance
+				];
+			}
+
+			$this->data['result'] = $result;
+		} else {
+			// Default: show all classes without filters
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			
+			// Get all data without filters
+			$postArray = array('schoolyearID' => $schoolyearID);
+			$invoiceData = $this->invoice_m->get_all_balancefees_for_report_multi($postArray);
+			$paymentData = $this->payment_m->get_order_by_payment_new_multi($schoolyearID, null, "");
+			$weaverData = $this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID' => $schoolyearID));
+
+			$totalAmountAndDiscount = $this->totalAmountAndDiscustomCompute($invoiceData);
+			$totalPayment = $this->totalPaymentAndWeaver($paymentData);
+			$totalweavar = $this->totalWeaver($weaverData);
+
+			$classTotals = [];
+			$classes = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+
+			$studentArray = array('srschoolyearID' => $schoolyearID);
+			$students = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
+			foreach($students as $student) {
+				if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
+					$classID = $student->srclassesID;
+					$className = isset($classes[$classID]) ? $classes[$classID] : 'Unknown';
+
+					if(!isset($classTotals[$classID])) {
+						$classTotals[$classID] = [
+							'Classname' => $className,
+							'TotalFee' => 0,
+							'TotalPaid' => 0,
+							'TotalDiscount' => 0,
+							'TotalWeaver' => 0,
+							'TotalBalance' => 0
+						];
+					}
+
+					$classTotals[$classID]['TotalFee'] += $totalAmountAndDiscount[$student->srstudentID]['amount'];
+					$classTotals[$classID]['TotalDiscount'] += $totalAmountAndDiscount[$student->srstudentID]['discount'];
+
+					if(isset($totalPayment[$student->srstudentID]['payment'])) {
+						$classTotals[$classID]['TotalPaid'] += $totalPayment[$student->srstudentID]['payment'];
+					}
+
+					if(isset($totalweavar[$student->srstudentID]['weaver'])) {
+						$classTotals[$classID]['TotalWeaver'] += $totalweavar[$student->srstudentID]['weaver'];
+					}
+				}
+			}
+
+			$result = [];
+			foreach($classTotals as $classID => $classData) {
+				$totalDiscountWithWeaver = $classData['TotalDiscount'] + $classData['TotalWeaver'];
+				$totalBalance = $classData['TotalFee'] - $totalDiscountWithWeaver - $classData['TotalPaid'];
+
+				$result[] = (object)[
+					'Classname' => $classData['Classname'],
+					'TotalFee' => $classData['TotalFee'],
+					'TotalPaid' => $classData['TotalPaid'],
+					'TotalDiscount' => $totalDiscountWithWeaver,
+					'TotalBalance' => $totalBalance
+				];
+			}
+
+			$this->data['result'] = $result;
+		}
 
 		$this->data["subview"] = "report/balancefees/all_classes_wise_report";
 		$this->load->view('_layout_main', $this->data);
+	}
+
+	public function getClassWiseReport() {
+		$retArray['status'] = FALSE;
+		$retArray['render'] = '';
+
+		if(permissionChecker('balancefeesreport')) {
+			if($_POST) {
+				// Use EXACTLY the same logic as getBalanceFeesReport - just group results by class
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+				$_POST['schoolyearID'] = $schoolyearID;
+				$villageID    = $this->input->post('villageID'); 
+				$classesID    = $this->input->post('classesID'); 
+				$sectionID    = $this->input->post('sectionID'); 
+				$studentID    = $this->input->post('studentID'); 
+
+				$feetypeIDs = $this->input->post('feetypeID'); // Same as getBalanceFeesReport
+
+				// Handle array input for classesID - convert to single value for compatibility
+				if(is_array($classesID)) {
+					// For the main query, use the first selected class or 0 if none selected
+					$classesIDSingle = (!empty($classesID) && $classesID[0] != '0') ? $classesID[0] : 0;
+				} else {
+					$classesIDSingle = $classesID;
+				}
+
+				// Use the exact same student filtering logic as getBalanceFeesReport
+				$studentArray = [];
+				if((int)$classesIDSingle) {
+					$studentArray['srclassesID'] = $classesIDSingle;
+				}
+				if((int)$sectionID) {
+					$studentArray['srsectionID'] = $sectionID;
+				}
+				if((int)$studentID) {
+					$studentArray['srstudentID'] = $studentID;
+				}
+				if((int)$villageID) {
+					$studentArray['villageID'] = $villageID;
+				}
+				$studentArray['srschoolyearID'] = $schoolyearID;
+
+				$this->db->order_by('srclassesID','ASC');
+				$students = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
+				$classes = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+
+				// Update POST data with single value for the model methods
+				$_POST['classesID'] = $classesIDSingle;
+
+				// Get data using EXACTLY the same methods and parameters as getBalanceFeesReport
+				$totalAmountAndDiscount = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
+				
+				$totalPayment = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID, $feetypeIDs, $studentID));
+				
+				$totalweavar = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID' => $schoolyearID)));
+
+				// Now group the results by class - this is the only difference from getBalanceFeesReport
+				$classTotals = [];
+
+				// Get the original array of selected classes for filtering results
+				$selectedClasses = [];
+				if(is_array($this->input->post('classesID'))) {
+					$selectedClasses = array_filter($this->input->post('classesID'), function($id) { return $id != '0'; });
+				}
+
+				foreach($students as $student) {
+					if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
+						$classID = $student->srclassesID;
+						
+						// If specific classes were selected, only include those classes
+						if(!empty($selectedClasses) && !in_array($classID, $selectedClasses)) {
+							continue;
+						}
+						
+						$className = isset($classes[$classID]) ? $classes[$classID] : 'Unknown';
+
+						if(!isset($classTotals[$classID])) {
+							$classTotals[$classID] = [
+								'Classname' => $className,
+								'TotalFee' => 0,
+								'TotalPaid' => 0,
+								'TotalDiscount' => 0,
+								'TotalWeaver' => 0,
+								'TotalBalance' => 0
+							];
+						}
+
+						// Add amounts - same logic as getBalanceFeesReport
+						$classTotals[$classID]['TotalFee'] += $totalAmountAndDiscount[$student->srstudentID]['amount'];
+						$classTotals[$classID]['TotalDiscount'] += $totalAmountAndDiscount[$student->srstudentID]['discount'];
+
+						// Add payments - same logic as getBalanceFeesReport
+						if(isset($totalPayment[$student->srstudentID]['payment'])) {
+							$classTotals[$classID]['TotalPaid'] += $totalPayment[$student->srstudentID]['payment'];
+						}
+
+						// Add weavers - same logic as getBalanceFeesReport
+						if(isset($totalweavar[$student->srstudentID]['weaver'])) {
+							$classTotals[$classID]['TotalWeaver'] += $totalweavar[$student->srstudentID]['weaver'];
+						}
+					}
+				}
+
+				// Calculate balances and format result - sort by class name
+				$result = [];
+				ksort($classTotals); // Sort by class ID
+				
+				foreach($classTotals as $classID => $classData) {
+					$totalDiscountWithWeaver = $classData['TotalDiscount'] + $classData['TotalWeaver'];
+					$totalBalance = $classData['TotalFee'] - $totalDiscountWithWeaver - $classData['TotalPaid'];
+
+					$result[] = (object)[
+						'Classname' => $classData['Classname'],
+						'TotalFee' => $classData['TotalFee'],
+						'TotalPaid' => $classData['TotalPaid'],
+						'TotalDiscount' => $totalDiscountWithWeaver,
+						'TotalBalance' => $totalBalance
+					];
+				}
+
+				$this->data['result'] = $result;
+				$retArray['render'] = $this->load->view('report/balancefees/class_wise_results', $this->data, true);
+				$retArray['status'] = TRUE;
+				echo json_encode($retArray);
+				exit;
+			} else {
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+			$retArray['status'] = TRUE;
+			echo json_encode($retArray);
+			exit;
+		}
+	}
+
+	public function getClassWiseSummaryReport() {
+		$retArray['status'] = FALSE;
+		$retArray['render'] = '';
+
+		if(permissionChecker('balancefeesreport')) {
+			if($_POST) {
+				// Use EXACTLY the same logic as getBalanceFeesReport
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+				$_POST['schoolyearID'] = $schoolyearID;
+				$villageID = $this->input->post('villageID_multi'); 
+				$classesID_multi = $this->input->post('classesID_multi'); // Array of class IDs
+				$feetypeIDs = $this->input->post('feetypeID_multi');
+
+				$this->data['villageID'] = $villageID;
+				$this->data['classesID_multi'] = $classesID_multi;
+				$this->data['schoolyearID'] = $schoolyearID; 
+				$this->data['feetypeIDs'] = $feetypeIDs;
+
+				// Handle multi-class filtering: get students from all selected classes or all classes if none selected
+				$studentArray = [];
+				if((int)$villageID) {
+					$studentArray['villageID'] = $villageID;
+				}
+				$studentArray['srschoolyearID'] = $schoolyearID;
+
+				$this->db->order_by('srclassesID','ASC');
+				$allStudents = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+				
+				// Filter students by selected classes if any are selected
+				if(!empty($classesID_multi) && is_array($classesID_multi)) {
+					$filteredStudents = [];
+					foreach($allStudents as $studentID => $student) {
+						if(in_array($student->srclassesID, $classesID_multi)) {
+							$filteredStudents[$studentID] = $student;
+						}
+					}
+					$this->data['students'] = $filteredStudents;
+				} else {
+					$this->data['students'] = $allStudents;
+				}
+				
+				$this->data['classes'] = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+				$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
+				$this->data['feetypes'] = ($this->feetypes_m->general_get_fee_multi($feetypeIDs));
+
+				// Prepare POST data for models to get all data (not filtered by class) 
+				$postData = array('schoolyearID' => $schoolyearID);
+				if((int)$villageID) {
+					$postData['villageID'] = $villageID;
+				}
+
+				// SAME data retrieval logic as getBalanceFeesReport
+				$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($postData));
+				$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,0));
+				$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,0));
+				$this->data['totalweavar'] = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
+
+				$retArray['render'] = $this->load->view('report/balancefees/ClassWiseSummaryReport', $this->data, true);
+				$retArray['status'] = TRUE;
+				echo json_encode($retArray);
+				exit;
+			} else {
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
+			echo json_encode($retArray);
+			exit;
+		}
 	}
 	
 

@@ -1,5 +1,28 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
+<?php
+// Helper function for Indian number formatting
+function formatIndianCurrency($number, $decimals = 2) {
+    $number = round($number, $decimals);
+    $parts = explode('.', $number);
+    $integer = $parts[0];
+    $decimal = isset($parts[1]) ? $parts[1] : '00';
+    
+    // Pad decimal to required places
+    $decimal = str_pad($decimal, $decimals, '0');
+    
+    // Indian number formatting
+    $integer = (string)$integer;
+    if(strlen($integer) > 3) {
+        $last3digits = substr($integer, -3);
+        $remaining = substr($integer, 0, -3);
+        $remaining = preg_replace('/\B(?=(\d{2})+(?!\d))/', ',', $remaining);
+        $integer = $remaining . ',' . $last3digits;
+    }
+    
+    return $integer . '.' . $decimal;
+}
+?>
 
 <style>
     /* Fee Type Section */
@@ -254,6 +277,7 @@
                         $totalPayments = 0;
                         $totalWeaver = 0;
                         $totalBalance = 0;
+                        $total_disc = 0; // Initialize total_disc variable
                         $i = 0;
 
                         foreach($students as $student) {
@@ -292,16 +316,16 @@
                                 }
                             ?>
                                 <td>
-                                    <?php echo number_format($total, 2); 
+                                    <?php echo formatIndianCurrency($total); 
                                         $all_total += $total;
                                 ?>
                                 </td>
-                                <td><?php echo number_format($paid, 2);
+                                <td><?php echo formatIndianCurrency($paid);
                                     $all_paid += $paid;?></td>
-                                <td><?=number_format($discount, 2);
+                                <td><?=formatIndianCurrency($discount);
                                     $all_discount += $discount;
                                 ?></td>
-                                <td><?=number_format($remaining, 2);
+                                <td><?=formatIndianCurrency($remaining);
                                  $all_remaining += $remaining;
                                 ?></td>
                             <?php } ?>
@@ -309,7 +333,7 @@
                             <!-- Overall -->
                             <td>
                                 <?= //number_format($feeamount = $totalAmountAndDiscount[$student->srstudentID]['amount'], 2);
-                                $feeamount = number_format($all_total, 2);
+                                $feeamount = formatIndianCurrency($all_total);
                                 ?>
                             </td>
 
@@ -317,13 +341,13 @@
                                 <?php 
                                     // $discount_plus_waver = $totalAmountAndDiscount[$student->srstudentID]['discount'] + $totalweavar[$student->srstudentID]['weaver'];
                                     // echo number_format($discount_plus_waver,2);
-                                    echo $discount_plus_waver = number_format($all_discount, 2);
+                                    echo $discount_plus_waver = formatIndianCurrency($all_discount);
                                 ?>
                             </td>
 
                             <td>
                                 <?= //number_format($paid = $totalPayment[$student->srstudentID]['payment'], 2);
-                                   $paid = number_format($all_paid, 2);
+                                   $paid = formatIndianCurrency($all_paid);
                                 ?>
                             </td>
 
@@ -338,7 +362,7 @@
 
 
                                     // echo number_format($Balance,2);
-                                    echo $Balance = number_format($all_remaining, 2);
+                                    echo $Balance = formatIndianCurrency($all_remaining);
 
                                      $Amount = $all_total;
                                     $Discount =$all_discount;
@@ -386,18 +410,18 @@
                                 <?=$this->lang->line('balancefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?>
                             </td>
 
-                            <td style="color:blue" class="text-bold"><?=number_format($totalAmount,2)?></td>
+                            <td style="color:blue" class="text-bold"><?=formatIndianCurrency($totalAmount)?></td>
 
                             <td class="text-bold" style="color:purple">
                                 <?php 
                                     $d_w = $total_disc ;//$totalDiscount + $totalWeaver;
-                                    echo number_format($d_w,2);
+                                    echo formatIndianCurrency($d_w);
                                 ?> 
                             </td>
 
-                            <td style="color:green" class="text-bold"><?=number_format($totalPayments,2)?></td>
+                            <td style="color:green" class="text-bold"><?=formatIndianCurrency($totalPayments)?></td>
 
-                            <td style="color:red" class="text-bold"><?=number_format($totalBalance,2)?></td>
+                            <td style="color:red" class="text-bold"><?=formatIndianCurrency($totalBalance)?></td>
 
                             <td></td>
                         </tr>   
@@ -648,6 +672,7 @@ balance = [];
 i=j=k=l=m=n=0;
 var date = $("#date").val();
 var dynamic_term = $("#feetypeID option:selected").text(); 
+var class_name = "<?php echo isset($classes[$classesID]) ? $classes[$classesID] : 'All Classes'; ?>";
 if(date == null || date == ''){
     alert('Please select date');
     return false;
@@ -671,7 +696,7 @@ $.ajax({
     type: "POST",
     url: "<?php echo site_url('progresscardreport/send_balance_whatsapp'); ?>",
     // dataType: "json",
-    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance,"date":date,"dynamic_term":dynamic_term},
+    data: {"st_ids":st_ids,"st_names":st_names,"mobile_no":mobile_no,"balance":balance,"date":date,"dynamic_term":dynamic_term,"class_name":class_name},
     success: function(result)
     {
         var msg = "";

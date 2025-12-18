@@ -1207,8 +1207,13 @@ foreach($months_array as $mkey => $v) {
 		    { 
 		        	$template1 = rtrim($marks_template[$key], ',');
 					 
+					// Explode exam name with 'held on' to separate exam name and date
+					$exam_parts = explode(' held on ', $exam_name[$key]);
+					$exam_name_only = $exam_parts[0];
+					$exam_date_only = isset($exam_parts[1]) ? $exam_parts[1] : '';
+					
 					// $params = $st_names[$key].','.$exam_name[$key].','.$exam_date[$key];
-					$params = $st_names[$key].','.$exam_name[$key];
+					$params = $st_names[$key].','.$exam_name_only.','.$exam_date_only;
 					
 
 					if (strpos($school_name, 'VIVEKA') !== false  ) {
@@ -1236,7 +1241,7 @@ foreach($months_array as $mkey => $v) {
 
 					}
 					// echo $params;die;
-					// echo $final_messege;die;
+					// echo $message;die;
 					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,$template_name);
 		        
 		    }
@@ -1409,6 +1414,8 @@ foreach($months_array as $mkey => $v) {
 				}
                 elseif($userTag->tagname == '{{student_name}}') {
 					 $message = str_replace("{{student_name}}",$user->srname, $message);
+				}elseif($userTag->tagname == '{{class_name}}' || $userTag->tagname == '[class]') {
+					 $message = str_replace("{{class}}",$user->class_name, $message);
 				}
 				elseif($userTag->tagname == '{{balance_amount}}') {
 					$message = str_replace("{{balance_amount}}",$user->dynnamic_term .' '.$user->balance_amount, $message);
@@ -1443,6 +1450,7 @@ public function send_balance_whatsapp()
     $date         = $this->input->post('date');
     $dynamic_term = $this->input->post('dynamic_term') != 'Please Select' ? $this->input->post('dynamic_term') : '';
     $st_names     = $this->input->post('st_names');
+    $class_name   = $this->input->post('class_name');
  
 
 	 $template_sql = "select params,template_name from whatapp_templates where short_name like '%FEE_REMINDER%' ";
@@ -1487,13 +1495,21 @@ public function send_balance_whatsapp()
 		// $user['paid_amount'] = 'Rs '.$decrypt_data[1].'.00';
 		// $user['balance_amount'] = 'Rs '.$decrypt_data[2].'.00';
 
+		//   $param1 = $student_name;
+        // $param2 = 'Rs '.str_replace(',', '', $decrypt_data[2]);
+        // $param3 = $date;
+        // // $param4 = $registered_school_name;
 
-        $param1 = $student_name;
-        $param2 = 'Rs '.str_replace(',', '', $decrypt_data[2]);
-        $param3 = $date;
-        // $param4 = $registered_school_name;
+        // $params = "{$param1},{$param2},{$param3}";
+		// echo $params;die;
+		$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
 
-        $params = "{$param1},{$param2},{$param3}";
+        $user['balance_amount'] = str_replace(',', '', $decrypt_data[2]);
+        $user['date'] = $date; 
+        $user['srname'] = $student_name;
+        $user['class_name'] = $class_name;
+        print_r($template['params']);
+        echo $params = $this->tagConvertor($userTags, (object)$user, $template['params'], 'SMS');
 
         $bulkMessages[] = [
             'phone'   => $mobile_no[$key],

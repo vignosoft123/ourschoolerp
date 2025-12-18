@@ -559,4 +559,55 @@ public function get_all_payment_for_report_multi($queryArray) {
 		$query = $this->db->query("select SUM(paymentamount) as paymentamount from payment where 1 ".$condition)->row();
 		return $query;
 	}
+
+	public function get_order_by_payment_new_multi_with_class($schoolyearID, $fee_types = null, $studentID = "", $classID = null) {
+        $this->db->select('
+            s.studentID,
+            s.name AS student_name,
+            i.invoiceID,
+            i.feetype,
+            i.amount,
+            IFNULL(i.discount, 0) AS discount,
+            IFNULL(w.weaver, 0) AS weaver,
+            IFNULL(SUM(p.paymentamount), 0) AS total_paid
+        ');
+        $this->db->from('invoice i');
+        $this->db->join('student s', 's.studentID = i.studentID', 'LEFT');
+        $this->db->join(
+            '(SELECT invoiceID, SUM(weaver) AS weaver FROM weaverandfine GROUP BY invoiceID) w',
+            'w.invoiceID = i.invoiceID',
+            'LEFT'
+        );
+        $this->db->join(
+            'payment p',
+            'p.invoiceID = i.invoiceID AND p.schoolyearID = ' . $this->db->escape($schoolyearID),
+            'LEFT'
+        );
+
+        $this->db->where('i.schoolyearID', $schoolyearID);
+
+        // Add class filtering
+        if (!empty($classID)) {
+            $this->db->where('i.classesID', $classID);
+        }
+
+        if (!empty($fee_types)) {
+            if (is_array($fee_types)) {
+                $this->db->where_in('i.feetypeID', $fee_types);
+            } else {
+                $this->db->where('i.feetypeID', $fee_types);
+            }
+        }
+
+        if (!empty($studentID)) {
+            $this->db->where('i.studentID', $studentID);
+        }
+        $this->db->where('i.deleted_at', 1);
+
+        $this->db->group_by('i.invoiceID, i.feetype, i.amount, i.discount, w.weaver, s.studentID, s.name');
+        $this->db->order_by('i.invoiceID', 'ASC');
+
+        $query = $this->db->get();
+        return $query->result();
+    }
 }
