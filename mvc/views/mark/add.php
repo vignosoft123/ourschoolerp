@@ -174,7 +174,7 @@
         cursor: pointer;
     }
 
-    input[type="checkbox"] {
+    input[type="checkbox"] { 
         appearance: none;
         -webkit-appearance: none;
         -moz-appearance: none;
