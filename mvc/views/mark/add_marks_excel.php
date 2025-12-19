@@ -497,16 +497,51 @@
                             });
                         }
 
+                        // Allow negative sign input
+                        $(document).on("keydown", ".mark", function(e) {
+                            // Allow backspace, delete, tab, escape, enter
+                            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                                (e.keyCode === 65 && e.ctrlKey === true) ||
+                                (e.keyCode === 67 && e.ctrlKey === true) ||
+                                (e.keyCode === 86 && e.ctrlKey === true) ||
+                                (e.keyCode === 88 && e.ctrlKey === true) ||
+                                // Allow home, end, left, right
+                                (e.keyCode >= 35 && e.keyCode <= 39)) {
+                                return;
+                            }
+                            // Allow minus sign (109 is numpad minus, 189 is regular minus)
+                            if (e.keyCode === 109 || e.keyCode === 189 || e.keyCode === 173) {
+                                return;
+                            }
+                            // Allow numbers and decimal point
+                            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && 
+                                (e.keyCode < 96 || e.keyCode > 105) && 
+                                e.keyCode !== 190 && e.keyCode !== 110) {
+                                e.preventDefault();
+                            }
+                        });
+
                         $(document).on("keyup", ".mark", function() {
-                            if (parseInt($(this).val())) {
-                                var val = parseInt($(this).val());
-                                var minMark = parseInt($(this).attr('min'));
-                                var maxMark = parseInt($(this).attr('max'));
-                                if (minMark > val || val > maxMark) {
+                            var val = $(this).val();
+                            
+                            // Allow empty, typing negative sign, or valid number patterns
+                            if (val === '' || val === '-' || val === '.' || val === '-.') {
+                                return; // Allow these intermediate states
+                            }
+                            
+                            // Check if it's a valid number (including negative)
+                            if (!isNaN(val) && isFinite(val)) {
+                                var numVal = parseFloat(val);
+                                var minMark = parseFloat($(this).attr('min'));
+                                var maxMark = parseFloat($(this).attr('max'));
+                                
+                                if (minMark > numVal || numVal > maxMark) {
                                     $(this).val('');
                                 }
                             } else {
-                                if ($(this).val() == '0') {} else {
+                                // Allow partial typing of valid number patterns
+                                if (!/^-?\d*\.?\d*$/.test(val)) {
                                     $(this).val('');
                                 }
                             }

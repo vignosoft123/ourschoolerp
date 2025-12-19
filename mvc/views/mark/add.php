@@ -166,6 +166,92 @@
         display: none;
     }
 
+    /* Modern Checkbox Styling */
+    .checkbox {
+        position: relative;
+        display: inline-block;
+        margin: 0 8px 0 0;
+        cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    input[type="checkbox"]:hover {
+        border-color: #007bff;
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        transform: translateY(-1px);
+    }
+
+    input[type="checkbox"]:checked {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        border-color: #007bff;
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+
+    input[type="checkbox"]:checked::before {
+        content: '✓';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="checkbox"]:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+
+    input[type="checkbox"]:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Form Group Labels */
+    .control-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        font-size: 14px;
+        letter-spacing: 0.5px;
+    }
+
+    .text-red {
+        color: #dc3545 !important;
+        font-weight: bold;
+    }
+
+    /* Table Checkboxes specific styling */
+    #myTable input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    #checkAll {
+        width: 20px !important;
+        height: 20px !important;
+        margin: 0 auto !important;
+    }
+
     .grade-label {
         padding: 3px 8px;
         border-radius: 4px;
@@ -233,6 +319,73 @@
     font-size: 13px;
     font-family: Arial, sans-serif;
     margin: 2px;
+}
+
+/* Stylish Mark Input Fields */
+.mark.input_mark {
+    background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: center;
+    padding: 8px 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    position: relative;
+    outline: none;
+}
+
+.mark.input_mark:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+    transform: translateY(-1px);
+    background: linear-gradient(145deg, #ffffff 0%, #f1f3f4 100%);
+}
+
+.mark.input_mark:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1), 
+                0 4px 16px rgba(0, 123, 255, 0.2);
+    transform: translateY(-2px);
+    background: #ffffff;
+    color: #1a202c;
+}
+
+/* Positive values styling */
+.mark.input_mark:valid {
+    border-color: #28a745;
+}
+
+.mark.input_mark:valid:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1), 
+                0 4px 16px rgba(40, 167, 69, 0.2);
+}
+
+/* Negative values styling */
+.mark.input_mark[value*="-"] {
+    border-color: #dc3545;
+    background: linear-gradient(145deg, #fff5f5 0%, #fee);
+}
+
+.mark.input_mark[value*="-"]:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1), 
+                0 4px 16px rgba(220, 53, 69, 0.2);
+    background: #fff5f5;
+}
+
+/* Animation for value changes */
+@keyframes valueChange {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.mark.input_mark.value-changed {
+    animation: valueChange 0.3s ease-in-out;
 }
 
 
@@ -1334,11 +1487,11 @@
                                             });
                                             
                                             if (formData.attendance === 'Absent') {
-                                                // Show "A" for absent in all subject columns with icons
+                                                // Show "Ab" for absent in all subject columns with icons
                                                 studentRow.find('input.input_mark').each(function() {
                                                     var subjectId = $(this).attr('subj_id');
                                                     var iconHtml = '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' + studentId + '_' + subjectId + '"></i>';
-                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;" title="absent">Ab</span>';
                                                     $(this).closest('td').html(iconHtml + absentHtml);
                                                 });
                                                 
@@ -1384,7 +1537,7 @@
                                                 studentRow.find('input.input_mark').each(function() {
                                                     var subjectId = $(this).attr('subj_id');
                                                     var iconHtml = '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' + studentId + '_' + subjectId + '"></i>';
-                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;" title="absent">Ab</span>';
                                                     $(this).closest('td').html(iconHtml + absentHtml);
                                                 });
                                                 
@@ -1492,7 +1645,7 @@
                                                 var iconHtml = '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' + studentId + '_' + subjectId + '"></i>';
                                                 
                                                 if (jsonResponse.attendance === 'Absent') {
-                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                                                    var absentHtml = '<span class="attendance-circle" style="margin-left: 20px;" title="absent">Ab</span>';
                                                     targetCell.html(iconHtml + absentHtml);
                                                 } else if (jsonResponse.attendance === 'Present') {
                                                     // Present - create input field with server-provided values
@@ -1586,16 +1739,71 @@
 
                         // Lazy load images
                                 // setTimeout(lazyLoad, 1000);
-                            });                        $(document).on("keyup", ".mark", function() {
-                            if (parseInt($(this).val())) {
-                                var val = parseInt($(this).val());
-                                var minMark = parseInt($(this).attr('min'));
-                                var maxMark = parseInt($(this).attr('max'));
-                                if (minMark > val || val > maxMark) {
+                            });                        // Allow negative sign input
+                        $(document).on("keydown", ".mark", function(e) {
+                            // Allow backspace, delete, tab, escape, enter
+                            if ([8, 9, 27, 13, 46].indexOf(e.keyCode) !== -1 ||
+                                // Allow Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                                (e.keyCode === 65 && e.ctrlKey === true) ||
+                                (e.keyCode === 67 && e.ctrlKey === true) ||
+                                (e.keyCode === 86 && e.ctrlKey === true) ||
+                                (e.keyCode === 88 && e.ctrlKey === true) ||
+                                // Allow home, end, left, right
+                                (e.keyCode >= 35 && e.keyCode <= 39)) {
+                                return;
+                            }
+                            // Allow minus sign (109 is numpad minus, 189 is regular minus)
+                            if (e.keyCode === 109 || e.keyCode === 189 || e.keyCode === 173) {
+                                return;
+                            }
+                            // Allow numbers and decimal point
+                            if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && 
+                                (e.keyCode < 96 || e.keyCode > 105) && 
+                                e.keyCode !== 190 && e.keyCode !== 110) {
+                                e.preventDefault();
+                            }
+                        });
+
+                        $(document).on("keyup", ".mark", function() {
+                            var val = $(this).val();
+                            var $this = $(this);
+                            
+                            // Add visual feedback class
+                            $this.addClass('value-changed');
+                            setTimeout(function() {
+                                $this.removeClass('value-changed');
+                            }, 300);
+                            
+                            // Dynamic styling based on value
+                            $this.removeClass('positive-value negative-value zero-value');
+                            if (val && !isNaN(val)) {
+                                var numVal = parseFloat(val);
+                                if (numVal > 0) {
+                                    $this.addClass('positive-value');
+                                } else if (numVal < 0) {
+                                    $this.addClass('negative-value');
+                                } else {
+                                    $this.addClass('zero-value');
+                                }
+                            }
+                            
+                            // Allow empty, typing negative sign, or valid number patterns
+                            if (val === '' || val === '-' || val === '.' || val === '-.') {
+                                return; // Allow these intermediate states
+                            }
+                            
+                            // Check if it's a valid number (including negative)
+                            if (!isNaN(val) && isFinite(val)) {
+                                var numVal = parseFloat(val);
+                                var minMark = parseFloat($(this).attr('min'));
+                                var maxMark = parseFloat($(this).attr('max'));
+                                
+                                if (minMark > numVal || numVal > maxMark) {
                                     $(this).val('');
                                 }
                             } else {
-                                if ($(this).val() == '0') {} else {
+                                // Allow partial typing of valid number patterns
+                                if (!/^-?\d*\.?\d*$/.test(val)) {
                                     $(this).val('');
                                 }
                             }

@@ -664,7 +664,7 @@ class Mark extends Admin_Controller
                                                 $all_marks = $this->db->query($sql)->row();
                                                 
                                                 if ($all_marks) {
-                                                    $mrk = (int)$all_marks->mark;
+                                                    $mrk = (float)$all_marks->mark;
                                                     $exam_absent = $all_marks->eattendance;
                                                     
                                                     // Track absent students
@@ -821,7 +821,7 @@ public function load_students_ajax() {
 
             foreach ($marks as $mark) {
                 if ($mark->studentID == $student->studentID && $mark->subjectID == $subject->subjectID) {
-                    $student_mark = (int)$mark->mark;
+                    $student_mark = (float)$mark->mark;
                     if ($student_mark == 0) $zero_mark++;
                     $tot += $student_mark;
                     break;
@@ -1131,7 +1131,7 @@ public function get_students_page() {
     foreach($students as $stu){
         $total = 0; $fail = false;
         foreach($subjects as $sub){
-            $val = isset($marksArr[$stu->studentID][$sub->subjectID]) ? (int)$marksArr[$stu->studentID][$sub->subjectID] : 0;
+            $val = isset($marksArr[$stu->studentID][$sub->subjectID]) ? (float)$marksArr[$stu->studentID][$sub->subjectID] : 0;
             $total += $val;
             if($val < $sub->min_mark) $fail = true;
         }
@@ -2014,7 +2014,7 @@ public function get_students_page() {
 						
 						$markIDFromName = $data[1];
 						$markpercentageID = $value['markpercentageid'];
-						$markValue = abs($value['value']);
+						$markValue = (float)$value['value'];
 						
 						// log_message('debug', "Parsed - MarkID from name: $markIDFromName, MarkPercentageID: $markpercentageID, Value: $markValue");
 						
@@ -2892,7 +2892,7 @@ public function loadStudentsAjax() {
         foreach ($subjects as $subject) {
             if (isset($marksLookup[$student->studentID][$subject->subjectID])) {
                 $markData = $marksLookup[$student->studentID][$subject->subjectID];
-                $mrk = (int)$markData['mark'];
+                $mrk = (float)$markData['mark'];
                 $exam_absent = $markData['eattendance'];
                 
                 // Track absent students
@@ -3027,7 +3027,7 @@ public function loadStudentsAjax() {
             $markFound = false;
             if (isset($marksLookup[$student->studentID][$subject->subjectID])) {
                 $markData = $marksLookup[$student->studentID][$subject->subjectID];
-                $mrk = (int)$markData['mark'];
+                $mrk = (float)$markData['mark'];
                 $exam_absent = $markData['eattendance'];
                 $markID = $markData['markID'];
                 
@@ -3040,12 +3040,12 @@ public function loadStudentsAjax() {
                 $rowsHtml .= '<td>';
                 if ($exam_absent == 'Absent') {
                     $rowsHtml .= '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' . $student->studentID . '_' . $subject->subjectID . '"></i>';
-                    $rowsHtml .= '<span class="attendance-circle" style="margin-left: 20px;">A</span>';
+                    $rowsHtml .= '<span class="attendance-circle" style="margin-left: 20px;" title="absent">Ab</span>';
                 } else {
                     $rowsHtml .= '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' . $student->studentID . '_' . $subject->subjectID . '"></i>';
-                    $rowsHtml .= '<input id="' . $firstMarkPercentageID . '" subj_id="' . $subject->subjectID . '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" 
+                    $rowsHtml .= '<input type="text" id="' . $firstMarkPercentageID . '" subj_id="' . $subject->subjectID . '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" 
                                  name="' . $subject->subjectID . 'mark-' . $markID . '" value="' . $mrk . '" 
-                                 min="0" max="' . $subject->max_mark . '">';
+                                 min="-' . $subject->max_mark . '" max="' . $subject->max_mark . '">';
                 }
                 $rowsHtml .= '</td>';
                 
@@ -3054,7 +3054,7 @@ public function loadStudentsAjax() {
                 
                 // Check attendance status for marks template
                 if ($exam_absent == 'Absent') {
-                    $absent_or_mark = 'A';
+                    $absent_or_mark = 'Ab';
                 } else {
                     $absent_or_mark = $mrk . "/" . $subject->max_mark;
                 }
@@ -3068,9 +3068,9 @@ public function loadStudentsAjax() {
                 // We'll need to create a mark record when user enters data
                 $rowsHtml .= '<td>';
                 $rowsHtml .= '<i class="fa icon-eattendance pull-left" title="add exam attendance" data-toggle="modal" data-target="#attendance-subject-modal_' . $student->studentID . '_' . $subject->subjectID . '"></i>';
-                $rowsHtml .= '<input id="' . $firstMarkPercentageID . '" subj_id="' . $subject->subjectID . '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" 
+                $rowsHtml .= '<input type="text" id="' . $firstMarkPercentageID . '" subj_id="' . $subject->subjectID . '" class="form-control mark input_mark" style="width: 80px !important; margin-left: 20px;" 
                              name="' . $subject->subjectID . 'mark-0" value="0" 
-                             min="0" max="' . $subject->max_mark . '">';
+                             min="-' . $subject->max_mark . '" max="' . $subject->max_mark . '">';
                 $rowsHtml .= '</td>';
                 $rowsHtml .= '<td class="excel-only" style="display:none;">0</td>';
                 $my_template .= $subject->subject . "=0/" . $subject->max_mark . ",";
@@ -3388,7 +3388,7 @@ public function generateRanks() {
         foreach ($subjects as $subject) {
             if (isset($marksLookup[$student->studentID][$subject->subjectID])) {
                 $markData = $marksLookup[$student->studentID][$subject->subjectID];
-                $mrk = (int)$markData['mark'];
+                $mrk = (float)$markData['mark'];
                 $exam_absent = $markData['eattendance'];
                 
                 // Track absent students
