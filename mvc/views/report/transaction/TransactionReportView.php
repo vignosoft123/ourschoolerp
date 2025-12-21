@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/assets/css/report-buttons.css">
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa iniicon-transactionreport"></i> <?=$this->lang->line('panel_title')?></h3>

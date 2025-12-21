@@ -1,5 +1,8 @@
 <div class="box">
     <!-- form start -->
+        <head>
+            <link rel="stylesheet" href="/assets/css/report-buttons.css">
+        </head>
     <div class="box-body" style="margin-bottom: 50px;">
         <div class="row">
             <div class="col-sm-12">

@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/assets/css/report-buttons.css">
 <?php
 /* @var $students array */
 $yearsText   = isset($yearsText) ? $yearsText : '';

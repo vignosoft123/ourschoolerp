@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/assets/css/report-buttons.css">
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
@@ -155,6 +156,27 @@
     .text-red { color: #e63946; }
     .text-blue { color: #6b9ce2; }
     .text-purple { color: #6a1b9a; }
+
+    /* Attendance badge */
+    .attendance-badge {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        background: #e74c3c; /* red for absent */
+        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+    .attendance-na {
+        display: inline-block;
+        padding: 2px 6px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        background: #7f8c8d; /* gray for N/A */
+    }
 
     /* ==== Print Optimization ==== */
  
@@ -390,18 +412,46 @@
         $totalGpaPoint = 0;
         $totalAllSubjectMark = 0;
 
-        if (isset($mandatorySubjects[$student->srclassesID]) && customCompute($mandatorySubjects[$student->srclassesID])) {
-            foreach ($mandatorySubjects[$student->srclassesID] as $mandatorySubject) {
+        // Build subject list: scheduled subjects (if any) else mandatory subjects
+        $subjectList = array();
+        if (isset($scheduledSubjects) && customCompute($scheduledSubjects)) {
+            foreach ($scheduledSubjects as $sid => $sobj) {
+                $subjectList[$sid] = $sobj;
+            }
+        } else {
+            if (isset($mandatorySubjects[$student->srclassesID]) && customCompute($mandatorySubjects[$student->srclassesID])) {
+                foreach ($mandatorySubjects[$student->srclassesID] as $sobj) {
+                    $subjectList[$sobj->subjectID] = $sobj;
+                }
+            }
+        }
+
+        if (customCompute($subjectList)) {
+            foreach ($subjectList as $subjectID => $subject) {
+                // Skip optional subject if student didn't choose it
+                $isOptional = isset($optionalSubjects[$student->srclassesID]) && isset($optionalSubjects[$student->srclassesID][$subjectID]);
+                if ($isOptional && ($student->sroptionalsubjectID > 0) && ($student->sroptionalsubjectID != $subjectID)) {
+                    continue;
+                }
+
                 $totalSubjectMark = 0;
                 $totalGradeSubjectMark = 0; ?>
                 <tr>
-                    <td><?= $mandatorySubject->subject ?></td>
+                    <td><?= $subject->subject ?></td>
                     <?php
                     if (customCompute($markpercentagesexamArr)) {
                         foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
                             $examTotalSubjectMark = 0;
 
-                            $uniquepercentageArr = isset($markpercentagessubjectArr[$mandatorySubject->subjectID]) ? $markpercentagessubjectArr[$mandatorySubject->subjectID] : [];
+                            // determine full column count for this exam (based on first subject's config)
+                            reset($markpercentagessubjectArr);
+                            $firstindex_all = key($markpercentagessubjectArr);
+                            $uniquepercentageArr_all = isset($markpercentagessubjectArr[$firstindex_all]) ? $markpercentagessubjectArr[$firstindex_all] : [];
+                            $uniqueandown_all = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
+                            $markpercentages_all = isset($uniquepercentageArr_all[$uniqueandown_all]) ? $uniquepercentageArr_all[$uniqueandown_all] : [];
+                            $examColCount = customCompute($markpercentages_all) ? customCompute($markpercentages_all) : 0;
+
+                            $uniquepercentageArr = isset($markpercentagessubjectArr[$subjectID]) ? $markpercentagessubjectArr[$subjectID] : [];
                             $markpercentages = [];
                             if (customCompute($uniquepercentageArr)) {
                                 $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
@@ -409,7 +459,12 @@
                             }
 
                             $percentageMark = 0;
-                            if (customCompute($markpercentages)) {
+                            $isScheduled = isset($examSubjects[$examID]) && in_array($subjectID, $examSubjects[$examID]);
+                            if (!$isScheduled || !customCompute($markpercentages)) {
+                                for ($na = 0; $na < $examColCount; $na++) { ?>
+                                    <td>N/A</td>
+                                <?php }
+                            } else {
                                 foreach ($markpercentages as $markpercentageID) {
                                     if (isset($uniquepercentageArr['own']) && in_array($markpercentageID, $uniquepercentageArr['own'])) {
                                         $percentageMark += isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : 0;
@@ -418,17 +473,23 @@
                                     <td>
                                         <?php
                                         $mark = 0;
-                                        if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID])) {
-                                            $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID];
+                                        if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$subjectID][$markpercentageID])) {
+                                            $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$subjectID][$markpercentageID];
                                         }
-                                        echo ($mark) ? $mark : '';
-                                        $totalSubjectMark += $mark;
-                                        $examTotalSubjectMark += $mark;
+                                        if ($mark === 'A' || $mark === 'a' || (is_string($mark) && strtolower($mark) === 'absent')) {
+                                            echo '<span class="attendance-badge" title="Absent">Ab</span>';
+                                        } elseif ($mark !== 0 && $mark !== '' && $mark !== null) {
+                                            echo $mark;
+                                        } else {
+                                            echo '';
+                                        }
+                                        $totalSubjectMark += is_numeric($mark) ? $mark : 0;
+                                        $examTotalSubjectMark += is_numeric($mark) ? $mark : 0;
                                         ?>
                                     </td>
                                 <?php }
                             }
-                            $totalGradeSubjectMark += markCalculationView($examTotalSubjectMark, $mandatorySubject->finalmark, $percentageMark);
+                            $totalGradeSubjectMark += markCalculationView($examTotalSubjectMark, $subject->finalmark, $percentageMark);
                         }
                     } ?>
                     <!-- <td><?= $totalSubjectMark ?></td> -->
@@ -453,68 +514,7 @@
                 </tr>
             <?php }
         }
-
-        if (($student->sroptionalsubjectID > 0) && isset($optionalSubjects[$student->srclassesID][$student->sroptionalsubjectID])) {
-            $totalSubjectMark = 0;
-            $totalGradeSubjectMark = 0; ?>
-            <tr>
-                <td><?= $optionalSubjects[$student->srclassesID][$student->sroptionalsubjectID]->subject ?></td>
-                <?php
-                if (customCompute($markpercentagesexamArr)) {
-                    foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
-                        $examTotalSubjectMark = 0;
-
-                        $uniquepercentageArr = isset($markpercentagessubjectArr[$student->sroptionalsubjectID]) ? $markpercentagessubjectArr[$student->sroptionalsubjectID] : [];
-                        $markpercentages = [];
-                        if (customCompute($uniquepercentageArr)) {
-                            $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
-                            $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
-                        }
-
-                        $percentageMark = 0;
-                        if (customCompute($markpercentages)) {
-                            foreach ($markpercentages as $markpercentageID) {
-                                if (isset($uniquepercentageArr['own']) && in_array($markpercentageID, $uniquepercentageArr['own'])) {
-                                    $percentageMark += isset($percentageArr[$markpercentageID]) ? $percentageArr[$markpercentageID]->percentage : 0;
-                                }
-                                ?>
-                                <td>
-                                    <?php
-                                    $mark = 0;
-                                    if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$student->sroptionalsubjectID][$markpercentageID])) {
-                                        $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$student->sroptionalsubjectID][$markpercentageID];
-                                    }
-                                    echo ($mark) ? $mark : '';
-                                    $totalSubjectMark += $mark;
-                                    $examTotalSubjectMark += $mark;
-                                    ?>
-                                </td>
-                            <?php }
-                        }
-                        $totalGradeSubjectMark += markCalculationView($examTotalSubjectMark, $optionalSubjects[$student->srclassesID][$student->sroptionalsubjectID]->finalmark, $percentageMark);
-                    }
-                } ?>
-                <td><?= $totalSubjectMark ?></td>
-                <?php
-                $totalAllSubjectMark += $totalSubjectMark;
-                $subjectGradeMark = $totalGradeSubjectMark / customCompute($markpercentagesexamArr);
-
-                if (customCompute($grades)) {
-                    foreach ($grades as $grade) {
-                        if (($grade->gradefrom <= floor($subjectGradeMark)) && ($grade->gradeupto >= floor($subjectGradeMark))) { ?>
-                            <td><?= $grade->grade ?></td>
-                            <td>
-                                <?php
-                                echo $grade->point;
-                                $totalGpaPoint += $grade->point;
-                                ?>
-                            </td>
-                        <?php }
-                    }
-                }
-                ?>
-            </tr>
-        <?php } ?>
+        ?>
 
         <!-- Total Marks Row -->
         <tr>
@@ -523,21 +523,28 @@
             if (customCompute($markpercentagesexamArr)) {
                 foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
                     $totalExamMarks = 0;
-                    foreach ($mandatorySubjects[$student->srclassesID] as $mandatorySubject) {
-                        $uniquepercentageArr = isset($markpercentagessubjectArr[$mandatorySubject->subjectID]) ? $markpercentagessubjectArr[$mandatorySubject->subjectID] : [];
-                        $markpercentages = [];
-                        if (customCompute($uniquepercentageArr)) {
-                            $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
-                            $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
-                        }
+                    if (customCompute($subjectList)) {
+                        foreach ($subjectList as $sID => $sobj) {
+                            // skip optional subjects the student didn't choose
+                            $isOptional = isset($optionalSubjects[$student->srclassesID]) && isset($optionalSubjects[$student->srclassesID][$sID]);
+                            if ($isOptional && ($student->sroptionalsubjectID > 0) && ($student->sroptionalsubjectID != $sID)) {
+                                continue;
+                            }
+                            $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
+                            $markpercentages = [];
+                            if (customCompute($uniquepercentageArr)) {
+                                $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
+                                $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
+                            }
 
-                        if (customCompute($markpercentages)) {
-                            foreach ($markpercentages as $markpercentageID) {
-                                $mark = 0;
-                                if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID])) {
-                                    $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID];
+                            if (customCompute($markpercentages)) {
+                                foreach ($markpercentages as $markpercentageID) {
+                                    $mark = 0;
+                                    if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
+                                        $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
+                                    }
+                                    $totalExamMarks += $mark;
                                 }
-                                $totalExamMarks += $mark;
                             }
                         }
                     }
@@ -554,29 +561,34 @@
             if (customCompute($markpercentagesexamArr)) {
                 foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
                     $totalExamMarks = 0;
-                    $subjectCount = customCompute($mandatorySubjects[$student->srclassesID]);
-                    if ($student->sroptionalsubjectID > 0) {
-                        $subjectCount++;
-                    }
+                    $subjectCount = 0;
+                    if (customCompute($subjectList)) {
+                        foreach ($subjectList as $sID => $sobj) {
+                            $isOptional = isset($optionalSubjects[$student->srclassesID]) && isset($optionalSubjects[$student->srclassesID][$sID]);
+                            if ($isOptional && ($student->sroptionalsubjectID > 0) && ($student->sroptionalsubjectID != $sID)) {
+                                continue;
+                            }
+                            $subjectCount++;
 
-                    foreach ($mandatorySubjects[$student->srclassesID] as $mandatorySubject) {
-                        $uniquepercentageArr = isset($markpercentagessubjectArr[$mandatorySubject->subjectID]) ? $markpercentagessubjectArr[$mandatorySubject->subjectID] : [];
-                        $markpercentages = [];
-                        if (customCompute($uniquepercentageArr)) {
-                            $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
-                            $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
-                        }
+                            $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
+                            $markpercentages = [];
+                            if (customCompute($uniquepercentageArr)) {
+                                $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
+                                $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
+                            }
 
-                        if (customCompute($markpercentages)) {
-                            foreach ($markpercentages as $markpercentageID) {
-                                $mark = 0;
-                                if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID])) {
-                                    $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID];
+                            if (customCompute($markpercentages)) {
+                                foreach ($markpercentages as $markpercentageID) {
+                                    $mark = 0;
+                                    if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
+                                        $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
+                                    }
+                                    $totalExamMarks += $mark;
                                 }
-                                $totalExamMarks += $mark;
                             }
                         }
                     }
+                    $subjectCount = $subjectCount ? $subjectCount : 1;
                     ?>
                     <td><b><?= ini_round($totalExamMarks / $subjectCount) ?></b></td>
                 <?php }
@@ -595,41 +607,28 @@
     if (customCompute($markpercentagesexamArr)) {
         foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
             $totalExamMarks = 0;
-            foreach ($mandatorySubjects[$student->srclassesID] as $mandatorySubject) {
-                $uniquepercentageArr = isset($markpercentagessubjectArr[$mandatorySubject->subjectID]) ? $markpercentagessubjectArr[$mandatorySubject->subjectID] : [];
-                $markpercentages = [];
-                if (customCompute($uniquepercentageArr)) {
-                    $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
-                    $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
-                }
-
-                if (customCompute($markpercentages)) {
-                    foreach ($markpercentages as $markpercentageID) {
-                        $mark = 0;
-                        if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID])) {
-                            $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$mandatorySubject->subjectID][$markpercentageID];
-                        }
-                        $totalExamMarks += $mark;
+            if (customCompute($subjectList)) {
+                foreach ($subjectList as $sID => $sobj) {
+                    // skip optional subjects the student didn't choose
+                    $isOptional = isset($optionalSubjects[$student->srclassesID]) && isset($optionalSubjects[$student->srclassesID][$sID]);
+                    if ($isOptional && ($student->sroptionalsubjectID > 0) && ($student->sroptionalsubjectID != $sID)) {
+                        continue;
                     }
-                }
-            }
+                    $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
+                    $markpercentages = [];
+                    if (customCompute($uniquepercentageArr)) {
+                        $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
+                        $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
+                    }
 
-            // If optional subject exists, include its marks too
-            if (($student->sroptionalsubjectID > 0) && isset($optionalSubjects[$student->srclassesID][$student->sroptionalsubjectID])) {
-                $uniquepercentageArr = isset($markpercentagessubjectArr[$student->sroptionalsubjectID]) ? $markpercentagessubjectArr[$student->sroptionalsubjectID] : [];
-                $markpercentages = [];
-                if (customCompute($uniquepercentageArr)) {
-                    $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
-                    $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
-                }
-
-                if (customCompute($markpercentages)) {
-                    foreach ($markpercentages as $markpercentageID) {
-                        $mark = 0;
-                        if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$student->sroptionalsubjectID][$markpercentageID])) {
-                            $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$student->sroptionalsubjectID][$markpercentageID];
+                    if (customCompute($markpercentages)) {
+                        foreach ($markpercentages as $markpercentageID) {
+                            $mark = 0;
+                            if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
+                                $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
+                            }
+                            $totalExamMarks += $mark;
                         }
-                        $totalExamMarks += $mark;
                     }
                 }
             }

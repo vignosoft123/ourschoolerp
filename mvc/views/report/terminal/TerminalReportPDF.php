@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="/assets/css/report-buttons.css">
     <meta charset="UTF-8">
 </head>
 <body>

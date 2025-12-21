@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/assets/css/report-buttons.css">
     <style>
     .tabulation-table {
         width: 100%;

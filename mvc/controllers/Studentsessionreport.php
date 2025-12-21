@@ -93,7 +93,11 @@ class Studentsessionreport extends Admin_Controller {
 					$retMark = [];
 					if(customCompute($marks)) {
 						foreach ($marks as $mark) {
-							$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$value = isset($mark->mark) ? $mark->mark : 0;
+							if (isset($mark->eattendance) && strtolower(trim($mark->eattendance)) === 'absent') {
+								$value = 'A';
+							}
+							$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $value;
 						}
 					}
 
@@ -172,12 +176,48 @@ class Studentsessionreport extends Admin_Controller {
 						$examMarks[$row['examID']] = $row['max_mark'];
 					}
 					$this->data['exam_max_marks'] = $examMarks;
+
+					// Build exam -> subjects mapping from examschedule
+					$examSubjects = [];
+					$es = $this->db->select('examID,subjectID')->from('examschedule')->where('classesID', $classID)->where('sectionID', $sectionID)->get()->result();
+					if(customCompute($es)){
+						foreach($es as $row) {
+							$examSubjects[$row->examID][] = $row->subjectID;
+						}
+					}
+					$this->data['examSubjects'] = $examSubjects;
+
+					// Build scheduled subject IDs and objects (subjects scheduled for any exam for this class/section)
+					$scheduledSubjectIDs = [];
+					if (customCompute($examSubjects)) {
+						foreach ($examSubjects as $e => $sarr) {
+							foreach ($sarr as $sid) {
+								$scheduledSubjectIDs[] = $sid;
+							}
+						}
+					}
+					$scheduledSubjectIDs = array_unique($scheduledSubjectIDs);
+					$scheduledSubjects = [];
+					if (customCompute($scheduledSubjectIDs)) {
+						foreach ($scheduledSubjectIDs as $sid) {
+							$sub = $this->subject_m->get_subject($sid, TRUE);
+							if ($sub) {
+								$scheduledSubjects[$sid] = $sub;
+							}
+						}
+					}
+					$this->data['scheduledSubjectIDs'] = $scheduledSubjectIDs;
+					$this->data['scheduledSubjects'] = $scheduledSubjects;
 					// echo "<pre>";print_r($this->data['exam_max_marks']);die;
 
 					$retMark = [];
 					if(customCompute($marks)) {
 						foreach ($marks as $mark) {
-							$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$value = isset($mark->mark) ? $mark->mark : 0;
+							if (isset($mark->eattendance) && strtolower(trim($mark->eattendance)) === 'absent') {
+								$value = 'A';
+							}
+							$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $value;
 						}
 					}
 
@@ -319,7 +359,11 @@ class Studentsessionreport extends Admin_Controller {
 				$retMark = [];
 				if(customCompute($marks)) {
 					foreach ($marks as $mark) {
-						$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+						$value = isset($mark->mark) ? $mark->mark : 0;
+						if (isset($mark->eattendance) && strtolower(trim($mark->eattendance)) === 'absent') {
+							$value = 'A';
+						}
+						$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $value;
 					}
 				}
 
@@ -338,6 +382,43 @@ class Studentsessionreport extends Admin_Controller {
 				$this->data['students']          = $students;
 				$this->data['settingmarktypeID']       = $settingmarktypeID;
 				$this->data['markpercentagesmainArr']  = $markpercentagesmainArr;
+
+				// Build exam -> subjects mapping and scheduled subjects for PDF
+				$classID = 0; $sectionID = 0;
+				if (customCompute($students)) {
+					foreach ($students as $s) { $classID = isset($s->srclassesID) ? $s->srclassesID : 0; $sectionID = isset($s->srsectionID) ? $s->srsectionID : 0; break; }
+				}
+				$examSubjects = [];
+				if ($classID && $sectionID) {
+					$es = $this->db->select('examID,subjectID')->from('examschedule')->where('classesID', $classID)->where('sectionID', $sectionID)->get()->result();
+					if(customCompute($es)){
+						foreach($es as $row) {
+							$examSubjects[$row->examID][] = $row->subjectID;
+						}
+					}
+				}
+				$this->data['examSubjects'] = $examSubjects;
+
+				$scheduledSubjectIDs = [];
+				if (customCompute($examSubjects)) {
+					foreach ($examSubjects as $e => $sarr) {
+						foreach ($sarr as $sid) {
+							$scheduledSubjectIDs[] = $sid;
+						}
+					}
+				}
+				$scheduledSubjectIDs = array_unique($scheduledSubjectIDs);
+				$scheduledSubjects = [];
+				if (customCompute($scheduledSubjectIDs)) {
+					foreach ($scheduledSubjectIDs as $sid) {
+						$sub = $this->subject_m->get_subject($sid, TRUE);
+						if ($sub) {
+							$scheduledSubjects[$sid] = $sub;
+						}
+					}
+				}
+				$this->data['scheduledSubjectIDs'] = $scheduledSubjectIDs;
+				$this->data['scheduledSubjects'] = $scheduledSubjects;
 
 				$this->reportPDF('studentsessionreport.css', $this->data, 'report/studentsession/StudentsessionReportPDF');
 
@@ -390,7 +471,11 @@ class Studentsessionreport extends Admin_Controller {
 					$retMark = [];
 					if(customCompute($marks)) {
 						foreach ($marks as $mark) {
-							$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$value = isset($mark->mark) ? $mark->mark : 0;
+							if (isset($mark->eattendance) && strtolower(trim($mark->eattendance)) === 'absent') {
+								$value = 'A';
+							}
+							$retMark[$mark->schoolyearID][$mark->classesID][$mark->examID][$mark->subjectID][$mark->markpercentageID] = $value;
 						}
 					}
 

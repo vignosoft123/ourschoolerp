@@ -1,4 +1,5 @@
 
+<link rel="stylesheet" href="/assets/css/report-buttons.css">
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-studentreport"></i> <?=$this->lang->line('panel_title')?></h3>

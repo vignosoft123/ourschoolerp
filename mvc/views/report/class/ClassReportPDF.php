@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/assets/css/report-buttons.css">
 <div id="printablediv">
     <div class="box">
         <div class="col-sm-12">

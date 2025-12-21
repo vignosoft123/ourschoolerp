@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/assets/css/report-buttons.css">
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
