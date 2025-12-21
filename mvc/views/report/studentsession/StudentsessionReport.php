@@ -387,7 +387,7 @@
                     $firstindex = key($markpercentagessubjectArr);
                     $uniquepercentageArr = isset($markpercentagessubjectArr[$firstindex]) ? $markpercentagessubjectArr[$firstindex] : [];
                     $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
-                    $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
+                    $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : [];
 
                     if ($i == 1) {
                         $leftColumn = customCompute($markpercentages) + 1;
