@@ -499,7 +499,7 @@
                                             ?>
                                         </td>
                                         <td><?= isset($studentPosition[$studentID]['totalSubjectMark']) 
-    ? (int) round($studentPosition[$studentID]['totalSubjectMark']) 
+    ? $studentPosition[$studentID]['totalSubjectMark'] 
     : 0 ?>
 </td>
 

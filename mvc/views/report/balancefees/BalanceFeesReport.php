@@ -83,13 +83,12 @@ function formatIndianCurrency($number, $decimals = 2) {
 <style>
 /* Style the table header */
  .table-container {
-      max-height: 500px; /* Set scroll height */
-      overflow-y: auto;
+      /* Remove internal vertical scrolling; allow full page scroll */
       border: 1px solid #ccc;
     }
 
 #myTable thead th {
-    background-color: #4CAF50; Green background
+    background-color: #4CAF50; /* Green background */
     color: white;               /* White text */
     padding: 10px;              /* Padding inside headers */
     text-align: center;         /* Center the header text */
@@ -140,12 +139,63 @@ function formatIndianCurrency($number, $decimals = 2) {
 }
 
  
+/* Top action buttons (Print, Export, SMS, WhatsApp) */
+.report-actions-bar {
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.report-actions-bar .btn {
+    border-radius: 12px;
+    padding: 8px 18px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.report-actions-bar .btn i,
+.report-actions-bar .btn span.fa {
+    margin-right: 6px;
+}
+
+.btn-export-excel {
+    background: linear-gradient(135deg, #28a745 0%, #7ed957 100%);
+    color: #fff;
+}
+
+.btn-export-excel:hover {
+    background: linear-gradient(135deg, #218838 0%, #6fc44e 100%);
+}
+
+.btn-sms {
+    background: linear-gradient(135deg, #17a2b8 0%, #6dd5fa 100%);
+    color: #fff;
+}
+
+.btn-sms:hover {
+    background: linear-gradient(135deg, #138496 0%, #5bc4e8 100%);
+}
+
+.btn-whatsapp {
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    color: #fff;
+}
+
+.btn-whatsapp:hover {
+    background: linear-gradient(135deg, #1ebe5b 0%, #0f7569 100%);
+}
+
+
 </style>
 
 
 
 <div class="row">
-    <div class="col-sm-12" style="margin:10px 0px">
+	<div class="col-sm-12 report-actions-bar">
         <?php
             
             $pdf_preview_uri = base_url('balancefeesreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID);
@@ -158,9 +208,9 @@ function formatIndianCurrency($number, $decimals = 2) {
             // echo btn_sentToMailReport('balancefeesreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
 
-        <button id="exportButton" class="btn btn-default">Export to Excel</button>
-        <button class="btn btn-default " id="send_sms_balance_btn"><span class="fa fa-send"></span> Send SMS</button>
-        <button class="btn btn-default " id="send_whatsapp_balance_btn"><span class="fa fa-send"></span> Send Whatsapp</button>
+        <button id="exportButton" class="btn btn-export-excel">Export to Excel</button>
+        <button class="btn btn-info " id="send_sms_balance_btn"><span class="fa fa-send"></span> Send SMS</button>
+        <button class="btn btn-success  " id="send_whatsapp_balance_btn"><span class="fa fa-send"></span> Send Whatsapp</button>
 
        
 
@@ -278,7 +328,7 @@ function formatIndianCurrency($number, $decimals = 2) {
                         $totalWeaver = 0;
                         $totalBalance = 0;
                         $total_disc = 0; // Initialize total_disc variable
-                        $i = 0;
+                        $i = isset($startIndex) ? (int)$startIndex : 0;
 
                         foreach($students as $student) {
                             if(!empty($totalAmountAndDiscount[$student->srstudentID]['amount'])) {
@@ -395,7 +445,7 @@ function formatIndianCurrency($number, $decimals = 2) {
                         ?>
 
                         <!-- Grand Total Row -->
-                        <tr>
+                        <tr class="grand-total-row">
                             <?php 
                                 $colspan = 6;
                                 if($classesID == 0) {
@@ -429,6 +479,18 @@ function formatIndianCurrency($number, $decimals = 2) {
                 </table>
 
             </div>
+
+            <?php
+                // Show Load More button only if there are more than one page of results
+                $totalStudents = isset($totalStudents) ? $totalStudents : (isset($students) ? customCompute($students) : 0);
+                $perPage       = isset($perPage) ? $perPage : 25;
+                if($totalStudents > $perPage) {
+                    $nextOffset = $perPage;
+            ?>
+                <div class="text-center" style="margin-top:15px;">
+                    <button id="loadMoreBalanceFees" class="btn btn-success" data-offset="<?=$nextOffset?>" data-perpage="<?=$perPage?>" data-total="<?=$totalStudents?>">Load More</button>
+                </div>
+            <?php } ?>
                         </div>
                     </div>
                 <?php } else { ?>

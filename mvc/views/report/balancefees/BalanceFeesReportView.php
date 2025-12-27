@@ -639,6 +639,8 @@
             success: function(data) {
                 var response = JSON.parse(data);
                 renderLoder(response, passData);
+                // After initial load, ensure grand totals are correct
+                updateGrandTotals();
             }
         });
     }
@@ -651,6 +653,8 @@
                     $('#'+key).parent().removeClass('has-error');
                 }
             }
+            // Recalculate totals in case of any dynamic changes
+            updateGrandTotals();
         } else {
             for (var key in passData) {
                 if (passData.hasOwnProperty(key)) {
@@ -664,6 +668,70 @@
                 }
             }
         }
+    }
+
+    function parseIndianCurrency(value) {
+        if (!value) return 0;
+        // Remove commas and spaces
+        value = value.toString().replace(/,/g, '').trim();
+        var num = parseFloat(value);
+        return isNaN(num) ? 0 : num;
+    }
+
+    function formatIndianCurrencyJS(number) {
+        number = Math.round(number * 100) / 100;
+        var parts = number.toFixed(2).split('.');
+        var integer = parts[0];
+        var decimal = parts[1];
+
+        var last3 = integer.slice(-3);
+        var rest = integer.slice(0, -3);
+        if (rest.length > 0) {
+            rest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+            integer = rest + ',' + last3;
+        }
+        return integer + '.' + decimal;
+    }
+
+    function updateGrandTotals() {
+        var $table = $('#myTable');
+        if ($table.length === 0) return;
+
+        var $rows = $table.find('tbody tr').not('.grand-total-row');
+        if ($rows.length === 0) return;
+
+        var totalAmount = 0,
+            totalDiscount = 0,
+            totalPaid = 0,
+            totalBalance = 0;
+
+        $rows.each(function() {
+            var $cells = $(this).find('td');
+            var len = $cells.length;
+            if (len < 5) return;
+
+            var amount   = parseIndianCurrency($cells.eq(len - 5).text());
+            var discount = parseIndianCurrency($cells.eq(len - 4).text());
+            var paid     = parseIndianCurrency($cells.eq(len - 3).text());
+            var balance  = parseIndianCurrency($cells.eq(len - 2).text());
+
+            totalAmount   += amount;
+            totalDiscount += discount;
+            totalPaid     += paid;
+            totalBalance  += balance;
+        });
+
+        var $grand = $table.find('tbody tr.grand-total-row');
+        if ($grand.length === 0) return;
+
+        var $gCells = $grand.find('td');
+        var gLen = $gCells.length;
+        if (gLen < 5) return;
+
+        $gCells.eq(gLen - 5).text(formatIndianCurrencyJS(totalAmount));
+        $gCells.eq(gLen - 4).text(formatIndianCurrencyJS(totalDiscount));
+        $gCells.eq(gLen - 3).text(formatIndianCurrencyJS(totalPaid));
+        $gCells.eq(gLen - 2).text(formatIndianCurrencyJS(totalBalance));
     }
 
     // Class-wise Summary Report (Tab 2)
@@ -688,6 +756,78 @@
                 if(response.status) {
                     $('#load_balancefeesreport').html(response.render);
                 }
+            }
+        });
+    });
+
+    // Lazy load: Load more balance fees rows
+    $(document).on('click', '#loadMoreBalanceFees', function() {
+        var $btn = $(this);
+        var offset   = parseInt($btn.data('offset')) || 0;
+        var perPage  = parseInt($btn.data('perpage')) || 25;
+        var total    = parseInt($btn.data('total')) || 0;
+
+        var classesID = $('#classesID').val();
+        var sectionID = $('#sectionID').val();
+        var studentID = $('#studentID').val();
+        var feetypeID = $('#feetypeID').val();
+        var villageID = $('#villageID').val();
+        var sectionName = $('#sectionID option:selected').text();
+        if (sectionName === '' || sectionName.toLowerCase() === 'please select') {
+            sectionName = '';
+        }
+
+        if (offset >= total) {
+            $btn.hide();
+            return;
+        }
+
+        $btn.prop('disabled', true).text('Loading...');
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('balancefeesreport/getBalanceFeesReportLazy')?>",
+            data: {
+                classesID: classesID,
+                sectionID: sectionID,
+                studentID: studentID,
+                feetypeID: feetypeID,
+                villageID: villageID,
+                sectionName: sectionName,
+                offset: offset
+            },
+            dataType: 'html',
+            success: function(data) {
+                var response = {};
+                try {
+                    response = JSON.parse(data);
+                } catch (e) {
+                    response = { status: false };
+                }
+
+                if(response.status) {
+                    var $tbody = $('#myTable').find('tbody');
+                    var $grand = $tbody.find('tr.grand-total-row');
+                    if ($grand.length) {
+                        $(response.rows).insertBefore($grand);
+                    } else {
+                        $tbody.append(response.rows);
+                    }
+
+                    var nextOffset = parseInt(response.nextOffset) || offset + perPage;
+                    $btn.data('offset', nextOffset);
+
+                    if (!response.hasMore || nextOffset >= total) {
+                        $btn.hide();
+                    }
+
+                    updateGrandTotals();
+                }
+
+                $btn.prop('disabled', false).text('Load More');
+            },
+            error: function() {
+                $btn.prop('disabled', false).text('Load More');
             }
         });
     });

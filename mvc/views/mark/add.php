@@ -399,6 +399,12 @@
     border: 1px solid #ddd;     /* Light border */
     font-size: 14px;            /* Font size */
     /* white-space: nowrap;        Prevent headers from wrapping */
+    
+    /* Sticky header styles */
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
     tbody td {
@@ -849,16 +855,25 @@
             
             <div class="col-sm-12">
                 <div id="hide-table" style="display:none;">
-                    <button onclick="exportTableToCSV('myTable','table_data.csv')" class="btn btn-primary">📥 Download CSV</button>
+                    <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+                        <button onclick="exportTableToCSV('myTable','table_data.csv')" class="btn btn-primary">📥 Download CSV</button>
+                        
+                        <div style="flex: 1; max-width: 400px;">
+                            <input type="text" id="studentSearchBox" class="form-control" placeholder="🔍 Search student by name or roll number..." style="border-radius: 20px; padding-left: 15px;">
+                        </div>
+                    </div>
                     
-                    <table class="table table-striped table-bordered table-hover dataTable no-footer" id="myTable">
-                        <thead id="tableHeaders">
-                            <!-- Headers will be dynamically loaded -->
-                        </thead>
-                        <tbody id="studentsTableBody">
-                            <!-- Students will be dynamically loaded -->
-                        </tbody>
-                    </table>
+                    <!-- Scrollable table container -->
+                    <div class="table-responsive" style="overflow-x: auto; max-width: 100%; max-height: 70vh; overflow-y: auto;">
+                        <table class="table table-striped table-bordered table-hover dataTable no-footer" id="myTable" style="min-width: 100%;">
+                            <thead id="tableHeaders">
+                                <!-- Headers will be dynamically loaded -->
+                            </thead>
+                            <tbody id="studentsTableBody">
+                                <!-- Students will be dynamically loaded -->
+                            </tbody>
+                        </table>
+                    </div>
                     
                     <!-- Loading States -->
                     <div id="loadMoreContainer" class="text-center" style="display:none; padding: 20px;">
@@ -1319,6 +1334,23 @@
                                     }
                                 });
                             }
+
+                            // Student search functionality
+                            $('#studentSearchBox').on('keyup', function() {
+                                var searchText = $(this).val().toLowerCase();
+                                
+                                $('#studentsTableBody tr').each(function() {
+                                    var row = $(this);
+                                    // Get the name/roll column (4th td, index 3)
+                                    var nameCell = row.find('td:eq(3)').text().toLowerCase();
+                                    
+                                    if (nameCell.indexOf(searchText) > -1) {
+                                        row.show();
+                                    } else {
+                                        row.hide();
+                                    }
+                                });
+                            });
 
                             // Common function to build preview
                             function buildMessagePreview(messageType) {
@@ -2191,8 +2223,24 @@ function exportTableToCSV(tableID, filename = 'table.csv') {
     for (var i = 0; i < rows.length; i++) {
         var row = [], cols = rows[i].querySelectorAll("td, th");
         for (var j = 0; j < cols.length; j++) {
+            // Skip columns with "excel-only" class (subject^ID columns)
+            if (cols[j].classList.contains('excel-only')) {
+                continue;
+            }
+            
+            // Get text value - check if there's an input field first
+            var text = '';
+            var input = cols[j].querySelector('input.input_mark');
+            if (input) {
+                // If it's a mark input field, get its value
+                text = input.value || '0';
+            } else {
+                // Otherwise get the text content
+                text = cols[j].innerText;
+            }
+            
             // Escape double quotes
-            var text = cols[j].innerText.replace(/"/g, '""');
+            text = text.replace(/"/g, '""');
             row.push('"' + text + '"');
         }
         csv.push(row.join(","));

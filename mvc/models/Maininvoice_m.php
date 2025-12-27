@@ -37,7 +37,7 @@ class Maininvoice_m extends MY_Model {
 		return $query->result();
 	}
  
-public function get_maininvoice_with_studentrelation($schoolyearID = NULL, $maininvoiceclassesID = "")
+public function get_maininvoice_with_studentrelation($schoolyearID = NULL, $maininvoiceclassesID = "", $limit = NULL, $offset = 0)
 {
     // aggregate ONLY the invoices that belong to the same maininvoice + student + schoolyear
     $invAggSubQuery = "
@@ -105,6 +105,14 @@ public function get_maininvoice_with_studentrelation($schoolyearID = NULL, $main
 }
 
     $this->db->order_by('maininvoice.maininvoiceID', 'DESC');
+
+    // Apply limit and offset for pagination
+    if ($limit !== NULL) {
+        $this->db->limit($limit, $offset);
+    } elseif ($offset > 0) {
+        // If no limit but offset is provided, apply offset only
+        $this->db->limit(999999, $offset);
+    }
 
     $query = $this->db->get();
     // echo $this->db->last_query(); die;
@@ -309,6 +317,32 @@ public function get_maininvoice_with_studentrelation_new1($schoolyearID = NULL, 
 
 	public function delete_maininvoice($id){
 		parent::delete($id);
+	}
+
+	// Method to count total maininvoices for pagination
+	public function count_maininvoice_with_studentrelation($schoolyearID = NULL, $maininvoiceclassesID = "") {
+		$this->db->from('maininvoice');
+		$this->db->join(
+			'studentrelation',
+			'studentrelation.srstudentID = maininvoice.maininvoicestudentID
+			 AND studentrelation.srschoolyearID = maininvoice.maininvoiceschoolyearID',
+			'LEFT'
+		);
+
+		$this->db->where('maininvoice.maininvoicedeleted_at', 1);
+
+		if ($schoolyearID !== NULL) {
+			$this->db->where('maininvoice.maininvoiceschoolyearID', $schoolyearID);
+			$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+			$this->db->where('maininvoice.maininvoiceuname IS NOT NULL', NULL, FALSE);
+			$this->db->where('maininvoice.maininvoiceuname !=', '');
+		}
+
+		if (!empty($maininvoiceclassesID) && $maininvoiceclassesID > 0) {
+			$this->db->where('maininvoice.maininvoiceclassesID', $maininvoiceclassesID);
+		}
+
+		return $this->db->count_all_results();
 	}
 }
 

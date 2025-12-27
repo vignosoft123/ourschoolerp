@@ -141,7 +141,7 @@ class Balancefeesreport extends Admin_Controller{
 				    echo json_encode($retArray);
 				    exit;
 				} else {
- 
+
 					$schoolyearID = $this->session->userdata('defaultschoolyearID');
 					$_POST['schoolyearID'] = $schoolyearID;
 					$villageID    = $this->input->post('villageID'); 
@@ -183,7 +183,14 @@ class Balancefeesreport extends Admin_Controller{
 
 					// $this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_student($studentArray),'obj','srstudentID');
 
-					$this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+					$allStudents = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+					$perPage     = 25;
+					$totalStudents = customCompute($allStudents);
+					$this->data['totalStudents'] = $totalStudents;
+					$this->data['perPage']       = $perPage;
+					$this->data['startIndex']    = 0;
+					// For initial load, only send first page of students
+					$this->data['students'] = ($totalStudents > $perPage) ? array_slice($allStudents, 0, $perPage, true) : $allStudents;
 
 					$this->data['classes'] = pluck($this->classes_m->general_get_classes(),'classes','classesID');
 					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
@@ -219,6 +226,94 @@ class Balancefeesreport extends Admin_Controller{
 		} else {
 			$retArray['render'] =  $this->load->view('report/reporterror', $this->data, true);
 			$retArray['status'] = TRUE;
+			echo json_encode($retArray);
+			exit;
+		}
+	}
+
+	public function getBalanceFeesReportLazy() {
+		$retArray['status'] = FALSE;
+		$retArray['rows']   = '';
+		$retArray['hasMore'] = FALSE;
+		$retArray['nextOffset'] = 0;
+
+		if(permissionChecker('balancefeesreport')) {
+			if($_POST) {
+				$rules = $this->rules();
+				$this->form_validation->set_rules($rules);
+				if ($this->form_validation->run() == FALSE) {
+					$retArray = $this->form_validation->error_array();
+					$retArray['status'] = FALSE;
+					echo json_encode($retArray);
+					exit;
+				} else {
+					$schoolyearID = $this->session->userdata('defaultschoolyearID');
+					$_POST['schoolyearID'] = $schoolyearID;
+					$villageID    = $this->input->post('villageID'); 
+					$classesID    = $this->input->post('classesID'); 
+					$sectionID    = $this->input->post('sectionID'); 
+					$studentID    = $this->input->post('studentID'); 
+					$offset       = (int) $this->input->post('offset');
+
+					$this->data['classesID']    = $classesID;
+					$this->data['villageID']    = $villageID;
+					$this->data['sectionID']    = $sectionID;
+					$this->data['studentID']    = $studentID;
+					$this->data['schoolyearID'] = $schoolyearID; 
+
+					$feetypeIDs = $this->input->post('feetypeID'); // this will now be an array
+					$this->data['feetypeIDs'] = $feetypeIDs;
+
+					$studentArray = [];
+					if((int)$classesID) {
+						$studentArray['srclassesID'] = $classesID;
+					}
+					if((int)$sectionID) {
+						$studentArray['srsectionID'] = $sectionID;
+					}
+					if((int)$studentID) {
+						$studentArray['srstudentID'] = $studentID;
+					}
+
+					if((int)$villageID) {
+						$studentArray['villageID'] = $villageID;
+					}
+
+					$studentArray['srschoolyearID'] = $schoolyearID;
+
+					$this->db->order_by('srclassesID','ASC');
+					$allStudents = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+					$perPage     = 25;
+					$totalStudents = customCompute($allStudents);
+
+					// Calculate the slice for this page
+					if($offset < 0) $offset = 0;
+					if($offset > $totalStudents) $offset = $totalStudents;
+
+					$this->data['students']    = ($totalStudents > 0) ? array_slice($allStudents, $offset, $perPage, true) : [];
+					$this->data['classes']     = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+					$this->data['sections']    = pluck($this->section_m->general_get_section(),'section','sectionID');
+					$this->data['feetypes']    = ($this->feetypes_m->general_get_fee_multi($feetypeIDs));
+					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
+					$this->data['totalPayment']         = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
+					$this->data['totalPayment_split']   = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
+					$this->data['totalweavar']          = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
+					$this->data['startIndex']           = $offset;
+
+					$retArray['rows'] = $this->load->view('report/balancefees/BalanceFeesReportRows', $this->data, true);
+					$nextOffset = $offset + $perPage;
+					$retArray['nextOffset'] = ($nextOffset > $totalStudents) ? $totalStudents : $nextOffset;
+					$retArray['hasMore']    = ($nextOffset < $totalStudents);
+					$retArray['status']     = TRUE;
+					echo json_encode($retArray);
+					exit;
+				}
+			} else {
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['status'] = FALSE;
 			echo json_encode($retArray);
 			exit;
 		}

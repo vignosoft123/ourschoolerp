@@ -509,8 +509,22 @@ public function getmeritstagereport() {
                 $students          = $this->studentrelation_m
                     ->general_get_order_by_student(['srclassesID' => $classesID, 'srschoolyearID' => $schoolyearID]);
 
-                // 🔹 Marks now include examschedule.max_mark (from join)
-                $marks             = $this->mark_m->student_all_mark_array($queryArray);
+                // 🔹 Get marks using same method as loadStudentsAjax (NOT student_all_mark_array)
+                $marks = $this->mark_m->get_order_by_mark_new([
+                    'schoolyearID' => $schoolyearID,
+                    'examID' => $examID,
+                    'classesID' => $classesID
+                ]);
+
+                // Get markrelation data for actual marks (same as loadStudentsAjax)
+                $markrelations = [];
+                if (!empty($marks)) {
+                    $markIDs = array_column($marks, 'markID');
+                    if (!empty($markIDs)) {
+                        $this->db->where_in('markID', $markIDs);
+                        $markrelations = $this->db->get('markrelation')->result();
+                    }
+                }
 
                 $mandatorySubjects = $this->subject_m
                     ->general_get_order_by_subject_left_examschedule($classesID, 1, $examID, $sectionID);
@@ -521,14 +535,17 @@ public function getmeritstagereport() {
                                             : [];
                 $settingmarktypeID      = $this->data['siteinfos']->marktypeID;
 
-                // 🔹 Build marks array
-                $retMark = [];
-                if(customCompute($marks)) {
-                    foreach ($marks as $mark) {
-                        if(isset($mark->eattendance) && strtolower($mark->eattendance) == 'absent') {
-                            $retMark[$mark->studentID][$mark->subjectID][$mark->markpercentageID] = '<span class="attendance-circle">A</span>';
-                        } else {
-                            $retMark[$mark->studentID][$mark->subjectID][$mark->markpercentageID] = (float)$mark->mark;
+                // 🔹 Build marks lookup - extract markrelation.mark per student & subject (matches loadStudentsAjax)
+                $marksLookup = [];
+                foreach ($marks as $mark) {
+                    foreach ($markrelations as $relation) {
+                        if ($relation->markID == $mark->markID) {
+                            $marksLookup[$mark->studentID][$mark->subjectID] = [
+                                'markID' => $mark->markID,
+                                'mark' => $relation->mark,
+                                'eattendance' => $mark->eattendance ?? 'Present'
+                            ];
+                            break;
                         }
                     }
                 }
@@ -539,13 +556,6 @@ public function getmeritstagereport() {
 
                 if(customCompute($students)) {
                     foreach ($students as $student) {
-                        $opuniquepercentageArr = [];
-                        if($student->sroptionalsubjectID > 0) {
-                            $opuniquepercentageArr = isset($markpercentagesArr[$student->sroptionalsubjectID]) 
-                                ? $markpercentagesArr[$student->sroptionalsubjectID] 
-                                : [];
-                        }
-
                         // Init
                         $studentPositon[$student->srstudentID]['totalSubjectMark'] = 0;
                         $studentPositon[$student->srstudentID]['totalMaxMark']     = 0;   // NEW ✅
@@ -557,25 +567,15 @@ public function getmeritstagereport() {
                                 $subjectTotal   = 0;
                                 $subjectDisplay = 'Absent';
 
-                                $uniquepercentageArr = isset($markpercentagesArr[$mandatorySubject->subjectID]) 
-                                    ? $markpercentagesArr[$mandatorySubject->subjectID] 
-                                    : [];
-
-                                $markpercentages = $uniquepercentageArr[
-                                    (($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'
-                                ] ?? [];
-
-                                if(customCompute($markpercentages)) {
-                                    foreach ($markpercentages as $markpercentageID) {
-                                        if(isset($retMark[$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID])) {
-                                            $markValue = $retMark[$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID];
-                                            $numericMark = ($markValue === 'Absent' || $markValue === '' || $markValue === null) 
-                                                ? 0 
-                                                : (float)$markValue;
-
-                                            $subjectTotal   += $numericMark;
-                                            $subjectDisplay = $markValue;
-                                        }
+                                // Get mark from lookup (matches loadStudentsAjax format)
+                                if(isset($marksLookup[$student->srstudentID][$mandatorySubject->subjectID])) {
+                                    $markData = $marksLookup[$student->srstudentID][$mandatorySubject->subjectID];
+                                    $mrk = (float)$markData['mark'];
+                                    $exam_absent = $markData['eattendance'];
+                                    
+                                    if($exam_absent !== 'Absent') {
+                                        $subjectTotal = $mrk;
+                                        $subjectDisplay = $mrk;
                                     }
                                 }
 
@@ -597,13 +597,14 @@ public function getmeritstagereport() {
                             $optionalTotal   = 0;
                             $optionalDisplay = 'Absent';
 
-                            if(isset($retMark[$student->srstudentID][$student->sroptionalsubjectID])) {
-                                foreach($retMark[$student->srstudentID][$student->sroptionalsubjectID] as $markValue) {
-                                    $numericMark = ($markValue === 'Absent' || $markValue === '' || $markValue === null) 
-                                        ? 0 
-                                        : (float)$markValue;
-                                    $optionalTotal   += $numericMark;
-                                    $optionalDisplay = $markValue;
+                            if(isset($marksLookup[$student->srstudentID][$student->sroptionalsubjectID])) {
+                                $markData = $marksLookup[$student->srstudentID][$student->sroptionalsubjectID];
+                                $mrk = (float)$markData['mark'];
+                                $exam_absent = $markData['eattendance'];
+                                
+                                if($exam_absent !== 'Absent') {
+                                    $optionalTotal = $mrk;
+                                    $optionalDisplay = $mrk;
                                 }
                             }
 
@@ -612,9 +613,10 @@ public function getmeritstagereport() {
 
                             $studentPositon[$student->srstudentID]['totalSubjectMark'] += $optionalTotal;
 
-                            // add optional max mark
-                            if(isset($mandatorySubject->max_mark)) {
-                                $studentPositon[$student->srstudentID]['totalMaxMark'] += (float)$mandatorySubject->max_mark;
+                            // add optional max mark (get from examschedule or subject)
+                            $optionalSubject = $this->subject_m->get_single_subject(['subjectID' => $student->sroptionalsubjectID]);
+                            if($optionalSubject && isset($optionalSubject->max_mark)) {
+                                $studentPositon[$student->srstudentID]['totalMaxMark'] += (float)$optionalSubject->max_mark;
                             }
                         }
 
