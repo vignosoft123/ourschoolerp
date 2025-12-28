@@ -2575,10 +2575,35 @@ class Student extends Admin_Controller
 							}
 
 
-							
-
-							
-
+							//Update invoice and payment tables when class or section changes
+							if($_POST['sectionID'] != $_POST['old_section'] || $_POST['classesID'] != $_POST['old_class']){
+								$schoolyearID = $this->session->userdata('defaultschoolyearID');
+								$newClassesID = $this->input->post("classesID");
+								$newSectionID = $this->input->post("sectionID");
+								
+								//Update maininvoice table
+								$this->db->where('maininvoicestudentID', $studentID);
+								$this->db->where('maininvoiceschoolyearID', $schoolyearID);
+								$this->db->update('maininvoice', array(
+									'maininvoiceclassesID' => $newClassesID,
+									'maininvoicesectionID' => $newSectionID
+								));
+								
+								//Update globalpayment table
+								$this->db->where('studentID', $studentID);
+								$this->db->where('schoolyearID', $schoolyearID);
+								$this->db->update('globalpayment', array(
+									'classesID' => $newClassesID,
+									'sectionID' => $newSectionID
+								));
+								
+								//Update invoice table
+								$this->db->where('studentID', $studentID);
+								$this->db->where('schoolyearID', $schoolyearID);
+								$this->db->update('invoice', array(
+									'classesID' => $newClassesID 
+								));
+							}
 
 							$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 							redirect(base_url("student/index/$url"));

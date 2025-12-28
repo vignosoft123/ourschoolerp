@@ -360,6 +360,9 @@ class Tmember extends Admin_Controller {
 				if(isset($fetchClass[$url])) {
 					$student = $this->studentrelation_m->get_single_student(array('srstudentID' => $id, 'srschoolyearID' => $schoolyearID));
 					if($student) {
+						// Delete transport member invoice records with payment validation
+						$this->deleteTransportInvoices($id, $schoolyearID);
+						
 						$this->tmember_m->delete_tmember_sID($id);
 						$this->student_m->update_student(array("transport" => 0), $id);
 						$this->session->set_flashdata('success', $this->lang->line('menu_success'));
@@ -375,6 +378,52 @@ class Tmember extends Admin_Controller {
 			}
 		} else {
 			redirect(base_url("tmember/index"));
+		}
+	}
+
+	/**
+	 * Delete transport fee invoices with proper validation
+	 * Checks payment records before deletion
+	 * Handles maininvoice deletion based on invoice count
+	 */
+	private function deleteTransportInvoices($studentID, $schoolyearID) {
+		// Get all transport fee invoice records for this student
+		$this->db->where('studentID', $studentID);
+		$this->db->where('schoolyearID', $schoolyearID);
+		$this->db->where('feetype', 'TRANSPORT FEE');
+		$invoices = $this->db->get('invoice')->result();
+		
+		if(customCompute($invoices)) {
+			foreach($invoices as $invoice) {
+				// Check if payment exists for this invoice
+				$this->db->where('invoiceID', $invoice->invoiceID);
+				$this->db->where('studentID', $studentID);
+				$this->db->where('schoolyearID', $schoolyearID);
+				$paymentCount = $this->db->count_all_results('payment');
+				
+				// Only proceed with deletion if no payment records found
+				if($paymentCount == 0) {
+					$maininvoiceID = $invoice->maininvoiceID;
+					
+					// Check how many invoice records have this maininvoiceID
+					if($maininvoiceID > 0) {
+						$this->db->where('maininvoiceID', $maininvoiceID);
+						$invoiceCount = $this->db->count_all_results('invoice');
+						
+						// Only delete maininvoice if this is the only invoice record with this maininvoiceID
+						if($invoiceCount == 1) {
+							$this->db->where('maininvoiceID', $maininvoiceID);
+							$this->db->delete('maininvoice');
+						}
+					}
+					
+					// Delete the invoice record
+					$this->db->where('invoiceID', $invoice->invoiceID);
+					$this->db->where('studentID', $studentID);
+					$this->db->where('feetype', 'TRANSPORT FEE');
+					$this->db->delete('invoice');
+				}
+			}
 		}
 	}
 

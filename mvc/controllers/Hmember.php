@@ -417,6 +417,9 @@ class Hmember extends Admin_Controller
 				if ($student) {
 					$this->data["hmember"] = $this->hmember_m->get_single_hmember(array("studentID" => $id));
 					if ($this->data["hmember"]) {
+						// Delete hostel member invoice records with payment validation
+						$this->deleteHostelInvoices($id, $schoolyearID);
+						
 						$this->hmember_m->delete_hmember($this->data['hmember']->hmemberID);
 						$this->student_m->update_student(array("hostel" => 0), $id);
 						$this->session->set_flashdata('success', $this->lang->line('menu_success'));
@@ -432,6 +435,52 @@ class Hmember extends Admin_Controller
 			}
 		} else {
 			redirect(base_url("hmember/index"));
+		}
+	}
+
+	/**
+	 * Delete hostel fee invoices with proper validation
+	 * Checks payment records before deletion
+	 * Handles maininvoice deletion based on invoice count
+	 */
+	private function deleteHostelInvoices($studentID, $schoolyearID) {
+		// Get all hostel fee invoice records for this student
+		$this->db->where('studentID', $studentID);
+		$this->db->where('schoolyearID', $schoolyearID);
+		$this->db->like('feetype', 'Hostel Fee');
+		$invoices = $this->db->get('invoice')->result();
+		
+		if(customCompute($invoices)) {
+			foreach($invoices as $invoice) {
+				// Check if payment exists for this invoice
+				$this->db->where('invoiceID', $invoice->invoiceID);
+				$this->db->where('studentID', $studentID);
+				$this->db->where('schoolyearID', $schoolyearID);
+				$paymentCount = $this->db->count_all_results('payment');
+				
+				// Only proceed with deletion if no payment records found
+				if($paymentCount == 0) {
+					$maininvoiceID = $invoice->maininvoiceID;
+					
+					// Check how many invoice records have this maininvoiceID
+					if($maininvoiceID > 0) {
+						$this->db->where('maininvoiceID', $maininvoiceID);
+						$invoiceCount = $this->db->count_all_results('invoice');
+						
+						// Only delete maininvoice if this is the only invoice record with this maininvoiceID
+						if($invoiceCount == 1) {
+							$this->db->where('maininvoiceID', $maininvoiceID);
+							$this->db->delete('maininvoice');
+						}
+					}
+					
+					// Delete the invoice record
+					$this->db->where('invoiceID', $invoice->invoiceID);
+					$this->db->where('studentID', $studentID);
+					$this->db->like('feetype', 'Hostel Fee');
+					$this->db->delete('invoice');
+				}
+			}
 		}
 	}
 
