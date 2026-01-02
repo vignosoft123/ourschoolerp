@@ -307,6 +307,7 @@
                                          
                                             $status = $maininvoice->maininvoicestatus;
                                             $setButton = ''; 
+                                            $partial =  0;
                                             if($status == 0) {
                                                 // $status = $this->lang->line('invoice_notpaid');
                                                 // $setButton = 'btn-danger';
@@ -315,6 +316,7 @@
                                                  if( $totl != $balance ){
                                                         $status = $this->lang->line('invoice_partially_paid');
                                                         $setButton = 'btn-warning';
+                                                        $partial =  1;
                                                     }else{
                                                        $status = $this->lang->line('invoice_notpaid');
                                                         $setButton = 'btn-danger';
@@ -323,13 +325,15 @@
                                             } elseif(($status == 1) ) {
                                                 $status = $this->lang->line('invoice_partially_paid');
                                                 $setButton = 'btn-warning';
+                                                $partial =  1;
                                             } elseif($status == 2) {
                                                     if($balance == '' || $balance == 0.00){
                                                         $status = $this->lang->line('invoice_fully_paid');
                                                         $setButton = 'btn-success';
                                                     }else{
-                                                        $status = $this->lang->line('invoice_partially_paid');
+                                                       $status = $this->lang->line('invoice_partially_paid');
                                                         $setButton = 'btn-warning';
+                                                        $partial =  1;
                                                     }
                                                
                                             }
@@ -347,7 +351,7 @@
                                         <?php echo btn_view('invoice/view/'.$maininvoice->maininvoiceID.'/'.$maininvoice->srstudentID, $this->lang->line('view')) ?>
                                         <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) { ?>
                                             <?php 
-                                                if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {
+                                                if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2 && $partial != 1) {
                                                      echo btn_edit('invoice/edit/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('edit')); 
                                             } ?>
                                             <?php if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {

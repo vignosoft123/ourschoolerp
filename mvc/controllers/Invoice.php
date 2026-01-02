@@ -232,6 +232,7 @@ class Invoice extends Admin_Controller
             foreach($maininvoices as $maininvoice) {
                 $totl = isset($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID]) ? $grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID] : 0;
                 
+                $totll = number_format($totl, 2);
                 // Calculate balance
                 $balance = "";
                 if(isset($grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID])) { 
@@ -256,10 +257,12 @@ class Invoice extends Admin_Controller
                 // Determine status
                 $status = $maininvoice->maininvoicestatus;
                 $setButton = ''; 
+                $partial = 0;
                 if($status == 0) {
-                    if($totl != $balance){
+                    if($totll != $balance){
                         $status = $this->lang->line('invoice_partially_paid');
                         $setButton = 'btn-warning';
+                        $partial = 1;
                     }else{
                         $status = $this->lang->line('invoice_notpaid');
                         $setButton = 'btn-danger';
@@ -267,6 +270,7 @@ class Invoice extends Admin_Controller
                 } elseif(($status == 1)) {
                     $status = $this->lang->line('invoice_partially_paid');
                     $setButton = 'btn-warning';
+                    $partial = 1;
                 } elseif($status == 2) {
                     if($balance == '' || $balance == 0.00){
                         $status = $this->lang->line('invoice_fully_paid');
@@ -274,6 +278,7 @@ class Invoice extends Admin_Controller
                     }else{
                         $status = $this->lang->line('invoice_partially_paid');
                         $setButton = 'btn-warning';
+                        $partial = 1;
                     }
                 }
                 
@@ -325,7 +330,7 @@ class Invoice extends Admin_Controller
                     $html .= btn_view('invoice/view/'.$maininvoice->maininvoiceID.'/'.$maininvoice->srstudentID, $this->lang->line('view'));
                     
                     if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) {
-                        if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {
+                        if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2 && $partial != 1) {
                             $html .= btn_edit('invoice/edit/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('edit'));
                         }
                         if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {
@@ -369,7 +374,7 @@ class Invoice extends Admin_Controller
         if(customCompute($maininvoices)) {
             foreach($maininvoices as $maininvoice) {
                 $totl = isset($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID]) ? $grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID] : 0;
-                
+                $totll = number_format($totl, 2);
                 // Calculate balance
                 $balance = "";
                 if(isset($grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID])) { 
@@ -394,17 +399,23 @@ class Invoice extends Admin_Controller
                 // Determine status
                 $status = $maininvoice->maininvoicestatus;
                 $setButton = ''; 
+                $partial = 0;
                 if($status == 0) {
-                    if($totl != $balance){
+                  
+                    if(($totll) == ($balance)){
+                         $status = $this->lang->line('invoice_notpaid');
+                        $setButton = 'btn-danger';
+
+                       
+                    }else{
                         $status = $this->lang->line('invoice_partially_paid');
                         $setButton = 'btn-warning';
-                    }else{
-                        $status = $this->lang->line('invoice_notpaid');
-                        $setButton = 'btn-danger';
+                        $partial = 1;
                     }
                 } elseif(($status == 1)) {
                     $status = $this->lang->line('invoice_partially_paid');
                     $setButton = 'btn-warning';
+                    $partial = 1;
                 } elseif($status == 2) {
                     if($balance == '' || $balance == 0.00){
                         $status = $this->lang->line('invoice_fully_paid');
@@ -412,6 +423,7 @@ class Invoice extends Admin_Controller
                     }else{
                         $status = $this->lang->line('invoice_partially_paid');
                         $setButton = 'btn-warning';
+                        $partial = 1;
                     }
                 }
                 
