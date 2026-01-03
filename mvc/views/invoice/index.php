@@ -353,9 +353,12 @@
                                             <?php 
                                                 if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2 && $partial != 1) {
                                                      echo btn_edit('invoice/edit/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('edit')); 
+
+                                                      echo btn_delete('invoice/delete/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('delete'));
+                                                      
                                             } ?>
                                             <?php if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2) {
-                                                 echo btn_delete('invoice/delete/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('delete'));
+                                                //  echo btn_delete('invoice/delete/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('delete'));
                                             } ?>
                                         <?php } ?>
                                         <?php if(permissionChecker('invoice_view')) {

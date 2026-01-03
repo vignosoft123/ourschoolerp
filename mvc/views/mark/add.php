@@ -2235,8 +2235,27 @@ function exportTableToCSV(tableID, filename = 'table.csv') {
                 // If it's a mark input field, get its value
                 text = input.value || '0';
             } else {
-                // Otherwise get the text content
-                text = cols[j].innerText;
+                // Check if cell contains attendance circle (absent marker)
+                var attendanceCircle = cols[j].querySelector('.attendance-circle');
+                if (attendanceCircle) {
+                    // For absent students, export "Absent" instead of the Ab text
+                    text = 'Absent';
+                } else {
+                    // Clone the cell and remove unwanted elements before getting text
+                    var cellClone = cols[j].cloneNode(true);
+                    // Remove all icon elements (attendance icons, etc.)
+                    var icons = cellClone.querySelectorAll('i.fa, i.icon-eattendance');
+                    icons.forEach(function(icon) {
+                        icon.remove();
+                    });
+                    // Remove all button elements
+                    var buttons = cellClone.querySelectorAll('button');
+                    buttons.forEach(function(button) {
+                        button.remove();
+                    });
+                    // Get cleaned text content
+                    text = cellClone.innerText.trim();
+                }
             }
             
             // Escape double quotes
