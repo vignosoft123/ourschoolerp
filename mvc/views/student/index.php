@@ -9,6 +9,16 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     label { 
     color: #ffff;
     }
+    
+    /* Modal labels with dark color for visibility */
+    .modal-body label {
+        color: #333 !important;
+        font-weight: 500;
+    }
+    
+    .modal-body .form-label {
+        color: #333 !important;
+    }
     .ose-btn1 {
         background-color: #d9534f !important;
         font-size: 16px;
@@ -696,13 +706,17 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 <!-- photo  Modal  start Structure -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
 <div class="modal fade" id="fileUploadModal" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="fileUploadModalLabel">Upload Photo</h5>
-                <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 15px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px 15px 0 0; border-bottom: none; padding: 20px 25px;">
+                <h5 class="modal-title" id="fileUploadModalLabel" style="font-weight: 600; font-size: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fa fa-upload"></i> Upload Photo
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white; opacity: 0.9; font-size: 28px; font-weight: 300; text-shadow: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 30px 25px; background: #f8f9fa;">
                 <!-- Form for File Upload -->
                 <form id="fileUploadForm" enctype="multipart/form-data">
                     <div class="mb-3">
@@ -727,10 +741,13 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
 <!-- Photo zoom modal -->
 <div class="modal fade" id="photoZoomModal" tabindex="-1" role="dialog" aria-labelledby="photoZoomModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-body text-center" style="padding:10px;">
-                <img id="photoZoomImg" src="" style="max-width:100%; max-height:80vh; border:1px solid #ddd;" />
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.3); background: transparent;">
+            <div class="modal-body text-center" style="padding: 0; border-radius: 20px; background: #000; position: relative;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; top: 10px; right: 15px; z-index: 10; color: white; opacity: 1; font-size: 32px; font-weight: 300; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <img id="photoZoomImg" src="" style="max-width:100%; max-height:85vh; border-radius: 20px; object-fit: contain;" />
             </div>
         </div>
     </div>
@@ -740,25 +757,25 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                          <div class="modal fade" id="quickStudentModal" tabindex="-1" role="dialog" aria-labelledby="quickStudentModalLabel" aria-hidden="true">
                             <div class="modal-dialog modal-xl" role="document">
                                 <form id="quickStudentForm" method="post" action="<?= base_url('student/add') ?>">
-                                <div class="modal-content">
+                                <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 60px rgba(0,0,0,0.25); overflow: hidden;">
 
                                     <!-- Header -->
-                                    <div class="modal-header bg-gradient-primary ">
-                                    <h5 class="modal-title" id="quickStudentModalLabel">
-                                        <i class="fa fa-user-plus"></i> Quick Student Creation
+                                    <div class="modal-header" style="background: linear-gradient(135deg, #0cc035 0%, #0a9d2b 100%); color: white; border: none; padding: 25px 30px;">
+                                    <h5 class="modal-title" id="quickStudentModalLabel" style="font-weight: 600; font-size: 22px; display: flex; align-items: center; gap: 12px;">
+                                        <i class="fa fa-user-plus" style="font-size: 24px;"></i> Quick Student Creation
                                     </h5>
-                                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9; font-size: 32px; font-weight: 300; text-shadow: none;">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                     </div>
 
                                     <!-- Body -->
-                                    <div class="modal-body" style="background-color: #4d93fb;">
+                                    <div class="modal-body" style="background: linear-gradient(180deg, #f0f4ff 0%, #e8f5e9 100%); padding: 30px;">
                                     <div class="container-fluid">
 
                                         <!-- Basic Info -->
-                                        <fieldset class="border p-3 mb-4 bg-white shadow-sm rounded">
-                                        <legend class="w-auto text-primary font-weight-bold">Basic Information</legend>
+                                        <fieldset class="border p-4 mb-4 bg-white shadow-sm" style="border-radius: 15px; border: 2px solid #e0e0e0 !important;">
+                                        <legend class="w-auto font-weight-bold" style="color: #0cc035; font-size: 18px; padding: 0 10px;"><i class="fa fa-info-circle"></i> Basic Information</legend>
                                         <div class="row">
                                             
                                             <div class="col-md-3 form-group">
@@ -868,8 +885,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         </fieldset>
 
                                         <!-- Transport -->
-                                        <div id="transport_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
-                                        <legend class="w-auto text-success font-weight-bold">Transport Details</legend>
+                                        <div id="transport_div" class="border p-4 mb-4 bg-white shadow-sm" style="display: none; border-radius: 15px; border: 2px solid #e0e0e0 !important;">
+                                        <legend class="w-auto font-weight-bold" style="color: #28a745; font-size: 18px; padding: 0 10px;"><i class="fa fa-bus"></i> Transport Details</legend>
                                         <div class="row">
                                             <div class="col-md-4 form-group">
                                             <label>Transport Route</label>
@@ -922,8 +939,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         </div>
 
                                         <!-- Hostel -->
-                                        <div id="hostel_div" class="border p-3 mb-4 bg-white shadow-sm rounded" style="display: none;">
-                                        <legend class="w-auto text-warning font-weight-bold">Hostel Details</legend>
+                                        <div id="hostel_div" class="border p-4 mb-4 bg-white shadow-sm" style="display: none; border-radius: 15px; border: 2px solid #e0e0e0 !important;">
+                                        <legend class="w-auto font-weight-bold" style="color: #ff9800; font-size: 18px; padding: 0 10px;"><i class="fa fa-building"></i> Hostel Details</legend>
                                         <div class="row">
                                             <div class="col-md-6 form-group">
                                             <label>Hostel Name</label>
@@ -965,9 +982,9 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     </div>
 
                                     <!-- Footer -->
-                                    <div class="modal-footer bg-white">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                    <button type="submit" class="btn btn-success">
+                                    <div class="modal-footer" style="background: white; border-top: 2px solid #e0e0e0; padding: 20px 30px;">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal" style="padding: 10px 25px; border-radius: 10px; font-weight: 500; border: none; background: #6c757d;">Cancel</button>
+                                    <button type="submit" class="btn btn-success" style="padding: 10px 25px; border-radius: 10px; font-weight: 500; border: none; background: linear-gradient(135deg, #0cc035 0%, #0a9d2b 100%); box-shadow: 0 4px 15px rgba(12, 192, 53, 0.3);">
                                         <i class="fa fa-save"></i> Save Student
                                     </button>
                                     </div>

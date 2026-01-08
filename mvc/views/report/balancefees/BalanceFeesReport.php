@@ -488,7 +488,8 @@ function formatIndianCurrency($number, $decimals = 2) {
                     $nextOffset = $perPage;
             ?>
                 <div class="text-center" style="margin-top:15px;">
-                    <button id="loadMoreBalanceFees" class="btn btn-success" data-offset="<?=$nextOffset?>" data-perpage="<?=$perPage?>" data-total="<?=$totalStudents?>">Load More</button>
+                    <button id="loadMoreBalanceFees" class="btn btn-success" data-offset="<?=$nextOffset?>" data-perpage="<?=$perPage?>" data-total="<?=$totalStudents?>" style="margin-right: 10px;"><i class="fa fa-plus-circle"></i> Load More</button>
+                    <button id="loadAllBalanceFees" class="btn btn-info" data-offset="<?=$nextOffset?>" data-perpage="<?=$perPage?>" data-total="<?=$totalStudents?>"><i class="fa fa-download"></i> Load All</button>
                 </div>
             <?php } ?>
                         </div>

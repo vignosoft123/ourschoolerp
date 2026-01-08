@@ -110,10 +110,10 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="phone" class="control-label">
-                            <?=$this->lang->line("user_phone")?>
+                            <?=$this->lang->line("user_phone")?> <span class="text-red">*</span>
                         </label>
                         <div class="input-field">
-                            <input type="text" class="form-control" id="phone" name="phone" value="<?=set_value('phone')?>" >
+                            <input type="text" class="form-control" id="phone" name="phone" value="<?=set_value('phone')?>" required>
                         </div>
                         <span class="control-label">
                             <?php echo form_error('phone'); ?>

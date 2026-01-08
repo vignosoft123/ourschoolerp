@@ -819,6 +819,7 @@
 
                     if (!response.hasMore || nextOffset >= total) {
                         $btn.hide();
+                        $('#loadAllBalanceFees').hide();
                     }
 
                     updateGrandTotals();
@@ -830,6 +831,91 @@
                 $btn.prop('disabled', false).text('Load More');
             }
         });
+    });
+
+    // Load All: Load all remaining balance fees rows at once
+    $(document).on('click', '#loadAllBalanceFees', function() {
+        var $btn = $(this);
+        var $loadMoreBtn = $('#loadMoreBalanceFees');
+        var offset   = parseInt($loadMoreBtn.data('offset')) || 0;
+        var total    = parseInt($loadMoreBtn.data('total')) || 0;
+
+        var classesID = $('#classesID').val();
+        var sectionID = $('#sectionID').val();
+        var studentID = $('#studentID').val();
+        var feetypeID = $('#feetypeID').val();
+        var villageID = $('#villageID').val();
+        var sectionName = $('#sectionID option:selected').text();
+        if (sectionName === '' || sectionName.toLowerCase() === 'please select') {
+            sectionName = '';
+        }
+
+        if (offset >= total) {
+            $btn.hide();
+            $loadMoreBtn.hide();
+            return;
+        }
+
+        $btn.prop('disabled', true).text('Loading All Records...');
+        $loadMoreBtn.prop('disabled', true);
+
+        // Load all remaining records recursively
+        function loadAllRecords(currentOffset) {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('balancefeesreport/getBalanceFeesReportLazy')?>",
+                data: {
+                    classesID: classesID,
+                    sectionID: sectionID,
+                    studentID: studentID,
+                    feetypeID: feetypeID,
+                    villageID: villageID,
+                    sectionName: sectionName,
+                    offset: currentOffset
+                },
+                dataType: 'html',
+                success: function(data) {
+                    var response = {};
+                    try {
+                        response = JSON.parse(data);
+                    } catch (e) {
+                        response = { status: false };
+                    }
+
+                    if(response.status) {
+                        var $tbody = $('#myTable').find('tbody');
+                        var $grand = $tbody.find('tr.grand-total-row');
+                        if ($grand.length) {
+                            $(response.rows).insertBefore($grand);
+                        } else {
+                            $tbody.append(response.rows);
+                        }
+
+                        var nextOffset = parseInt(response.nextOffset) || currentOffset + 25;
+
+                        // Continue loading if there's more data
+                        if (response.hasMore && nextOffset < total) {
+                            loadAllRecords(nextOffset);
+                        } else {
+                            // All records loaded
+                            $btn.hide();
+                            $loadMoreBtn.hide();
+                            updateGrandTotals();
+                        }
+                    } else {
+                        $btn.prop('disabled', false).text('Load All');
+                        $loadMoreBtn.prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    $btn.prop('disabled', false).text('Load All');
+                    $loadMoreBtn.prop('disabled', false);
+                    alert('Error loading records. Please try again.');
+                }
+            });
+        }
+
+        loadAllRecords(offset);
     });
 </script>
 
