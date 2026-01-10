@@ -1578,7 +1578,7 @@
                 if($percentageMark != 0) {
                     $retMark = ( ( $retMark * 100 ) / $percentageMark );
                 }
-                return floor($retMark);
+                return $retMark;
             }
         }
     }
@@ -1586,7 +1586,7 @@
     function convertMarkpercentage( $getMark, $subjectFinalMark, $percentage = 100 )
     {
         $retMarkpercentage = ( ( $getMark * $subjectFinalMark ) / $percentage );
-        return floor($retMarkpercentage);
+        return $retMarkpercentage;
     }
 
     function inputCall( $name = null )
@@ -1651,49 +1651,62 @@
 
 
     function convert_number($number) {
-        if (($number < 0) || ($number > 999999999)) {
+        if (($number < 0) || ($number > 9999999999)) {
             throw new Exception("Number is out of range");
         }
-        $giga = floor($number / 1000000);
-        // Millions (giga)
-        $number -= $giga * 1000000;
-        $kilo = floor($number / 1000);
-        // Thousands (kilo)
-        $number -= $kilo * 1000;
-        $hecto = floor($number / 100);
-        // Hundreds (hecto)
-        $number -= $hecto * 100;
-        $deca = floor($number / 10);
-        // Tens (deca)
-        $n = $number % 10;
+        
+        $crore = floor($number / 10000000);
+        // Crores (1,00,00,000)
+        $number -= $crore * 10000000;
+        $lakh = floor($number / 100000);
+        // Lakhs (1,00,000)
+        $number -= $lakh * 100000;
+        $thousand = floor($number / 1000);
+        // Thousands (1,000)
+        $number -= $thousand * 1000;
+        $hundred = floor($number / 100);
+        // Hundreds (100)
+        $number -= $hundred * 100;
+        $tens_unit = floor($number / 10);
+        // Tens
+        $unit = $number % 10;
         // Ones
+        
         $result = "";
-        if ($giga) {
-            $result .= convert_number($giga) .  "Million";
+        
+        if ($crore) {
+            $result .= convert_number($crore) . " Crore";
         }
-        if ($kilo) {
-            $result .= (empty($result) ? "" : " ") .convert_number($kilo) . " Thousand";
+        if ($lakh) {
+            $result .= (empty($result) ? "" : " ") . convert_number($lakh) . " Lakh";
         }
-        if ($hecto) {
-            $result .= (empty($result) ? "" : " ") .convert_number($hecto) . " Hundred";
+        if ($thousand) {
+            $result .= (empty($result) ? "" : " ") . convert_number($thousand) . " Thousand";
         }
-        $ones = array("", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eightteen", "Nineteen");
-        $tens = array("", "", "Twenty", "Thirty", "Fourty", "Fifty", "Sixty", "Seventy", "Eigthy", "Ninety");
-        if ($deca || $n) {
+        if ($hundred) {
+            $result .= (empty($result) ? "" : " ") . convert_number($hundred) . " Hundred";
+        }
+        
+        $ones = array("", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen");
+        $tens = array("", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety");
+        
+        if ($tens_unit || $unit) {
             if (!empty($result)) {
                 $result .= " and ";
             }
-            if ($deca < 2) {
-                $result .= $ones[$deca * 10 + $n];
+            if ($tens_unit < 2) {
+                $result .= $ones[$tens_unit * 10 + $unit];
             } else {
-                $result .= $tens[$deca];
-                if ($n) {
-                    $result .= "-" . $ones[$n];
+                $result .= $tens[$tens_unit];
+                if ($unit) {
+                    $result .= "-" . $ones[$unit];
                 }
             }
         }
+        
         if (empty($result)) {
-            $result = "zero";
+            $result = "Zero";
         }
+        
         return $result;
     }
