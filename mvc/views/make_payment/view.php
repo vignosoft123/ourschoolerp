@@ -93,7 +93,7 @@
 
                                         <p style="margin:0 0 20px">
                                             <span><?=$this->lang->line("make_payment_date")?></span>
-                                            <?=date('d M Y', strtotime($make_payment->create_date))?>
+                                            <?=date('d M Y', strtotime($make_payment->salary_date))?>
                                         </p>
 
                                         <p style="margin:0 0 20px">

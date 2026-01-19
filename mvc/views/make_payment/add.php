@@ -132,6 +132,7 @@
                                 <th class="col-sm-2"><?=$this->lang->line('make_payment_date')?></th>
                                 <th class="col-sm-2"><?php if($manage_salary->salary == 2) { echo $this->lang->line('make_payment_net_salary_hourly'); } else { echo $this->lang->line('make_payment_net_salary'); } ?></th>
                                 <th class="col-sm-3"><?=$this->lang->line('make_payment_payment_amount')?></th>
+                                <th class="col-sm-3"><?=$this->lang->line('make_payment_comments')?></th>
                                 <?php if(permissionChecker('make_payment')) { ?>
                                     <th class="col-sm-2"><?=$this->lang->line('action')?></th>
                                 <?php } ?>
@@ -163,6 +164,10 @@
 
                                     <td data-title="<?=$this->lang->line('make_payment_amount')?>">
                                         <?php echo $make_payment->payment_amount; ?>
+                                    </td>
+
+                                    <td data-title="<?=$this->lang->line('make_payment_comments')?>">
+                                        <?php echo $make_payment->comments; ?>
                                     </td>
 
                                     <?php if(permissionChecker('make_payment')) { ?>
