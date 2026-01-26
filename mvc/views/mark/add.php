@@ -1381,13 +1381,22 @@
                                         return trimmedMark;
                                     });
                                     
+
+                                    <?php if (strpos($school_name, 'VIVEKA') !== false  ) {?>
+                                        // Format the message for VIVEKA school
+                                        var message = 'Dear parent, your children ' + $checkbox.attr('st_names') + 
+                                                    ' Exam name ' + $checkbox.attr('exam_name') + 
+                                                    ' marks are ' + processedMarks.join(' , ') +
+                                                    '. Total: ' + $checkbox.attr('total_marks') ;
+				<?php }else{ ?>
+
                                     // Format the message
                                     var message = 'Dear parent, your children ' + $checkbox.attr('st_names') + 
                                                 ' Exam name ' + $checkbox.attr('exam_name') + 
                                                 ' marks are ' + processedMarks.join(' and ') +
                                                 '. Total: ' + $checkbox.attr('total_marks') + 
                                                 ' Grade:' + $checkbox.attr('marks_grade');
-
+    <?php } ?>
                                     previewHtml += '<div class="sms-preview-item">';
                                     previewHtml += '<div class="recipient"><i class="fa fa-user"></i> ' + 
                                                  $checkbox.attr('st_names') + 

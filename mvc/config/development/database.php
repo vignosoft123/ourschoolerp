@@ -76,9 +76,13 @@ $db['default']['dsn']	   = '';
 // //hostgator
 
  $db['default']['hostname'] = '119.18.54.141'; 
-$db['default']['username'] = 'mindw2ft_dummy';
-$db['default']['database'] = 'mindw2ft_dummy';
-$db['default']['password'] = 'DjmyAZTeNAq3'; 
+ $db['default']['username'] = 'mindw2ft_staging2';
+$db['default']['database'] = 'mindw2ft_staging2';
+$db['default']['password'] = 'staging@123'; 
+
+// $db['default']['username'] = 'mindw2ft_dummy';
+// $db['default']['database'] = 'mindw2ft_dummy';
+// $db['default']['password'] = 'DjmyAZTeNAq3'; 
 
 //   myschools
 // $db['default']['hostname'] = '119.18.54.166'; 

@@ -424,14 +424,19 @@ class Mark extends Admin_Controller
 
  public function add($a=array())
 {
+
+
+	$this->data['setting'] = $this->setting_m->get_setting();
+	$school_name = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
+
     if(!empty($a)){
         $_POST = $a;
         //print_r($_POST);
     }
-// $_POST['subjectID'] = 1;
-//     echo "<pre>";    print_r($_POST);
-// die;
-    // error_reporting(E_ALL); 
+	// $_POST['subjectID'] = 1;
+	//     echo "<pre>";    print_r($_POST);
+	// die;
+		// error_reporting(E_ALL); 
     // ini_set('display_errors', 1);
     // ini_set('display_startup_errors', 1);
 
@@ -445,6 +450,8 @@ class Mark extends Admin_Controller
                 'assets/select2/select2.js'
             )
         );
+        $this->data['school_name']    = (isset($this->data['setting']->sname)) ? $this->data['setting']->sname : "";
+
         $this->data['students']           = [];
         $this->data['settingmarktypeID']  = $this->data['siteinfos']->marktypeID;
         $graduateclass                    = ''; //$this->data['siteinfos']->ex_class;
@@ -697,27 +704,27 @@ class Mark extends Admin_Controller
                     error_log("DEBUG: Student $sid - Frontend-style Total: $total, Failed: " . ($isFail ? 'Yes' : 'No') . ", Zero marks: $zero_mark");
                 }
 
-// rank only passed students (dense ranking)
-$passed = [];
-foreach ($studentResults as $sid => $res) {
+	// rank only passed students (dense ranking)
+	$passed = [];
+	foreach ($studentResults as $sid => $res) {
     if (!$res['isFail']) {
         $passed[$sid] = $res['total'];
         // DEBUG: Log passed students
         error_log("DEBUG: Student $sid passed with total: " . $res['total']);
     }
-}
+	}
 
-// DEBUG: Log passed students before sorting
-error_log("DEBUG: Passed students before sorting: " . json_encode($passed));
+	// DEBUG: Log passed students before sorting
+	error_log("DEBUG: Passed students before sorting: " . json_encode($passed));
 
-if (customCompute($passed)) {
-    // Sort in descending order (highest marks first) - FIXED RANKING ISSUE
-    arsort($passed, SORT_NUMERIC); 
-    
-    // DEBUG: Log passed students after sorting
-    error_log("DEBUG: Passed students after sorting: " . json_encode($passed));
+	if (customCompute($passed)) {
+		// Sort in descending order (highest marks first) - FIXED RANKING ISSUE
+		arsort($passed, SORT_NUMERIC); 
+		
+		// DEBUG: Log passed students after sorting
+		error_log("DEBUG: Passed students after sorting: " . json_encode($passed));
 
-    $studentRanks = [];
+		$studentRanks = [];
     $currentRank = 1; // Current rank being assigned
     $prevTotal = null;
 
@@ -737,17 +744,17 @@ if (customCompute($passed)) {
     foreach ($studentResults as $sid => $res) {
         $studentResults[$sid]['rank'] = isset($studentRanks[$sid]) ? $studentRanks[$sid] : '-';
     }
-} else {
-    foreach ($studentResults as $sid => $res) {
-        $studentResults[$sid]['rank'] = '-';
-    }
-}
+	} else {
+		foreach ($studentResults as $sid => $res) {
+			$studentResults[$sid]['rank'] = '-';
+		}
+	}
 
-// DEBUG: Log final student results
-error_log("DEBUG: Final student results: " . json_encode($studentResults));
-error_log("=== RANK CALCULATION DEBUG END ===");
+	// DEBUG: Log final student results
+	error_log("DEBUG: Final student results: " . json_encode($studentResults));
+	error_log("=== RANK CALCULATION DEBUG END ===");
 
-$this->data['studentResults'] = $studentResults;
+	$this->data['studentResults'] = $studentResults;
                 // ----------------- RANK CALCULATION END -----------------
 
 				// echo "<pre>";print_r($this->data);die;
