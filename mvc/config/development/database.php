@@ -78,7 +78,7 @@ $db['default']['dsn']	   = '';
  $db['default']['hostname'] = '119.18.54.141'; 
  $db['default']['username'] = 'mindw2ft_staging2';
 $db['default']['database'] = 'mindw2ft_staging2';
-$db['default']['password'] = 'staging@123'; 
+$db['default']['password'] = '$%N*{3N-QE+f'; 
 
 // $db['default']['username'] = 'mindw2ft_dummy';
 // $db['default']['database'] = 'mindw2ft_dummy';
