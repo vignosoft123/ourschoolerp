@@ -543,7 +543,7 @@
                                     if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
                                         $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
                                     }
-                                    $totalExamMarks += $mark;
+                                    $totalExamMarks += is_numeric($mark) ? $mark : 0;
                                 }
                             }
                         }
@@ -583,7 +583,7 @@
                                     if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
                                         $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
                                     }
-                                    $totalExamMarks += $mark;
+                                    $totalExamMarks += is_numeric($mark) ? $mark : 0;
                                 }
                             }
                         }
@@ -627,7 +627,7 @@
                             if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
                                 $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
                             }
-                            $totalExamMarks += $mark;
+                            $totalExamMarks += is_numeric($mark) ? $mark : 0;
                         }
                     }
                 }
