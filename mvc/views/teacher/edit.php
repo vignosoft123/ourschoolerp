@@ -78,7 +78,7 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="default_login_time" class=" control-label">
-                           Default Login Time <span class="text-red">*</span>
+                           <?=$this->lang->line("default_login_time")?>
                         </label>
                         <div class="input-field">
                             <input type="text" class="form-control" id="default_login_time" name="default_login_time" value="<?=set_value('default_login_time', $teacher->default_login_time)?>" >
@@ -95,7 +95,7 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="default_logout_time" class=" control-label">
-                           Default Login Time <span class="text-red">*</span>
+                           <?=$this->lang->line("default_logout_time")?>
                         </label>
                         <div class="input-field">
                             <input type="text" class="form-control" id="default_logout_time" name="default_logout_time" value="<?=set_value('default_logout_time', $teacher->default_logout_time)?>" >
@@ -236,7 +236,7 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="photo" class="control-label">
-                            Signature
+                            <?=$this->lang->line("teacher_photo")?>
                         </label>
                         <div class="input-filed">
                             <div class="input-group image-preview">
@@ -258,6 +258,38 @@
 
                         <span class="control-label">
                             <?php echo form_error('photo'); ?>
+                        </span>
+                    </div>
+
+                    <?php
+                        if(form_error('signature'))
+                            echo "<div class='form-group has-error' >";
+                        else
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="signature" class="control-label">
+                            <?=$this->lang->line("teacher_signature")?>
+                        </label>
+                        <div class="input-filed">
+                            <div class="input-group image-preview-signature">
+                                <input type="text" class="form-control image-preview-filename-signature" disabled="disabled">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-default image-preview-clear-signature" style="display:none;">
+                                        <span class="fa fa-remove"></span>
+                                        <?=$this->lang->line('teacher_clear')?>
+                                    </button>
+                                    <div class="btn btn-primary image-preview-input-signature">
+                                        <span class="fa fa-repeat"></span>
+                                        <span class="image-preview-input-signature-title">
+                                        <?=$this->lang->line('teacher_file_browse')?></span>
+                                        <input type="file" accept="image/png, image/jpeg, image/gif" name="signature"/>
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+
+                        <span class="control-label">
+                            <?php echo form_error('signature'); ?>
                         </span>
                     </div>
 
@@ -301,16 +333,16 @@ $('#dob').datepicker({ startView: 2 });
 $('#jod').datepicker();
 
 $(document).on('click', '#close-preview', function(){ 
-    $('.image-preview').popover('hide');
+    $('.image-preview, .image-preview-signature').popover('hide');
     // Hover befor close the preview
 
-    $('.image-preview').hover(
+    $('.image-preview, .image-preview-signature').hover(
         function () {
-           $('.image-preview').popover('show');
+           $(this).popover('show');
            $('.content').css('padding-bottom', '120px');
         }, 
          function () {
-           $('.image-preview').popover('hide');
+           $(this).popover('hide');
            $('.content').css('padding-bottom', '20px');
         }
     );    
@@ -361,7 +393,45 @@ $(function() {
             $('.content').css('padding-bottom', '120px');
         }        
         reader.readAsDataURL(file);
-    });  
+    });
+
+    // Signature preview
+    $('.image-preview-signature').popover({
+        trigger:'manual',
+        html:true,
+        title: "<strong>Preview</strong>"+$(closebtn)[0].outerHTML,
+        content: "There's no image",
+        placement:'bottom'
+    });
+
+    $('.image-preview-clear-signature').click(function(){
+        $('.image-preview-signature').attr("data-content","").popover('hide');
+        $('.image-preview-filename-signature').val("");
+        $('.image-preview-clear-signature').hide();
+        $('.image-preview-input-signature input:file').val("");
+        $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
+    }); 
+
+    $(".image-preview-input-signature input:file").change(function (){     
+        var img = $('<img/>', {
+            id: 'dynamic',
+            width:250,
+            height:200,
+            overflow:'hidden'
+        });      
+        var file = this.files[0];
+        var reader = new FileReader();
+        // Set preview image into the popover data-content
+        reader.onload = function (e) {
+            $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
+            $(".image-preview-clear-signature").show();
+            $(".image-preview-filename-signature").val(file.name);            
+            img.attr('src', e.target.result);
+            $(".image-preview-signature").attr("data-content",$(img)[0].outerHTML).popover("show");
+            $('.content').css('padding-bottom', '120px');
+        }        
+        reader.readAsDataURL(file);
+    });
 });
 </script>
 

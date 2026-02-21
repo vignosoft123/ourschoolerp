@@ -33,7 +33,6 @@
 							<img class="profile-header-bg" src="./../../uploads/images/profile-bg-blue.jpg" alt="">
 						</div>
                         <div class="profile-body">
-                            Signature
                             <div class="profile-img">
                                  <?=profileviewimage($profile->photo)?>
                             </div>
@@ -41,6 +40,12 @@
                                 <h3 class="profile-username text-center"><?=$profile->name?></h3>
                                 <p class="user-type text-center"><?=$profile->designation?></p>
                             </div>
+                            <?php if($profile->signature) { ?>
+                                <div class="text-center" style="margin-top: 10px;">
+                                    <p><strong><?=$this->lang->line('teacher_signature')?></strong></p>
+                                    <img src="<?=base_url('uploads/signatures/'.$profile->signature)?>" class="img-responsive" style="max-height: 100px; margin: 0 auto; border: 1px solid #ddd; padding: 5px;">
+                                </div>
+                            <?php } ?>
                             <ul class="list-group list-group-unbordered profile-list-info">
                             <li class="list-group-item" style="background-color: #FFF">
                             <span class="h5-title"><?=$this->lang->line('teacher_sex')?></span> <span class="h6-title pull-right"><?=$profile->sex?></span>
@@ -98,13 +103,25 @@
                                     <div class="profile-view-tab">
                                         <div class="profile-details">
                                             <label class="label-txt"><?=$this->lang->line("teacher_religion")?>  </label>
-                                            <div class="para"> <?=$profile->email?></div>
+                                            <div class="para"> <?=$profile->religion?></div>
                                         </div>                                        
                                     </div>
                                     <div class="profile-view-tab">
                                         <div class="profile-details">
                                             <label class="label-txt"><?=$this->lang->line("teacher_email")?> </label>
-                                            <div class="para"><?=date("d M Y", strtotime($profile->jod))?></div>
+                                            <div class="para"><?=$profile->email?></div>
+                                        </div>                                        
+                                    </div>
+                                    <div class="profile-view-tab">
+                                        <div class="profile-details">
+                                            <label class="label-txt"><?=$this->lang->line("default_login_time")?> </label>
+                                            <div class="para"><?=$profile->default_login_time?></div>
+                                        </div>                                        
+                                    </div>
+                                    <div class="profile-view-tab">
+                                        <div class="profile-details">
+                                            <label class="label-txt"><?=$this->lang->line("default_logout_time")?> </label>
+                                            <div class="para"><?=$profile->default_logout_time?></div>
                                         </div>                                        
                                     </div>
                                     <div class="profile-view-tab">
@@ -112,7 +129,6 @@
                                             <label class="label-txt"><?=$this->lang->line("teacher_address")?>  </label>
                                             <div class="para"><?=$profile->address?></div>
                                         </div>
-                                       
                                     </div>
                                     <div class="profile-view-tab">
                                         <div class="profile-details">

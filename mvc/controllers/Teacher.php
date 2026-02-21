@@ -88,11 +88,11 @@ class Teacher extends Admin_Controller {
                 'label' => $this->lang->line("teacher_photo"),
                 'rules' => 'trim|max_length[200]|xss_clean|callback_photoupload'
             ],
-            // [
-            //     'field' => 'signature',
-            //     'label' => $this->lang->line("teacher_signature"),
-            //     'rules' => 'trim|max_length[200]|xss_clean|callback_signatureupload'
-            // ],
+            [
+                'field' => 'signature',
+                'label' => $this->lang->line("teacher_signature"),
+                'rules' => 'trim|max_length[200]|xss_clean|callback_signatureupload'
+            ],
             [
                 'field' => 'username',
                 'label' => $this->lang->line("teacher_username"),
@@ -106,7 +106,12 @@ class Teacher extends Admin_Controller {
             [
                 'field' => 'default_login_time',
                 'label' => $this->lang->line("default_login_time"),
-                'rules' => 'trim|required|xss_clean'
+                'rules' => 'trim|xss_clean'
+            ],
+            [
+                'field' => 'default_logout_time',
+                'label' => $this->lang->line("default_logout_time"),
+                'rules' => 'trim|xss_clean'
             ]
         ];
         return $rules;
@@ -175,24 +180,25 @@ class Teacher extends Admin_Controller {
                 $config['max_size']      = '1024';
                 $config['max_width']     = '3000';
                 $config['max_height']    = '3000';
-                $this->load->library('upload', $config);
+                $this->load->library('upload');
+                $this->upload->initialize($config);
                 if ( !$this->upload->do_upload("photo") ) {
-                    $this->form_validation->set_message("signature", $this->upload->display_errors());
+                    $this->form_validation->set_message("photoupload", $this->upload->display_errors());
                     return false;
                 } else {
-                    $this->upload_data['file'] = $this->upload->data();
+                    $this->upload_data['photo'] = $this->upload->data();
                     return true;
                 }
             } else {
-                $this->form_validation->set_message("signature", "Invalid file");
+                $this->form_validation->set_message("photoupload", "Invalid file");
                 return false;
             }
         } else {
             if ( customCompute($user) ) {
-                $this->upload_data['file'] = [ 'file_name' => $user->photo ];
+                $this->upload_data['photo'] = [ 'file_name' => $user->photo ];
                 return true;
             } else {
-                $this->upload_data['file'] = [ 'file_name' => $new_file ];
+                $this->upload_data['photo'] = [ 'file_name' => $new_file ];
                 return true;
             }
         }
@@ -222,12 +228,13 @@ class Teacher extends Admin_Controller {
                 $config['max_size']      = '1024';
                 $config['max_width']     = '3000';
                 $config['max_height']    = '3000';
-                $this->load->library('upload', $config);
+                $this->load->library('upload');
+                $this->upload->initialize($config);
                 if ( !$this->upload->do_upload("signature") ) {
                     $this->form_validation->set_message("signatureupload", $this->upload->display_errors());
                     return false;
                 } else {
-                    $this->upload_data['file'] = $this->upload->data();
+                    $this->upload_data['signature'] = $this->upload->data();
                     return true;
                 }
             } else {
@@ -236,10 +243,10 @@ class Teacher extends Admin_Controller {
             }
         } else {
             if ( customCompute($user) ) {
-                $this->upload_data['file'] = [ 'file_name' => $user->signature ];
+                $this->upload_data['signature'] = [ 'file_name' => $user->signature ];
                 return true;
             } else {
-                $this->upload_data['file'] = [ 'file_name' => $new_file ];
+                $this->upload_data['signature'] = [ 'file_name' => $new_file ];
                 return true;
             }
         }
@@ -310,8 +317,8 @@ class Teacher extends Admin_Controller {
                 $array["create_username"] = $this->session->userdata('username');
                 $array["create_usertype"] = $this->session->userdata('usertype');
                 $array["active"]          = 1;
-                $array['photo']           = $this->upload_data['file']['file_name'];
-                // $array['signature']           = $this->upload_data['file']['file_name'];
+                $array['photo']           = $this->upload_data['photo']['file_name'];
+                $array['signature']       = $this->upload_data['signature']['file_name'];
 
                 // echo "<pre>";print_r($array);die;
                 $this->usercreatemail($this->input->post('email'), $this->input->post('username'),
@@ -367,8 +374,8 @@ class Teacher extends Admin_Controller {
                         $array['jod']         = date("Y-m-d", strtotime($this->input->post("jod")));
                         $array['username']    = $this->input->post('username');
                         $array["modify_date"] = date("Y-m-d h:i:s");
-                        $array['photo']       = $this->upload_data['file']['file_name'];
-                        // $array['signature']       = $this->upload_data['file']['file_name'];
+                        $array['photo']       = $this->upload_data['photo']['file_name'];
+                        $array['signature']   = $this->upload_data['signature']['file_name'];
                         // echo "<pre>";print_r($array);die;
                         $this->teacher_m->update_teacher($array, $id);
                         $this->session->set_flashdata('success', $this->lang->line('menu_success'));

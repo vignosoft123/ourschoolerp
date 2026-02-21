@@ -77,7 +77,7 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="default_login_time" class="control-label">
-                            Default Login Time <span class="text-red">*</span>
+                            <?=$this->lang->line("default_login_time")?>
                         </label>
                         <div class="input-field">
                             <input placeholder="Select Time" type="text" class="form-control" id="default_login_time" name="default_login_time" value="<?=set_value('default_login_time')?>" >
@@ -95,7 +95,7 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="default_logout_time" class="control-label">
-                            Default Login Time <span class="text-red">*</span>
+                            <?=$this->lang->line("default_logout_time")?>
                         </label>
                         <div class="input-field">
                             <input placeholder="Select Time" type="text" class="form-control" id="default_logout_time" name="default_logout_time" value="<?=set_value('default_logout_time')?>" >
@@ -238,8 +238,7 @@
                             echo "<div class='form-group' >";
                     ?>
                         <label for="photo" class="control-label">
-                            <?php //echo $this->lang->line("teacher_photo")?> <!-- replace photo with signature here-->
-                            Signature 
+                            <?=$this->lang->line("teacher_photo")?>
                         </label>
                         <div class="">
                             <div class="input-group image-preview">
@@ -261,6 +260,38 @@
 
                         <span class="control-label">
                             <?php echo form_error('photo'); ?>
+                        </span>
+                    </div>
+
+                    <?php
+                        if(form_error('signature'))
+                            echo "<div class='form-group has-error' >";
+                        else
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="signature" class="control-label">
+                            <?=$this->lang->line("teacher_signature")?>
+                        </label>
+                        <div class="">
+                            <div class="input-group image-preview-signature">
+                                <input type="text" class="form-control image-preview-filename-signature" disabled="disabled">
+                                <span class="input-group-btn">
+                                    <button type="button" class="btn btn-primary image-preview-clear-signature" style="display:none;">
+                                        <span class="fa fa-remove"></span>
+                                        <?=$this->lang->line('teacher_clear')?>
+                                    </button>
+                                    <div class="btn btn-primary image-preview-input-signature">
+                                        <span class="fa fa-repeat"></span>
+                                        <span class="image-preview-input-signature-title">
+                                        <?=$this->lang->line('teacher_file_browse')?></span>
+                                        <input type="file" accept="image/png, image/jpeg, image/gif" name="signature"/>
+                                    </div>
+                                </span>
+                            </div>
+                        </div>
+
+                        <span class="control-label">
+                            <?php echo form_error('signature'); ?>
                         </span>
                     </div>
 
@@ -385,11 +416,18 @@ $(function() {
     });
 
     //signature code
-    
+    $('.image-preview-signature').popover({
+        trigger:'manual',
+        html:true,
+        title: "<strong>Preview</strong>"+$(closebtn)[0].outerHTML,
+        content: "There's no image",
+        placement:'bottom'
+    });
+
      // Clear event
      $('.image-preview-clear-signature').click(function(){
-        $('.image-preview').attr("data-content","").popover('hide');
-        $('.image-preview-filename').val("");
+        $('.image-preview-signature').attr("data-content","").popover('hide');
+        $('.image-preview-filename-signature').val("");
         $('.image-preview-clear-signature').hide();
         $('.image-preview-input-signature input:file').val("");
         $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
@@ -408,9 +446,9 @@ $(function() {
         reader.onload = function (e) {
             $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
             $(".image-preview-clear-signature").show();
-            $(".image-preview-filename").val(file.name);
+            $(".image-preview-filename-signature").val(file.name);
             img.attr('src', e.target.result);
-            $(".image-preview").attr("data-content",$(img)[0].outerHTML).popover("show");
+            $(".image-preview-signature").attr("data-content",$(img)[0].outerHTML).popover("show");
             $('.content').css('padding-bottom', '100px');
         }
         reader.readAsDataURL(file);
