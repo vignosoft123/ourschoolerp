@@ -319,6 +319,83 @@ class Balancefeesreport extends Admin_Controller{
 		}
 	}
 
+	public function getFeeDueSlipReport() {
+		$retArray['status'] = FALSE;
+		$retArray['render'] = '';
+
+		if(permissionChecker('balancefeesreport')) {
+			if($_POST) {
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+				$classesID    = $this->input->post('classesID'); 
+				$sectionID    = $this->input->post('sectionID'); 
+				$studentIDs   = $this->input->post('studentID'); 
+				$feetypeIDs   = $this->input->post('feetypeID'); 
+				$slip_date    = $this->input->post('slip_date');
+				$due_date     = $this->input->post('due_date');
+
+				$this->data['classesID']    = $classesID;
+				$this->data['sectionID']    = $sectionID;
+				$this->data['schoolyearID'] = $schoolyearID;
+				$this->data['slip_date']    = $slip_date;
+				$this->data['due_date']     = $due_date;
+
+				$studentArray = [];
+				if((int)$classesID) {
+					$studentArray['srclassesID'] = $classesID;
+				}
+				if((int)$sectionID) {
+					$studentArray['srsectionID'] = $sectionID;
+				}
+				if(!empty($studentIDs)) {
+					if(is_array($studentIDs) && !in_array('0', $studentIDs)) {
+						$this->db->where_in('srstudentID', $studentIDs);
+					}
+				}
+				$studentArray['srschoolyearID'] = $schoolyearID;
+
+				$this->db->order_by('srclassesID','ASC');
+				$allStudents = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+				
+				$this->data['students'] = $allStudents;
+				$this->data['classes']  = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+				$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
+				
+				$invoiceParams = [
+					'classesID' => $classesID,
+					'sectionID' => $sectionID,
+					'schoolyearID' => $schoolyearID,
+					'feetypeID' => $feetypeIDs
+				];
+				
+				$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($invoiceParams));
+				$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID, $feetypeIDs, $studentIDs));
+				$this->data['totalweavar']  = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
+				
+				$parentIDs = [];
+				foreach($allStudents as $s) {
+					$parentIDs[] = $s->parentID;
+				}
+				if(!empty($parentIDs)) {
+					$parents = pluck($this->parents_m->get_where_in_parents($parentIDs, 'parentsID'), 'name', 'parentsID');
+					$this->data['parents'] = $parents;
+				} else {
+					$this->data['parents'] = [];
+				}
+
+				$retArray['render'] = $this->load->view('report/balancefees/FeeDueSlipReport', $this->data, true);
+				$retArray['status'] = TRUE;
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['status'] = FALSE;
+		}
+		echo json_encode($retArray);
+		exit;
+	}
+
+
+
 	private function totalAmountAndDiscustomCompute($arrays) {
 		$totalAmountAndDiscount = [];
 		if(customCompute($arrays)) {

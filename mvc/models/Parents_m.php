@@ -72,4 +72,9 @@ class Parents_m extends MY_Model {
 		$last_id = $this->db->insert_id();
 		return $last_id;
 	}
+
+	public function get_where_in_parents($array, $key=NULL) {
+		$query = parent::get_where_in($array, $key);
+		return $query;
+	}
 }

@@ -368,6 +368,7 @@
             <ul class="nav nav-tabs">
                 <li class="active"><a href="#tab_1" data-toggle="tab">Balance Fee Report</a></li>
                 <li><a href="#tab_2" data-toggle="tab">Class-wise Summary Report</a></li>
+                <li><a href="#tab_3" data-toggle="tab">Fee Due slip</a></li>
             </ul>
             
             <div class="tab-content">
@@ -510,6 +511,61 @@
                                     <label>&nbsp;</label>
                                     <button id="getClassSummaryBtn" type="button" class="btn btn-info btn-block" style="margin-top:8px;">
                                         <i class="fa fa-pie-chart"></i> Generate Summary
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div><!-- /.tab-pane -->
+                <!-- TAB 3: Fee Due slip -->
+                <div class="tab-pane" id="tab_3">
+                    <div class="form-section-header">
+                        <i class="fa fa-envelope"></i> Fee Due Slip Report
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <form id="feeDueSlipForm">
+                                <div class="form-group col-sm-4">
+                                    <label><i class="fa fa-graduation-cap"></i> <?=$this->lang->line("balancefeesreport_class")?></label>
+                                    <?php
+                                        echo form_dropdown("classesID_slip", $classesArray, set_value("classesID_slip"), "id='classesID_slip' class='form-control select2'");
+                                     ?>
+                                </div>
+
+                                <div class="form-group col-sm-4">
+                                    <label><i class="fa fa-users"></i> <?=$this->lang->line("balancefeesreport_section")?></label>
+                                    <?php
+                                        echo form_dropdown("sectionID_slip", $sectionArray, set_value("sectionID_slip"), "id='sectionID_slip' class='form-control select2'");
+                                     ?>
+                                </div>
+
+                                <div class="form-group col-sm-4">
+                                    <label><i class="fa fa-user"></i> <?=$this->lang->line("balancefeesreport_student")?></label>
+                                    <?php
+                                        echo form_dropdown("studentID_slip[]", $studentArray, set_value("studentID_slip[]"), "id='studentID_slip' class='form-control select2' multiple='multiple'");
+                                     ?>
+                                </div>
+
+                                <div class="form-group col-sm-4">
+                                    <label><i class="fa fa-money"></i> Fee Types</label>
+                                    <?php
+                                        echo form_dropdown("feetypeID_slip[]", $feetypeArray, set_value("feetypeID_slip[]"), "id='feetypeID_slip' class='form-control select2' multiple='multiple'");
+                                    ?>
+                                </div>
+
+                                <div class="form-group col-sm-4">
+                                    <label><i class="fa fa-calendar"></i> Slip Date</label>
+                                    <input type="text" id="slip_date" class="form-control datepicker" value="<?=date('d-m-Y')?>">
+                                </div>
+
+                                <div class="form-group col-sm-4">
+                                    <label><i class="fa fa-calendar"></i> Due Date</label>
+                                    <input type="text" id="due_date" class="form-control datepicker" value="<?=date('d-m-Y', strtotime('+7 days'))?>">
+                                </div>
+
+                                <div class="col-sm-4 col-sm-offset-4">
+                                    <button id="getFeeDueSlipBtn" type="button" class="btn btn-success btn-block" style="margin-top:8px;">
+                                        <i class="fa fa-search"></i> Generate Slips
                                     </button>
                                 </div>
                             </form>
@@ -916,6 +972,86 @@
         }
 
         loadAllRecords(offset);
+    });
+    $('.datepicker').datepicker({
+        autoclose: true,
+        format: 'dd-mm-yyyy',
+        todayHighlight: true
+    });
+
+    $(document).on('change', "#classesID_slip", function() {
+        var classesID = $(this).val();
+        $('#sectionID_slip').html("<option value='0'>" + "<?=$this->lang->line("balancefeesreport_please_select")?>" +"</option>");
+        $('#studentID_slip').html("<option value='0'>" + "<?=$this->lang->line("balancefeesreport_please_select")?>" +"</option>");
+        
+        if(classesID != 0) {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('balancefeesreport/getSection')?>",
+                data: {"classesID" : classesID},
+                dataType: "html",
+                success: function(data) {
+                   $('#sectionID_slip').html(data);
+                }
+            });
+        }
+    });
+
+    $(document).on('change', "#sectionID_slip", function() {
+        var sectionID = $(this).val();
+        var classesID = $('#classesID_slip').val();
+        $('#studentID_slip').html("<option value='0'>" + "<?=$this->lang->line("balancefeesreport_please_select")?>" +"</option>");
+
+        if(sectionID != 0 && classesID != 0) {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('balancefeesreport/getStudent')?>",
+                data: {"classesID":classesID, "sectionID" : sectionID},
+                dataType: "html",
+                success: function(data) {
+                   $('#studentID_slip').html(data);
+                }
+            });
+        }
+    });
+
+    $('#getFeeDueSlipBtn').click(function() {
+        $('#load_balancefeesreport').html("");
+        var classesID = $('#classesID_slip').val();
+        var sectionID = $('#sectionID_slip').val();
+        var studentID = $('#studentID_slip').val(); // array since multiple
+        var feetypeID = $('#feetypeID_slip').val();
+        var slip_date = $('#slip_date').val();
+        var due_date  = $('#due_date').val();
+
+        if (classesID == 0) {
+            alert("Please select a class.");
+            return;
+        }
+
+        var field = {
+            "classesID" : classesID,
+            "sectionID" : sectionID,
+            "studentID" : studentID,
+            "feetypeID" : feetypeID,
+            "slip_date" : slip_date,
+            "due_date"  : due_date
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('balancefeesreport/getFeeDueSlipReport')?>",
+            data: field,
+            dataType: "html",
+            success: function(data) {
+                var response = JSON.parse(data);
+                if(response.status) {
+                    $('#load_balancefeesreport').html(response.render);
+                } else {
+                    alert("Failed to generate slips.");
+                }
+            }
+        });
     });
 </script>
 

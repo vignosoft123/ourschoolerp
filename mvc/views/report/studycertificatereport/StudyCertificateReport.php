@@ -50,11 +50,11 @@ if(!empty($dateText)) {
 /* New centered-line styles */
 .sc-line{display:flex; align-items:center; gap:8px; padding:5px}
 .sc-fill{position:relative; flex:1; text-align:center; padding-bottom:8px}
-.sc-fill:after{content:""; position:absolute; left:0; right:0; bottom:0; border-bottom:3px dotted #2632a4}
+.sc-fill:after{content:""; position:absolute; left:0; right:0; bottom:0; border-bottom:1px solid #2632a4}
 .sc-dyn,.sc-editable{display:inline-block; position:relative; z-index:1}
-.sc-dyn{position:relative;    padding:0 10px; font-weight:700; font-family:'Times New Roman', Times, serif; font-size:20px; color:#2632a4}
-.sc-editable{position:relative; background:#fff; padding:0 10px; min-width:140px; display:inline-block; font-weight:700; font-family:'Times New Roman', Times, serif; font-size:20px; color:#2632a4; outline:none}
-.sc-editable.empty:before{content:attr(data-placeholder); color:#9aa3c6; font-weight:400}
+.sc-dyn{position:relative; padding:0 10px; font-weight:700; font-family:'Times New Roman', Times, serif; font-size:20px; color:#2632a4}
+.sc-editable{position:relative; background:transparent; padding:0 10px; min-width:60px; display:inline-block; font-weight:700; font-family:'Times New Roman', Times, serif; font-size:20px; color:#2632a4; outline:none; cursor: text;}
+.sc-editable.empty:before{content:attr(data-placeholder); color:#9aa3c6; font-weight:400; font-size: 14px;}
 .sc-date-wrap{display:flex; align-items:center; gap:8px}
 .sc-date-input{border:1px solid #9aa3c6; padding:3px 6px; border-radius:4px; color:#2632a4}
 .sc-date-print{display:none}
@@ -64,54 +64,122 @@ if(!empty($dateText)) {
 .sc-footeraddress{padding-bottom:1%}
 .sc-pagebreak{page-break-after: always}
 @media print {
-    .filters, .box-header, .box-body, #studyCertificateReportForm {
-        display: none !important; /* Hide unnecessary elements during printing */
+    @page {
+        margin: 2mm;
+        size: A4 portrait;
     }
-
+    .filters, .box-header, .box-body, #studyCertificateReportForm, .no-print {
+        display: none !important;
+    }
+    body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+    }
     .sc-body {
-        display: block !important; /* Ensure the certificate content is visible */
+        width: 100% !important;
+        height: 145mm !important; /* Closer to exact half (148.5mm) */
+        margin: 0 !important;
+        padding: 2mm !important;
+        box-sizing: border-box;
+        page-break-inside: avoid;
+        display: block !important;
     }
-
-    .sc-body {
-        width: 100%;
-        height: 50%; /* Each certificate takes half the A4 page */
-        box-sizing: border-box; /* Ensure proper sizing */
-        page-break-inside: avoid; /* Prevent breaking within a certificate */
+    .sc-mainborder {
+        height: 140mm !important;
+        margin: 0 !important;
+        padding: 1mm !important;
+        border-width: 3px !important;
     }
-
-    .sc-body:nth-child(odd) {
-        margin-bottom: 0; /* Remove margin between certificates */
+    .sc-inner {
+        height: 137mm !important;
+        min-height: 0 !important;
+        padding: 5mm !important;
+        position: relative;
     }
-
-    .sc-body:nth-child(even) {
-        margin-top: 0; /* Remove margin between certificates */
+    .sc-maincontent {
+        line-height: 1.4 !important;
+        font-size: 14px !important;
     }
-    .sc-date-wrap {
-        display: flex;
-        justify-content: flex-end; /* Align the date to the right */
-        align-items: center; /* Ensure vertical alignment */
-        margin: 10px 0; /* Add spacing above and below */
-        font-size: 18px; /* Adjust font size for better readability */
-        font-weight: bold; /* Make the date stand out */
+    .sc-line {
+        padding: 2px 0 !important;
+        gap: 4px !important;
     }
-    .sc-date-print {
-        display: inline-block; /* Ensure the date is visible in print */
-        padding: 5px 10px; /* Add padding for better spacing */
-        border: 1px solid #2632a4; /* Add a border for emphasis */
-        border-radius: 4px; /* Slightly round the corners */
-        background-color: #f9f9f9; /* Add a light background for contrast */
+    .sc-header h1 {
+        font-size: 26px !important;
+        margin: 0 0 2px 0 !important;
     }
-    .sc-date-input {
-        display: none; /* Hide the input field in print */
+    .sc-header p {
+        font-size: 16px !important;
+        margin: 0 0 2px 0 !important;
     }
-    .sc-maincontent > div {
-        display: flex; /* Ensure flex layout for alignment */
-        justify-content: space-between; /* Space out the elements */
-        align-items: center; /* Align items vertically */
-        margin-bottom: 10px; /* Maintain spacing */
+    .sc-footer {
+        margin-top: 15px !important;
+        padding-top: 0 !important;
+    }
+    .sc-bordered-text {
+        margin: 5px auto !important;
+    }
+    .sc-text {
+        font-size: 18px !important;
+        padding: 3px 10px !important;
+    }
+    .sc-editable {
+        font-size: 16px !important;
+        min-width: 40px !important;
+    }
+    .sc-fill:after {
+        border-bottom-width: 1px !important;
     }
 }
 </style>
+
+<?php
+function dateToWords($date) {
+    if(!$date) return '';
+    $ts = strtotime($date);
+    if(!$ts) return '';
+    $day = date('j', $ts);
+    $month = date('F', $ts);
+    $year = date('Y', $ts);
+
+    $days = array(
+        1 => 'First', 2 => 'Second', 3 => 'Third', 4 => 'Fourth', 5 => 'Fifth',
+        6 => 'Sixth', 7 => 'Seventh', 8 => 'Eighth', 9 => 'Ninth', 10 => 'Tenth',
+        11 => 'Eleventh', 12 => 'Twelfth', 13 => 'Thirteenth', 14 => 'Fourteenth',
+        15 => 'Fifteenth', 16 => 'Sixteenth', 17 => 'Seventeenth', 18 => 'Eighteenth',
+        19 => 'Nineteenth', 20 => 'Twentieth', 21 => 'Twenty-First', 22 => 'Twenty-Second',
+        23 => 'Twenty-Third', 24 => 'Twenty-Fourth', 25 => 'Twenty-Fifth',
+        26 => 'Twenty-Sixth', 27 => 'Twenty-Seventh', 28 => 'Twenty-Eighth',
+        29 => 'Twenty-Ninth', 30 => 'Thirtieth', 31 => 'Thirty-First'
+    );
+
+    $dict = array(
+        0=>'', 1=>'One', 2=>'Two', 3=>'Three', 4=>'Four', 5=>'Five', 6=>'Six', 7=>'Seven', 8=>'Eight', 9=>'Nine', 10=>'Ten',
+        11=>'Eleven', 12=>'Twelve', 13=>'Thirteen', 14=>'Fourteen', 15=>'Fifteen', 16=>'Sixteen', 17=>'Seventeen', 18=>'Eighteen', 19=>'Nineteen',
+        20=>'Twenty', 30=>'Thirty', 40=>'Forty', 50=>'Fifty', 60=>'Sixty', 70=>'Seventy', 80=>'Eighty', 90=>'Ninety'
+    );
+
+    $yearWords = "";
+    if($year >= 2000 && $year < 3000) {
+        $yearWords = "Two Thousand ";
+        $rem = $year - 2000;
+        if($rem > 0) {
+            if(isset($dict[$rem])) {
+                $yearWords .= $dict[$rem];
+            } else {
+                $tens = floor($rem/10)*10;
+                $ones = $rem%10;
+                $yearWords .= $dict[$tens] . ($ones ? ' ' . $dict[$ones] : '');
+            }
+        }
+    } else {
+        $yearWords = $year; // Fallback
+    }
+
+    return ($days[$day] ?? $day) . " - " . $month . " - " . $yearWords;
+}
+?>
 
 <div>
     <div class="filters no-print" style="margin:10px 0; text-align:right">
@@ -120,7 +188,7 @@ if(!empty($dateText)) {
 <?php if(customCompute($students)) { $i = 0; foreach($students as $student) { $i++; ?>
     <div class="sc-body">
         <div class="sc-mainborder">
-            <div class="sc-inner" style="min-height: 550px;">
+            <div class="sc-inner" style="min-height: 550px; padding: 20px;">
                 <div class="sc-header">
                     <h1><?= isset($siteinfos->sname) && $siteinfos->sname ? htmlspecialchars($siteinfos->sname) : 'School Name' ?></h1>
                     <?php if (isset($siteinfos->affiliation) && $siteinfos->affiliation) { ?>
@@ -138,83 +206,86 @@ if(!empty($dateText)) {
                     <?php } ?>
                     <div class="sc-bordered-text">
                         <div class="sc-left-line"></div>
-                        <div class="sc-text">STUDY & CONDUCT CERTIFICATE</div>
+                        <div class="sc-text">STUDY CUM CONDUCT CERTIFICATE</div>
                         <div class="sc-right-line"></div>
                     </div>
                 </div>
-                <div class="sc-maincontent">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <div>
-                            <label>Admission No:</label>
-                            <span class="sc-dyn"> <?= htmlspecialchars($student->registerNO) ?> </span>
+                <div class="sc-maincontent" style="font-style: normal; line-height: 2.2;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                        <div style="display: flex; gap: 5px;">
+                            <label>Admission No. </label>
+                            <span class="sc-editable" contenteditable="true" style="min-width: 100px; border-bottom: 1px solid #2632a4;"><?= htmlspecialchars($student->registerNO) ?></span>
                         </div>
-                        <!-- <div>
-                            <label>Date:</label>
-                            <span class="sc-editable" contenteditable="true" data-placeholder="Enter Date"></span>
-                        </div> -->
-                         <div class=" ">
-                        
-                        <div class="sc-date-wrap" >Date
-                            <input type="date" class="sc-date-input no-print" value="<?= !empty($dateText) && strtotime($dateText) ? date('Y-m-d', strtotime($dateText)) : '' ?>" />
-                            <span class="sc-date-print sc-dyn"><?= htmlspecialchars($displayDate) ?></span>
+                         <div style="display: flex; gap: 5px;">
+                            <label>Date : </label>
+                            <span class="sc-editable" contenteditable="true" style="min-width: 150px; border-bottom: 1px solid #2632a4;"><?= htmlspecialchars($displayDate) ?></span>
                         </div>
                     </div>
-                    </div>
+
                     <?php 
                         $sid = isset($student->srstudentID) ? (int)$student->srstudentID : (isset($student->studentID)?(int)$student->studentID:0);
                         $studentName = isset($student->srname) ? $student->srname : '';
                         $parentName = isset($parentNameByStudentID[$sid]) ? $parentNameByStudentID[$sid] : '';
                         $className  = isset($classNameByStudentID[$sid]) ? $classNameByStudentID[$sid] : '';
-                        $medium     = isset($mediumByStudentID[$sid]) ? $mediumByStudentID[$sid] : '';
                     ?>
-                    <!-- Name centered line -->
+
                     <div class="sc-line">
-                        <span>This is to certify that Mr / Miss</span>
-                        <div class="sc-fill"><span class="sc-dyn"><?= htmlspecialchars($studentName) ?></span></div>
-                        <span>is / was a student</span>
+                        <span>This is to certify that (Kumar /Kumari)</span>
+                        <div class="sc-fill"><span class="sc-editable" contenteditable="true"><?= htmlspecialchars($studentName) ?></span></div>
                     </div>
-                    <!-- Parent centered line -->
+
                     <div class="sc-line">
-                        <span>S/o. D/o</span>
-                        <div class="sc-fill"><span class="sc-dyn"><?= htmlspecialchars($parentName) ?></span></div>
+                        <span>Son / Daughter of Sri</span>
+                        <div class="sc-fill"><span class="sc-editable" contenteditable="true"><?= htmlspecialchars($parentName) ?></span></div>
                     </div>
-                    <!-- During the years editable in the middle -->
+
                     <div class="sc-line">
-                        <span>of&nbsp;<span class="sc-institute"><?= isset($siteinfos->sname) && $siteinfos->sname ? htmlspecialchars($siteinfos->sname) : '' ?></span>,&nbsp;<span class="address"><?= isset($siteinfos->address) && $siteinfos->address ? htmlspecialchars($siteinfos->address) : '' ?></span>,&nbsp;During the years</span>
-                        <div class="sc-fill"><span class="sc-editable" contenteditable="true" data-placeholder="Enter years">
-                            <?= htmlspecialchars($yearsText) ?></span></div>
+                        <span>studying /studied in this Institution from</span>
+                        <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; width: 450px;">
+                            <div class="sc-fill"><span class="sc-editable" contenteditable="true"></span></div>
+                            <span style="padding: 0 10px;">to</span>
+                            <div class="sc-fill"><span class="sc-editable" contenteditable="true"><?= htmlspecialchars($className) ?></span></div>
+                        </div>
                     </div>
-                    <!-- Class/Medium and Conduct editable -->
+
                     <div class="sc-line">
-                        <span>with group</span>
-                        <div class="sc-fill" style="max-width:300px"><span class="sc-dyn"><?= htmlspecialchars($className) ?></span></div>
-                        <span>Medium</span>
-                        <div class="sc-fill" style="max-width:200px"><span class="sc-dyn"><?= htmlspecialchars($medium) ?></span></div>
-                        <span>His/Her Character and Conduct is</span>
-                        <div class="sc-fill"><span class="sc-editable" contenteditable="true" data-placeholder="Enter conduct">
-                            <?= htmlspecialchars($conductText) ?></span></div>
+                        <span>during the period from</span>
+                        <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; width: 450px;">
+                            <div class="sc-fill"><span class="sc-editable" contenteditable="true"></span></div>
+                            <span style="padding: 0 10px;">to</span>
+                            <div class="sc-fill"><span class="sc-editable" contenteditable="true"><?= htmlspecialchars($yearsText) ?></span></div>
+                        </div>
                     </div>
-                    <!-- Date of Birth dynamic content -->
+
                     <div class="sc-line">
-                        <span>His/Her date of birth as per records of this institution is / was</span>
-                        <div class="sc-fill">
-                            <span class="sc-dyn">
-                                <?= isset($student->dob) && !empty($student->dob) ? date('d-m-Y', strtotime($student->dob)) : '__________' ?>
-                            </span>
+                        <span>His /Her date of birth as per the records of this institution is /was</span>
+                        <div style="margin-left: auto; width: 250px;"><div class="sc-fill"><span class="sc-editable" contenteditable="true"><?= isset($student->dob) && !empty($student->dob) ? date('d-m-Y', strtotime($student->dob)) : '' ?></span></div></div>
+                    </div>
+
+                    <div class="sc-line">
+                        <span>(in words)</span>
+                        <div style="margin-left: auto; width: 600px;"><div class="sc-fill"><span class="sc-editable" contenteditable="true"><?= isset($student->dob) && !empty($student->dob) ? dateToWords($student->dob) : '' ?></span></div></div>
+                    </div>
+
+                    <div class="sc-line">
+                        <span>His /Her conduct during the said period is /was</span>
+                        <div style="margin-left: auto; width: 300px;"><div class="sc-fill"><span class="sc-editable" contenteditable="true"><?= htmlspecialchars($conductText) ?></span></div></div>
+                    </div>
+
+                </div>
+                <div class="sc-footer" style="padding-top: 50px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: flex-end;">
+                        <div style="text-align: left;">
+                            <b style="font-size: 18px;">Admission Incharge</b>
+                        </div>
+                        <div style="text-align: right;">
+                            <b style="font-size: 18px;">Sign. of Principal</b>
                         </div>
                     </div>
                 </div>
-                <div class="sc-footer">
-                    <div class="sc-left">
-                        <!-- <div class="sc-footeraddress">
-                            <?= isset($siteinfos->city) && $siteinfos->city ? htmlspecialchars($siteinfos->city) : (isset($siteinfos->address) && $siteinfos->address ? htmlspecialchars($siteinfos->address) : '') ?>
-                        </div> -->
-                        <!-- <div class="sc-date-wrap" style="width:60%">Date
-                            <input type="date" class="sc-date-input no-print" value="<?= !empty($dateText) && strtotime($dateText) ? date('Y-m-d', strtotime($dateText)) : '' ?>" />
-                            <span class="sc-date-print sc-dyn"><?= htmlspecialchars($displayDate) ?></span>
-                        </div> -->
-                    </div>
-                    <div class="right"><span>Principal</span></div>
+                <div style="font-size: 14px; margin-top: 20px; color: #2632a4;">
+                    Note : This certificate will not be valid without the Stamp and Signature of the concerned person.
+                    <div style="border-top: 1px dashed #2632a4; margin-top: 5px; width: 100%;"></div>
                 </div>
             </div>
         </div>
