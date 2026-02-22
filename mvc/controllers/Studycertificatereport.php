@@ -186,12 +186,12 @@ class Studycertificatereport extends Admin_Controller {
                 $parentIDs = array_values(array_unique($parentIDs));
                 $parentNameByID = array();
                 if (!empty($parentIDs)) {
-                    $this->db->select('parentsID, name');
+                    $this->db->select('parentsID, father_name');
                     $this->db->from('parents');
                     $this->db->where_in('parentsID', $parentIDs);
                     $parentRows = $this->db->get()->result();
                     foreach ($parentRows as $prow) {
-                        $parentNameByID[(int)$prow->parentsID] = $prow->name;
+                        $parentNameByID[(int)$prow->parentsID] = $prow->father_name;
                     }
                 }
                 // Map studentID -> parent name
