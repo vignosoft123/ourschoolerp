@@ -25,24 +25,83 @@ function formatIndianCurrency($number, $decimals = 2) {
 }
 ?>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+
 <style>
 .table-summary {
     margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+}
+.table-summary thead th {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    border: 1px solid #ddd;
+}
+.table-summary tbody td {
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
 }
 .summary-header {
-    background-color: #f8f9fa;
-    font-weight: bold;
+    background-color: #4CAF50 !important;
+    color: white !important;
 }
 .grand-total {
-    background-color: #e9ecef;
+    background-color: #e9ecef !important;
     font-weight: bold;
     font-size: 1.1em;
+}
+
+/* Top action buttons (Print, Export) */
+.report-actions-bar {
+    margin: 10px 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.report-actions-bar .btn {
+    border-radius: 12px;
+    padding: 8px 18px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+.report-actions-bar .btn i,
+.report-actions-bar .btn span.fa {
+    margin-right: 6px;
+}
+
+.btn-export-excel {
+    background: linear-gradient(135deg, #28a745 0%, #7ed957 100%);
+    color: #fff;
+}
+
+.btn-export-excel:hover {
+    background: linear-gradient(135deg, #218838 0%, #6fc44e 100%);
 }
 </style>
 
 <?php
     if(customCompute($students)) { ?>
-    <div id="hideableresult">
+    
+    <div class="row">
+        <div class="col-sm-12 report-actions-bar">
+            <?php
+                echo btn_printReport('balancefeesreport', $this->lang->line('report_print'), 'printablediv'); 
+            ?>
+            <button id="exportSummaryButton" class="btn btn-export-excel">Export to Excel</button>
+        </div>
+    </div>
+
+    <div id="printablediv">
         <div class="box">
             <div class="box-header bg-gray">
                 <h3 class="box-title text-navy">
@@ -54,7 +113,7 @@ function formatIndianCurrency($number, $decimals = 2) {
             </div>
             <div class="box-body">
                 <!-- Class Wise Summary Table -->
-                <table class="table table-striped table-bordered table-hover table-summary">
+                <table class="table table-striped table-bordered table-hover table-summary" id="summaryTable">
                     <thead class="summary-header">
                         <tr>
                             <th>S.No</th>
@@ -161,6 +220,16 @@ function formatIndianCurrency($number, $decimals = 2) {
             </div>
         </div>
     </div>
+
+    <script>
+        $(document).ready(function () {
+            $("#exportSummaryButton").click(function () {
+                var table = document.getElementById("summaryTable");
+                var wb = XLSX.utils.table_to_book(table, { sheet: "Summary" });
+                XLSX.writeFile(wb, "class_wise_summary.xlsx");
+            });
+        });
+    </script>
     
     <?php } else { ?>
         <br/>

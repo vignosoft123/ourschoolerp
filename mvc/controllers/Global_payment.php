@@ -587,6 +587,28 @@ class Global_payment extends Admin_Controller
                     $payments = $this->generateAllPaymentAmount($allPaymentList);
                     $weavers = $this->generateAllWeaverAmount($allWeaverList);
 
+                    $totalInvoiceAmount = 0;
+                    if(customCompute($invoices)) {
+                        foreach ($invoices as $invoice) {
+                             $totalInvoiceAmount += ($invoice->amount - (($invoice->amount/100)*$invoice->discount));
+                        }
+                    }
+
+                    $totalPaymentAmount = 0;
+                    if(customCompute($allPaymentList)) {
+                        foreach ($allPaymentList as $payment) {
+                            $totalPaymentAmount += $payment->paymentamount;
+                        }
+                    }
+
+                    $totalWeaverAmount = 0;
+                    if(customCompute($allWeaverList)) {
+                        foreach ($allWeaverList as $weaver) {
+                            $totalWeaverAmount += $weaver->weaver;
+                        }
+                    }
+
+                    $student->balance_amount = number_format(($totalInvoiceAmount - ($totalPaymentAmount + $totalWeaverAmount)), 2, '.', '');
 
                     for($i = 0; $i <= $j; $i++) {
                         $expPaidField = explode('-', $paids[$i]['paidFieldID']);
@@ -619,6 +641,9 @@ class Global_payment extends Admin_Controller
                             }
 
                             $this->invoice_m->update_invoice(array('paidstatus' => $status), $invoiceID);
+                            if(!isset($student->category)) {
+                                $student->category = $invoice->feetype;
+                            }
                         }
                     }
 
@@ -746,11 +771,18 @@ class Global_payment extends Admin_Controller
 				elseif($userTag->tagname == '{{school_name}}') {
 					$message = str_replace("{{school_name}}", $school_name, $message);
 				}
-                elseif($userTag->tagname == '{{student_name}}') {
+               elseif($userTag->tagname == '{{student_name}}') {
 					$message = str_replace("{{student_name}}",$user->srname, $message);
 				}
 			}
 		}
+
+		if(isset($user->balance_amount)) {
+			$message = str_replace('{{balance_amount}}', $user->balance_amount, $message);
+		} else {
+			$message = str_replace('{{balance_amount}}', '0.00', $message);
+		}
+
 		return $message;
 	}
 	
