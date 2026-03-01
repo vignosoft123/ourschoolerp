@@ -190,20 +190,31 @@ function dateToWords($date) {
         <div class="sc-mainborder">
             <div class="sc-inner" style="min-height: 550px; padding: 20px;">
                 <div class="sc-header">
-                    <h1><?= isset($siteinfos->sname) && $siteinfos->sname ? htmlspecialchars($siteinfos->sname) : 'School Name' ?></h1>
-                    <?php if (isset($siteinfos->affiliation) && $siteinfos->affiliation) { ?>
-                        <span align="center">(<?= htmlspecialchars($siteinfos->affiliation) ?>)</span>
-                    <?php } ?>
-                    <?php if (isset($siteinfos->address) && $siteinfos->address) { ?>
-                        <p style="font-size:24px;">
-                            <span><?= htmlspecialchars($siteinfos->address) ?></span>
-                        </p>
-                        <?php if (isset($siteinfos->phone) && $siteinfos->phone) { ?>
-                            <p style="font-size:24px;">
-                                <span>Phone: <?= htmlspecialchars($siteinfos->phone) ?></span>
-                            </p>
-                        <?php } ?>
-                    <?php } ?>
+                    <table width="100%" style="border:none; text-align:center;">
+                        <tr>
+                            <td id="logo" style="width:15%; text-align:center; vertical-align:middle;">
+                                <?php if (isset($siteinfos->photo) && $siteinfos->photo) { ?>
+                                    <img src="<?= base_url('uploads/images/' . $siteinfos->photo) ?>" style="width:100px; height:auto; border-radius:50%; box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+                                <?php } ?>
+                            </td>
+                            <td style="width:85%;">
+                                <h1><?= isset($siteinfos->sname) && $siteinfos->sname ? htmlspecialchars($siteinfos->sname) : 'School Name' ?></h1>
+                                <?php if (isset($siteinfos->affiliation) && $siteinfos->affiliation) { ?>
+                                    <span align="center">(<?= htmlspecialchars($siteinfos->affiliation) ?>)</span>
+                                <?php } ?>
+                                <?php if (isset($siteinfos->address) && $siteinfos->address) { ?>
+                                    <p style="font-size:24px;">
+                                        <span><?= htmlspecialchars($siteinfos->address) ?></span>
+                                    </p>
+                                    <?php if (isset($siteinfos->phone) && $siteinfos->phone) { ?>
+                                        <p style="font-size:24px;">
+                                            <span>Phone: <?= htmlspecialchars($siteinfos->phone) ?></span>
+                                        </p>
+                                    <?php } ?>
+                                <?php } ?>
+                            </td>
+                        </tr>
+                    </table>
                     <div class="sc-bordered-text">
                         <div class="sc-left-line"></div>
                         <div class="sc-text">STUDY CUM CONDUCT CERTIFICATE</div>
