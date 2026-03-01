@@ -244,6 +244,7 @@
 
                                                     $tpaidandfine = ($tpaid+$tfine);
                                                     $invoice_paid_fine += $tpaidandfine;
+                                                    if($tpaid == 0 && $tfine == 0) { continue; } // skip rows with no active payment
                                                 ?>
                                                 <tr>
                                                     <td><?='INV-G-'.$globalpayment->globalpaymentID?></td>

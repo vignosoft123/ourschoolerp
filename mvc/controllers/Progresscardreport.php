@@ -929,7 +929,7 @@ foreach($months_array as $mkey => $v) {
 
 				// after loop - send all prepared messages in one batch
 				if(isset($bulkMessages) && customCompute($bulkMessages)) {
-					$template_sql = "select params,template_name from whatapp_templates where short_name like '%PROGRESS_CARD%' ";
+					$template_sql = "select params,template_name from whatapp_templates where short_name like 'PROGRESS_CARD' ";
 					$template = $this->db->query($template_sql)->row_array();
 					// echo "<pre>";print_r($template);die;
 					if($template && !empty($template['template_name'])) {
@@ -1547,7 +1547,7 @@ public function send_balance_whatsapp()
         }
 
         // Get template with short_name like PROGRESS_CARD
-        $template_sql = "select params,template_name from whatapp_templates where short_name like '%PROGRESS_CARD%' ";
+        $template_sql = "select params,template_name from whatapp_templates where short_name like 'PROGRESS_CARD' ";
         $template = $this->db->query($template_sql)->row_array();
 
         if (!$template || empty($template['template_name'])) {

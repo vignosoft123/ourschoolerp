@@ -213,12 +213,9 @@ class Paymenthistory extends Admin_Controller {
 							
 							$extraPaymentWeaverAmount = (($paymentSum->paymentamount+$weaverSum->weaver) - ($singlePayment->paymentamount+$singleWeaverAmount));
 
-							if($singleWeaverAmount > 0) {
+							// Fix: weaverandfine record will be deleted, so only check remaining payments/weavers
+							if($extraPaymentWeaverAmount > 0) {
 								$invoicePaidStatus = 1;
-							} else {
-								if($extraPaymentWeaverAmount > 0) {
-									$invoicePaidStatus = 1;
-								}
 							}
 
 							$grandTotalAmount = $invoicePaymentHistory['grandtotal'];
@@ -227,7 +224,11 @@ class Paymenthistory extends Admin_Controller {
 							$grandTotalFineAmount = $invoicePaymentHistory['totalfine'];
 							$extraPaymentAmount = ($grandTotalAmount - $singlePayment->paymentamount);
 
-							if($grandTotalWeaverAmount > 0 || $grandTotalFineAmount > 0) {
+							// Fix: subtract the deleted weaver/fine from totals before checking main invoice status
+							$adjustedWeaverAmount = $grandTotalWeaverAmount - $singleWeaverAmount;
+							$adjustedFineAmount   = $grandTotalFineAmount - $singleFineAmount;
+
+							if($adjustedWeaverAmount > 0 || $adjustedFineAmount > 0) {
 								$mainInvoiceStatus = 1;
 							} else {
 								if(($grandTotalPaymentAmount - $singlePayment->paymentamount) == 0) {
@@ -241,6 +242,11 @@ class Paymenthistory extends Admin_Controller {
 							$this->payment_m->update_payment(array('paymentamount' => NULL), $singlePayment->paymentID);
 							$this->invoice_m->update_invoice(array('paidstatus' => $invoicePaidStatus), $singleInvoice->invoiceID);
 							$this->maininvoice_m->update_maininvoice(array('maininvoicestatus' => $mainInvoiceStatus), $singleInvoice->maininvoiceID);
+
+							// Fix: delete the weaverandfine (discount) record so it is restored on Global Payment page
+							if(customCompute($singleWeaverFine)) {
+								$this->weaverandfine_m->delete_weaverandfine($singleWeaverFine->weaverandfineID);
+							}
 
 							$globalID = $singlePayment->globalpaymentID;
 							if($globalID) {
