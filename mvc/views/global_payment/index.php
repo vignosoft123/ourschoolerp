@@ -317,12 +317,12 @@
 
                         <?php if(customCompute($invoices)) { 
                             
-                           $usertype = $this->session->userdata("usertype");
-                            if($usertype == 'Accountant'){
-                                $accountant = "d-none";
-                            }else{
+                           $loginuserID = $this->session->userdata("loginuserID");
+                            $loggedUser  = $this->db->get_where('user', ['userID' => $loginuserID])->row();
+                            if($loggedUser && $loggedUser->is_able_payment_discount == 1) {
                                 $accountant = "";
-                                
+                            } else {
+                                $accountant = "d-none";
                             }
                             ?>
 

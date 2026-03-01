@@ -32,6 +32,9 @@
                                 <th class="col-lg-2"><?=$this->lang->line('user_phone')?></th>
                                 <th class="col-lg-2"><?=$this->lang->line('user_usertype')?></th>
                                 <?php if(permissionChecker('user_edit')) { ?>
+                                <th class="col-lg-2">Discount Permission</th>
+                                <?php } ?>
+                                <?php if(permissionChecker('user_edit')) { ?>
                                 <th class="col-lg-1"><?=$this->lang->line('user_status')?></th>
                                 <?php } ?>
                                 <?php if(permissionChecker('user_edit') || permissionChecker('user_delete') || permissionChecker('user_view')) { ?>
@@ -60,6 +63,17 @@
                                     <td data-title="<?=$this->lang->line('user_usertype')?>">
                                         <?=$user->usertype;?>
                                     </td>
+                                    <?php if(permissionChecker('user_edit')) { ?>
+                                    <td data-title="Discount Permission">
+                                        <div class="onoffswitch-small" id="discount-<?=$user->userID?>">
+                                            <input type="checkbox" id="discount_switch<?=$user->userID?>" class="onoffswitch-small-checkbox discount-permission-checkbox" name="discount_permission" <?php if($user->is_able_payment_discount == '1') echo "checked='checked'"; ?>>
+                                            <label for="discount_switch<?=$user->userID?>" class="onoffswitch-small-label">
+                                                <span class="onoffswitch-small-inner"></span>
+                                                <span class="onoffswitch-small-switch"></span>
+                                            </label>
+                                        </div>
+                                    </td>
+                                    <?php } ?>
                                     <?php if(permissionChecker('user_edit')) { ?>
                                     <td data-title="<?=$this->lang->line('user_status')?>">
                                       <div class="onoffswitch-small" id="<?=$user->userID?>">
@@ -93,7 +107,7 @@
 <script>
   var status = '';
   var id = 0;
-  $('.onoffswitch-small-checkbox').click(function() {
+  $('.onoffswitch-small-checkbox:not(.discount-permission-checkbox)').click(function() {
       if($(this).prop('checked')) {
           status = 'chacked';
           id = $(this).parent().attr("id");
@@ -151,5 +165,24 @@
               }
           });
       }
-  }); 
+  });
+
+  $('.discount-permission-checkbox').click(function() {
+      var disc_status = $(this).prop('checked') ? 'chacked' : 'unchacked';
+      var disc_id = $(this).parent().attr('id').replace('discount-', '');
+
+      $.ajax({
+          type: 'POST',
+          url: "<?=base_url('user/discount_permission')?>",
+          data: "id=" + disc_id + "&status=" + disc_status,
+          dataType: "html",
+          success: function(data) {
+              if(data == 'Success') {
+                  toastr["success"]("Success");
+              } else {
+                  toastr["error"]("Error");
+              }
+          }
+      });
+  });
 </script>

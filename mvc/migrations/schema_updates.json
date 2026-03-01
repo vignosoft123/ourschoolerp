@@ -1,5 +1,13 @@
 [
     {
+        "query": "ALTER TABLE `user` ADD `is_able_payment_discount` INT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "user",
+            "column": "is_able_payment_discount"
+        }
+    },
+    {
         "query": "ALTER TABLE `teacher` CHANGE `signature` `signature` TEXT NULL",
         "type": "alter",
         "check_column": {

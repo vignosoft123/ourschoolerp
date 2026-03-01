@@ -880,6 +880,37 @@ class User extends Admin_Controller {
 		}
 	}
 
+	public function discount_permission() {
+		if(permissionChecker('user_edit')) {
+			$id = $this->input->post('id');
+			$status = $this->input->post('status');
+			if($id != '' && $status != '') {
+				if((int)$id) {
+					$user = $this->user_m->get_single_user(array('userID' => $id));
+					if(customCompute($user)) {
+						if($status == 'chacked') {
+							$this->user_m->update_user(array('is_able_payment_discount' => 1), $id);
+							echo 'Success';
+						} elseif($status == 'unchacked') {
+							$this->user_m->update_user(array('is_able_payment_discount' => 0), $id);
+							echo 'Success';
+						} else {
+							echo "Error";
+						}
+					} else {
+						echo 'Error';
+					}
+				} else {
+					echo "Error";
+				}
+			} else {
+				echo "Error";
+			}
+		} else {
+			echo "Error";
+		}
+	}
+
 	private function leave_applications_date_list_by_user_and_schoolyear($userID, $schoolyearID, $usertypeID) {
 		$leaveapplications = $this->leaveapplication_m->get_order_by_leaveapplication(array('create_userID'=>$userID,'create_usertypeID'=>$usertypeID,'schoolyearID'=>$schoolyearID,'status'=>1));
 		
