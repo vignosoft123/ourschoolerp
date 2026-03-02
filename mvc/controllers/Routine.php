@@ -153,42 +153,64 @@ class Routine extends Admin_Controller {
 		
 		$this->data['schoolyears'] = $this->schoolyear_m->get_schoolyear();
 		$this->data['classes'] = $this->classes_m->get_classes();
-		$classesID = $this->input->post("classesID");
-
-		if($classesID > 0) {
-			$this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' =>$classesID));
-			$this->data['sections'] = $this->section_m->get_order_by_section(array("classesID" => $classesID));
-			if($this->input->post('subjectID') > 0) {
-				$this->data['teachers'] = $this->subjectteacher_m->get_subjectteacher_with_teacher($this->input->post('subjectID'));
-			}
-		} else {
-			$this->data['subjects'] = [];
-			$this->data['sections'] = [];
-			$this->data['teachers'] = [];
-		}
-
+		
 		if($_POST) {
-			$rules = $this->rules();
-			$this->form_validation->set_rules($rules);
+			$schoolyearID = $this->input->post('schoolyearID');
+			$classesID = $this->input->post('classesID');
+			$sectionID = $this->input->post('sectionID');
+			$day = $this->input->post('day');
+
+			$subjectIDs = $this->input->post('subjectID');
+			$teacherIDs = $this->input->post('teacherID');
+			$start_times = $this->input->post('start_time');
+			$end_times = $this->input->post('end_time');
+			$rooms = $this->input->post('room');
+
+			$this->form_validation->set_rules('schoolyearID', $this->lang->line("routine_schoolyear"), 'trim|required|xss_clean|numeric|max_length[11]|callback_unique_data');
+			$this->form_validation->set_rules('classesID', $this->lang->line("routine_classes"), 'trim|required|xss_clean|numeric|max_length[11]|callback_unique_data');
+			$this->form_validation->set_rules('sectionID', $this->lang->line("routine_section"), 'trim|required|xss_clean|numeric|max_length[11]|callback_unique_data');
+			$this->form_validation->set_rules('day', $this->lang->line("routine_day"), 'trim|required|xss_clean|max_length[60]|callback_unique_day');
+
+			if (customCompute($subjectIDs)) {
+				foreach ($subjectIDs as $key => $subjectID) {
+					$this->form_validation->set_rules("subjectID[$key]", $this->lang->line("routine_subject"), 'trim|required|xss_clean|numeric|max_length[11]|callback_unique_data');
+					$this->form_validation->set_rules("teacherID[$key]", $this->lang->line("routine_teacher"), 'trim|required|xss_clean|numeric|max_length[11]|callback_unique_data');
+					$this->form_validation->set_rules("start_time[$key]", $this->lang->line("routine_start_time"), 'trim|required|xss_clean|max_length[10]');
+					$this->form_validation->set_rules("end_time[$key]", $this->lang->line("routine_end_time"), 'trim|required|xss_clean|max_length[10]');
+					$this->form_validation->set_rules("room[$key]", $this->lang->line("routine_room"), 'trim|required|xss_clean|max_length[11]');
+				}
+			}
+
 			if ($this->form_validation->run() == FALSE) {
 				$this->data['form_validation'] = validation_errors(); 
 				$this->data["subview"] = "routine/add";
 				$this->load->view('_layout_main', $this->data);			
 			} else {
-				$array = array(
-					"classesID" 	=> $this->input->post("classesID"),
-					"sectionID" 	=> $this->input->post("sectionID"),
-					"subjectID"	 	=> $this->input->post("subjectID"),
-					'schoolyearID' 	=> $this->input->post('schoolyearID'),
- 					"day" 			=> $this->input->post("day"),
- 					'teacherID' 	=> $this->input->post('teacherID'),
-					"start_time" 	=> $this->input->post("start_time"),
-					"end_time" 		=> $this->input->post("end_time"),
-					"room" 			=> $this->input->post("room")
-				);
-				$this->routine_m->insert_routine($array);
-				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-				redirect(base_url("routine/index"));
+				$insert_count = 0;
+				if (customCompute($subjectIDs)) {
+					foreach ($subjectIDs as $key => $subjectID) {
+						if($subjectID > 0) {
+							$array = array(
+								"classesID" 	=> $classesID,
+								"sectionID" 	=> $sectionID,
+								"subjectID"	 	=> $subjectID,
+								'schoolyearID' 	=> $schoolyearID,
+								"day" 			=> $day,
+								'teacherID' 	=> $teacherIDs[$key],
+								"start_time" 	=> $start_times[$key],
+								"end_time" 		=> $end_times[$key],
+								"room" 			=> $rooms[$key]
+							);
+							$this->routine_m->insert_routine($array);
+							$insert_count++;
+						}
+					}
+				}
+
+				if($insert_count > 0) {
+					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+				}
+				redirect(base_url("routine/index/$classesID"));
 			}
 		} else {
 			$this->data["subview"] = "routine/add";

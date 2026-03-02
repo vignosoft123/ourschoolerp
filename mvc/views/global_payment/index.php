@@ -317,9 +317,9 @@
 
                         <?php if(customCompute($invoices)) { 
                             
-                           $loginuserID = $this->session->userdata("loginuserID");
+                           $loginuserID = $this->session->userdata("loginuserID"); 
                             $loggedUser  = $this->db->get_where('user', ['userID' => $loginuserID])->row();
-                            if($loggedUser && $loggedUser->is_able_payment_discount == 1) {
+                            if(($loggedUser && $loggedUser->is_able_payment_discount == 1) || $this->session->userdata('usertype') == 'Admin') {
                                 $accountant = "";
                             } else {
                                 $accountant = "d-none";
@@ -463,6 +463,7 @@
                                                     <?php $i++; } ?>
                                                 <tr>
                                                     <td></td>
+                                                    <td></td>
                                                     <td><b><?=$this->lang->line('global_total')?></b></td>
                                                     <td><?=$total?></td>
                                                     <td><?=$totalDue?></td>
@@ -472,7 +473,7 @@
                                                 </tr>
 
                                                 <tr>
-                                                    <td colspan="2" style="width:10%"></td>
+                                                    <td colspan="3" style="width:10%"></td>
                                                     <td colspan="1" style="width:10%"> Remaining Due</td>
                                                     <td colspan="4" style="width:10%" id="set_total_due" class="text-red"></td>
                                                 </tr>
