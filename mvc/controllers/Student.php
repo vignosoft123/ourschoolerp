@@ -1586,8 +1586,20 @@ class Student extends Admin_Controller
 			$this->data['randomAdmissionCode'] = $this->getAdmissonNumber($settings);
 			$this->data['transports'] = $this->transport_m->get_transport();
 			$this->data["hostels"] = $this->hostel_m->get_hostel();
-			$this->data['teachers'] = pluck($this->teacher_m->get_teacher(), 'name', 'teacherID');
-			// print_r($this->data['teachers'] );die;
+			$teachers = $this->teacher_m->get_teacher();
+			$users = $this->user_m->get_user();
+			$combined_teachers = [];
+			if(customCompute($teachers)) {
+				foreach ($teachers as $teacher) {
+					$combined_teachers['teacher-' . $teacher->teacherID] = $teacher->name . " [Teacher]";
+				}
+			}
+			if(customCompute($users)) {
+				foreach ($users as $user) {
+					$combined_teachers['user-' . $user->userID] = $user->name . " [User]";
+				}
+			}
+			$this->data['teachers'] = $combined_teachers;
 
 			
 
@@ -1702,6 +1714,7 @@ class Student extends Admin_Controller
 					$array["mole1"] = $this->input->post('mole1');
 					$array["mole2"] = $this->input->post('mole2');
 					$array["studentType"] = $this->input->post('studentType');
+					$array["refered_by"] = $this->input->post('refered_by');
 
 					if ($this->input->post('studentType') == 1) {
 						if ($this->input->post("transportID") == 0) {

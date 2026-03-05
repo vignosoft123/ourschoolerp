@@ -12,7 +12,30 @@ class Exam extends Api_Controller
 
     public function index_get() 
     {
-        $this->retdata['exams'] = $this->exam_m->get_order_by_exam();
+        $academic_year = $this->get('academic_year');
+        $query_params = [];
+        if($academic_year) {
+            $query_params['academic_year'] = $academic_year;
+        }
+
+        $this->retdata['exams'] = $this->exam_m->get_order_by_exam($query_params);
+
+        $this->response([
+            'status'    => true,
+            'message'   => 'Success',
+            'data'      => $this->retdata
+        ], REST_Controller::HTTP_OK);       
+    }
+
+    public function index_post() 
+    {
+        $academic_year = $this->post('academic_year');
+        $query_params = [];
+        if($academic_year) {
+            $query_params['academic_year'] = $academic_year;
+        }
+
+        $this->retdata['exams'] = $this->exam_m->get_order_by_exam($query_params);
 
         $this->response([
             'status'    => true,

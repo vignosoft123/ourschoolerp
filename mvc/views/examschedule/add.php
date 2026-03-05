@@ -1,3 +1,4 @@
+
 <script>
     $(document).on("click","#exam_schedule_btn",function(e){
     
@@ -10,30 +11,23 @@
     }
 });
 
-function initializeDatepickers() {//alert();
+function initializeDatepickers() {
     $(".date").datepicker({
         autoclose: true,
         format: 'dd-mm-yyyy',
-        startDate: '01-04-2025',
-        endDate: '31-03-2026',
-        daysOfWeekDisabled: "0",
-        datesDisabled: ["15-08-2025", "02-10-2025"]
+        startDate: '<?=date("d-m-Y", strtotime($schoolyearsessionobj->startingdate))?>',
+        endDate: '<?=date("d-m-Y", strtotime($schoolyearsessionobj->endingdate))?>',
+        daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
+        datesDisabled: ["<?=$get_all_holidays;?>"]
     });
-        $('.examfrom').timepicker();
+    $('.examfrom').timepicker();
     $('.examto').timepicker();
 }
 
 
 $(document).ready(function() {
      initializeDatepickers();
-    // $(".date").datepicker({ 
-    //     autoclose: true,
-    //     format: 'dd-mm-yyyy',
-    //     startDate:'<?=$schoolyearsessionobj->startingdate?>',
-    //     endDate:'<?=$schoolyearsessionobj->endingdate?>',
-    //     daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
-    //     datesDisabled: ["<?=$get_all_holidays;?>"], 
-    // });
+
     // $('.examfrom').timepicker();
     // $('.examto').timepicker();
 })
@@ -365,16 +359,7 @@ $('#classesID').change(function(event) {
     }
 });
 
-/*$("#date").datepicker({
-    autoclose: true,
-    format: 'dd-mm-yyyy',
-    startDate:'<?=$schoolyearsessionobj->startingdate?>',
-    endDate:'<?=$schoolyearsessionobj->endingdate?>',
-    daysOfWeekDisabled: "<?=$siteinfos->weekends?>",
-    datesDisabled: ["<?=$get_all_holidays;?>"], 
-});
-$('#examfrom').timepicker();
-$('#examto').timepicker();*/
+
 
 $(document).on('click', ".addDetails", function() {
     var count = $('#dynamic_div .dynamic-row').length;

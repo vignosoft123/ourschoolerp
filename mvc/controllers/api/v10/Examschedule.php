@@ -55,9 +55,9 @@ class Examschedule extends Api_Controller
         // classesID: 1
             // examID: 13
         
-        $classesID = $this->input->post('classesID');
-        $examID = $this->input->post('examID');
-        $sectionID = $this->input->post('sectionID');
+        $classesID = $this->post('classesID');
+        $examID = $this->post('examID');
+        $sectionID = $this->post('sectionID');
         $schoolyearID = $this->session->userdata('defaultschoolyearID');
 
         // $this->retdata['classes'] = $this->classes_m->get_classes();
@@ -101,15 +101,15 @@ class Examschedule extends Api_Controller
             $schoolyearID = $this->session->userdata('defaultschoolyearID');
             
             // Validate required fields
-            $examID = $this->input->post("examID");
-            $classesID = $this->input->post("classesID");
-            $subjectID = $this->input->post("subjectID");
-            $edate = $this->input->post("date");
-            $examfrom = $this->input->post("examfrom");
-            $examto = $this->input->post("examto");
-            $min_mark = $this->input->post("min_mark");
-            $max_mark = $this->input->post("max_mark");
-            $arrSections = $this->input->post("sectionID");
+            $examID = $this->post("examID");
+            $classesID = $this->post("classesID");
+            $subjectID = $this->post("subjectID");
+            $edate = $this->post("date");
+            $examfrom = $this->post("examfrom");
+            $examto = $this->post("examto");
+            $min_mark = $this->post("min_mark");
+            $max_mark = $this->post("max_mark");
+            $arrSections = $this->post("sectionID");
 
             if(!$examID || !$classesID || !$subjectID || !$edate || !$examfrom || !$examto || !$min_mark || !$max_mark || !$arrSections) {
                 $this->response([
@@ -185,7 +185,7 @@ class Examschedule extends Api_Controller
     public function edit_post() 
     {
         try {
-            $id = $this->input->post('examscheduleID');
+            $id = $this->post('examscheduleID');
             $schoolyearID = $this->session->userdata('defaultschoolyearID');
             
             if(!$id) {
@@ -211,16 +211,16 @@ class Examschedule extends Api_Controller
             }
 
             $array = array(
-                "examID" => $this->input->post("examID"),
-                "classesID" => $this->input->post("classesID"),
-                "sectionID" => $this->input->post("sectionID"),
-                "subjectID" => $this->input->post("subjectID"),
-                "edate" => date("Y-m-d", strtotime($this->input->post("date"))),
-                "examfrom" => $this->input->post("examfrom"),
-                "examto" => $this->input->post("examto"),
-                "room" => $this->input->post("room"),
-                "min_mark" => $this->input->post("min_mark"),
-                "max_mark" => $this->input->post("max_mark")
+                "examID" => $this->post("examID"),
+                "classesID" => $this->post("classesID"),
+                "sectionID" => $this->post("sectionID"),
+                "subjectID" => $this->post("subjectID"),
+                "edate" => date("Y-m-d", strtotime($this->post("date"))),
+                "examfrom" => $this->post("examfrom"),
+                "examto" => $this->post("examto"),
+                "room" => $this->post("room"),
+                "min_mark" => $this->post("min_mark"),
+                "max_mark" => $this->post("max_mark")
             );
 
             $this->examschedule_m->update_examschedule($array, $id);
@@ -273,7 +273,7 @@ class Examschedule extends Api_Controller
     public function delete_post() 
     {
         try {
-            $id = $this->input->post('examscheduleID');
+            $id = $this->post('examscheduleID');
             $schoolyearID = $this->session->userdata('defaultschoolyearID');
 
             if(!$id) {
@@ -316,7 +316,7 @@ class Examschedule extends Api_Controller
     public function multi_delete_post() 
     {
         try {
-            $selected = $this->input->post('selected');
+            $selected = $this->post('selected');
             $schoolyearID = $this->session->userdata('defaultschoolyearID');
 
             if(!is_array($selected) || !customCompute($selected)) {
@@ -368,7 +368,7 @@ class Examschedule extends Api_Controller
 
     public function get_exams_post() 
     {
-        $classesID = $this->input->post('classesID');
+        $classesID = $this->post('classesID');
         
         if(!$classesID) {
             $this->response([
@@ -393,7 +393,7 @@ class Examschedule extends Api_Controller
 
     public function get_subjects_post() 
     {
-        $classID = $this->input->post('classesID');
+        $classID = $this->post('classesID');
         
         if(!$classID) {
             $this->response([
@@ -417,7 +417,7 @@ class Examschedule extends Api_Controller
 
     public function get_sections_post() 
     {
-        $classID = $this->input->post('classesID');
+        $classID = $this->post('classesID');
         
         if(!$classID) {
             $this->response([
@@ -441,7 +441,7 @@ class Examschedule extends Api_Controller
 
     public function get_form_data_post() 
     {
-        $classesID = $this->input->post('classesID');
+        $classesID = $this->post('classesID');
         
         $this->retdata['classes'] = $this->classes_m->get_classes();
         
