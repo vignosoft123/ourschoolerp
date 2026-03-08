@@ -238,5 +238,76 @@
             "table": "section",
             "column": "teacherID"
         }
+    },
+    {
+        "query": "CREATE TABLE `college_groups` ( `collegegroupID` int(11) NOT NULL AUTO_INCREMENT, `college_name` varchar(255) NOT NULL, `college_url` varchar(255) NOT NULL, `status` int(11) DEFAULT '1', PRIMARY KEY (`collegegroupID`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        "type": "create",
+        "check_table": "college_groups"
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('college_group', 'college_group', 'fa-university', '1', '20', '131')",
+        "type": "insert",
+        "check_row": {
+            "table": "menu",
+            "where": {
+                "menuName": "college_group"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('college_group', 'college_group')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "college_group"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('college_group_add', 'college_group_add')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "college_group_add"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('college_group_edit', 'college_group_edit')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "college_group_edit"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('college_group_delete', 'college_group_delete')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "college_group_delete"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group_add' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_add'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group_edit' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_edit'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group_delete' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_delete'))",
+        "type": "raw"
     }
 ]

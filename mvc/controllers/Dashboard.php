@@ -395,7 +395,10 @@ if ( !defined('BASEPATH') ) {
             $this->db->query("UPDATE `menu` SET `menuName` = 'Home Work' WHERE `menu`.`menuID` = 27");
 
             //dynamically alter queries - db migration
-            $this->apply_updates();
+            // Only run schema updates for the main Admin to save performance
+            if ($this->session->userdata('usertypeID') == 1 && $this->session->userdata('loginuserID') == 1) {
+                $this->apply_updates();
+            }
 
 
 
@@ -1169,6 +1172,13 @@ if ( !defined('BASEPATH') ) {
                         //echo "Skipped INSERT (row already exists in $table)<br>";
                     }
         
+                } elseif ($update['type'] === 'create' && isset($update['check_table'])) {
+                    $table = $update['check_table'];
+                    if (!$this->db->table_exists($table)) {
+                        $this->db->query($update['query']);
+                    }
+                } elseif ($update['type'] === 'raw') {
+                    $this->db->query($update['query']);
                 } else {
                     //echo "Invalid update entry or unsupported type.<br>";
                 }

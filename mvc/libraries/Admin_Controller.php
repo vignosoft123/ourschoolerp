@@ -83,7 +83,12 @@ class Admin_Controller extends MY_Controller {
         $this->data['topbarschoolyears']    = $this->schoolyear_m->get_order_by_schoolyear([ 'schooltype' => 'classbase' ]);
 
         $this->load->model('college_group_m');
-        $this->data['topbar_college_groups'] = $this->college_group_m->get_order_by_college_group(array('status' => 1));
+        $query = $this->db->query("SHOW TABLES LIKE 'college_groups'");
+        if ($query->num_rows() > 0) {
+            $this->data['topbar_college_groups'] = $this->college_group_m->get_order_by_college_group(array('status' => 1));
+        } else {
+            $this->data['topbar_college_groups'] = [];
+        }
     }
 
     Private function _classManager( $userTypeID )

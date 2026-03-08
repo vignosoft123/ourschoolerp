@@ -164,6 +164,17 @@ class Schema_update extends Admin_Controller {
                     echo "Skipped INSERT (row already exists in $table)<br>";
                 }
     
+            } elseif ($update['type'] === 'create' && isset($update['check_table'])) {
+                $table = $update['check_table'];
+                if (!$this->db->table_exists($table)) {
+                    $this->db->query($update['query']);
+                    echo "Executed CREATE: TABLE $table<br>";
+                } else {
+                    echo "Skipped CREATE (TABLE $table already exists)<br>";
+                }
+            } elseif ($update['type'] === 'raw') {
+                $this->db->query($update['query']);
+                echo "Executed RAW Query: {$update['query']}<br>";
             } else {
                 echo "Invalid update entry or unsupported type.<br>";
             }
