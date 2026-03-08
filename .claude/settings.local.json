@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \":*)",
+      "Bash(php -r \":*)",
+      "Bash(php -r \"error_reporting\\(0\\); $c = file_get_contents\\(''c:/xampp/htdocs/ourschoolerp/mvc/controllers/Paymenthistory.php''\\); $ls = preg_split\\(''/\\\\r\\\\n|\\\\r|\\\\n/'', $c\\); echo bin2hex\\($ls[215]\\); echo ''\\\\n''; echo bin2hex\\($ls[216]\\);\")",
+      "Bash(php /tmp/fix_user_ctrl.php)"
+    ]
+  }
+}

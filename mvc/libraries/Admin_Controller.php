@@ -82,7 +82,8 @@ class Admin_Controller extends MY_Controller {
         $this->data['schoolyearsessionobj'] = $this->schoolyear_m->get_obj_schoolyear($this->session->userdata('defaultschoolyearID'));
         $this->data['topbarschoolyears']    = $this->schoolyear_m->get_order_by_schoolyear([ 'schooltype' => 'classbase' ]);
 
-        
+        $this->load->model('college_group_m');
+        $this->data['topbar_college_groups'] = $this->college_group_m->get_order_by_college_group(array('status' => 1));
     }
 
     Private function _classManager( $userTypeID )
@@ -157,7 +158,7 @@ class Admin_Controller extends MY_Controller {
         $userdata        = $this->session->userdata;
 
         if ( $this->session->userdata('usertypeID') == 1 && $this->session->userdata('loginuserID') == 1 ) {
-            if ( isset($userdata['loginuserID']) && !isset($userdata['get_permission']) ) {
+            if ( isset($userdata['loginuserID']) && (!isset($userdata['get_permission']) || !isset($userdata['master_permission_set']['college_group'])) ) {
                 $features = $this->permission_m->get_permission();
                 if ( customCompute($features) ) {
                     foreach ( $features as $featureKey => $feature ) {
@@ -170,7 +171,7 @@ class Admin_Controller extends MY_Controller {
                 }
             }
         } else {
-            if ( isset($userdata['loginuserID']) && !isset($userdata['get_permission']) ) {
+            if ( isset($userdata['loginuserID']) && (!isset($userdata['get_permission']) || !isset($userdata['master_permission_set']['college_group'])) ) {
                 if ( !$this->session->userdata($permission) ) {
                     $user_permission = $this->permission_m->get_modules_with_permission($userdata['usertypeID']);
 

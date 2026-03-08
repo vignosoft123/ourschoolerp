@@ -237,6 +237,7 @@ $lang['menu_sponsorship'] 		= 'Sponsorship';
 $lang['menu_sponsorshipreport'] = 'Sponsorship Report';
 
 $lang['menu_villages']            = 'Villages';
+$lang['menu_college_group']       = 'College Group';
 
 
 
