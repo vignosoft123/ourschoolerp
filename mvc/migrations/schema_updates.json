@@ -295,19 +295,19 @@
         }
     },
     {
-        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group'))",
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'college_group' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group'))",
         "type": "raw"
     },
     {
-        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group_add' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_add'))",
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'college_group_add' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_add'))",
         "type": "raw"
     },
     {
-        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group_edit' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_edit'))",
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'college_group_edit' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_edit'))",
         "type": "raw"
     },
     {
-        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`, `active`) SELECT 1, permissionID, 'yes' FROM `permissions` WHERE `name` = 'college_group_delete' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_delete'))",
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'college_group_delete' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_delete'))",
         "type": "raw"
     }
 ]

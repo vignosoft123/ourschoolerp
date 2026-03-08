@@ -166,7 +166,8 @@ class Schema_update extends Admin_Controller {
     
             } elseif ($update['type'] === 'create' && isset($update['check_table'])) {
                 $table = $update['check_table'];
-                if (!$this->db->table_exists($table)) {
+                $query = $this->db->query("SHOW TABLES LIKE '$table'");
+                if ($query->num_rows() == 0) {
                     $this->db->query($update['query']);
                     echo "Executed CREATE: TABLE $table<br>";
                 } else {

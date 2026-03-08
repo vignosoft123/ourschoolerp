@@ -395,8 +395,8 @@ if ( !defined('BASEPATH') ) {
             $this->db->query("UPDATE `menu` SET `menuName` = 'Home Work' WHERE `menu`.`menuID` = 27");
 
             //dynamically alter queries - db migration
-            // Only run schema updates for the main Admin to save performance
-            if ($this->session->userdata('usertypeID') == 1 && $this->session->userdata('loginuserID') == 1) {
+            // Only run schema updates for Admins to save performance
+            if ($this->session->userdata('usertypeID') == 1) {
                 $this->apply_updates();
             }
 
@@ -1174,7 +1174,8 @@ if ( !defined('BASEPATH') ) {
         
                 } elseif ($update['type'] === 'create' && isset($update['check_table'])) {
                     $table = $update['check_table'];
-                    if (!$this->db->table_exists($table)) {
+                    $query = $this->db->query("SHOW TABLES LIKE '$table'");
+                    if ($query->num_rows() == 0) {
                         $this->db->query($update['query']);
                     }
                 } elseif ($update['type'] === 'raw') {

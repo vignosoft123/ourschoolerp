@@ -52,3 +52,4 @@ This document serves as a technical blueprint for the **OurSchoolERP** project. 
 
 - **2026-03-09**: Initialized `project_structure.md`. Documented College Group integration and Permission Hot-Reload logic.
 - **2026-03-09**: Verified Standard Admin usertypeID is `1` and `superadmin` is the primary account.
+- **2026-03-09**: Implemented "Safe Loading" in `Admin_Controller` to prevent site crashes if the `college_groups` table is missing before migration.
