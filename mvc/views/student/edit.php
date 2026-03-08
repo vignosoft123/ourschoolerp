@@ -438,6 +438,46 @@
                                 </span>
                             </div>
 
+                            <?php
+                                if (form_error('cast'))
+                                    echo "<div class='col-md-4 has-error' >";
+                                else
+                                    echo "<div class='col-md-4' >";
+                                ?>
+                                <label for="cast" class="  control-label">
+                                    Caste
+                                </label>                        
+                                    <select class="form-control select2" id="cast" name="cast">
+                                        <option value="">Select Caste</option>
+                                        <option value="OC" <?=set_select('cast', 'OC', $student->caste == 'OC' ? TRUE : FALSE)?>>OC</option>
+                                        <option value="BC - A" <?=set_select('cast', 'BC - A', $student->caste == 'BC - A' ? TRUE : FALSE)?>>BC - A</option>
+                                        <option value="BC - B" <?=set_select('cast', 'BC - B', $student->caste == 'BC - B' ? TRUE : FALSE)?>>BC - B</option>
+                                        <option value="BC - C" <?=set_select('cast', 'BC - C', $student->caste == 'BC - C' ? TRUE : FALSE)?>>BC - C</option>
+                                        <option value="BC - D" <?=set_select('cast', 'BC - D', $student->caste == 'BC - D' ? TRUE : FALSE)?>>BC - D</option>
+                                        <option value="SC" <?=set_select('cast', 'SC', $student->caste == 'SC' ? TRUE : FALSE)?>>SC</option>
+                                        <option value="ST" <?=set_select('cast', 'ST', $student->caste == 'ST' ? TRUE : FALSE)?>>ST</option>
+                                        <option value="Minority" <?=set_select('cast', 'Minority', $student->caste == 'Minority' ? TRUE : FALSE)?>>Minority</option>
+                                    </select>
+                                <span class="  control-label">
+                                    <?php echo form_error('cast'); ?>
+                                </span>
+                            </div>
+
+                            <?php
+                                if (form_error('sub_caste'))
+                                    echo "<div class='col-md-4 has-error' >";
+                                else
+                                    echo "<div class='col-md-4' >";
+                                ?>
+                                <label for="sub_caste" class=" control-label">
+                                    Sub Caste
+                                </label>
+                                    <input type="text" class="form-control" id="sub_caste" name="sub_caste" value="<?= set_value('sub_caste', $student->sub_caste) ?>">
+                                <span class="  control-label">
+                                    <?php echo form_error('sub_caste'); ?>
+                                </span>
+                            </div>
+
                             <?php 
                                 if(form_error('fathername')) 
                                     echo "<div class='col-md-4 has-error' >";
@@ -565,7 +605,7 @@
                     Alternative Phone2
                     </label>
                     
-                        <input type="text" class="form-control" id="alternative_phone2" name="alternative_phone2" value="<?= set_value('alternative_phone2', $student->alternative_phone1) ?>">
+                        <input type="text" class="form-control" id="alternative_phone2" name="alternative_phone2" value="<?= set_value('alternative_phone2', $student->alternative_phone2) ?>">
                     
                     <span class="  control-label">
                         <?php echo form_error('alternative_phone2'); ?>
@@ -822,6 +862,34 @@
                                     <?php echo form_error('ration_card'); ?>
                                 </span>
                                 </div>
+                                </div>
+
+
+                                <div class="student-address-sec">
+                                    <h2 class="h2-title">Reference Details</h2>
+                                    <div class="row">
+                                        <?php
+                                        if (form_error('refered_by'))
+                                            echo "<div class='col-md-4 has-error' >";
+                                        else
+                                            echo "<div class='col-md-4' >";
+                                        ?>
+                                        <label for="refered_by" class="  control-label">
+                                            Refered By <span class="text-red">*</span>
+                                            <a title="Add Teacher" target="_blank" href="<?= base_url('teacher/add'); ?>" taret="_blank"> <i class="fa fa-plus"></i></a>
+                                        </label>
+
+                                        <select id="refered_by" name="refered_by" class='form-control select2'>
+                                            <option value=""> --Select-- </option>
+                                            <?php foreach ($teachers as $k => $v) { ?>
+                                                <option value="<?= $k ?>" <?php if ($student->refered_by == $k) { echo 'selected'; } ?>> <?= $v ?> </option>
+                                            <?php  } ?>
+                                        </select>
+
+                                        <span class="  control-label">
+                                            <?php echo form_error('refered_by'); ?>
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div class="row">

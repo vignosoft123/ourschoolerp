@@ -112,6 +112,8 @@ class Student extends Admin_Controller
 
 				$studentInfo = $this->studentrelation_m->get_single_student(array('srstudentID' => $id, 'srschoolyearID' => $schoolyearID), TRUE);
 
+				$this->data['all_classes'] = pluck($this->classes_m->get_classes(), 'classes', 'classesID');
+
 				$this->pluckInfo();
 				$this->basicInfo($studentInfo);
 				$this->typeInfo($studentInfo);
@@ -128,7 +130,23 @@ class Student extends Admin_Controller
 				if (customCompute($studentInfo)) {
 					$this->data['set']     = $url;
 					$this->data['leaveapplications'] = $this->leave_applications_date_list_by_user_and_schoolyear($id, $schoolyearID, $studentInfo->usertypeID);
-					// echo "<pre>";print_r($this->data);die;
+					
+					$this->data['refered_by_name'] = '';
+					if ($studentInfo->refered_by) {
+						$refered_by = explode('-', $studentInfo->refered_by);
+						if(customCompute($refered_by) == 2) {
+							$type = $refered_by[0];
+							$typeID = $refered_by[1];
+							if($type == 'teacher') {
+								$teacher = $this->teacher_m->get_single_teacher(array('teacherID' => $typeID));
+								$this->data['refered_by_name'] = customCompute($teacher) ? $teacher->name . " [Teacher]" : '';
+							} elseif($type == 'user') {
+								$user = $this->user_m->get_single_user(array('userID' => $typeID));
+								$this->data['refered_by_name'] = customCompute($user) ? $user->name . " [User]" : '';
+							}
+						}
+					}
+
 					$this->data["subview"] = "student/getView";
 					$this->load->view('_layout_main', $this->data);
 				} else {
@@ -736,6 +754,11 @@ class Student extends Admin_Controller
 			// 	'label' => "Father Name",
 			// 	'rules' => 'trim|required|max_length[100]|xss_clean'
 			// )
+			array(
+				'field' => 'refered_by',
+				'label' => "Refered By",
+				'rules' => 'trim|required|xss_clean'
+			),
 		);
 		return $rules;
 	}
@@ -2303,6 +2326,21 @@ class Student extends Admin_Controller
 				$this->data['studentgroups'] = $this->studentgroup_m->get_studentgroup();
 				$this->data['villages'] = $this->village_m->get_active_villages();
 
+				$teachers = $this->teacher_m->get_teacher();
+				$users = $this->user_m->get_user();
+				$combined_teachers = [];
+				if(customCompute($teachers)) {
+					foreach ($teachers as $teacher) {
+						$combined_teachers['teacher-' . $teacher->teacherID] = $teacher->name . " [Teacher]";
+					}
+				}
+				if(customCompute($users)) {
+					foreach ($users as $user) {
+						$combined_teachers['user-' . $user->userID] = $user->name . " [User]";
+					}
+				}
+				$this->data['teachers'] = $combined_teachers;
+
 				if (customCompute($this->data['student'])) {
 					$classesID = $this->data['student']->srclassesID;
 					$this->data['sections'] = $this->section_m->general_get_order_by_section(array('classesID' => $classesID));
@@ -2384,6 +2422,7 @@ class Student extends Admin_Controller
 							$array["mole1"] = $this->input->post('mole1');
 							$array["mole2"] = $this->input->post('mole2');
 							$array["studentType"] = $this->input->post('studentType');
+							$array["refered_by"] = $this->input->post('refered_by');
 
 							if ($this->input->post('dob')) {
 								$array["dob"] 	= date("Y-m-d", strtotime($this->input->post("dob")));

@@ -485,7 +485,7 @@
                             <input type="text" class="form-control" id="sub_caste" name="sub_caste" value="<?= set_value('sub_caste') ?>">
                         
                         <span class="  control-label">
-                            <?php echo form_error('father_name'); ?>
+                            <?php echo form_error('sub_caste'); ?>
                         </span>
                     </div> 
 
@@ -1045,10 +1045,9 @@
                 </label>
                  
                     <select id="refered_by" name="refered_by" class='form-control select2' >
-                    <option value=""> --Select-- </option>
-
+                        <option value=""> --Select-- </option>
                         <?php foreach($teachers as $k=>$v){?>
-                            <option value="<?= $k?>"> <?= $v?> </option>
+                            <option value="<?= $k?>" <?= set_select('refered_by', $k) ?>> <?= $v?> </option>
                        <?php  }?>
                     </select>
                 

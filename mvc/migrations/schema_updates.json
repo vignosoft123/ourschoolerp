@@ -1,5 +1,13 @@
 [
     {
+        "query": "ALTER TABLE `student` ADD `refered_by` VARCHAR(255) NULL DEFAULT '0' ",
+        "type": "alter",
+        "check_column": {
+            "table": "student",
+            "column": "refered_by"
+        }
+    },
+    {
         "query": "ALTER TABLE `user` ADD `is_able_payment_discount` INT NULL DEFAULT '0'",
         "type": "alter",
         "check_column": {
@@ -22,15 +30,15 @@
             "table": "student",
             "column": "rank"
         }
-    }, 
-     {
+    },
+    {
         "query": "ALTER TABLE `make_payment` ADD `salary_date` VARCHAR(255) NULL DEFAULT NULL",
         "type": "alter",
         "check_column": {
             "table": "make_payment",
             "column": "salary_date"
         }
-    }, 
+    },
     {
         "query": "ALTER TABLE `student` ADD COLUMN `device_token` VARCHAR(255) DEFAULT NULL",
         "type": "alter",
@@ -39,7 +47,6 @@
             "column": "device_token"
         }
     },
-
     {
         "query": "ALTER TABLE `user` ADD COLUMN `rfid` VARCHAR(255) DEFAULT NULL",
         "type": "alter",
@@ -47,8 +54,8 @@
             "table": "user",
             "column": "rfid"
         }
-    }, 
-     {
+    },
+    {
         "query": "ALTER TABLE `student` ADD `medium` VARCHAR(55) NULL DEFAULT 'English'",
         "type": "alter",
         "check_column": {
@@ -56,7 +63,6 @@
             "column": "medium"
         }
     },
-    
     {
         "query": "ALTER TABLE `whatapp_templates` DROP PRIMARY KEY, MODIFY `mailandsmstemplateID` INT NOT NULL AUTO_INCREMENT, ADD PRIMARY KEY (`mailandsmstemplateID`)",
         "type": "alter",
@@ -168,7 +174,8 @@
             "table": "markrelation",
             "column": "markID"
         }
-    },{
+    },
+    {
         "query": "ALTER TABLE invoice ADD INDEX idx_student_class_year (studentID, classesID, schoolyearID)",
         "type": "alter",
         "check_column": {
@@ -208,7 +215,7 @@
             "column": "schoolyearID"
         }
     },
-        {
+    {
         "query": "ALTER TABLE `section` CHANGE `category` `category` VARCHAR(128) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL",
         "type": "alter",
         "check_column": {
@@ -216,7 +223,7 @@
             "column": "category"
         }
     },
-        {
+    {
         "query": "ALTER TABLE `section` CHANGE `capacity` `capacity` INT(11) NULL DEFAULT NULL",
         "type": "alter",
         "check_column": {
@@ -224,7 +231,7 @@
             "column": "capacity"
         }
     },
-        {
+    {
         "query": "ALTER TABLE `section` CHANGE `teacherID` `teacherID` INT(11) NULL DEFAULT NULL",
         "type": "alter",
         "check_column": {

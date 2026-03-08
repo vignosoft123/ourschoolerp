@@ -75,11 +75,14 @@ if (customCompute($profile)) { ?>
 								<span class="h5-title"><?= $this->lang->line('student_section') ?></span> <span class="h6-title pull-right"><?= customCompute($section) ? $section->section : '' ?></span>
 							</li>
 							<li class="list-group-item">
-								<span class="h5-title">RF ID</span> <span class="h6-title pull-right"><?= $profile->child_id?></span>
+								<span class="h5-title">RF ID</span> <span class="h6-title pull-right"><?= $profile->rf_id ?></span>
+							</li>
+							<li class="list-group-item">
+								<span class="h5-title">Medium</span> <span class="h6-title pull-right"><?= $profile->medium ?></span>
 							</li>
 
 							<li class="list-group-item">
-								<span class="h5-title">Joined Class</span> <span class="h6-title pull-right"><?= $profile->joined_class_name?></span>
+								<span class="h5-title">Joined Class</span> <span class="h6-title pull-right"><?= isset($all_classes[$profile->joined_class]) ? $all_classes[$profile->joined_class] : '' ?></span>
 							</li>
 
 							<li class="list-group-item">
@@ -88,9 +91,12 @@ if (customCompute($profile)) { ?>
 								</span>
 							</li>
 <li class="list-group-item">
-								<span class="h5-title">Device token</span> <span class="h6-title pull-right">
+								<span class="h5-title">Device token</span> 								<span class="h6-title pull-right">
 									<?= $profile->device_token?>
 								</span>
+							</li>
+							<li class="list-group-item">
+								<span class="h5-title">Student Type</span> <span class="h6-title pull-right"><?= $profile->studentType ?></span>
 							</li>
 							<!-- 
 							<li class="list-group-item" style="background-color: #FFF">
@@ -166,8 +172,15 @@ if (customCompute($profile)) { ?>
 										<div class="profile-details">
 											<label class="label-txt">Mother Toungue </label>
 											<div class="para"><?php 
-												$m_t = array(''=> '-','1'=> 'Telugu','2'=> 'Engish','3'=> 'Hindi','4'=> 'Kannada','5'=> 'Malayalam','6'=> 'Urdhu',);
+												$m_t = array(''=> '-','1'=> 'Telugu','2'=> 'English','3'=> 'Hindi','4'=> 'Kannada','5'=> 'Malayalam','6'=> 'Urdhu',);
 												echo $m_t[$profile->mother_toungue] ?></div>
+										</div>	
+									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Refered By </label>
+											<div class="para"><?= $refered_by_name ?></div>
 										</div>	
 									</div>
 
@@ -235,6 +248,21 @@ if (customCompute($profile)) { ?>
 											<div class="para"><?= $profile->religion ?></div>
 										</div>										
 									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Caste</label>
+											<div class="para"><?= $profile->caste ?></div>
+										</div>										
+									</div>
+
+									<div class="profile-view-tab">
+										<div class="profile-details">
+											<label class="label-txt">Sub Caste</label>
+											<div class="para"><?= $profile->sub_caste ?></div>
+										</div>										
+									</div>
+
 
 									<div class="profile-view-tab">
 										<div class="profile-details">
