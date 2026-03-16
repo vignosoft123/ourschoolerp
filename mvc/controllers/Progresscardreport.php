@@ -162,6 +162,7 @@ class Progresscardreport extends Admin_Controller {
 
 					$students               = $this->studentrelation_m->general_get_order_by_student($queryArray);
 					$marks                  = $this->mark_m->student_all_mark_array($mArray);
+					// file_put_contents('test_marks_log.txt', print_r($marks, true));
 				//$mandatorySubjects      = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID, 'type' => 1));
 				     $mandatorySubjects      = $this->subject_m->general_get_order_by_subject_left_examschedule($classesID,$type = 1,$examID,$sectionID);
 					//  echo "<pre>";print_r($mandatorySubjects);die;
@@ -180,6 +181,7 @@ class Progresscardreport extends Admin_Controller {
 					if(customCompute($marks)) {
 						foreach ($marks as $mark) {
 							$retMark[$mark->examID][$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$retMark[$mark->examID][$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
 						}
 					}
 
@@ -212,6 +214,8 @@ class Progresscardreport extends Admin_Controller {
 
 													if(isset($retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID]) && $f) {
 														$markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID];
+													} elseif(isset($retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID]['default']) && $f) {
+														$markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID]['default'];
 													}
 
 
@@ -228,6 +232,8 @@ class Progresscardreport extends Admin_Controller {
 
 															if(isset($retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID])) {
 																$markArray[$examID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID];
+															} elseif(isset($retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID]['default'])) {
+																$markArray[$examID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID]['default'];
 															}
 														}
 														$studentChecker['subject'][$examID][$student->srstudentID][$markpercentageID] = TRUE;
@@ -446,6 +452,7 @@ class Progresscardreport extends Admin_Controller {
 				if(customCompute($marks)) {
 					foreach ($marks as $mark) {
 						$retMark[$mark->examID][$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$retMark[$mark->examID][$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
 					}
 				}
 
@@ -600,6 +607,7 @@ class Progresscardreport extends Admin_Controller {
 					if(customCompute($marks)) {
 						foreach ($marks as $mark) {
 							$retMark[$mark->examID][$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$retMark[$mark->examID][$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
 						}
 					}
 
@@ -632,6 +640,8 @@ class Progresscardreport extends Admin_Controller {
 
 													if(isset($retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID]) && $f) {
 														$markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID];
+													} elseif(isset($retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID]['default']) && $f) {
+														$markArray[$examID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$mandatorySubject->subjectID]['default'];
 													}
 
 
@@ -648,6 +658,8 @@ class Progresscardreport extends Admin_Controller {
 
 															if(isset($retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID])) {
 																$markArray[$examID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID];
+															} elseif(isset($retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID]['default'])) {
+																$markArray[$examID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$examID][$student->srstudentID][$student->sroptionalsubjectID]['default'];
 															}
 														}
 														$studentChecker['subject'][$examID][$student->srstudentID][$markpercentageID] = TRUE;
@@ -756,6 +768,7 @@ class Progresscardreport extends Admin_Controller {
 					if(customCompute($marks)) {
 						foreach ($marks as $mark) {
 							$retMark[$mark->examID][$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$retMark[$mark->examID][$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
 						}
 					}
 

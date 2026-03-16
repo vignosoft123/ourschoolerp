@@ -95,8 +95,12 @@
                     <?php if(permissionChecker('invoice_add')) { ?>
                         <h5 class="page-header">
                             <a href="<?php echo base_url('invoice/add') ?>" class="btn btn-primary">
-                                <i class="fa fa-plus"></i> 
+                                <i class="fa fa-plus"></i>
                                 <?=$this->lang->line('add_title')?>
+                            </a>
+
+                            <a href="<?php echo base_url('invoicereport') ?>" target="_blank" class="btn btn-success">
+                                <i class="fa fa-bar-chart"></i> Invoice Report
                             </a>
 
                                             <button type="button" id="openFeeFormBtn" class="btn btn-primary mb-3">Bulk Edit Amounts</button>

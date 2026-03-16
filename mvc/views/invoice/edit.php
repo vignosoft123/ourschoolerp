@@ -203,7 +203,7 @@
 
                             
                                             echo '<td>';
-                                                echo '<input type="text" class="form-control change-discount" id="td_discount_id_'.$randID.'" data-discount-id="'.$randID.'" value="'.$invoice->discount.'">';
+                                                echo '<input type="text" class="form-control change-discount" id="td_discount_id_'.$randID.'" data-discount-id="'.$randID.'" value="'.$invoice->discount.'" readonly style="background:#f0f0f0;cursor:not-allowed;" tabindex="-1">';
                                             echo '</td>';
 
                                             echo '<td>';
@@ -330,7 +330,7 @@
             text += '</td>';
 
             text += '<td>';
-                text += ('<input type="text" class="form-control change-discount" id="td_discount_id_'+randID+'" data-discount-id="'+randID+'">');
+                text += ('<input type="text" class="form-control change-discount" id="td_discount_id_'+randID+'" data-discount-id="'+randID+'" readonly style="background:#f0f0f0;cursor:not-allowed;" tabindex="-1">');
             text += '</td>';
 
             text += '<td>';
@@ -587,9 +587,14 @@
         }
     });
 
+    $(document).on('click focus', '.change-discount', function() {
+        alert('You can give discount in global payment page.');
+        $(this).blur();
+    });
+
     $(document).on('keyup', '.change-discount', function() {
         var trID = $(this).parent().parent().attr('id').replace('tr_','');
-        var randID = $(this).attr('data-discount-id'); 
+        var randID = $(this).attr('data-discount-id');
         var amount = $('#'+'td_amount_id_'+trID).val();
 
         if(amount != '' && amount != null) {

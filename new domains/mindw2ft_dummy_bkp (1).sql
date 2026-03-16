@@ -4106,7 +4106,7 @@ INSERT INTO `setting` (`fieldoption`, `value`) VALUES
 ('site_key', 'l5K5HrsHplYd'),
 ('site_key1', 'mJK2E7IIrAsODqEJ57fUPbu4hAc='),
 ('site_key_active', '0'),
-('sname', 'Infant jesus  High School'),
+('sname', 'Our School ERP'),
 ('student_ID_format', '1'),
 ('teacher_present_time', '9-00'),
 ('time_zone', 'Asia/Kolkata'),

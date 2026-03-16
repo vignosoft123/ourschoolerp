@@ -212,6 +212,7 @@ public function general_get_order_by_subject_only_subjects($array1=NULL) {
 		{
 		    $this->db->where($array);
 		}
+		$this->db->order_by('examschedule.edate', 'ASC');
 		$query = $this->db->get();
 		return $query->result();
 	}

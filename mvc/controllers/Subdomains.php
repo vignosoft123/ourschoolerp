@@ -234,6 +234,7 @@ class Subdomains extends Admin_Controller {
 			$row[] = htmlspecialchars($subdomain->db_host);
 			$row[] = htmlspecialchars($subdomain->db_name);
 			$row[] = htmlspecialchars($subdomain->site_name);
+			$row[] = htmlspecialchars($subdomain->main_domain);
 			$row[] = '<span class="badge badge-' . ($subdomain->status == 'active' ? 'success' : 'danger') . '">' . ucfirst($subdomain->status) . '</span>';
 			
 			$actions = '';

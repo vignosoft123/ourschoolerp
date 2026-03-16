@@ -249,7 +249,7 @@
 
 
         text += '<td>';
-        text += ('<input type="text" class="form-control change-discount" id="td_discount_id_' + randID + '" data-discount-id="' + randID + '">');
+        text += ('<input type="text" class="form-control change-discount" id="td_discount_id_' + randID + '" data-discount-id="' + randID + '" readonly style="background:#f0f0f0;cursor:not-allowed;" tabindex="-1">');
         text += '</td>';
 
 
@@ -515,6 +515,11 @@
         } else {
             $(this).val('');
         }
+    });
+
+    $(document).on('click focus', '.change-discount', function() {
+        alert('You can give discount in global payment page.');
+        $(this).blur();
     });
 
     $(document).on('keyup', '.change-discount', function() {

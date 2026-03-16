@@ -254,7 +254,22 @@ class Admitcardreport extends Admin_Controller {
 					$queryArray = [];
 					$this->getQuery($queryArray, $this->input->post());
 					$this->data['examScheduleReports'] = $this->subject_m->general_get_order_by_subject_with_exam($queryArray);
-					
+
+					// Reorder subjects by exam date order
+					$orderedSubjects = [];
+					foreach ($this->data['examScheduleReports'] as $scheduleItem) {
+						$sid = $scheduleItem->subjectID;
+						if (isset($this->data['subjects'][$sid])) {
+							$orderedSubjects[$sid] = $this->data['subjects'][$sid];
+						}
+					}
+					foreach ($this->data['subjects'] as $sid => $subject) {
+						if (!isset($orderedSubjects[$sid])) {
+							$orderedSubjects[$sid] = $subject;
+						}
+					}
+					$this->data['subjects'] = $orderedSubjects;
+
 					$retArray['render'] = $this->load->view('report/admitcard/AdmitcardReport',$this->data,true);
 					$retArray['status'] = TRUE;
 					echo json_encode($retArray);
@@ -356,6 +371,21 @@ public function getAdmitcardReport() {
                 $queryArray = [];
                 $this->getQuery($queryArray, $this->input->post());
                 $this->data['examScheduleReports'] = $this->subject_m->general_get_order_by_subject_with_exam($queryArray);
+
+                // Reorder subjects by exam date order
+                $orderedSubjects = [];
+                foreach ($this->data['examScheduleReports'] as $scheduleItem) {
+                    $sid = $scheduleItem->subjectID;
+                    if (isset($this->data['subjects'][$sid])) {
+                        $orderedSubjects[$sid] = $this->data['subjects'][$sid];
+                    }
+                }
+                foreach ($this->data['subjects'] as $sid => $subject) {
+                    if (!isset($orderedSubjects[$sid])) {
+                        $orderedSubjects[$sid] = $subject;
+                    }
+                }
+                $this->data['subjects'] = $orderedSubjects;
 
                 // Render
                 $retArray['render'] = $this->load->view('report/admitcard/AdmitcardReport', $this->data, true);
