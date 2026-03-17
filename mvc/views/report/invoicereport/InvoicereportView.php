@@ -1,4 +1,4 @@
-<div class="box">
+<div class="box" id="filter-box">
     <div class="box-header">
         <h3 class="box-title">
             <i class="fa fa-bar-chart"></i>
@@ -10,7 +10,7 @@
             <li class="active"><?= $this->lang->line('invoicereport_panel_title') ?></li>
         </ol>
     </div>
-    <div class="box-body">
+    <div class="box-body" id="filter-body">
         <div class="row">
 
             <!-- Class -->
@@ -68,10 +68,62 @@
     </div>
 </div>
 
+<!-- Filter toggle strip — shown only when filters are collapsed -->
+<div id="filter-toggle-strip" style="display:none; margin-bottom:10px;">
+    <div style="background:#f4f6f9; border:1px solid #d2d6de; border-radius:4px; padding:8px 15px; display:flex; align-items:center; justify-content:space-between;">
+        <span id="filter-summary" style="font-size:13px; color:#555;">
+            <i class="fa fa-filter" style="margin-right:6px;"></i>
+            <span id="filter-summary-text"></span>
+        </span>
+        <button id="filter-toggle-btn" class="btn btn-default btn-sm">
+            <i class="fa fa-pencil"></i> Modify Filters
+            <i class="fa fa-chevron-down" id="filter-toggle-icon" style="margin-left:4px;"></i>
+        </button>
+    </div>
+</div>
+
 <div id="load_invoicereport"></div>
+
+<style>
+#filter-body { transition: all 0.3s ease; }
+</style>
 
 <script type="text/javascript">
     $('.select2').select2();
+
+    function collapseFilters() {
+        $('#filter-body').slideUp(300, function () {
+            // Build summary text from current selections
+            var parts = [];
+            var cls = $('#classesID option:selected').text().trim();
+            var sec = $('#sectionID option:selected').text().trim();
+            var stu = $('#studentID option:selected').text().trim();
+            var fee = $('#feetypeID option:selected').text().trim();
+            var pleaseSelect = '<?= $this->lang->line('invoicereport_please_select') ?>';
+            if (cls && cls !== pleaseSelect) parts.push('<strong>Class:</strong> ' + cls);
+            if (sec && sec !== pleaseSelect) parts.push('<strong>Section:</strong> ' + sec);
+            if (stu && stu !== pleaseSelect) parts.push('<strong>Student:</strong> ' + stu);
+            if (fee && fee !== pleaseSelect) parts.push('<strong>Fee Type:</strong> ' + fee);
+            $('#filter-summary-text').html(parts.length ? parts.join(' &nbsp;|&nbsp; ') : 'All');
+            $('#filter-toggle-strip').slideDown(200);
+        });
+        $('#filter-toggle-icon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    }
+
+    function expandFilters() {
+        $('#filter-toggle-strip').slideUp(200, function () {
+            $('#filter-body').slideDown(300);
+        });
+        $('#filter-toggle-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+    }
+
+    $('#filter-toggle-btn').on('click', function () {
+        if ($('#filter-body').is(':visible')) {
+            collapseFilters();
+        } else {
+            expandFilters();
+        }
+    });
 
     // Class change → load sections (and reset student)
     $(document).on('change', '#classesID', function () {
@@ -134,6 +186,7 @@
                 var response = JSON.parse(data);
                 if (response.status) {
                     $('#load_invoicereport').html(response.render);
+                    collapseFilters();
                 } else {
                     $('#load_invoicereport').html(
                         '<div class="alert alert-danger">No data found for the selected filters.</div>'

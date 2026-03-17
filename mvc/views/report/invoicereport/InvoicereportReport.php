@@ -79,7 +79,6 @@
 @media print {
     #invoice-report-wrap { overflow: visible; }
     #invoice-pivot-table .col-fixed { position: static; }
-    #invoice-print-btn { display: none; }
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
 </style>
@@ -87,19 +86,19 @@
 <?php if (customCompute($students) && customCompute($feetypesList)): ?>
 
 <div class="box" style="margin-top:15px;">
-    <div class="box-header" style="background:#f4f6f9;">
-        <h3 class="box-title"><i class="fa fa-table"></i> Invoice Report</h3>
-        <div class="pull-right">
-            <button id="invoice-print-btn" class="btn btn-primary btn-sm" onclick="window.print()">
-                <i class="fa fa-print"></i> Print
-            </button>
-        </div>
-    </div>
     <div class="box-body">
 
-        <div style="text-align:center; margin-bottom:10px;">
-            <strong style="font-size:16px;"><?= isset($siteinfos->sname) ? $siteinfos->sname : '' ?></strong><br/>
-            <span>Invoice Report — Academic Year <?= isset($schoolyearsessionobj->schoolyear) ? $schoolyearsessionobj->schoolyear : '' ?></span>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+            <div style="width:160px;"></div>
+            <div style="text-align:center; flex:1;">
+                <strong style="font-size:16px;"><?= isset($siteinfos->sname) ? $siteinfos->sname : '' ?></strong><br/>
+                <span style="font-size:13px; color:#555;">Invoice Report — Academic Year <?= isset($schoolyearsessionobj->schoolyear) ? $schoolyearsessionobj->schoolyear : '' ?></span>
+            </div>
+            <div style="width:160px; text-align:right;">
+                <button id="invoice-excel-btn" class="btn btn-success btn-sm">
+                    <i class="fa fa-file-excel-o"></i> Download Excel
+                </button>
+            </div>
         </div>
 
         <div id="invoice-report-wrap">
@@ -224,9 +223,35 @@
     </div>
 </div>
 
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script>
 $(function () {
     $('[data-toggle="tooltip"]').tooltip({ container: 'body', trigger: 'hover' });
+
+    $('#invoice-excel-btn').on('click', function () {
+        var wb = XLSX.utils.book_new();
+
+        // Clone table, strip tooltip attributes so they don't appear in Excel
+        var tbl = document.getElementById('invoice-pivot-table').cloneNode(true);
+        $(tbl).find('[data-toggle]').removeAttr('data-toggle data-placement title');
+        // Replace &mdash; cells with empty string
+        $(tbl).find('td, th').each(function () {
+            if ($(this).html() === '&mdash;' || $(this).text().trim() === '—') {
+                $(this).text('');
+            }
+        });
+
+        var ws = XLSX.utils.table_to_sheet(tbl, { raw: false });
+        XLSX.utils.book_append_sheet(wb, ws, 'Invoice Report');
+
+        // Build filename: InvoiceReport_ClassName_Date.xlsx
+        var className = $('#classesID option:selected').text().trim().replace(/\s+/g, '_');
+        var today = new Date();
+        var dateStr = today.getFullYear() + '-' +
+                      String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                      String(today.getDate()).padStart(2, '0');
+        XLSX.writeFile(wb, 'InvoiceReport_' + className + '_' + dateStr + '.xlsx');
+    });
 });
 </script>
 

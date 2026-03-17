@@ -86,8 +86,11 @@ class Invoicereport extends Admin_Controller
         $feetypeID    = (int)$this->input->post('feetypeID');
 
         // ── Query 1: All students matching filters (regardless of invoices) ──
+        // JOIN student table to exclude inactive students (student.active = 1),
+        // matching the same filter applied in the Student module listing.
         $stuSql    = "SELECT sr.srstudentID, sr.srname, sr.srclassesID, sr.srsectionID
                       FROM studentrelation sr
+                      JOIN student s ON s.studentID = sr.srstudentID AND s.active = 1
                       WHERE sr.srschoolyearID = ?";
         $stuParams = [$schoolyearID];
         if ($classesID) { $stuSql .= " AND sr.srclassesID = ?"; $stuParams[] = $classesID; }
