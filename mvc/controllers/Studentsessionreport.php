@@ -73,12 +73,25 @@ class Studentsessionreport extends Admin_Controller {
 
 					$markArray    = [];
 					$queryArray   = [];
+					$schoolyearID = $this->session->userdata('defaultschoolyearID');
+					$queryArray['srschoolyearID'] = $schoolyearID;
+					$markArray['schoolyearID']    = $schoolyearID;
+
 					if((int)$studentID > 0) {
 						$markArray['studentID']    = $studentID;
 						$queryArray['srstudentID'] = $studentID;
 					}
 
 					$students               = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srschoolyearID');
+					if (customCompute($students)) {
+						foreach ($students as $s) {
+							$queryArray['srclassesID'] = $s->srclassesID;
+							$queryArray['srsectionID'] = $s->srsectionID;
+							$markArray['classesID']    = $s->srclassesID;
+							$markArray['sectionID']    = $s->srsectionID;
+							break;
+						}
+					}
 					$marks                  = $this->mark_m->student_all_mark_array($markArray);
 					$mandatorySubjects      = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 1)), 'obj', 'classesID', 'subjectID');
 					$optionalSubjects       = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 0)), 'obj', 'classesID', 'subjectID');
@@ -153,9 +166,22 @@ class Studentsessionreport extends Admin_Controller {
 
 					$markArray    = [];
 					$queryArray   = [];
+					$schoolyearID = $this->session->userdata('defaultschoolyearID');
+					$queryArray['srschoolyearID'] = $schoolyearID;
+					$markArray['schoolyearID']    = $schoolyearID;
+
 					if((int)$studentID > 0) {
 						$markArray['studentID']    = $studentID;
 						$queryArray['srstudentID'] = $studentID;
+					}
+
+					if((int)$classID > 0) {
+						$queryArray['srclassesID'] = $classID;
+						$markArray['classesID']    = $classID;
+					}
+					if((int)$sectionID > 0) {
+						$queryArray['srsectionID'] = $sectionID;
+						$markArray['sectionID']    = $sectionID;
 					}
 
 					$students               = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srschoolyearID');
@@ -340,12 +366,25 @@ class Studentsessionreport extends Admin_Controller {
 
 				$markArray    = [];
 				$queryArray   = [];
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+				$queryArray['srschoolyearID'] = $schoolyearID;
+				$markArray['schoolyearID']    = $schoolyearID;
+
 				if((int)$studentID > 0) {
 					$markArray['studentID']    = $studentID;
 					$queryArray['srstudentID'] = $studentID;
 				}
 
 				$students               = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srschoolyearID');
+				if (customCompute($students)) {
+					foreach ($students as $s) {
+						$queryArray['srclassesID'] = $s->srclassesID;
+						$queryArray['srsectionID'] = $s->srsectionID;
+						$markArray['classesID']    = $s->srclassesID;
+						$markArray['sectionID']    = $s->srsectionID;
+						break;
+					}
+				}
 				$marks                  = $this->mark_m->student_all_mark_array($markArray);
 				$mandatorySubjects      = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 1)), 'obj', 'classesID', 'subjectID');
 				$optionalSubjects       = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 0)), 'obj', 'classesID', 'subjectID');
@@ -452,12 +491,25 @@ class Studentsessionreport extends Admin_Controller {
 				} else {
 					$markArray    = [];
 					$queryArray   = [];
+					$schoolyearID = $this->session->userdata('defaultschoolyearID');
+					$queryArray['srschoolyearID'] = $schoolyearID;
+					$markArray['schoolyearID']    = $schoolyearID;
+
 					if((int)$studentID > 0) {
 						$markArray['studentID']    = $studentID;
 						$queryArray['srstudentID'] = $studentID;
 					}
 
 					$students               = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srschoolyearID');
+					if (customCompute($students)) {
+						foreach ($students as $s) {
+							$queryArray['srclassesID'] = $s->srclassesID;
+							$queryArray['srsectionID'] = $s->srsectionID;
+							$markArray['classesID']    = $s->srclassesID;
+							$markArray['sectionID']    = $s->srsectionID;
+							break;
+						}
+					}
 					$marks                  = $this->mark_m->student_all_mark_array($markArray);
 					$mandatorySubjects      = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 1)), 'obj', 'classesID', 'subjectID');
 					$optionalSubjects       = pluck_multi_array_key($this->subject_m->general_get_order_by_subject(array('type' => 0)), 'obj', 'classesID', 'subjectID');

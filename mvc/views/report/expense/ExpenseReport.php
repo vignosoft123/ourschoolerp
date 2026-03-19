@@ -2,23 +2,26 @@
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
             if($fromdate != '' && $todate != '') {
-                $generatepdfurl = base_url("productpurchasereport/pdf/".$productsupplierID."/".$productwarehouseID."/".$reference_no."/".$statusID."/".strtotime($fromdate)."/".strtotime($todate));
-                $generatexmlurl = base_url("productpurchasereport/xlsx/".$productsupplierID."/".$productwarehouseID."/".$reference_no."/".$statusID."/".strtotime($fromdate)."/".strtotime($todate));
+                $generatepdfurl = base_url("expensereport/pdf/".$expensetypesID."/".$reference_no."/".strtotime($fromdate)."/".strtotime($todate));
+                $generatexmlurl = base_url("expensereport/xlsx/".$expensetypesID."/".$reference_no."/".strtotime($fromdate)."/".strtotime($todate));
             } else {
-                $generatepdfurl = base_url("productpurchasereport/pdf/".$productsupplierID."/".$productwarehouseID."/".$reference_no."/".$statusID);
-                $generatexmlurl = base_url("productpurchasereport/xlsx/".$productsupplierID."/".$productwarehouseID."/".$reference_no."/".$statusID);
+                $generatepdfurl = base_url("expensereport/pdf/".$expensetypesID."/".$reference_no);
+                $generatexmlurl = base_url("expensereport/xlsx/".$expensetypesID."/".$reference_no);
             }
 
             echo btn_printReport('productpurchasereport', $this->lang->line('report_print'), 'printablediv');
             echo btn_pdfPreviewReport('productpurchasereport',$generatepdfurl, $this->lang->line('report_pdf_preview'));
             echo btn_xmlReport('productpurchasereport',$generatexmlurl, $this->lang->line('report_xlsx'));
-            echo btn_sentToMailReport('productpurchasereport', $this->lang->line('report_send_pdf_to_mail'));
+            ?>
+            <a href="<?=$generatexmlurl?>" class="btn btn-success btn-sm"><i class="fa fa-file-excel-o"></i> Excel Download</a>
+            <?php
+            // echo btn_sentToMailReport('productpurchasereport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
     </div>
 </div>
 <div class="box">
     <div class="box-header bg-gray">
-        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> <?=$this->lang->line('productpurchasereport_report_for')?> - <?=$this->lang->line('productpurchasereport_product_purchase')?>  </h3>
+        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> Expense Report</h3>
     </div><!-- /.box-header -->
 
     <div id="printablediv">
@@ -37,21 +40,6 @@
                         <h5 class="pull-right">
                             <?=$this->lang->line('productpurchasereport_todate')?> : <?=date('d M Y',strtotime($todate))?></p>
                         </h5>
-                    <?php } elseif($statusID != 0 ) { ?>
-                        <h5 class="pull-left">
-                            <?php
-                                echo $this->lang->line('productpurchasereport_status')." : ";
-                                if($statusID == 1) {
-                                    echo $this->lang->line("productpurchasereport_pending");
-                                } elseif($statusID == 2) {
-                                    echo $this->lang->line("productpurchasereport_partial");
-                                } elseif($statusID == 3) {
-                                    echo $this->lang->line("productpurchasereport_fully_paid");
-                                } elseif($statusID == 4) {
-                                    echo $this->lang->line("productpurchasereport_refund");
-                                }
-                            ?>
-                        </h5>
                     <?php } elseif($reference_no != '0') { ?>
                         <h5 class="pull-left">
                             <?php
@@ -59,31 +47,15 @@
                                 echo $reference_no;
                             ?>
                         </h5>
-                    <?php } elseif($productsupplierID != 0 && $productwarehouseID != 0 ) { ?>
+                    <?php } elseif($expensetypesID != 0) { ?>
                         <h5 class="pull-left">
                             <?php
-                                echo $this->lang->line('productpurchasereport_supplier')." : ";
-                                echo isset($productsuppliers[$productsupplierID]) ? $productsuppliers[$productsupplierID] : '';
-                            ?>
-                        </h5>
-                        <h5 class="pull-right">
-                            <?php
-                                echo $this->lang->line('productpurchasereport_warehouse')." : ";
-                                echo isset($productwarehouses[$productwarehouseID]) ? $productwarehouses[$productwarehouseID] : '';
-                            ?>
-                        </h5>
-                    <?php } elseif($productsupplierID != 0) { ?>
-                        <h5 class="pull-left">
-                            <?php
-                                echo $this->lang->line('productpurchasereport_supplier')." : ";
-                                echo isset($productsuppliers[$productsupplierID]) ? $productsuppliers[$productsupplierID] : '';
-                            ?>
-                        </h5>
-                    <?php } elseif($productwarehouseID != 0) { ?>
-                        <h5 class="pull-left">
-                            <?php
-                                echo $this->lang->line('productpurchasereport_warehouse')." : ";
-                                echo isset($productwarehouses[$productwarehouseID]) ? $productwarehouses[$productwarehouseID] : '';
+                                echo "Category : ";
+                                foreach($expensetypes as $expensetype) {
+                                    if($expensetype->expensetypesID == $expensetypesID) {
+                                        echo $expensetype->expensetypes;
+                                    }
+                                }
                             ?>
                         </h5>
                     <?php } ?>

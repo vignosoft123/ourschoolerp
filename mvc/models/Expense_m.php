@@ -90,16 +90,17 @@ class Expense_m extends MY_Model {
 	public function get_all_expenses_for_report($queryArray) {
         $schoolyearID = $this->session->userdata('defaultschoolyearID');
 
-        $this->db->select('expense.*');
+        $this->db->select('expense.*, expensetypes.expensetypes, user.name as uname');
         $this->db->from('expense');
         $this->db->join('expensetypes', 'expense.expensetypesID = expensetypes.expensetypesID','left');
+        $this->db->join('user', 'user.userID = expense.userID AND user.usertypeID = expense.usertypeID','left');
 
         if(isset($queryArray['expensetypesID']) && $queryArray['expensetypesID'] != 0) {
             $this->db->where('expense.expensetypesID', $queryArray['expensetypesID']);
         }
 
         
-        if(isset($queryArray['reference_no']) && !empty($queryArray['reference_no'])) {
+        if(isset($queryArray['reference_no']) && !empty($queryArray['reference_no']) && $queryArray['reference_no'] != '0') {
             $this->db->where('expense.expense_referenceno', $queryArray['reference_no']);
         }
 

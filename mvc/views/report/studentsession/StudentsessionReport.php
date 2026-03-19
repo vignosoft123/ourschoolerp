@@ -178,6 +178,23 @@
         background: #7f8c8d; /* gray for N/A */
     }
 
+    /* ==== Grade Labels ==== */
+    .grade-label {
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: inline-block;
+        font-size: 13px;
+    }
+
+    .grade-a-plus { background-color: #e6f4ea; color: #2e7d32; }
+    .grade-a      { background-color: #e8f5e9; color: #388e3c; }
+    .grade-b-plus { background-color: #e3f2fd; color: #0288d1; }
+    .grade-b      { background-color: #e1f5fe; color: #039be5; }
+    .grade-c-plus { background-color: #fff9c4; color: #fbc02d; }
+    .grade-c      { background-color: #ffe0b2; color: #f57c00; }
+    .grade-d      { background-color: #ffcdd2; color: #d32f2f; }
+
     /* ==== Print Optimization ==== */
  
 </style>
@@ -594,6 +611,119 @@
                 <?php }
             } ?>
         </tr>
+
+        <!-- Percentage Row -->
+        <tr>
+            <td colspan="<?= $leftColumn ?>">Percentage</td>
+            <?php
+            if (customCompute($markpercentagesexamArr)) {
+                foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
+                    $totalExamMarks = 0;
+                    $totalMaxMarks = 0;
+                    if (customCompute($subjectList)) {
+                        foreach ($subjectList as $sID => $sobj) {
+                            $isOptional = isset($optionalSubjects[$student->srclassesID]) && isset($optionalSubjects[$student->srclassesID][$sID]);
+                            if ($isOptional && ($student->sroptionalsubjectID > 0) && ($student->sroptionalsubjectID != $sID)) {
+                                continue;
+                            }
+                            
+                            $isScheduled = isset($examSubjects[$examID]) && in_array($sID, $examSubjects[$examID]);
+                            if ($isScheduled) {
+                                $totalMaxMarks += $sobj->finalmark;
+                                
+                                $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
+                                $markpercentages = [];
+                                if (customCompute($uniquepercentageArr)) {
+                                    $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
+                                    $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
+                                }
+
+                                if (customCompute($markpercentages)) {
+                                    foreach ($markpercentages as $markpercentageID) {
+                                        $mark = 0;
+                                        if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
+                                            $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
+                                        }
+                                        $totalExamMarks += is_numeric($mark) ? $mark : 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $percentage = ($totalMaxMarks > 0) ? ($totalExamMarks * 100) / $totalMaxMarks : 0;
+                    ?>
+                    <td><b><?= ini_round($percentage) ?>%</b></td>
+                <?php }
+            } ?>
+        </tr>
+
+        <!-- Grade Row -->
+        <tr>
+            <td colspan="<?= $leftColumn ?>">Grade</td>
+            <?php
+            if (customCompute($markpercentagesexamArr)) {
+                foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
+                    $totalExamMarks = 0;
+                    $totalMaxMarks = 0;
+                    if (customCompute($subjectList)) {
+                        foreach ($subjectList as $sID => $sobj) {
+                            $isOptional = isset($optionalSubjects[$student->srclassesID]) && isset($optionalSubjects[$student->srclassesID][$sID]);
+                            if ($isOptional && ($student->sroptionalsubjectID > 0) && ($student->sroptionalsubjectID != $sID)) {
+                                continue;
+                            }
+                            
+                            $isScheduled = isset($examSubjects[$examID]) && in_array($sID, $examSubjects[$examID]);
+                            if ($isScheduled) {
+                                $totalMaxMarks += $sobj->finalmark;
+                                
+                                $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
+                                $markpercentages = [];
+                                if (customCompute($uniquepercentageArr)) {
+                                    $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
+                                    $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
+                                }
+
+                                if (customCompute($markpercentages)) {
+                                    foreach ($markpercentages as $markpercentageID) {
+                                        $mark = 0;
+                                        if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
+                                            $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
+                                        }
+                                        $totalExamMarks += is_numeric($mark) ? $mark : 0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $percent_cal = ($totalMaxMarks > 0) ? ($totalExamMarks / $totalMaxMarks) * 100 : 0;
+                    
+                    $grade = "D";
+                    $gradeClass = "grade-d";
+                    if ($percent_cal >= 95) {
+                        $grade = "A+";
+                        $gradeClass = "grade-a-plus";
+                    } else if ($percent_cal >= 90) {
+                        $grade = "A";
+                        $gradeClass = "grade-a";
+                    } else if ($percent_cal >= 80) {
+                        $grade = "B+";
+                        $gradeClass = "grade-b-plus";
+                    } else if ($percent_cal >= 70) {
+                        $grade = "B";
+                        $gradeClass = "grade-b";
+                    } else if ($percent_cal >= 60) {
+                        $grade = "C+";
+                        $gradeClass = "grade-c-plus";
+                    } else if ($percent_cal >= 50) {
+                        $grade = "C";
+                        $gradeClass = "grade-c";
+                    }
+                    ?>
+                    <td><span class='grade-label <?= $gradeClass ?>'><?= $grade ?></span></td>
+                <?php }
+            } ?>
+        </tr>
+<?php /* ?>
 <!-- Overall Exam Average Row -->
 <tr>
 <td colspan="<?= $leftColumn ?>">
@@ -644,6 +774,7 @@
     <?= $overallAverage ?></b></td>
     <?php } ?>
 </tr>
+<?php */ ?>
 
         <tr>
             <td colspan="<?= $leftColumn ?>">Teacher Signature</td>
