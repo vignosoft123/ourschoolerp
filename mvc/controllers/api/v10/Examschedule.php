@@ -494,3 +494,36 @@ class Examschedule extends Api_Controller
         return null;
     }
 }
+
+/**
+ * API Endpoints & Sample Payloads:
+ * 
+ * 1. Get Exam Schedule by Class
+ *    Endpoint: GET api/v10/examschedule/index/{id}
+ * 
+ * 2. Filter Exam Schedule
+ *    Endpoint: POST api/v10/examschedule/index
+ *    Payload:  { "classesID": "1", "examID": "13", "sectionID": "1" }
+ * 
+ * 3. Add Exam Schedule
+ *    Endpoint: POST api/v10/examschedule/add
+ *    Payload:
+ *    {
+ *      "examID": "1",
+ *      "classesID": "1",
+ *      "sectionID": ["1", "2"],
+ *      "subjectID": ["10", "11"],
+ *      "date": ["01-04-2026", "02-04-2026"],
+ *      "examfrom": ["10:00 AM", "02:00 PM"],
+ *      "examto": ["01:00 PM", "05:00 PM"],
+ *      "min_mark": ["35", "35"],
+ *      "max_mark": ["100", "100"]
+ *    }
+ * 
+ * 4. View Single Exam Schedule
+ *    Endpoint: GET api/v10/examschedule/view/{id}
+ * 
+ * 5. Delete Exam Schedule
+ *    Endpoint: POST api/v10/examschedule/delete
+ *    Payload: { "examscheduleID": "101" }
+ */

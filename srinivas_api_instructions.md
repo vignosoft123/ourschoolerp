@@ -151,7 +151,7 @@ if($this->session->userdata('usertypeID') != 1) {
 
 To keep the system easy to maintain, follow these rules for each API file:
 
-1. **Self-Documenting Ends**: Always add a list of available endpoints and sample JSON payloads at the **END of the respective API controller file** (e.g., at the bottom of `Subject.php`). This ensures the documentation stays close to the implementation.
+1. **Self-Documenting Ends**: Always add a list of available endpoints and sample JSON payloads at the **END of the respective API controller file** (e.g., at the bottom of `Subject.php`). Include the full **cURL** command for each endpoint so mobile developers can test them immediately.
 2. **Standard Suffixes**: Clearly label which methods map to which HTTP verbs (`_get` vs. `_post`).
 4. **Shared Model Safety**: **NEVER** modify shared models in `mvc/models/` for API-specific needs. These models are used by the web application. If you need special filtering or fewer columns, handle that transformation within the API controller instead.
 5. **Data Minimization (Mapping)**: Always map/filter database results in the API controller before sending the response. Remove internal fields (like `create_date`, `modify_date`, `password`, etc.) to keep the mobile app payload small and secure.
