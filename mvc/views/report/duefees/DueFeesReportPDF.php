@@ -48,7 +48,7 @@
                                     <?php } ?>
                                     <th><?=$this->lang->line('duefeesreport_roll')?></th>
                                     <th><?=$this->lang->line('duefeesreport_feetype')?></th>
-                                    <th><?=$this->lang->line('duefeesreport_discount')?> (%) </th>
+                                    <th><?=$this->lang->line('duefeesreport_discount')?></th>
                                     <th><?=$this->lang->line('duefeesreport_due') ?></th>
                                 </tr>
                             </thead>
@@ -94,7 +94,7 @@
                                             <td><?=number_format($getDueFeesReport->discount, 2);?></td>
                                             <td>
                                                 <?php
-                                                    $discount = (($getDueFeesReport->amount/100)*$getDueFeesReport->discount);
+                                                    $discount = $getDueFeesReport->discount;
                                                     if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
                                                         $due = (($getDueFeesReport->amount - $getFeesReports[$getDueFeesReport->invoiceID]) - $discount);
                                                         echo number_format($due,2);
@@ -147,7 +147,7 @@
                                             <td><?=number_format($getDueFeesReport->discount, 2);?></td>
                                             <td>
                                                 <?php
-                                                    $discount = (($getDueFeesReport->amount/100)*$getDueFeesReport->discount);
+                                                    $discount = $getDueFeesReport->discount;
                                                     if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
                                                         $due = (($getDueFeesReport->amount - $getFeesReports[$getDueFeesReport->invoiceID]) - $discount);
                                                         echo number_format($due,2);

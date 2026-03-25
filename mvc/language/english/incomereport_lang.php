@@ -1,0 +1,32 @@
+<?php
+
+$lang['panel_title'] = "Income Report";
+$lang['incomereport_slno'] = "#";
+$lang['incomereport_name'] = "Name";
+$lang['incomereport_date'] = "Income Date";
+$lang['incomereport_amount'] = "Amount";
+$lang['incomereport_user'] = "User";
+$lang['incomereport_note'] = "Note";
+$lang['incomereport_fromdate'] = "From Date";
+$lang['incomereport_todate'] = "To Date";
+$lang['incomereport_submit'] = "Get Report";
+$lang['incomereport_print'] = "Print";
+$lang['incomereport_pdf_preview'] = "PDF Preview";
+$lang['incomereport_xlsx'] = "XLSX";
+$lang['incomereport_excel_download'] = "Excel Download";
+$lang['incomereport_data_not_found'] = "Data not found";
+$lang['incomereport_report_for'] = "Report For";
+$lang['incomereport_income'] = "Income";
+$lang['incomereport_grand_total'] = "Grand Total";
+$lang['incomereport_hotline'] = "Hotline";
+$lang['incomereport_mail'] = "Send Pdf to Mail";
+$lang['incomereport_to'] = "To";
+$lang['incomereport_subject'] = "Subject";
+$lang['incomereport_message'] = "Message";
+$lang['incomereport_close'] = "Close";
+$lang['incomereport_send'] = "Send";
+$lang['incomereport_mail_to'] = "The To field is required";
+$lang['incomereport_mail_valid'] = "The To field must contain a valid email address";
+$lang['incomereport_mail_subject'] = "The Subject field is required";
+$lang['incomereport_permissionmethod'] = "Method not allowed";
+$lang['incomereport_permission'] = "Permission not allowed";

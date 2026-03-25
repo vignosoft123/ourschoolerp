@@ -18,6 +18,16 @@
                                 <i class="fa fa-plus"></i> 
                                 <?=$this->lang->line('add_income')?>
                             </a>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <a href="<?php echo base_url('Incomereport/index') ?>" class="float-right">
+                                <i class="fa fa-plus"></i> 
+                                Income Report
+                            </a>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                            <a href="<?php echo base_url('Incomecategories/index') ?>" class="float-right">
+                                <i class="fa fa-plus"></i> 
+                                Income Categories
+                            </a>
                         </h5>
                     <?php } ?>
                 <?php } ?>
@@ -28,6 +38,7 @@
                             <tr>
                                 <th class="col-sm-1"><?=$this->lang->line('income_slno')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('income_name')?></th>
+                                <th class="col-sm-2">Category</th>
                                 <th class="col-sm-2"><?=$this->lang->line('income_date')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('income_user')?></th>
                                 <th class="col-sm-1"><?=$this->lang->line('income_amount')?></th>
@@ -49,6 +60,10 @@
 
                                     <td data-title="<?=$this->lang->line('income_name')?>">
                                         <?php echo $income->name; ?>
+                                    </td>
+
+                                    <td data-title="Category">
+                                        <?php echo $income->category_name; ?>
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('income_date')?>">

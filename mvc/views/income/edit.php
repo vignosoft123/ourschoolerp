@@ -32,6 +32,32 @@
                     </div>
 
                     <?php 
+                        if(form_error('incomecategoriesID')) 
+                            echo "<div class='form-group has-error' >";
+                        else     
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="incomecategoriesID" class="col-sm-2 control-label">
+                            Income Category
+                            <span class="text-red">*</span>
+                        </label>
+                        <div class="col-sm-6">
+                            <?php
+                                $array = array(0 => 'Select Category');
+                                if(customCompute($income_categories)) {
+                                    foreach ($income_categories as $key => $category) {
+                                        $array[$category->incomecategoriesID] = $category->name;
+                                    }
+                                }
+                                echo form_dropdown("incomecategoriesID", $array, set_value("incomecategoriesID", $income->incomecategoriesID), "id='incomecategoriesID' class='form-control select2'");
+                            ?>
+                        </div>
+                        <span class="col-sm-4 control-label">
+                            <?php echo form_error('incomecategoriesID'); ?>
+                        </span>
+                    </div>
+
+                    <?php 
                         if(form_error('date')) 
                             echo "<div class='form-group has-error' >";
                         else     

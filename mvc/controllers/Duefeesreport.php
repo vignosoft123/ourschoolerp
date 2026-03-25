@@ -646,7 +646,7 @@ public function getDueFeesReport() {
 		        	$getDueFeesReportArrays[$i][] = number_format($getDueFeesReport->discount, 2);
 
 
-		            $discount = (($getDueFeesReport->amount/100)*$getDueFeesReport->discount);
+		            $discount = $getDueFeesReport->discount;
 		            if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
 		                $due = (($getDueFeesReport->amount - $getFeesReports[$getDueFeesReport->invoiceID]) - $discount);
 		        		$getDueFeesReportArrays[$i][] = number_format($due,2);
@@ -688,7 +688,7 @@ public function getDueFeesReport() {
 		        	$getDueFeesReportArrays[$i][] = number_format($getDueFeesReport->discount, 2);
 
 
-		            $discount = (($getDueFeesReport->amount/100)*$getDueFeesReport->discount);
+		            $discount = $getDueFeesReport->discount;
 		            if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
 		                $due = (($getDueFeesReport->amount - $getFeesReports[$getDueFeesReport->invoiceID]) - $discount);
 		        		$getDueFeesReportArrays[$i][] = number_format($due,2);

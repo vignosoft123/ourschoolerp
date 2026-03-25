@@ -17,6 +17,7 @@ class Income extends Admin_Controller {
 	public function __construct() {
 		parent::__construct();
 		$this->load->model('income_m');
+		$this->load->model('incomecategories_m');
 		$language = $this->session->userdata('lang');
 		$this->lang->load('income', $language);	
 	}
@@ -47,6 +48,11 @@ class Income extends Admin_Controller {
 				'field' => 'note',
 				'label' => $this->lang->line("income_note"),
 				'rules' => 'trim|xss_clean|max_length[128]'
+			),
+			array(
+				'field' => 'incomecategoriesID',
+				'label' => 'Income Category',
+				'rules' => 'trim|required|xss_clean|numeric'
 			)
 		);
 		return $rules;
@@ -101,7 +107,7 @@ class Income extends Admin_Controller {
 	public function index() {
 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
 		$this->data['alluser'] = getAllUserObjectWithStudentRelation(array('schoolyearID' => $schoolyearID));
-		$this->data['incomes'] = $this->income_m->get_order_by_income(array('schoolyearID' => $schoolyearID));
+		$this->data['incomes'] = $this->income_m->get_income_with_user(array('income.schoolyearID' => $schoolyearID));
 		$this->data["subview"] = "income/index";
 		$this->load->view('_layout_main', $this->data);
 	}
@@ -111,11 +117,15 @@ class Income extends Admin_Controller {
 			$this->data['headerassets'] = array(
 				'css' => array(
 					'assets/datepicker/datepicker.css',
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css'
 				),
 				'js' => array(
 					'assets/datepicker/datepicker.js',
+					'assets/select2/select2.js'
 				)
 			);
+			$this->data['income_categories'] = $this->incomecategories_m->get_order_by_incomecategories(array('status' => 0));
 			if($_POST) {
 				$rules = $this->rules();
 				$this->form_validation->set_rules($rules);
@@ -131,6 +141,7 @@ class Income extends Admin_Controller {
 					$array['amount'] 		= $this->input->post('amount');
 					$array['file'] 			= $this->upload_data['file']['file_name'];
 					$array['note'] 			= $this->input->post('note');
+					$array['incomecategoriesID'] = $this->input->post('incomecategoriesID');
 					$array['create_date'] 	= date('Y-m-d');
 					$array['schoolyearID'] 	= $this->session->userdata('defaultschoolyearID');
 					$array['userID'] 		= $this->session->userdata('loginuserID');
@@ -156,15 +167,19 @@ class Income extends Admin_Controller {
 			$this->data['headerassets'] = array(
 				'css' => array(
 					'assets/datepicker/datepicker.css',
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css'
 				),
 				'js' => array(
 					'assets/datepicker/datepicker.js',
+					'assets/select2/select2.js'
 				)
 			);
 
 			$incomeID = htmlentities(escapeString($this->uri->segment(3)));
 			if($incomeID) {
 				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+				$this->data['income_categories'] = $this->incomecategories_m->get_order_by_incomecategories(array('status' => 0));
 				$this->data['income'] = $this->income_m->get_single_income(array('incomeID' => $incomeID, 'schoolyearID' => $schoolyearID));
 				if(customCompute($this->data['income'])) {
 					if($_POST) {
@@ -182,6 +197,7 @@ class Income extends Admin_Controller {
 							$array['amount'] 		= $this->input->post('amount');
 							$array['file'] 			= $this->upload_data['file']['file_name'];
 							$array['note'] 			= $this->input->post('note');
+							$array['incomecategoriesID'] = $this->input->post('incomecategoriesID');
 							$array['userID'] 		= $this->session->userdata('loginuserID');
 							$array['usertypeID'] 	= $this->session->userdata('usertypeID');
 

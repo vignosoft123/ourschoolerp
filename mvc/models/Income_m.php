@@ -65,10 +65,11 @@ class Income_m extends MY_Model {
 	}
 
 	/* define for 4.4 */
-	public function get_income_with_user($array = ['income.schoolyearID' => 1])
+    public function get_income_with_user($array = ['income.schoolyearID' => 1])
     {
-        $this->db->select('income.*, systemadmin.name as aname, teacher.name as tname, student.name as sname, parents.name as pname, user.name as uname');
+        $this->db->select('income.*, income_categories.name as category_name, systemadmin.name as aname, teacher.name as tname, student.name as sname, parents.name as pname, user.name as uname');
         $this->db->from('income');
+        $this->db->join('income_categories', 'income_categories.incomecategoriesID = income.incomecategoriesID', 'LEFT');
         $this->db->join('systemadmin', 'systemadmin.usertypeID = income.usertypeID AND systemadmin.systemadminID = income.userID' , 'LEFT');
         $this->db->join('teacher', 'teacher.usertypeID = income.usertypeID AND teacher.teacherID = income.userID', 'LEFT');
         $this->db->join('student', 'student.usertypeID = income.usertypeID AND student.studentID = income.userID', 'LEFT');
@@ -78,5 +79,33 @@ class Income_m extends MY_Model {
         $this->db->order_by($this->_order_by);
         $query = $this->db->get();
         return $query->result();
+    }
+
+    public function get_all_incomes_for_report($queryArray) {
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+        $this->db->select('income.*, income_categories.name as category_name, systemadmin.name as aname, teacher.name as tname, student.name as sname, parents.name as pname, user.name as uname');
+        $this->db->from('income');
+        $this->db->join('income_categories', 'income_categories.incomecategoriesID = income.incomecategoriesID', 'LEFT');
+        $this->db->join('systemadmin', 'systemadmin.usertypeID = income.usertypeID AND systemadmin.systemadminID = income.userID' , 'LEFT');
+        $this->db->join('teacher', 'teacher.usertypeID = income.usertypeID AND teacher.teacherID = income.userID', 'LEFT');
+        $this->db->join('student', 'student.usertypeID = income.usertypeID AND student.studentID = income.userID', 'LEFT');
+        $this->db->join('parents', 'parents.usertypeID = income.usertypeID AND parents.parentsID = income.userID', 'LEFT');
+        $this->db->join('user', 'user.usertypeID = income.usertypeID AND user.userID = income.userID', 'LEFT');
+
+        if((isset($queryArray['fromdate']) && $queryArray['fromdate'] != 0) && (isset($queryArray['todate']) && $queryArray['todate'] != 0)) {
+            $fromdate = date('Y-m-d', strtotime($queryArray['fromdate']));
+            $todate = date('Y-m-d', strtotime($queryArray['todate']));
+            $this->db->where('date >=', $fromdate);
+            $this->db->where('date <=', $todate);
+        }
+
+        if(isset($queryArray['incomecategoriesID']) && $queryArray['incomecategoriesID'] != 0) {
+            $this->db->where('income.incomecategoriesID', $queryArray['incomecategoriesID']);
+        }
+
+        $this->db->where('income.schoolyearID',$schoolyearID);
+        $query = $this->db->get();
+        return $query->result_array();
     }
 }
