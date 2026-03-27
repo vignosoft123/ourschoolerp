@@ -97,7 +97,7 @@ class Mhtml2pdf {
 	 * @access	public
 	 * @return	void
 	 */
-	function create($mode = 'view', $title, $stylesheet)
+	function create($mode = 'view', $title = 'Report', $stylesheet = NULL)
 	{
         $mpdf = new Mpdf();
         // $mpdf->baseScript = 1;

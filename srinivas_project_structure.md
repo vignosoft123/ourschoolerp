@@ -65,3 +65,8 @@ This document serves as a technical blueprint for the **OurSchoolERP** project. 
 - **2026-03-09**: Verified Standard Admin usertypeID is `1` and `superadmin` is the primary account.
 - **2026-03-09**: Implemented "Safe Loading" in `Admin_Controller` to prevent site crashes if the `college_groups` table is missing before migration.
 - **2026-03-17**: Documented `MY_Controller` in full — multi-tenant subdomain-based DB switching via `subdomain_settings` master table. Every request dynamically overrides `$this->db` with a tenant-specific connection before any controller logic runs.
+- **2026-03-27**: **Admission Enquiry Module**:
+    - Implemented with a **premium modal UI** (1100px horizontal layout).
+    - **Session Key Gotcha**: The correct session key for the user ID is **`loginuserID`** (lowercase 'u'). Using `loginUserID` will return `NULL`.
+    - **AJAX Pattern**: Controller index/edit methods return JSON for modal updates. Always use `header('Content-Type: application/json')` and check `$this->db->error()` manually as `db_debug` is often `FALSE`.
+    - **Topbar**: Navigation shortcuts are located in `mvc/views/components/page_topbar.php`.

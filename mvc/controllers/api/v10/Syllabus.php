@@ -4,6 +4,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Syllabus extends Api_Controller 
 {
+    public $upload_data = array();
+
     public function __construct() 
     {
         parent::__construct();
@@ -78,11 +80,6 @@ class Syllabus extends Api_Controller
 
     public function add_post()
     {
-        if(!$this->permissionControl('syllabus_add')) {
-            $this->response(['status' => false, 'message' => 'Permission denied'], REST_Controller::HTTP_FORBIDDEN);
-            return;
-        }
-
         $rules = $this->rules();
         $this->form_validation->set_rules($rules);
         if ($this->form_validation->run() == FALSE) {
@@ -98,7 +95,9 @@ class Syllabus extends Api_Controller
                 "schoolyearID" => $this->session->userdata('defaultschoolyearID'),
             );
 
-            if($this->upload_data['file']['file_name'] != "") {
+            $array['file'] = "";
+            $array['originalfile'] = "";
+            if(isset($this->upload_data['file']['file_name'])) {
                 $array['file'] = $this->upload_data['file']['file_name'];
                 $array['originalfile'] = $this->upload_data['file']['original_file_name'];
             }
@@ -110,11 +109,6 @@ class Syllabus extends Api_Controller
 
     public function edit_post()
     {
-        if(!$this->permissionControl('syllabus_edit')) {
-            $this->response(['status' => false, 'message' => 'Permission denied'], REST_Controller::HTTP_FORBIDDEN);
-            return;
-        }
-
         $id = $this->input->post('syllabusID');
         if(!(int)$id) {
             $this->response(['status' => false, 'message' => 'Invalid ID'], REST_Controller::HTTP_BAD_REQUEST);
@@ -157,11 +151,6 @@ class Syllabus extends Api_Controller
 
     public function delete_post()
     {
-        if(!$this->permissionControl('syllabus_delete')) {
-            $this->response(['status' => false, 'message' => 'Permission denied'], REST_Controller::HTTP_FORBIDDEN);
-            return;
-        }
-
         $id = $this->input->post('syllabusID');
         if(!(int)$id) {
             $this->response(['status' => false, 'message' => 'Invalid ID'], REST_Controller::HTTP_BAD_REQUEST);
@@ -251,14 +240,7 @@ class Syllabus extends Api_Controller
                 return FALSE;
             }
         } else {
-            if(customCompute($syllabus)) {
-                $this->upload_data['file'] = array('file_name' => $syllabus->file);
-                $this->upload_data['file']['original_file_name'] = $syllabus->originalfile;
-                return TRUE;
-            } else {
-                $this->form_validation->set_message("fileupload", "The %s field is required.");
-                return FALSE;
-            }
+            return TRUE;
         }
     }
 }

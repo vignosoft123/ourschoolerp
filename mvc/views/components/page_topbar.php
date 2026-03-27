@@ -8,10 +8,67 @@
     border-radius: 0 20px 20px 0;
 }
 
+/* Topbar Enhancements */
+.header .logo {
+    width: auto !important;
+    white-space: nowrap;
+    font-size: 16px !important;
+    line-height: 50px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: #333 !important;
+}
+
+@media (max-width: 991px) {
+    .header .logo {
+        font-size: 14px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .header .navbar {
+        margin-left: 0;
+    }
+    .header .logo {
+        padding: 0 10px;
+        font-size: 12px !important;
+    }
+    .navbar-left {
+        display: none !important;
+    }
+    .navbar-right {
+        float: right;
+        padding-right: 15px;
+    }
+    #g_search_form {
+        display: none;
+    }
+}
+
 .search-box {
-    background-color: #fff9c4; /* Light yellow */
-    padding-right: 80px;       /* Make space for the icon */
-    border-radius: 20px;
+    background-color: #f1f3f4 !important;
+    border: 1px solid #e0e0e0 !important;
+    border-radius: 4px !important;
+    transition: all 0.3s ease;
+}
+.search-box:focus {
+    background-color: #fff !important;
+    border-color: #1a73e8 !important;
+    box-shadow: 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(26,115,232,.6) !important;
+}
+#search_icon {
+    background: transparent;
+    border: none;
+    color: #666;
+    font-size: 16px;
+    padding: 8px 10px;
+    margin-top: 4px;
+}
+#schoolDropdown {
+    height: 34px;
+    margin-top: 8px;
+    border-radius: 4px;
+    border-color: #e0e0e0;
 }
 
 .search-icon {
@@ -39,38 +96,16 @@
 
                 <div class="navbar-left">
                 <ul class="nav navbar-nav top-navigation-icons">
-
-                        <li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                        </li>
-
-
                          <li>
-                        <b> <a href="<?php echo base_url('dashboard/index'); ?>" class="logo" style="width:100% !important">
-                        <?php if(customCompute($siteinfos)) { 
-                                //echo namesorting($siteinfos->sname, 14); 
-                                echo $siteinfos->sname;
-                            } ?>
-                        </a></b>
-                        </li>
-                      
-                         </ul>
-                </div>
-
-                <!-- School Selection Dropdown -->
-                <?php if(customCompute($topbar_college_groups)) { ?>
-                <div class="navbar-left">
-                    <ul class="nav navbar-nav top-navigation-icons">
-                        <li class="dropdown">
-                            <select id="schoolDropdown" class="form-control" style="margin-top: 8px; margin-left: 10px; min-width: 150px;">
-                                <option value="">Select College</option>
-                                <?php foreach($topbar_college_groups as $college) { ?>
-                                    <option value="<?=rtrim($college->college_url, '/') . '/signin/index'?>"><?=$college->college_name?></option>
-                                <?php } ?>
-                            </select>
+                            <a href="<?php echo base_url('dashboard/index'); ?>" class="logo">
+                                <?php if(customCompute($siteinfos)) { echo $siteinfos->sname; } ?>
+                            </a>
                         </li>
                     </ul>
                 </div>
-                <?php } ?>
+
+                <!-- School Selection Dropdown -->
+                
 
                 <div class="navbar-right">
 
@@ -79,32 +114,30 @@
                         </div>
 
                     <ul class="nav navbar-nav top-navigation-icons">
-                         <!-- <li class="dropdown notifications-menu">
-                           
-                        </li>  -->
-                        <!-- <li class="dropdown notifications-menu">
-                            <p style="margin-top: 13px;color: #fff; margin-left: 10px;"><b>Support Number :- </b> <img src="<?=base_url('uploads/whatsapp.png')?>" style="width: 20px;height: 20px;color: #fff;"> +91 8639963641</p>
+                        <!-- School Selection Dropdown moved here -->
+                        <?php if(customCompute($topbar_college_groups)) { ?>
+                        <li class="dropdown hidden-xs">
+                            <select id="schoolDropdown" class="form-control" style="margin-top: 8px; margin-right: 10px; min-width: 150px;">
+                                <option value="">Select College</option>
+                                <?php foreach($topbar_college_groups as $college) { ?>
+                                    <option value="<?=rtrim($college->college_url, '/') . '/signin/index'?>"><?=$college->college_name?></option>
+                                <?php } ?>
+                            </select>
                         </li>
-                        <li class="dropdown notifications-menu">
-                            <p style="margin-top: 13px;color: #fff; margin-left: 10px;"><b>Mail Id :- </b> <img src="<?=base_url('uploads/mail.png')?>" style="width: 20px;height: 20px;color: #fff;"> <a href="mailto:ourschoolerp123@gmail.com">ourschoolerp123@gmail.com</a></p>
-                        </li> -->
-                        <li>
-                           
-                        </li>
-                        <?php //echo 'aaaaaa'.$this->session->userdata('usertypeID');die;
+                        <?php } ?>
+
+                        <?php 
                         if($this->session->userdata('usertypeID') != 3){?>
-                        <li>
+                        <li class="hidden-xs hidden-sm">
                                 <form id="g_search_form"  name="g_search_form" action="<?= base_url('Student/global_student_search'); ?>" method="post">
-        <div class="position-relative" style="max-width: 300px;    margin-top: 6px;">
+        <div class="position-relative" style="max-width: 250px; margin-top: 8px;">
             <input type="text" name="global_search" class="form-control search-box" placeholder="Global student search...">
-           <!-- <i class="fa fa-search search-icon" ></i>  -->
-           
         </div>
     </form>
                         </li>
 
                         <li>
-                            <button id="search_icon" style="margin-top: 45%;"><i class="fa fa-search" ></i> </button>
+                            <button id="search_icon"><i class="fa fa-search"></i> </button>
                         </li> 
 
 
@@ -124,6 +157,14 @@
                         </li>
 
                         <?php if(permissionChecker('schoolyear')) { funtopbarschoolyear($siteinfos, $topbarschoolyears); } ?>
+
+                        <?php //if(permissionChecker('admissionenquiry')) { ?>
+                            <li class="dropdown messages-menu">
+                                <a href="<?=base_url('admissionenquiry/index')?>" class="dropdown-toggle" data-toggle="tooltip" title="<?=$this->lang->line('menu_admissionenquiry')?>" data-placement="bottom">
+                                    <i class="fa fa-user-plus"></i>
+                                </a>
+                            </li>
+                        <?php //} ?>
 
                         <li class="dropdown messages-menu my-push-message">
                             <a href="#" class="dropdown-toggle my-push-message-a" data-toggle="dropdown" >
