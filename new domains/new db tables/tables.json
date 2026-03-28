@@ -1,0 +1,41 @@
+[
+  {
+    "table_name": "income_categories",
+    "description": "Stores categories for school income",
+    "columns": [
+      {"name": "incomecategoriesID", "type": "int(11)", "null": "NOT NULL", "extra": "AUTO_INCREMENT", "key": "PRIMARY KEY"},
+      {"name": "name", "type": "varchar(60)", "null": "NOT NULL"},
+      {"name": "note", "type": "varchar(200)", "null": "DEFAULT NULL"},
+      {"name": "status", "type": "int(11)", "null": "NOT NULL", "default": "0"},
+      {"name": "created_by", "type": "int(11)", "null": "DEFAULT '0'"},
+      {"name": "created_on", "type": "datetime", "null": "DEFAULT CURRENT_TIMESTAMP"}
+    ]
+  },
+  {
+    "table_name": "admission_enquiry",
+    "description": "Stores data related to student admission enquiries",
+    "columns": [
+      {"name": "enquiryID", "type": "int(11)", "null": "NOT NULL", "extra": "AUTO_INCREMENT", "key": "PRIMARY KEY"},
+      {"name": "name", "type": "varchar(60)", "null": "NOT NULL"},
+      {"name": "phone", "type": "varchar(25)", "null": "NOT NULL"},
+      {"name": "email", "type": "varchar(40)", "null": "DEFAULT NULL"},
+      {"name": "address", "type": "text", "null": "DEFAULT NULL"},
+      {"name": "description", "type": "text", "null": "DEFAULT NULL"},
+      {"name": "note", "type": "text", "null": "DEFAULT NULL"},
+      {"name": "date", "type": "date", "null": "DEFAULT NULL"},
+      {"name": "next_follow_up_date", "type": "date", "null": "DEFAULT NULL"},
+      {"name": "assigned_usertypeID", "type": "int(11)", "null": "DEFAULT NULL"},
+      {"name": "assigned_userID", "type": "int(11)", "null": "DEFAULT NULL"},
+      {"name": "reference", "type": "varchar(100)", "null": "DEFAULT NULL"},
+      {"name": "source", "type": "varchar(100)", "null": "NOT NULL"},
+      {"name": "classesID", "type": "int(11)", "null": "DEFAULT NULL"},
+      {"name": "num_child", "type": "int(11)", "null": "DEFAULT NULL"},
+      {"name": "fee_particulars", "type": "text", "null": "DEFAULT NULL"},
+      {"name": "schoolyearID", "type": "int(11)", "null": "NOT NULL"},
+      {"name": "create_date", "type": "datetime", "null": "NOT NULL"},
+      {"name": "modify_date", "type": "datetime", "null": "NOT NULL"},
+      {"name": "create_userID", "type": "int(11)", "null": "NOT NULL"},
+      {"name": "create_usertypeID", "type": "int(11)", "null": "NOT NULL"}
+    ]
+  }
+]

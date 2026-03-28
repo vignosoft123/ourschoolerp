@@ -153,9 +153,12 @@ To keep the system easy to maintain, follow these rules for each API file:
 
 1. **Self-Documenting Ends**: Always add a list of available endpoints and sample JSON payloads at the **END of the respective API controller file** (e.g., at the bottom of `Subject.php`). Include the full **cURL** command for each endpoint so mobile developers can test them immediately.
 2. **Standard Suffixes**: Clearly label which methods map to which HTTP verbs (`_get` vs. `_post`).
+3. **Permission Handling**: **DO NOT** manually call `$this->permissionControl()` inside the API methods. The `Api_Controller` base class handles this automatically via the URI segments. Manually calling the private parent method will cause a **500 Internal Server Error**.
 4. **Shared Model Safety**: **NEVER** modify shared models in `mvc/models/` for API-specific needs. These models are used by the web application. If you need special filtering or fewer columns, handle that transformation within the API controller instead.
 5. **Data Minimization (Mapping)**: Always map/filter database results in the API controller before sending the response. Remove internal fields (like `create_date`, `modify_date`, `password`, etc.) to keep the mobile app payload small and secure.
-6. **Dropdown Optimization**: For "Add" or "Edit" form data (dropdowns), use the `pluck($results, 'label', 'id')` helper to return only the ID and Name.
+6. **Dropdown Optimization**: For fetching lists for dropdowns (Classes, Teachers, etc.), use the `pluck()` helper to return only `[ID => Name]` to reduce payload size.
+7. **Optional Files**: Unless explicitly requested, file uploads should be **optional**. Ensure the `fileupload` callback returns `TRUE` even if no file is provided, and set default empty strings in the database array to avoid "NOT NULL" errors.
+8. **Property Declaration**: Always declare properties like `public $upload_data = array();` at the top of the class to prevent "dynamic property" errors in newer PHP versions.
 
 ---
 

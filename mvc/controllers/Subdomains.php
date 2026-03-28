@@ -102,6 +102,7 @@ class Subdomains extends Admin_Controller {
 			)
 		);
 
+		$this->data['servers'] = $this->db->select('server')->distinct()->get('subdomain_settings')->result();
 		$this->data["subview"] = "subdomains/index";
 		$this->load->view('_layout_main', $this->data);
 	}
@@ -221,9 +222,10 @@ class Subdomains extends Admin_Controller {
 		$start = intval($this->input->post("start"));
 		$length = intval($this->input->post("length"));
 		$search = $this->input->post("search")['value'];
+		$server = $this->input->post("server");
 
-		$subdomains = $this->subdomains_m->get_subdomains_with_pagination($length, $start, $search);
-		$total_count = $this->subdomains_m->get_subdomains_count($search);
+		$subdomains = $this->subdomains_m->get_subdomains_with_pagination($length, $start, $search, $server);
+		$total_count = $this->subdomains_m->get_subdomains_count($search, $server);
 
 		$data = array();
 		foreach($subdomains as $key => $subdomain) {
@@ -238,6 +240,7 @@ class Subdomains extends Admin_Controller {
 			$row[] = '<span class="badge badge-' . ($subdomain->status == 'active' ? 'success' : 'danger') . '">' . ucfirst($subdomain->status) . '</span>';
 			
 			$actions = '';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-success btn-sm" title="Create Tables" onclick="createTables(this, ' . $subdomain->id . ')"><i class="fa fa-database"></i></a> ';
 			$actions .= '<a href="' . base_url('subdomains/edit/' . $subdomain->id) . '" class="btn btn-primary btn-sm" title="Edit"><i class="fa fa-edit"></i></a> ';
 			$actions .= '<a href="' . base_url('subdomains/delete/' . $subdomain->id) . '" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm(\'Are you sure you want to delete this subdomain?\')"><i class="fa fa-trash"></i></a>';
 			

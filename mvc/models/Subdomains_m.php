@@ -41,10 +41,14 @@ class Subdomains_m extends MY_Model {
 	}
 
 	// Get subdomains with pagination
-	function get_subdomains_with_pagination($limit = 10, $start = 0, $search = '') {
+	function get_subdomains_with_pagination($limit = 10, $start = 0, $search = '', $server = '') {
 		$this->db->select('*');
 		$this->db->from($this->_table_name);
 		
+		if (!empty($server)) {
+			$this->db->where('server', $server);
+		}
+
 		if (!empty($search)) {
 			$this->db->group_start();
 			$this->db->like('subdomain', $search);
@@ -63,9 +67,13 @@ class Subdomains_m extends MY_Model {
 	}
 
 	// Get total count for pagination
-	function get_subdomains_count($search = '') {
+	function get_subdomains_count($search = '', $server = '') {
 		$this->db->from($this->_table_name);
 		
+		if (!empty($server)) {
+			$this->db->where('server', $server);
+		}
+
 		if (!empty($search)) {
 			$this->db->group_start();
 			$this->db->like('subdomain', $search);

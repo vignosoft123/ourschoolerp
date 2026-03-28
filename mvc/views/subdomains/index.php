@@ -17,6 +17,29 @@
                     </a>
                 </h5>
                 
+                <div class="row" style="margin-bottom: 20px;">
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label>Filter by Server</label>
+                            <select id="server_filter" class="form-control select2">
+                                <option value="">Select Server</option>
+                                <?php if(customCompute($servers)) {
+                                    foreach($servers as $server) {
+                                        if(!empty($server->server)) {
+                                            echo "<option value='".htmlspecialchars($server->server)."'>".htmlspecialchars(ucfirst($server->server))."</option>";
+                                        }
+                                    }
+                                } ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-sm-4" style="margin-top: 25px;">
+                        <button id="bulk_migration_btn" class="btn btn-warning" onclick="migrationAll()" disabled>
+                            <i class="fa fa-shuttle-van"></i> Bulk Migration
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="table-responsive">
                     <table id="subdomains-table" class="table table-striped table-bordered table-hover">
                         <thead>
@@ -44,12 +67,15 @@
 
 <script type="text/javascript">
 $(document).ready(function() {
-    $('#subdomains-table').DataTable({
+    var table = $('#subdomains-table').DataTable({
         "processing": true,
         "serverSide": true,
         "ajax": {
             "url": "<?php echo base_url('subdomains/ajax_list'); ?>",
-            "type": "POST"
+            "type": "POST",
+            "data": function(d) {
+                d.server = $('#server_filter').val();
+            }
         },
         "columns": [
             { "data": 0, "orderable": false },
@@ -70,7 +96,88 @@ $(document).ready(function() {
             "zeroRecords": "No matching subdomains found"
         }
     });
+
+    $('#server_filter').change(function() {
+        table.draw();
+        var selectedServer = $(this).val();
+        if (selectedServer) {
+            $('#bulk_migration_btn').prop('disabled', false);
+            $('#bulk_migration_btn').html('<i class="fa fa-database"></i> Create Tables for All ' + selectedServer + ' Domains');
+        } else {
+            $('#bulk_migration_btn').prop('disabled', true);
+            $('#bulk_migration_btn').html('<i class="fa fa-database"></i> Bulk Migration');
+        }
+    });
 });
+
+function migrationAll() {
+    var server = $('#server_filter').val();
+    if (!server) {
+        alert('Please select a server first.');
+        return;
+    }
+
+    if (confirm('Are you sure you want to create tables for ALL active domains on the ' + server + ' server? This will not delete any existing data.')) {
+        var btn = $('#bulk_migration_btn');
+        var originalHtml = btn.html();
+        btn.html('<i class="fa fa-spinner fa-spin"></i> Processing...').prop('disabled', true);
+
+        $.ajax({
+            url: 'http://localhost:8000/create-tables-bulk?server=' + encodeURIComponent(server),
+            type: 'POST',
+            success: function(response) {
+                btn.html(originalHtml).prop('disabled', false);
+                if (response.success) {
+                    alert('Bulk Success: ' + response.message + '\nDomains processed: ' + response.domains_processed);
+                } else {
+                    alert('Partial Success: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                btn.html(originalHtml).prop('disabled', false);
+                var errorMsg = 'An error occurred during bulk migration.';
+                if (xhr.responseJSON && xhr.responseJSON.detail) {
+                    errorMsg = xhr.responseJSON.detail;
+                }
+                alert('Error: ' + errorMsg);
+            }
+        });
+    }
+}
+
+function createTables(btn, subdomainId) {
+    console.log("createTables function called with ID:", subdomainId);
+    if (confirm('Are you sure you want to create tables for this subdomain? This will execute the SQL from tables.sql on the target database.')) {
+        console.log("Confirmation accepted for ID:", subdomainId);
+        // Show loading (simple alert or button disable could be used, here I'll use a simple alert)
+        var originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+        $(btn).addClass('disabled');
+
+        $.ajax({
+            url: 'http://localhost:8000/create-tables/' + subdomainId,
+            type: 'POST',
+            success: function(response) {
+                btn.innerHTML = originalHtml;
+                $(btn).removeClass('disabled');
+                if (response.success) {
+                    alert('Success: ' + response.message);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                btn.innerHTML = originalHtml;
+                $(btn).removeClass('disabled');
+                var errorMsg = 'An error occurred while creating tables.';
+                if (xhr.responseJSON && xhr.responseJSON.detail) {
+                    errorMsg = xhr.responseJSON.detail;
+                }
+                alert('Error: ' + errorMsg);
+            }
+        });
+    }
+}
 </script>
 
 <style>
