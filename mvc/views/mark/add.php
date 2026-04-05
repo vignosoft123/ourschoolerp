@@ -1382,7 +1382,7 @@
                                     });
                                     
 
-                                    <?php if (strpos($school_name, 'VIVEKA') !== false  ) {?>
+                                    <?php if (strpos($school_name, 'VIVEKA') !== false || strpos($_SERVER['HTTP_HOST'], 'skc.collegehour') !== false ) {?>
                                         // Format the message for VIVEKA school
                                         var message = 'Dear parent, your children ' + $checkbox.attr('st_names') + 
                                                     ' Exam name ' + $checkbox.attr('exam_name') + 

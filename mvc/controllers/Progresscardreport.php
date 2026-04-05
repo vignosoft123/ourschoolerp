@@ -1050,12 +1050,13 @@ foreach($months_array as $mkey => $v) {
 		foreach($st_ids as $key => $student)
 		{
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
-		    {
-				if( $senderid=='VGNSSP'){
+		    { 
+					$grade_str = (strpos($_SERVER['HTTP_HOST'], 'skc.collegehour') === false) ? ' Grade:'.$marks_grade[$key] : '';
+					if( $senderid=='VGNSSP'){
 		        	$template1 = rtrim($marks_template[$key], ',');
 					
 					
-		        	$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$template1.'. Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$school_name.'. VGNSSP';
+		        	$template = 'Dear parent, your children '.$st_names[$key].' '.$exam_name[$key].' marks are '.$template1.'. Total: '.$total_marks[$key].$grade_str.', From '.$school_name.'. VGNSSP';
 
 					 // Dear parent, your children vasu FA - 1 marks are TELUGU=11/100,HINDI=16/50,ENGLISH=17/60,MATH=18/60,EVS=0/100,computer=0/100. Total: 62/470, From OURSCHOOL ERP. VGNSSP
 				}
@@ -1090,7 +1091,7 @@ foreach($months_array as $mkey => $v) {
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.' . '.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].$grade_str.', From '.$registered_school_name.' . '.$senderid;
 
 					
 					}else if($senderid=='SDHEDU'){  //siddardha school
@@ -1103,7 +1104,7 @@ foreach($months_array as $mkey => $v) {
 						$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 						$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 						
-						$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.' . '.$senderid;
+						$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.'. Total: '.$total_marks[$key].$grade_str.', From '.$registered_school_name.' . '.$senderid;
 	
 						
 	
@@ -1125,7 +1126,7 @@ foreach($months_array as $mkey => $v) {
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.'.'.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].$grade_str.', From '.$registered_school_name.'.'.$senderid;
  
 				} else if($senderid=='SSEMRK'){ //sadana
 		        	$template1 = rtrim($marks_template[$key], ',');
@@ -1154,7 +1155,7 @@ foreach($months_array as $mkey => $v) {
 					$var3 = ($subs[4]?$subs[4]:'-').','.($subs[5]?$subs[5]:'-');
 					$var4 = ($subs[6]?$subs[6]:'-').','.($subs[7]?$subs[7]:'-');
 					
-					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].' Grade:'.$marks_grade[$key].', From '.$registered_school_name.' . '.$senderid;
+					$template = 'Dear parent, your children '.$st_names[$key].' Exam name '.$exam_name[$key].' marks are '.$var1.' and '.$var2.' and '.$var3.' and '.$var4.' . Total: '.$total_marks[$key].$grade_str.', From '.$registered_school_name.' . '.$senderid;
 
 					
 
@@ -1219,6 +1220,7 @@ foreach($months_array as $mkey => $v) {
 		    if(isset($mobile_no[$key]) && $mobile_no[$key]!='')
 		    { 
 		        	$template1 = rtrim($marks_template[$key], ',');
+					$grade_str = (strpos($_SERVER['HTTP_HOST'], 'skc.collegehour') === false) ? ' Grade:'.$marks_grade[$key] : '';
 					 
 					// Explode exam name with 'held on' to separate exam name and date
 					$exam_parts = explode(' held on ', $exam_name[$key]);
@@ -1229,8 +1231,8 @@ foreach($months_array as $mkey => $v) {
 					$params = $st_names[$key].','.$exam_name_only.','.$exam_date_only;
 					
 
-					if (strpos($school_name, 'VIVEKA') !== false  ) {
-						$final_messege = $template1. '. Total: '.$total_marks[$key]; //no need grade;
+					if (strpos($school_name, 'VIVEKA') !== false || strpos($_SERVER['HTTP_HOST'], 'skc.collegehour') !== false ) {
+						$final_messege = $template1. '. Total: '.$total_marks[$key]; //no need grade & rank;
 						$final_messege = str_replace(',', '.', $final_messege);
 
 					}else{

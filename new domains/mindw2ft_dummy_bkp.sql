@@ -27,6 +27,44 @@ SET time_zone = "+00:00";
 -- Table structure for table `activities`
 --
 
+
+
+CREATE TABLE IF NOT EXISTS `income_categories` (
+  `incomecategoriesID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(60) NOT NULL,
+  `note` varchar(200) DEFAULT NULL,
+  `status` int(11) NOT NULL DEFAULT '0',
+  `created_by` int(11) DEFAULT '0',
+  `created_on` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`incomecategoriesID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `admission_enquiry` (
+  `enquiryID` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(60) NOT NULL,
+  `phone` varchar(25) NOT NULL,
+  `email` varchar(40) DEFAULT NULL,
+  `address` text,
+  `description` text,
+  `note` text,
+  `date` date DEFAULT NULL,
+  `next_follow_up_date` date DEFAULT NULL,
+  `assigned_usertypeID` int(11) DEFAULT NULL,
+  `assigned_userID` int(11) DEFAULT NULL,
+  `reference` varchar(100) DEFAULT NULL,
+  `source` varchar(100) NOT NULL,
+  `classesID` int(11) DEFAULT NULL,
+  `num_child` int(11) DEFAULT NULL,
+  `fee_particulars` text,
+  `schoolyearID` int(11) NOT NULL,
+  `create_date` datetime NOT NULL,
+  `modify_date` datetime NOT NULL,
+  `create_userID` int(11) NOT NULL,
+  `create_usertypeID` int(11) NOT NULL,
+  PRIMARY KEY (`enquiryID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 CREATE TABLE `activities` (
   `activitiesID` int(11) NOT NULL,
   `activitiescategoryID` int(11) NOT NULL,
