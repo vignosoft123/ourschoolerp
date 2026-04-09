@@ -81,6 +81,66 @@ class Sattendance extends Api_Controller
         ], REST_Controller::HTTP_OK);
 	}
 
+	/**
+	 * GET api/v10/sattendance/formdata
+	 * Returns all data needed to render the Add Attendance form:
+	 * classes list, attendance type, calendar date range, disabled weekdays & holidays.
+	 */
+	public function formdata_get()
+	{
+		$classes = $this->classes_m->get_classes();
+		$classesMapped = [];
+		if (customCompute($classes)) {
+			foreach ($classes as $c) {
+				$classesMapped[] = ['classesID' => $c->classesID, 'classes' => $c->classes];
+			}
+		}
+
+		$this->retdata['attendanceType']          = ($this->data['siteinfos']->attendance == 'subject') ? 'subject' : 'day';
+		$this->retdata['classes']                 = $classesMapped;
+		$this->retdata['calenderdisableweekdays'] = ($this->data['siteinfos']->weekends != '') ? explode(',', $this->data['siteinfos']->weekends) : [];
+		$this->retdata['calenderfromdate']        = date('Y-m-d', strtotime($this->data['schoolyearsessionobj']->startingdate));
+		$this->retdata['calendertodate']          = date('Y-m-d', strtotime($this->data['schoolyearsessionobj']->endingdate));
+		$this->retdata['calenderdisabledates']    = $this->getHolidayssession(false);
+
+		$this->response([
+			'status'  => true,
+			'message' => 'Success',
+			'data'    => $this->retdata
+		], REST_Controller::HTTP_OK);
+	}
+
+	/**
+	 * GET api/v10/sattendance/sections/{classesID}
+	 * Returns sections belonging to the given class.
+	 * Used to populate the Section dropdown after a class is selected.
+	 */
+	public function sections_get($classesID = null)
+	{
+		if (!(int)$classesID) {
+			$this->response([
+				'status'  => false,
+				'message' => 'A valid classesID is required.',
+				'data'    => []
+			], REST_Controller::HTTP_BAD_REQUEST);
+			return;
+		}
+
+		$sections = $this->section_m->get_order_by_section(['classesID' => $classesID]);
+		$result   = [];
+		if (customCompute($sections)) {
+			foreach ($sections as $s) {
+				$result[] = ['sectionID' => $s->sectionID, 'section' => $s->section];
+			}
+		}
+
+		$this->response([
+			'status'  => true,
+			'message' => 'Success',
+			'data'    => ['sections' => $result]
+		], REST_Controller::HTTP_OK);
+	}
+
 	private function subjectattendance($id = null, $url = null)
 	{
 		$schoolyearID 		= $this->session->userdata('defaultschoolyearID');
@@ -1172,3 +1232,287 @@ class Sattendance extends Api_Controller
 		}
 	}
 }
+
+/*
+|=======================================================================
+| STUDENT ATTENDANCE API — ENDPOINT REFERENCE
+| File: mvc/controllers/api/v10/Sattendance.php
+| Base URL: https://{subdomain}.ourschoolerp.localhost/api/v10/sattendance
+| Auth Header: Authorization: Bearer <JWT_TOKEN>
+|=======================================================================
+|
+| ATTENDANCE STATUS CODES
+|   P  = Present (Full Day)
+|   A  = Absent
+|   L  = Late
+|   LE = Late with Excuse
+|   H  = Holiday (auto-set, not editable)
+|   W  = Weekend (auto-set, not editable)
+|   LA = Leave Application (auto-set, not editable)
+|
+|=======================================================================
+| MOBILE APP WORKFLOW
+|-----------------------------------------------------------------------
+| Step 1 → GET  /formdata          — Load classes + calendar constraints
+| Step 2 → GET  /sections/{id}     — Load sections for selected class
+| Step 3 → POST /add               — Load student list for date
+| Step 4 → POST /saveattendance    — Submit attendance marks
+|=======================================================================
+
+------------------------------------------------------------------------
+1. GET FORM INITIALIZATION DATA
+   GET /api/v10/sattendance/formdata
+   Purpose: Load classes list, attendance type, and calendar date
+            constraints for the Add Attendance screen.
+   Auth: Required
+------------------------------------------------------------------------
+curl -X GET "https://staging.ourschoolerp.localhost/api/v10/sattendance/formdata" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+Response:
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "attendanceType": "day",
+    "classes": [
+      { "classesID": 1, "classes": "10 TH CLASS" }
+    ],
+    "calenderdisableweekdays": ["0", "6"],
+    "calenderfromdate": "2025-06-01",
+    "calendertodate": "2026-03-31",
+    "calenderdisabledates": ["15-08-2025", "02-10-2025"]
+  }
+}
+
+------------------------------------------------------------------------
+2. GET SECTIONS BY CLASS
+   GET /api/v10/sattendance/sections/{classesID}
+   Purpose: Populate the Section dropdown after class is selected.
+   Auth: Required
+------------------------------------------------------------------------
+curl -X GET "https://staging.ourschoolerp.localhost/api/v10/sattendance/sections/1" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+Response (success):
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "sections": [
+      { "sectionID": 1, "section": "A" },
+      { "sectionID": 2, "section": "B" }
+    ]
+  }
+}
+
+Response (invalid classesID):
+{
+  "status": false,
+  "message": "A valid classesID is required.",
+  "data": []
+}
+
+------------------------------------------------------------------------
+3. LOAD STUDENTS FOR DATE (triggers after ATTENDANCE button tap)
+   POST /api/v10/sattendance/add
+   Purpose: Given class + section + date, returns the student list with
+            existing attendance records for that day (creates blank
+            records if none exist yet). Also validates that the date
+            is not a holiday, weekend, or future date.
+   Auth: Required
+   Permission key: sattendance_add
+------------------------------------------------------------------------
+curl -X POST "https://staging.ourschoolerp.localhost/api/v10/sattendance/add" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "classesID": 1,
+    "sectionID": 1,
+    "date": "08-04-2026"
+  }'
+
+Response (success — day-based attendance):
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "classesID": 1,
+    "sectionID": 1,
+    "subjectID": 0,
+    "date": "08-04-2026",
+    "day": "08",
+    "monthyear": "04-2026",
+    "attendanceType": "day",
+    "sattendanceinfo": {
+      "class": "10 TH CLASS",
+      "section": "A",
+      "day": "Wednesday",
+      "date": "8th April 2026"
+    },
+    "students": [
+      {
+        "studentID": 10,
+        "name": "Chaitanya Kumari",
+        "srroll": "1",
+        "phone": "9494022475",
+        "village": "HYDERABAD",
+        "studenttype": "TRANSPORT"
+      }
+    ],
+    "attendances": {
+      "10": {
+        "attendanceID": 201,
+        "studentID": 10,
+        "a08": null
+      }
+    }
+  }
+}
+
+For subject-based attendance, also send "subjectID":
+curl -X POST "https://staging.ourschoolerp.localhost/api/v10/sattendance/add" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "classesID": 1,
+    "sectionID": 1,
+    "subjectID": 3,
+    "date": "08-04-2026"
+  }'
+
+Response (validation error — holiday/weekend/future date):
+{
+  "status": false,
+  "message": "Error 404",
+  "data": {
+    "validation": {
+      "date": "The date field given holiday."
+    }
+  }
+}
+
+------------------------------------------------------------------------
+4. SAVE ATTENDANCE
+   POST /api/v10/sattendance/saveattendance
+   Purpose: Submit attendance marks for all students in the list.
+            The attendance field is a JSON-encoded object where keys
+            are "attendance{attendanceID}" and values are status codes
+            (P, A, L, LE).
+            Automatically sends email/SMS to parents of absent students
+            if notifications are enabled in site settings.
+   Auth: Required
+   Permission key: sattendance_add
+------------------------------------------------------------------------
+curl -X POST "https://staging.ourschoolerp.localhost/api/v10/sattendance/saveattendance" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "day": "08",
+    "classesID": 1,
+    "sectionID": 1,
+    "subjectID": 0,
+    "monthyear": "04-2026",
+    "attendance": "{\"attendance201\":\"P\",\"attendance202\":\"A\",\"attendance203\":\"L\"}"
+  }'
+
+Response (success):
+{
+  "status": true,
+  "message": "Success",
+  "data": []
+}
+
+Response (validation error):
+{
+  "status": false,
+  "message": "Validation Error",
+  "data": {
+    "validation": {
+      "day": "The day field is required."
+    }
+  }
+}
+
+Response (no attendance data found — attendanceIDs did not match):
+{
+  "status": false,
+  "message": "Attendance data does not found",
+  "data": []
+}
+
+------------------------------------------------------------------------
+5. VIEW INDIVIDUAL STUDENT ATTENDANCE
+   GET /api/v10/sattendance/view/{studentID}/{classesID}
+   Purpose: Full attendance history for one student across the school
+            year. Returns month-by-month breakdown with totals.
+            If the logged-in user is a Student (usertypeID=3) without
+            sattendance_view permission, redirects to their own profile.
+   Auth: Required
+------------------------------------------------------------------------
+curl -X GET "https://staging.ourschoolerp.localhost/api/v10/sattendance/view/10/1" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+Response (day-based):
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "attendanceType": "day",
+    "student": { "studentID": 10, "name": "Chaitanya Kumari", ... },
+    "classes": { "classesID": 1, "classes": "10 TH CLASS" },
+    "section": { "sectionID": 1, "section": "A" },
+    "attendancesmonths": [
+      { "monthkey": "06-2025", "monthname": "Jun" },
+      { "monthkey": "04-2026", "monthname": "Apr" }
+    ],
+    "attendance": {
+      "04-2026": { "1": "N/A", "2": "N/A", ..., "8": "P", ... }
+    },
+    "totalcount": {
+      "totalpresent": 5,
+      "totalabsent": 1,
+      "totallate": 0,
+      "totallatewithexcuse": 0,
+      "totalholiday": 2,
+      "totalweekend": 8,
+      "totalleave": 0
+    }
+  }
+}
+
+------------------------------------------------------------------------
+6. LIST STUDENTS BY CLASS (index)
+   GET /api/v10/sattendance/{classesID}
+   Purpose: Returns all students grouped by section for a class.
+            Students (usertypeID=3) without sattendance_view permission
+            are automatically redirected to their own attendance view.
+   Auth: Required
+------------------------------------------------------------------------
+curl -X GET "https://staging.ourschoolerp.localhost/api/v10/sattendance/1" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+Response:
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "classesID": 1,
+    "classes": [...],
+    "students": [...],
+    "sections": [...],
+    "allsection": {
+      "A": [...],
+      "B": [...]
+    }
+  }
+}
+
+|=======================================================================
+| MAINTENANCE LOG
+|-----------------------------------------------------------------------
+| 2026-04-09: Added formdata_get() and sections_get() endpoints for
+|             proper mobile form initialization flow. Added this
+|             endpoint reference documentation block.
+|=======================================================================
+*/
