@@ -235,17 +235,41 @@ class Mark extends Api_Controller
         $classes = $this->classes_m->get_single_classes(['classesID' => $classesID]);
 
         if (customCompute($student) && customCompute($classes)) {
-            $queryArray = [
-                'classesID'    => $student->srclassesID,
-                'sectionID'    => $student->srsectionID,
-                'studentID'    => $student->srstudentID, 
-                'schoolyearID' => $schoolyearID, 
-            ];
-
             $retMark = [];
             $examSummaries = [];
 
-            $marks = $this->mark_m->student_all_mark_array_api($queryArray);
+            // Direct query: INNER JOIN examschedule with sectionID filter so only subjects
+            // actually scheduled for the student's section are returned. Also joins subject
+            // table to get the subject name (student_all_mark_array_api omits both).
+            $this->db->select('
+                mark.markID,
+                mark.examID,
+                mark.subjectID,
+                mark.eattendance,
+                markrelation.markpercentageID,
+                markrelation.mark,
+                examschedule.max_mark,
+                examschedule.min_mark,
+                subject.subject,
+                exam.date   AS exam_date,
+                exam.exam   AS exam_name
+            ');
+            $this->db->from('mark');
+            $this->db->join('markrelation', 'markrelation.markID = mark.markID', 'left');
+            $this->db->join(
+                'examschedule',
+                'examschedule.examID    = mark.examID
+                 AND examschedule.subjectID = mark.subjectID
+                 AND examschedule.classesID = mark.classesID
+                 AND examschedule.sectionID = ' . (int)$student->srsectionID,
+                'inner'   // INNER excludes subjects not scheduled for this section
+            );
+            $this->db->join('subject', 'subject.subjectID = mark.subjectID', 'left');
+            $this->db->join('exam',    'exam.examID = mark.examID',          'left');
+            $this->db->where('mark.studentID',    $student->srstudentID);
+            $this->db->where('mark.classesID',    $student->srclassesID);
+            $this->db->where('mark.schoolyearID', $schoolyearID);
+            $marks = $this->db->get()->result();
 
             if (customCompute($marks)) {
                 foreach ($marks as $mark) {
@@ -361,8 +385,18 @@ class Mark extends Api_Controller
             return;
         }
 
-        // Fetch subjects for this class
-        $subjects = $this->subject_m->get_order_by_subject(['classesID' => $classesID], $examID, $sectionID);
+        // Fetch subjects directly from examschedule — bypasses the usertypeID-based routing in
+        // Subject_m::get_order_by_subject() which would restrict teacher tokens to their assigned
+        // subjects only and would return no max_mark. We always drive from examschedule so that
+        // only subjects actually scheduled for this exam+section are returned, with correct max/min marks.
+        $this->db->select('subject.*, examschedule.max_mark, examschedule.min_mark');
+        $this->db->from('examschedule');
+        $this->db->join('subject', 'subject.subjectID = examschedule.subjectID', 'inner');
+        $this->db->where('examschedule.examID', $examID);
+        $this->db->where('examschedule.sectionID', $sectionID);
+        $this->db->where('subject.classesID', $classesID);
+        $this->db->order_by('subject.subjectID', 'ASC');
+        $subjects = $this->db->get()->result();
 
         // Fetch all mark percentages
         $markpercentageArr = [
@@ -373,29 +407,42 @@ class Mark extends Api_Controller
         ];
         $markSettings = $this->marksetting_m->get_marksetting_markpercentages_add($markpercentageArr);
 
-        // Fetch all marks for this exam, class, section, schoolyear
+        // Fetch canonical marks (one per student/subject via MIN markID, same as web loadStudentsAjax)
         $marksAll = $this->mark_m->get_order_by_mark_new([
             'examID'       => $examID,
             'classesID'    => $classesID,
             'schoolyearID' => $schoolyearID
         ]);
 
-        // Map marks to [studentID][subjectID]
+        // Map marks to [studentID][subjectID] and collect canonical markIDs
         $marksMap = [];
+        $canonicalMarkIDs = [];
         foreach ($marksAll as $m) {
             $marksMap[$m->studentID][$m->subjectID] = $m;
+            $canonicalMarkIDs[] = $m->markID;
         }
 
-        // Fetch mark relations for mark percentage mappings
-        $markRelations = $this->mark_m->student_all_mark_array([
-            'schoolyearID' => $schoolyearID,
-            'examID'       => $examID,
-            'classesID'    => $classesID
-        ]);
-
+        // Fetch markrelations ONLY for canonical markIDs (same approach as web version)
+        // This avoids duplicate mark rows overwriting correct values
         $markRelationsMap = [];
-        foreach ($markRelations as $mr) {
-            $markRelationsMap[$mr->studentID][$mr->subjectID][$mr->markpercentageID] = $mr->mark;
+        if (!empty($canonicalMarkIDs)) {
+            $this->db->where_in('markID', $canonicalMarkIDs);
+            $markRelations = $this->db->get('markrelation')->result();
+
+            // Build [markID][markpercentageID] => mark first
+            $relationsByMarkID = [];
+            foreach ($markRelations as $mr) {
+                $relationsByMarkID[$mr->markID][$mr->markpercentageID] = $mr->mark;
+            }
+
+            // Then map to [studentID][subjectID][markpercentageID] using canonical mark records
+            foreach ($marksAll as $m) {
+                if (isset($relationsByMarkID[$m->markID])) {
+                    foreach ($relationsByMarkID[$m->markID] as $mpID => $markVal) {
+                        $markRelationsMap[$m->studentID][$m->subjectID][$mpID] = $markVal;
+                    }
+                }
+            }
         }
 
         $studentData = [];
@@ -422,16 +469,17 @@ class Mark extends Api_Controller
                 }
 
                 foreach ($markSettings as $setting) {
-                    $val = isset($markRelationsMap[$student->studentID][$subject->subjectID][$setting->markpercentageID]) 
-                           ? (float)$markRelationsMap[$student->studentID][$subject->subjectID][$setting->markpercentageID] 
+                    $val = isset($markRelationsMap[$student->studentID][$subject->subjectID][$setting->markpercentageID])
+                           ? (float)$markRelationsMap[$student->studentID][$subject->subjectID][$setting->markpercentageID]
                            : 0.0;
-                    
+
                     $subjectMarks[] = [
                         'markpercentageID' => $setting->markpercentageID,
                         'markpercentage'   => $setting->markpercentage,
                         'mark'             => $val,
                         'markID'           => $markID // Needed for the 'mark' name in mark_send: {subjectID}mark-{markID}
                     ];
+                    $subjectTotal  += $val;
                     $totalObtained += $val;
                     if ($val == 0) $zeroMarkCount++;
                 }
