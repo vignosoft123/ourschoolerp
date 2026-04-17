@@ -243,6 +243,16 @@
             }
         }
 
+        public function terms()
+        {
+            $this->bladeView->render('views/templates/terms');
+        }
+
+        public function privacy()
+        {
+            $this->bladeView->render('views/templates/privacy');
+        }
+
         public function school_json(){
         
             
