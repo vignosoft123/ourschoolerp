@@ -1,6 +1,12 @@
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa fa-sitemap"></i> SubDomain Management</h3>
+        <div class="box-tools pull-right" style="margin-top:5px;">
+            <button id="python_server_btn" class="btn btn-sm btn-default" onclick="togglePythonServer()" title="Start/Stop Python API Server">
+                <i id="python_server_icon" class="fa fa-circle" style="color:#aaa;"></i>
+                <span id="python_server_label">Python Server</span>
+            </button>
+        </div>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> Dashboard</a></li>
             <li class="active">SubDomains</li>
@@ -144,6 +150,74 @@ function migrationAll() {
         });
     }
 }
+
+// ── Python Server Status ────────────────────────────────────────────────────
+
+function checkPythonServerStatus() {
+    $.ajax({
+        url: '<?php echo base_url("subdomains/python_server_status"); ?>',
+        type: 'GET',
+        success: function(res) {
+            setPythonServerUI(res.running);
+        },
+        error: function() {
+            setPythonServerUI(false);
+        }
+    });
+}
+
+function setPythonServerUI(isRunning) {
+    var icon  = document.getElementById('python_server_icon');
+    var label = document.getElementById('python_server_label');
+    var btn   = document.getElementById('python_server_btn');
+    if (isRunning) {
+        icon.style.color  = '#5cb85c';
+        label.textContent = 'Python Server Running';
+        btn.className     = 'btn btn-sm btn-success';
+        btn.title         = 'Server is running on port 8000';
+    } else {
+        icon.style.color  = '#d9534f';
+        label.textContent = 'Start Python Server';
+        btn.className     = 'btn btn-sm btn-danger';
+        btn.title         = 'Click to start Python API server';
+    }
+}
+
+function togglePythonServer() {
+    var btn = document.getElementById('python_server_btn');
+    var isRunning = btn.className.indexOf('btn-success') !== -1;
+    if (isRunning) {
+        alert('Server is already running on http://localhost:8000\nTo stop it, close the terminal window running uvicorn.');
+        return;
+    }
+
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Starting...';
+    btn.disabled  = true;
+
+    $.ajax({
+        url: '<?php echo base_url("subdomains/start_python_server"); ?>',
+        type: 'POST',
+        success: function(res) {
+            btn.disabled = false;
+            if (res.success) {
+                setPythonServerUI(true);
+            } else {
+                setPythonServerUI(false);
+                alert('Error: ' + res.message);
+            }
+        },
+        error: function() {
+            btn.disabled = false;
+            setPythonServerUI(false);
+            alert('Failed to contact the server starter. Check PHP error log.');
+        }
+    });
+}
+
+// Check status once on page load only
+checkPythonServerStatus();
+
+// ── Table Creator ────────────────────────────────────────────────────────────
 
 function createTables(btn, subdomainId) {
     console.log("createTables function called with ID:", subdomainId);

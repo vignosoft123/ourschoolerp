@@ -231,6 +231,7 @@
                         <label for="type" class="col-sm-2 control-label">
                             <?=$this->lang->line("online_exam_type")?>
                             <span class="text-red">*</span>
+                            <a title="Add Exam Type" target="_blank" href="<?=base_url('exam_type/add')?>"><i class="fa fa-plus"></i></a>
                         </label>
                         <div class="col-sm-6">
                             <?php

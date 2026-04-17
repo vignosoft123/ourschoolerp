@@ -284,11 +284,58 @@ class Subdomains extends Admin_Controller {
 	public function unique_subdomain() {
 		$subdomain = $this->input->post('subdomain');
 		$id = $this->uri->segment(3);
-		
+
 		if ($this->subdomains_m->subdomain_exists($subdomain, $id)) {
 			$this->form_validation->set_message("unique_subdomain", "The %s already exists");
 			return FALSE;
 		}
 		return TRUE;
+	}
+
+	public function python_server_status() {
+		$conn = @fsockopen('127.0.0.1', 8000, $errno, $errstr, 1);
+		if ($conn) {
+			fclose($conn);
+			echo json_encode(['running' => true]);
+		} else {
+			echo json_encode(['running' => false]);
+		}
+	}
+
+	public function start_python_server() {
+		// Check if already running
+		$conn = @fsockopen('127.0.0.1', 8000, $errno, $errstr, 1);
+		if ($conn) {
+			fclose($conn);
+			echo json_encode(['success' => true, 'message' => 'Python server is already running on port 8000.']);
+			return;
+		}
+
+		$bat = 'C:\\xampp\\htdocs\\ourschoolerp\\python\\start_server.bat';
+		if (!file_exists($bat)) {
+			echo json_encode(['success' => false, 'message' => 'start_server.bat not found.']);
+			return;
+		}
+
+		// Start in background (Windows)
+		pclose(popen('start /B "" "' . $bat . '" >NUL 2>&1', 'r'));
+
+		// Wait up to 5s for server to come up
+		$started = false;
+		for ($i = 0; $i < 10; $i++) {
+			sleep(1);
+			$check = @fsockopen('127.0.0.1', 8000, $e, $s, 1);
+			if ($check) {
+				fclose($check);
+				$started = true;
+				break;
+			}
+		}
+
+		if ($started) {
+			echo json_encode(['success' => true, 'message' => 'Python server started successfully on port 8000.']);
+		} else {
+			echo json_encode(['success' => false, 'message' => 'Server started but not yet responding. Check the terminal window.']);
+		}
 	}
 }

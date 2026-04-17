@@ -213,3 +213,5 @@ $lang['menu_candidate'] = '候选人';
 $lang['menu_sponsor'] = '赞助';
 $lang['menu_sponsorship'] = '赞助商';
 $lang['menu_sponsorshipreport'] = '赞助报告';
+
+$lang['menu_exam_type'] = 'Exam Type';

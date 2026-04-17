@@ -446,43 +446,46 @@ class Routine extends Admin_Controller {
 	}
 
 	public function copy_timetable(){
-		// echo "<pre>";print_r($_POST);die;
-		$days = $_POST['days'];
-		
-		$this->db->where('classesID',$_POST['class_id']);
-		$this->db->where('day',$_POST['from']);
+		$days       = $this->input->post('days');
+		$from       = $this->input->post('from');
+		$class_id   = $this->input->post('class_id');
+		$section_id = $this->input->post('section_id'); // optional section filter
+
+		$this->db->where('classesID', $class_id);
+		$this->db->where('day', $from);
+		if($section_id) {
+			$this->db->where('sectionID', $section_id);
+		}
 		$get_data = $this->db->get('routine')->result_array();
-		// 
-		// foreach($get_data as $data){
 
-		// 	$res[] = array(
-		// 		'classesID' => $data['classesID'],
-		// 		'sectionID' => $data['sectionID'],
-		// 		'subjectID' => $data['subjectID'],
-		// 		'schoolyearID' => $data['schoolyearID'],
-		// 		'teacherID' => $data['teacherID'],
-		// 		'day' => $data['schoolyearID'],
-		// 		'start_time' => $data['start_time'],
-		// 		'end_time' => $data['end_time'],
-		// 		'room' => $data['room'],
-		// 	);
-
-		// }
-		// echo "<pre>";print_r($res);die;
-		for($i=0;$i<count($days);$i++){
-			for($j=0;$j<count($get_data);$j++){
-				unset($get_data[$j]['routineID']);
-				$get_data[$j]['day'] = $days[$i];
-
-				// $this->db->where('classesID',$_POST['class_id']);
-				// $this->db->where('day',$days[$i]);
-				// $this->db->get('routine')->num_rows();
-
-				$this->db->insert('routine',$get_data[$j]);			
-
-
+		foreach($days as $day) {
+			foreach($get_data as $row) {
+				unset($row['routineID']);
+				$row['day'] = $day;
+				$this->db->insert('routine', $row);
 			}
 		}
-		echo 1;die;
+		echo json_encode(['status' => 1]); die;
+	}
+
+	public function copy_section_timetable(){
+		$from_section = $this->input->post('from_section');
+		$to_sections  = $this->input->post('to_sections');
+		$class_id     = $this->input->post('class_id');
+
+		$this->db->where('classesID', $class_id);
+		$this->db->where('sectionID', $from_section);
+		$get_data = $this->db->get('routine')->result_array();
+
+		foreach ($to_sections as $to_section) {
+			// never copy a section onto itself
+			if($to_section == $from_section) continue;
+			foreach ($get_data as $row) {
+				unset($row['routineID']);
+				$row['sectionID'] = $to_section;
+				$this->db->insert('routine', $row);
+			}
+		}
+		echo json_encode(['status' => 1]); die;
 	}
 }

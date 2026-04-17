@@ -247,3 +247,5 @@ $lang['menu_college_group']       = 'College Group';
 
 
 
+
+$lang['menu_exam_type'] = 'Exam Type';
