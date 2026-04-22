@@ -57,7 +57,8 @@ class Student extends Admin_Controller
         $this->load->model("payment_settings_m");  
         $this->load->model('payment_gateway_m');
         $this->load->model('payment_gateway_option_m');
-        
+        $this->load->model('studentsiblings_m');
+
 
 		$language = $this->session->userdata('lang');
 		$this->lang->load('student', $language);
@@ -133,8 +134,8 @@ class Student extends Admin_Controller
 					
 					$this->data['refered_by_name'] = '';
 					if ($studentInfo->refered_by) {
-						$refered_by = explode('-', $studentInfo->refered_by);
-						if(customCompute($refered_by) == 2) {
+						$refered_by = explode('-', $studentInfo->refered_by, 2);
+						if(count($refered_by) == 2) {
 							$type = $refered_by[0];
 							$typeID = $refered_by[1];
 							if($type == 'teacher') {
@@ -143,9 +144,12 @@ class Student extends Admin_Controller
 							} elseif($type == 'user') {
 								$user = $this->user_m->get_single_user(array('userID' => $typeID));
 								$this->data['refered_by_name'] = customCompute($user) ? $user->name . " [User]" : '';
+							} elseif($type == 'others') {
+								$this->data['refered_by_name'] = htmlspecialchars($typeID) . ' [Other]';
 							}
 						}
 					}
+					$this->data['siblings'] = $this->studentsiblings_m->get_siblings_by_student($id);
 
 					$this->data["subview"] = "student/getView";
 					$this->load->view('_layout_main', $this->data);
@@ -757,7 +761,7 @@ class Student extends Admin_Controller
 			array(
 				'field' => 'refered_by',
 				'label' => "Refered By",
-				'rules' => 'trim|required|xss_clean'
+				'rules' => 'trim|xss_clean'
 			),
 		);
 		return $rules;
@@ -1737,7 +1741,12 @@ class Student extends Admin_Controller
 					$array["mole1"] = $this->input->post('mole1');
 					$array["mole2"] = $this->input->post('mole2');
 					$array["studentType"] = $this->input->post('studentType');
-					$array["refered_by"] = $this->input->post('refered_by');
+					$refered_by_val = $this->input->post('refered_by');
+					if ($refered_by_val === 'others') {
+						$array["refered_by"] = 'others-' . $this->input->post('refered_by_other');
+					} else {
+						$array["refered_by"] = $refered_by_val;
+					}
 
 					if ($this->input->post('studentType') == 1) {
 						if ($this->input->post("transportID") == 0) {
@@ -1848,6 +1857,15 @@ class Student extends Admin_Controller
 
 					$this->studentextend_m->insert_studentextend($studentExtendArray);
 					$this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
+
+					$sibling_ids = array_filter((array)$this->input->post('sibling_studentID'));
+					foreach ($sibling_ids as $sibID) {
+						$sibID = (int)$sibID;
+						if ($sibID > 0 && $sibID != $studentID) {
+							$this->studentsiblings_m->insert_sibling(array('studentID' => $studentID, 'sibling_studentID' => $sibID));
+							$this->studentsiblings_m->insert_sibling(array('studentID' => $sibID, 'sibling_studentID' => $studentID));
+						}
+					}
 					// echo $this->db->last_query();die;
 
 
@@ -2363,6 +2381,7 @@ class Student extends Admin_Controller
 				}
 
 				$this->data['set'] = $url;
+				$this->data['existing_siblings'] = $this->studentsiblings_m->get_siblings_by_student($studentID);
 				if (customCompute($this->data['student'])) {
 					if ($_POST) {
 						if(!empty($this->input->post("village_name"))){
@@ -2422,7 +2441,12 @@ class Student extends Admin_Controller
 							$array["mole1"] = $this->input->post('mole1');
 							$array["mole2"] = $this->input->post('mole2');
 							$array["studentType"] = $this->input->post('studentType');
-							$array["refered_by"] = $this->input->post('refered_by');
+							$refered_by_val = $this->input->post('refered_by');
+							if ($refered_by_val === 'others') {
+								$array["refered_by"] = 'others-' . $this->input->post('refered_by_other');
+							} else {
+								$array["refered_by"] = $refered_by_val;
+							}
 
 							if ($this->input->post('dob')) {
 								$array["dob"] 	= date("Y-m-d", strtotime($this->input->post("dob")));
@@ -2657,6 +2681,20 @@ class Student extends Admin_Controller
 								));
 							}
 
+							$existing_sibs = $this->studentsiblings_m->get_siblings_by_student($studentID);
+							$existing_sib_ids = array_map(function($s){ return (int)$s->sibling_studentID; }, $existing_sibs ?: array());
+							$new_sib_ids = array_filter(array_map('intval', (array)$this->input->post('sibling_studentID')));
+							foreach (array_diff($existing_sib_ids, $new_sib_ids) as $removed) {
+								$this->studentsiblings_m->delete_pair($studentID, $removed);
+								$this->studentsiblings_m->delete_pair($removed, $studentID);
+							}
+							foreach (array_diff($new_sib_ids, $existing_sib_ids) as $added) {
+								if ($added != $studentID) {
+									$this->studentsiblings_m->insert_sibling(array('studentID' => $studentID, 'sibling_studentID' => $added));
+									$this->studentsiblings_m->insert_sibling(array('studentID' => $added, 'sibling_studentID' => $studentID));
+								}
+							}
+
 							$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 							redirect(base_url("student/index/$url"));
 						}
@@ -2676,6 +2714,36 @@ class Student extends Admin_Controller
 			$this->data["subview"] = "error";
 			$this->load->view('_layout_main', $this->data);
 		}
+	}
+
+	public function get_students_by_class_section()
+	{
+		$classesID = (int)$this->input->get('classesID');
+		$sectionID = (int)$this->input->get('sectionID');
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+		$this->db->select('student.studentID, student.name, studentrelation.srroll');
+		$this->db->from('studentrelation');
+		$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'INNER');
+		$this->db->where('studentrelation.srclassesID', $classesID);
+		$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+		$this->db->where('student.name IS NOT NULL', NULL, FALSE);
+		$this->db->where('student.name !=', '');
+		if ($sectionID > 0) {
+			$this->db->where('studentrelation.srsectionID', $sectionID);
+		}
+		$this->db->order_by('studentrelation.srroll', 'ASC');
+		$students = $this->db->get()->result();
+
+		$result = array();
+		if ($students) {
+			foreach ($students as $s) {
+				$result[] = array('studentID' => $s->studentID, 'name' => $s->name, 'roll' => $s->srroll);
+			}
+		}
+		header('Content-Type: application/json');
+		echo json_encode($result);
+		exit;
 	}
 
 	public function view()

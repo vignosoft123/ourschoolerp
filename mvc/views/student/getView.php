@@ -181,11 +181,41 @@ if (customCompute($profile)) { ?>
 										<div class="profile-details">
 											<label class="label-txt">Refered By </label>
 											<div class="para"><?= $refered_by_name ?></div>
-										</div>	
+										</div>
 									</div>
 
 								</div>
 
+								<?php if (!empty($siblings)): ?>
+								<h2 class="h2-title">Siblings</h2>
+								<div class="st-detail-list">
+									<table class="table table-bordered table-sm">
+										<thead>
+											<tr>
+												<th>Name</th>
+												<th>Class</th>
+												<th>Section</th>
+												<th>View</th>
+											</tr>
+										</thead>
+										<tbody>
+											<?php foreach ($siblings as $sib): ?>
+											<tr>
+												<td><?= htmlspecialchars($sib->name) ?></td>
+												<td><?= htmlspecialchars($sib->classes) ?></td>
+												<td><?= htmlspecialchars($sib->section) ?></td>
+												<td><a href="<?= base_url('student/view/' . $sib->sibling_studentID . '/' . $set) ?>" class="btn btn-xs btn-info"><i class="fa fa-eye"></i></a></td>
+											</tr>
+											<?php endforeach; ?>
+										</tbody>
+									</table>
+								</div>
+								<?php else: ?>
+								<h2 class="h2-title">Siblings</h2>
+								<div class="st-detail-list">
+									<p class="text-muted">No siblings added.</p>
+								</div>
+								<?php endif; ?>
 
 								<h2 class="h2-title">Student Details</h2>
 

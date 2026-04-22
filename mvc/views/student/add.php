@@ -514,7 +514,7 @@
                             echo "<div class='col-md-4' >";
                         ?>
                         <label for="father_aadhar" class=" control-label">
-                            Father Aadhar <span class="text-red">*</span>
+                            Father Aadhar
                         </label>
                         
                             <input type="text" class="form-control bg-lpurple" id="father_aadhar" name="father_aadhar" value="<?= set_value('father_aadhar') ?>">
@@ -1026,61 +1026,78 @@
 
 
 
-    <!-- reference details start -->
-
+        <!-- Reference & Sibling Details -->
     <div class="student-address-sec">
-            <h2 class="h2-title">Reference Details</h2>
-            <div class="row">
-          
+        <h2 class="h2-title">Reference &amp; Sibling Details</h2>
+        <div class="row">
 
-                <?php
-                if (form_error('refered_by'))
-                    echo "<div class='col-md-4 has-error' >";
-                else
-                    echo "<div class='col-md-4' >";
-                ?>
-                <label for="refered_by" class="  control-label">
-                    Refered By <span class="text-red">*</span>
-                    <a title="Add Teacher" target="_blank" href="<?= base_url('teacher/add');?>" taret="_blank"> <i class="fa fa-plus" ></i></a>
+            <!-- Refered By -->
+            <div class="col-md-3 <?= form_error('refered_by') ? 'has-error' : '' ?>">
+                <label for="refered_by" class="control-label">
+                    Refered By
+                    <a title="Add Teacher" target="_blank" href="<?= base_url('teacher/add') ?>"><i class="fa fa-plus"></i></a>
                 </label>
-                 
-                    <select id="refered_by" name="refered_by" class='form-control select2' >
-                        <option value=""> --Select-- </option>
-                        <?php foreach($teachers as $k=>$v){?>
-                            <option value="<?= $k?>" <?= set_select('refered_by', $k) ?>> <?= $v?> </option>
-                       <?php  }?>
-                    </select>
-                
-                <span class="  control-label">
-                    <?php echo form_error('refered_by'); ?>
-                </span>
-                </div><!-------- End village  ------>
-                <div>
-                <div>
-                    
-                <!-- reference details end -->
+                <select id="refered_by" name="refered_by" class="form-control select2">
+                    <option value="">--Select--</option>
+                    <option value="others" <?= set_select('refered_by', 'others') ?>>Others</option>
+                    <?php foreach($teachers as $k => $v): ?>
+                        <option value="<?= $k ?>" <?= set_select('refered_by', $k) ?>><?= $v ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <div id="refered_by_other_div" style="display:none; margin-top:6px;">
+                    <input type="text" class="form-control" id="refered_by_other" name="refered_by_other" placeholder="Enter referral name" value="<?= set_value('refered_by_other') ?>">
+                </div>
+                <span class="control-label text-danger"><?= form_error('refered_by') ?></span>
+            </div>
 
-</div>
+            <!-- Siblings -->
+            <div class="col-md-9">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <label class="control-label" style="margin:0; font-weight:600;">Siblings</label>
+                    <button type="button" class="btn btn-success btn-sm" id="add_sibling_btn">
+                        <i class="fa fa-plus"></i> Add Sibling
+                    </button>
+                </div>
+                <table class="table table-bordered table-condensed" id="sibling_table" style="margin-bottom:0;">
+                    <thead>
+                        <tr style="background:#f5f5f5;">
+                            <th style="width:30%">Class</th>
+                            <th style="width:25%">Section</th>
+                            <th>Student</th>
+                            <th style="width:46px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="sibling_tbody">
+                        <!-- template row (hidden) -->
+                        <tr id="sibling_row_template" style="display:none;">
+                            <td>
+                                <select name="sibling_classesID[]" class="form-control sibling-class-select">
+                                    <option value="">--Select Class--</option>
+                                    <?php foreach($classes as $cls): ?>
+                                    <option value="<?= $cls->classesID ?>"><?= $cls->classes ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="sibling_sectionID[]" class="form-control sibling-section-select">
+                                    <option value="">--Select Section--</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select name="sibling_studentID[]" class="form-control sibling-student-select">
+                                    <option value="">--Select Student--</option>
+                                </select>
+                            </td>
+                            <td class="text-center" style="vertical-align:middle;">
+                                <button type="button" class="btn btn-danger btn-sm remove-sibling-btn"><i class="fa fa-minus"></i></button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-
-
-
-
-
-<!--<div class="row">
- <div class="col-md-4 <?= form_error('extraCurricularActivities') ? ' has-error' : ''  ?>">
-    <label for="extraCurricularActivities" class="  control-label">
-        <?= $this->lang->line("student_extracurricularactivities") ?>
-    </label>
-         <input type="text" class="form-control" id="extraCurricularActivities" name="extraCurricularActivities" value="<?= set_value('extraCurricularActivities') ?>">
-     <span class="  control-label">
-        <?php echo form_error('extraCurricularActivities'); ?>
-    </span>
-</div> 
-</div>-->
-
-
-</div>
+        </div>
+    </div>
 
 <div class="student-btn-info form-group">
     <div class="add-student-btn">
@@ -1388,5 +1405,82 @@ $(document).ready(function(){
     });
 });
 
+// Refered By "Others" toggle
+$('#refered_by').on('change', function() {
+    if ($(this).val() === 'others') {
+        $('#refered_by_other_div').show();
+    } else {
+        $('#refered_by_other_div').hide().find('input').val('');
+    }
+});
+
+// Siblings section
+var siblingRowCount = 0;
+
+function initSiblingRow(row) {
+    row.find('.sibling-class-select').select2({width: '100%'});
+}
+
+$('#add_sibling_btn').on('click', function() {
+    var template = $('#sibling_row_template').clone();
+    template.attr('id', 'sibling_row_' + siblingRowCount);
+    template.removeAttr('style');
+    $('#sibling_tbody').append(template);
+    initSiblingRow(template);
+    siblingRowCount++;
+});
+
+$(document).on('click', '.remove-sibling-btn', function() {
+    $(this).closest('tr').remove();
+});
+
+$(document).on('change', '.sibling-class-select', function() {
+    var classesID = $(this).val();
+    var row = $(this).closest('tr');
+    var sectionSelect = row.find('.sibling-section-select');
+    var studentSelect = row.find('.sibling-student-select');
+    if ($.fn.select2 && sectionSelect.hasClass('select2-hidden-accessible')) {
+        sectionSelect.select2('destroy');
+    }
+    if ($.fn.select2 && studentSelect.hasClass('select2-hidden-accessible')) {
+        studentSelect.select2('destroy');
+    }
+    sectionSelect.html('<option value="">--Select Section--</option>');
+    studentSelect.html('<option value="">--Select Student--</option>');
+    if (classesID > 0) {
+        $.ajax({
+            type: 'POST',
+            url: "<?= base_url('student/sectioncall') ?>",
+            data: "id=" + classesID,
+            dataType: "html",
+            success: function(data) {
+                sectionSelect.html(data);
+                sectionSelect.off('change.sibLoad').on('change.sibLoad', function() {
+                    var sectionID = $(this).val();
+                    if ($.fn.select2 && studentSelect.hasClass('select2-hidden-accessible')) {
+                        studentSelect.select2('destroy');
+                    }
+                    studentSelect.html('<option value="">--Select Student--</option>');
+                    if (classesID > 0 && sectionID > 0) {
+                        $.ajax({
+                            type: 'GET',
+                            url: "<?= base_url('student/get_students_by_class_section') ?>",
+                            data: {classesID: classesID, sectionID: sectionID},
+                            dataType: "json",
+                            success: function(studs) {
+                                $.each(studs, function(i, s) {
+                                    var label = s.name + (s.roll ? ' (' + s.roll + ')' : '');
+                                    studentSelect.append('<option value="' + s.studentID + '">' + label + '</option>');
+                                });
+                                studentSelect.select2({width: '100%', placeholder: '--Select Student--'});
+                            }
+                        });
+                    }
+                });
+                sectionSelect.select2({width: '100%'});
+            }
+        });
+    }
+});
 
 </script>

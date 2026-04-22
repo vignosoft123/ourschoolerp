@@ -33,3 +33,11 @@ CREATE TABLE IF NOT EXISTS `admission_enquiry` (
   `create_usertypeID` int(11) NOT NULL,
   PRIMARY KEY (`enquiryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `student_siblings` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studentID` INT UNSIGNED NOT NULL,
+  `sibling_studentID` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_sibling_pair` (`studentID`, `sibling_studentID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

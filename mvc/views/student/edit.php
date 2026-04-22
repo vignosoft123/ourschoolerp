@@ -508,7 +508,7 @@
                                     $father_aadhar = $this->db->get('parents')->row()->father_aadhar; 
                             ?>
                                 <label for="father_aadhar" class="control-label">
-                                Father Aadhar <span class="text-red">*</span>
+                                Father Aadhar
                                 </label>
                                
                                     <input type="text" class="form-control" id="father_aadhar" name="father_aadhar" value="<?= $father_aadhar?$father_aadhar:''?>" >
@@ -866,305 +866,113 @@
 
 
                                 <div class="student-address-sec">
-                                    <h2 class="h2-title">Reference Details</h2>
-                                    <div class="row">
-                                        <?php
-                                        if (form_error('refered_by'))
-                                            echo "<div class='col-md-4 has-error' >";
-                                        else
-                                            echo "<div class='col-md-4' >";
-                                        ?>
-                                        <label for="refered_by" class="  control-label">
-                                            Refered By <span class="text-red">*</span>
-                                            <a title="Add Teacher" target="_blank" href="<?= base_url('teacher/add'); ?>" taret="_blank"> <i class="fa fa-plus"></i></a>
-                                        </label>
+                    <h2 class="h2-title">Reference &amp; Sibling Details</h2>
+                    <div class="row">
 
-                                        <select id="refered_by" name="refered_by" class='form-control select2'>
-                                            <option value=""> --Select-- </option>
-                                            <?php foreach ($teachers as $k => $v) { ?>
-                                                <option value="<?= $k ?>" <?php if ($student->refered_by == $k) { echo 'selected'; } ?>> <?= $v ?> </option>
-                                            <?php  } ?>
-                                        </select>
-
-                                        <span class="  control-label">
-                                            <?php echo form_error('refered_by'); ?>
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-
-                                    
-                                <?php
-                                if (form_error('account_no'))
-                                    echo "<div class='col-md-4 has-error' >";
-                                else
-                                    echo "<div class='col-md-4' >";
-                                ?>
-                                <label for="name_id" class=" control-label">
-                                    Account No <span class="text-red">*</span>
-                                </label>
-                                
-                                    <input type="text" class="form-control" id="account_no" name="account_no" value="<?= set_value('account_no', $student->account_no) ?>">
-                                
-                                <span class="  control-label">
-                                    <?php echo form_error('account_no'); ?>
-                                </span>
-                                </div>
-
-
-                                    <?php
-                                    if (form_error('bank_name'))
-                                        echo "<div class='col-md-4 has-error' >";
-                                    else
-                                        echo "<div class='col-md-4' >";
-                                    ?>
-                                    <label for="name_id" class=" control-label">
-                                        Bank Name <span class="text-red">*</span>
-                                    </label>
-                                    
-                                        <input type="text" class="form-control" id="bank_name" name="bank_name" value="<?= set_value('bank_name', $student->bank_name) ?>">
-                                    
-                                    <span class="  control-label">
-                                        <?php echo form_error('bank_name'); ?>
-                                    </span>
-                                    </div>
-
-                                    <?php
-                                    if (form_error('ifsc_code'))
-                                        echo "<div class='col-md-4 has-error' >";
-                                    else
-                                        echo "<div class='col-md-4' >";
-                                    ?>
-                                    <label for="name_id" class=" control-label">
-                                        IFSC Code <span class="text-red">*</span>
-                                    </label>
-                                    
-                                        <input type="text" class="form-control" id="ifsc_code" name="ifsc_code" value="<?= set_value('ifsc_code', $student->ifsc_code) ?>">
-                                    
-                                    <span class="  control-label">
-                                        <?php echo form_error('ifsc_code'); ?>
-                                    </span>
-                                </div>
-
-                                <?php
-                                if (form_error('branch_name'))
-                                    echo "<div class='col-md-4 has-error' >";
-                                else
-                                    echo "<div class='col-md-4' >";
-                                ?>
-                                <label for="name_id" class=" control-label">
-                                    Branch Name <span class="text-red">*</span>
-                                </label>
-                                
-                                    <input type="text" class="form-control" id="branch_name" name="branch_name" value="<?= set_value('branch_name', $student->branch_name) ?>">
-                                
-                                <span class="  control-label">
-                                    <?php echo form_error('branch_name'); ?>
-                                </span>
-                                </div>
-
-                                <div class="row"> 
-                                <?php
-                                    if (form_error('studentType'))
-                                        echo "<div class='col-md-4 has-error' >";
-                                    else
-                                        echo "<div class='col-md-4' >";
-                                    ?>
-                                    <label for="studentType" class="  control-label">
-                                        <?= $this->lang->line("studentType") ?></span>
-                                    </label>
-                                    <?php
-                                            $studentType = array(3 => "DAY SCHOLAR",1 => "TRANSPORT", 2 => "HOSTEL" );
-                                        ?> 
-                                        <?php
-                                            echo form_dropdown("studentType", $studentType, set_value("studentType",$student->studentType), "id='studentType' class='form-control select2'");
-                                        ?>
-                                    <span class="  control-label">
-                                        <?php echo form_error('studentType'); ?>
-                                    </span>
-                                </div> 
-                                </div>
-
-                        </div>
-                    </div><!-------- End student address details sec------>
-
-                    <div class="transport-details-sec" id="transport_div">
-
-                        <h2 class="h2-title">Transport Details</h2>
-                        <div class="row">
-                        <?php 
-                            if(form_error('transportID')) 
-                                echo "<div class='col-md-4 has-error' >";
-                            else     
-                                echo "<div class='col-md-4' >";
+                        <!-- Refered By -->
+                        <?php
+                        $refered_by_stored = $student->refered_by;
+                        $is_others_selected = (strpos($refered_by_stored, 'others-') === 0);
+                        $others_text_value = $is_others_selected ? substr($refered_by_stored, 7) : '';
                         ?>
-                            <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' || $student->studentType == '1' ? '' : 'show'; ?> transport" >
-                                <?=$this->lang->line("tmember_route_name")?> <span class="text-red">*</span>
+                        <div class="col-md-3 <?= form_error('refered_by') ? 'has-error' : '' ?>">
+                            <label for="refered_by" class="control-label">
+                                Refered By
+                                <a title="Add Teacher" target="_blank" href="<?= base_url('teacher/add'); ?>"><i class="fa fa-plus"></i></a>
                             </label>
-                            <div class="col1-sm-6 <?= $this->input->post('studentType')=='1' || $student->studentType == '1' ? '' : 'show'; ?> transport" >
-                                
-                                <?php
-                                    $array = array();
-                                    $array[0] = $this->lang->line("classes_select_route_name");
-                                    foreach ($transports as $transport) {
-                                        $array[$transport->transportID] = $transport->route;
-                                    }
-                                    echo form_dropdown("transportID", $array, set_value("transportID", isset($studntTransportDetails->transportID) ? ($studntTransportDetails->transportID) : '' ), "id='transportID' class='form-control select2'");
-                                ?>
+                            <select id="refered_by" name="refered_by" class="form-control select2">
+                                <option value="">--Select--</option>
+                                <option value="others" <?= $is_others_selected ? 'selected' : '' ?>>Others</option>
+                                <?php foreach ($teachers as $k => $v) { ?>
+                                    <option value="<?= $k ?>" <?php if (!$is_others_selected && $student->refered_by == $k) { echo 'selected'; } ?>><?= $v ?></option>
+                                <?php } ?>
+                            </select>
+                            <div id="refered_by_other_div" style="<?= $is_others_selected ? '' : 'display:none;' ?>margin-top:6px;">
+                                <input type="text" class="form-control" id="refered_by_other" name="refered_by_other" placeholder="Enter referral name" value="<?= htmlspecialchars($others_text_value) ?>">
                             </div>
-                            <span class="control-label <?= $this->input->post('studentType')=='1' || $student->studentType == '1'? '' : 'show'; ?> transport">
-                                <?php echo form_error('transportID'); ?>
-                            </span>
+                            <span class="control-label text-danger"><?= form_error('refered_by') ?></span>
                         </div>
 
-                        <?php 
-                //    echo '<pre>';print_r($student);
-                //    echo '<pre>';print_r($pickup_points);
-                   echo "<div class='col-md-4' >";
-           ?>
-               <label for="transportID" class="control-label  <?= $this->input->post('studentType')=='1' ? '' : 'show'; ?> transport" >
-                   Pickup Point <span class="text-red">*</span>
-               </label>
-               <div class="col1-sm-4 " >                    
-                   <select id="pickup_id" name ="pickup_id" class='form-control select2'>
-                       <option>Select Pickup point</option>
-                       <?php foreach($pickup_points as $p){?>
-                       <option value="<?= $p['id']?>"  <?php if($student->pickup_id == $p['id']){echo 'selected';}?>><?php echo $p['pickupPoint'];?></option>
-                        
-                        <?php }?>
-                   </select>
-               </div>
-                
-           </div> 
-
-                        <?php 
-                            if(form_error('tbalance')) 
-                                echo "<div class='col-md-4 has-error' >";
-                            else     
-                                echo "<div class='col-md-4' >";
-                        ?>
-                            <label for="tbalance" class="control-label <?= $this->input->post('studentType')=='1' || $student->studentType == '1' ? '' : 'show'; ?> transport">
-                                <?=$this->lang->line("tmember_tfee")?> <span class="text-red">*</span>
-                            </label>
-                            <div class=" <?= $this->input->post('studentType')=='1' || $student->studentType == '1' ? '' : 'show'; ?> transport">
-                                <input type="text" class="form-control" id="tbalance" name="tbalance" value="<?=set_value('tbalance', isset($studntTransportDetails->tbalance) ? $studntTransportDetails->tbalance : '' ); ?>" readonly>
+                        <!-- Siblings -->
+                        <div class="col-md-9">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                <label class="control-label" style="margin:0; font-weight:600;">Siblings</label>
+                                <button type="button" class="btn btn-success btn-sm" id="add_sibling_btn">
+                                    <i class="fa fa-plus"></i> Add Sibling
+                                </button>
                             </div>
-                            <span class="control-label <?= $this->input->post('studentType')=='1' || $student->studentType == '1' ? '' : 'show'; ?> transport">
-                                <?php echo form_error('tbalance'); ?>
-                            </span>
+                            <table class="table table-bordered table-condensed" id="sibling_table" style="margin-bottom:0;">
+                                <thead>
+                                    <tr style="background:#f5f5f5;">
+                                        <th style="width:30%">Class</th>
+                                        <th style="width:25%">Section</th>
+                                        <th>Student</th>
+                                        <th style="width:46px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sibling_tbody">
+                                    <?php if (!empty($existing_siblings)): ?>
+                                    <?php foreach ($existing_siblings as $sib): ?>
+                                    <tr class="sibling-existing-row"
+                                        data-classesid="<?= $sib->classesID ?>"
+                                        data-sectionid="<?= $sib->sectionID ?>"
+                                        data-studentid="<?= $sib->sibling_studentID ?>"
+                                        data-studentname="<?= htmlspecialchars($sib->name) ?>">
+                                        <td>
+                                            <select name="sibling_classesID[]" class="form-control sibling-class-select">
+                                                <option value="">--Select Class--</option>
+                                                <?php foreach($classes as $cls): ?>
+                                                <option value="<?= $cls->classesID ?>" <?= ($cls->classesID == $sib->classesID) ? 'selected' : '' ?>><?= $cls->classes ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="sibling_sectionID[]" class="form-control sibling-section-select">
+                                                <option value="">--Select Section--</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="sibling_studentID[]" class="form-control sibling-student-select">
+                                                <option value="">--Select Student--</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-center" style="vertical-align:middle;">
+                                            <button type="button" class="btn btn-danger btn-sm remove-sibling-btn"><i class="fa fa-minus"></i></button>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                    <?php endif; ?>
+                                    <!-- template row (hidden) -->
+                                    <tr id="sibling_row_template" style="display:none;">
+                                        <td>
+                                            <select name="sibling_classesID[]" class="form-control sibling-class-select">
+                                                <option value="">--Select Class--</option>
+                                                <?php foreach($classes as $cls): ?>
+                                                <option value="<?= $cls->classesID ?>"><?= $cls->classes ?></option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="sibling_sectionID[]" class="form-control sibling-section-select">
+                                                <option value="">--Select Section--</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select name="sibling_studentID[]" class="form-control sibling-student-select">
+                                                <option value="">--Select Student--</option>
+                                            </select>
+                                        </td>
+                                        <td class="text-center" style="vertical-align:middle;">
+                                            <button type="button" class="btn btn-danger btn-sm remove-sibling-btn"><i class="fa fa-minus"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
-                        
 
-
-                        </div>
-                    </div><!-------- End Transort details sec------>
-                    <div class="hostel-details-sec" id="hostel_div">
-                        <h2 class="h2-title">Hostel Details</h2>
-                        <div class="row">
-                                <?php 
-                                    if(form_error('hostelID')) 
-                                        echo "<div class='col-md-4 has-error' >";
-                                    else     
-                                        echo "<div class='col-md-4' >";
-                                ?>
-                                    <label for="hostelID" class="control-label  <?= $this->input->post('studentType')=='2' || $student->studentType == '2' ? '' : 'show'; ?> hostel">
-                                        <?=$this->lang->line("hmember_hname")?> <span class="text-red">*</span>
-                                    </label>
-                                    <div class=" <?= $this->input->post('studentType')=='2' || $student->studentType == '2' ? '' : 'show'; ?> hostel">
-                                        <?php
-                                            $array[0] = $this->lang->line("hmember_select_hostel_name");
-                                            foreach ($hostels as $hostel) {
-                                                $array[$hostel->hostelID] = $hostel->name;
-                                            }
-                                            echo form_dropdown("hostelID", $array, set_value("hostelID", isset($studntHostelDetails->hostelID) ?$studntHostelDetails->hostelID:'' ), "id='hostelID' class='form-control select2'");
-                                        ?>
-                                    </div>
-                                    <span class="control-label <?= $this->input->post('studentType')=='2' || $student->studentType == '2' ? '' : 'show'; ?> hostel">
-                                        <?php echo form_error('hostelID'); ?>
-                                    </span>
-                            </div>
-
-                            <?php 
-                if(form_error('categoryID')) 
-                    echo "<div class='col-md-4 has-error' >";
-                else     
-                    echo "<div class='col-md-4' >";
-            ?>
-                <label for="categoryID" class="control-label hostel  <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?>">
-                    <?=$this->lang->line("hmember_class_type")?> <span class="text-red">*</span>
-                </label>
-                <div class="coll-sm-6  <?= $this->input->post('studentType')=='2'  ? '' : 'show'; ?> hostel">
-                    <?php
-                        $array = array(0 => $this->lang->line("hmember_select_class_type"));
-                        if(customCompute($categorys)) {
-                            foreach ($categorys as $key => $category) {
-                                $array[$category->categoryID] = $category->class_type;
-                            }
-                        }
-                        echo form_dropdown("categoryID", $array, set_value("categoryID"), "id='categoryID' class='form-control select2'");
-                    ?>
+                    </div>
                 </div>
-                <span class="control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel" >
-                    <?php echo form_error('categoryID'); ?>
-                </span>
-                            </div>
 
-
-                        </div>
-                    </div><!-------- End Hostel details sec------>
-                    
-                  
-
-
-                   
-                    <!-- <?php
-                        if (form_error('studentType'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                        ?>
-                        <label for="studentType" class="col-sm-2 control-label">
-                            <?= $this->lang->line("studentType") ?></span>
-                        </label>
-                        <div class="col-sm-6">
-                            <?php
-                                $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR");
-                            ?>
-                            <?php
-                                echo form_dropdown("studentType", $studentType, set_value("studentType",$student->studentType ), "id='studentType' class='form-control select2'"); 
-                            ?>
-                        </div>
-                        <span class="col-sm-4 control-label">
-                            <?php echo form_error('studentType'); ?>
-                        </span>
-                    </div> -->
-
-   
-
-                  
-
-   
-    
-                <!--
-                    <?php 
-                        if(form_error('username')) 
-                            echo "<div class='form-group has-error' >";
-                        else     
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="username" class="col-sm-2 control-label">
-                            <?=$this->lang->line("student_username")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="col-sm-6">
-                            <input type="text" class="form-control" id="username" name="username" value="<?=set_value('username', $student->username)?>" >
-                        </div>
-                         <span class="col-sm-4 control-label">
-                            <?php echo form_error('username'); ?>
-                        </span>
-                    </div>-->
-
-                   
                     <div class="student-btn-info form-group">
                         <div class="add-student-btn">
                         <input type="submit" class="primary-btn" value="<?=$this->lang->line("update_student")?>" >
@@ -1457,6 +1265,129 @@ $(document).ready(function(){
     });
 });
 
+
+// Refered By "Others" toggle
+$('#refered_by').on('change', function() {
+    if ($(this).val() === 'others') {
+        $('#refered_by_other_div').show();
+    } else {
+        $('#refered_by_other_div').hide().find('input').val('');
+    }
+});
+
+// Siblings section
+var siblingRowCount = 0;
+
+function loadSiblingSections(classSelect, targetSectionSelect, targetStudentSelect, preSelectedSectionID, preSelectedStudentID, preSelectedStudentName) {
+    var classesID = classSelect.val();
+    if ($.fn.select2 && targetSectionSelect.hasClass('select2-hidden-accessible')) {
+        targetSectionSelect.select2('destroy');
+    }
+    targetSectionSelect.html('<option value="0">Select Section</option>');
+    targetStudentSelect.html('<option value="">--Select Student--</option>');
+    if (classesID > 0) {
+        $.ajax({
+            type: 'POST',
+            url: "<?= base_url('student/sectioncall') ?>",
+            data: "id=" + classesID,
+            dataType: "html",
+            success: function(data) {
+                targetSectionSelect.html(data);
+                targetSectionSelect.select2({width: '100%'});
+                if (preSelectedSectionID) {
+                    targetSectionSelect.val(preSelectedSectionID).trigger('change.select2');
+                    loadSiblingStudents(classesID, preSelectedSectionID, targetStudentSelect, preSelectedStudentID);
+                }
+            }
+        });
+    }
+}
+
+function initSiblingRow(row) {
+    row.find('.sibling-class-select').select2({width: '100%'});
+}
+
+function loadSiblingStudents(classesID, sectionID, targetStudentSelect, preSelectedStudentID) {
+    if ($.fn.select2 && targetStudentSelect.hasClass('select2-hidden-accessible')) {
+        targetStudentSelect.select2('destroy');
+    }
+    $.ajax({
+        type: 'GET',
+        url: "<?= base_url('student/get_students_by_class_section') ?>",
+        data: {classesID: classesID, sectionID: sectionID},
+        dataType: "json",
+        success: function(data) {
+            targetStudentSelect.html('<option value="">--Select Student--</option>');
+            $.each(data, function(i, s) {
+                var selected = (preSelectedStudentID && s.studentID == preSelectedStudentID) ? ' selected' : '';
+                var label = s.name + (s.roll ? ' (' + s.roll + ')' : '');
+                targetStudentSelect.append('<option value="' + s.studentID + '"' + selected + '>' + label + '</option>');
+            });
+            targetStudentSelect.select2({width: '100%', placeholder: '--Select Student--'});
+        }
+    });
+}
+
+// Pre-populate existing sibling rows
+$('#sibling_tbody .sibling-existing-row').each(function() {
+    var row = $(this);
+    var classesID = row.data('classesid');
+    var sectionID = row.data('sectionid');
+    var studentID = row.data('studentid');
+    var classSelect = row.find('.sibling-class-select');
+    var sectionSelect = row.find('.sibling-section-select');
+    var studentSelect = row.find('.sibling-student-select');
+    initSiblingRow(row);
+    if (classesID) {
+        loadSiblingSections(classSelect, sectionSelect, studentSelect, sectionID, studentID, null);
+    }
+});
+
+$('#add_sibling_btn').on('click', function() {
+    var template = $('#sibling_row_template').clone();
+    template.attr('id', 'sibling_row_' + siblingRowCount);
+    template.removeAttr('style');
+    $('#sibling_tbody').append(template);
+    initSiblingRow(template);
+    siblingRowCount++;
+});
+
+$(document).on('click', '.remove-sibling-btn', function() {
+    $(this).closest('tr').remove();
+});
+
+$(document).on('change', '.sibling-class-select', function() {
+    var classesID = $(this).val();
+    var row = $(this).closest('tr');
+    var sectionSelect = row.find('.sibling-section-select');
+    var studentSelect = row.find('.sibling-student-select');
+    if ($.fn.select2 && sectionSelect.hasClass('select2-hidden-accessible')) {
+        sectionSelect.select2('destroy');
+    }
+    if ($.fn.select2 && studentSelect.hasClass('select2-hidden-accessible')) {
+        studentSelect.select2('destroy');
+    }
+    sectionSelect.html('<option value="">--Select Section--</option>');
+    studentSelect.html('<option value="">--Select Student--</option>');
+    if (classesID > 0) {
+        $.ajax({
+            type: 'POST',
+            url: "<?= base_url('student/sectioncall') ?>",
+            data: "id=" + classesID,
+            dataType: "html",
+            success: function(data) {
+                sectionSelect.html(data);
+                sectionSelect.off('change.sibLoad').on('change.sibLoad', function() {
+                    var sectionID = $(this).val();
+                    if (sectionID > 0) {
+                        loadSiblingStudents(classesID, sectionID, studentSelect, null);
+                    }
+                });
+                sectionSelect.select2({width: '100%'});
+            }
+        });
+    }
+});
 
 // $(document).ready(function () {
 //     // Initialize Select2

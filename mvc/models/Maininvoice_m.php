@@ -92,8 +92,6 @@ public function get_maininvoice_with_studentrelation($schoolyearID = NULL, $main
     if ($schoolyearID !== NULL) {
         $this->db->where('maininvoice.maininvoiceschoolyearID', $schoolyearID);
         $this->db->where('studentrelation.srschoolyearID', $schoolyearID);
-        $this->db->where('maininvoice.maininvoiceuname IS NOT NULL', NULL, FALSE);
-        $this->db->where('maininvoice.maininvoiceuname !=', '');
     }
 
     // if ($maininvoiceclassesID !== NULL) {
@@ -334,8 +332,6 @@ public function get_maininvoice_with_studentrelation_new1($schoolyearID = NULL, 
 		if ($schoolyearID !== NULL) {
 			$this->db->where('maininvoice.maininvoiceschoolyearID', $schoolyearID);
 			$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
-			$this->db->where('maininvoice.maininvoiceuname IS NOT NULL', NULL, FALSE);
-			$this->db->where('maininvoice.maininvoiceuname !=', '');
 		}
 
 		if (!empty($maininvoiceclassesID) && $maininvoiceclassesID > 0) {
