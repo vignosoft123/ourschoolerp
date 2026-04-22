@@ -218,44 +218,105 @@ class Subdomains extends Admin_Controller {
 	}
 
 	public function ajax_list() {
-		$draw = intval($this->input->post("draw"));
-		$start = intval($this->input->post("start"));
+		$draw   = intval($this->input->post("draw"));
+		$start  = intval($this->input->post("start"));
 		$length = intval($this->input->post("length"));
 		$search = $this->input->post("search")['value'];
 		$server = $this->input->post("server");
 
-		$subdomains = $this->subdomains_m->get_subdomains_with_pagination($length, $start, $search, $server);
+		$subdomains  = $this->subdomains_m->get_subdomains_with_pagination($length, $start, $search, $server);
 		$total_count = $this->subdomains_m->get_subdomains_count($search, $server);
 
 		$data = array();
-		foreach($subdomains as $key => $subdomain) {
-			$row = array();
-			$row[] = $start + $key + 1;
-			$row[] = htmlspecialchars($subdomain->server);
-			$row[] = htmlspecialchars($subdomain->subdomain);
-			$row[] = htmlspecialchars($subdomain->db_host);
-			$row[] = htmlspecialchars($subdomain->db_name);
-			$row[] = htmlspecialchars($subdomain->site_name);
-			$row[] = htmlspecialchars($subdomain->main_domain);
-			$row[] = '<span class="badge badge-' . ($subdomain->status == 'active' ? 'success' : 'danger') . '">' . ucfirst($subdomain->status) . '</span>';
-			
-			$actions = '';
-			$actions .= '<a href="javascript:void(0)" class="btn btn-success btn-sm" title="Create Tables" onclick="createTables(this, ' . $subdomain->id . ')"><i class="fa fa-database"></i></a> ';
-			$actions .= '<a href="' . base_url('subdomains/edit/' . $subdomain->id) . '" class="btn btn-primary btn-sm" title="Edit"><i class="fa fa-edit"></i></a> ';
-			$actions .= '<a href="' . base_url('subdomains/delete/' . $subdomain->id) . '" class="btn btn-danger btn-sm" title="Delete" onclick="return confirm(\'Are you sure you want to delete this subdomain?\')"><i class="fa fa-trash"></i></a>';
-			
-			$row[] = $actions;
-			$data[] = $row;
+		foreach ($subdomains as $key => $subdomain) {
+
+			$actions  = '';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-success btn-sm" title="Create Tables" onclick="event.stopPropagation();createTables(this,' . $subdomain->id . ')"><i class="fa fa-database"></i></a> ';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-statistics" title="Statistics" onclick="event.stopPropagation();showStatistics(' . $subdomain->id . ',\'' . addslashes(htmlspecialchars($subdomain->site_name ?: $subdomain->subdomain)) . '\')"><i class="fa fa-bar-chart"></i></a> ';
+			$actions .= '<a href="' . base_url('subdomains/edit/' . $subdomain->id) . '" class="btn btn-primary btn-sm" title="Edit" onclick="event.stopPropagation()"><i class="fa fa-edit"></i></a> ';
+			$actions .= '<a href="' . base_url('subdomains/delete/' . $subdomain->id) . '" class="btn btn-danger btn-sm" title="Delete" onclick="event.stopPropagation();return confirm(\'Are you sure you want to delete this subdomain?\')"><i class="fa fa-trash"></i></a>';
+
+			$data[] = array(
+				// Visible columns
+				'serial'          => $start + $key + 1,
+				'server'          => htmlspecialchars($subdomain->server),
+				'subdomain'       => htmlspecialchars($subdomain->subdomain),
+				'db_name'         => htmlspecialchars($subdomain->db_name),
+				'school_age'      => isset($subdomain->school_age)      ? intval($subdomain->school_age)      : '—',
+				'total_students'  => isset($subdomain->total_students)  ? intval($subdomain->total_students)  : '—',
+				'total_app_users' => isset($subdomain->total_app_users) ? intval($subdomain->total_app_users) : '—',
+				'actions'         => $actions,
+				// Full detail for row-click popup (prefixed with underscore)
+				'_id'          => $subdomain->id,
+				'_site_name'   => htmlspecialchars($subdomain->site_name),
+				'_main_domain' => htmlspecialchars($subdomain->main_domain),
+				'_db_host'     => htmlspecialchars($subdomain->db_host),
+				'_db_user'     => htmlspecialchars($subdomain->db_user),
+				'_logo_url'    => htmlspecialchars($subdomain->logo_url),
+				'_theme_color' => htmlspecialchars($subdomain->theme_color),
+				'_status'      => $subdomain->status,
+				'_created_at'  => $subdomain->created_at,
+			);
 		}
 
-		$output = array(
-			"draw" => $draw,
-			"recordsTotal" => $total_count,
+		echo json_encode(array(
+			"draw"            => $draw,
+			"recordsTotal"    => $total_count,
 			"recordsFiltered" => $total_count,
-			"data" => $data
-		);
+			"data"            => $data,
+		));
+	}
 
-		echo json_encode($output);
+	public function ajax_school_age_info() {
+		header('Content-Type: application/json');
+
+		// Check table existence with raw query (CI3 active-record aliases break table_exists)
+		$check = $this->db->query("SHOW TABLES LIKE 'school_age_info'");
+		if (!$check || $check->num_rows() === 0) {
+			echo json_encode(array('years' => array(), 'subdomains' => array(), 'total_subdomains' => 0));
+			return;
+		}
+
+		// Raw SQL to avoid CI3 backtick-wrapping alias names
+		$sql = "SELECT sai.subdomain_id, sai.finyear,
+		               sai.numberofstudents, sai.numberofappusers,
+		               ss.subdomain, ss.site_name, ss.server
+		        FROM   school_age_info sai
+		        INNER JOIN subdomain_settings ss ON ss.id = sai.subdomain_id
+		        ORDER BY ss.subdomain ASC, sai.finyear ASC";
+		$rows = $this->db->query($sql)->result();
+
+		$seen_years    = array();
+		$years         = array();
+		$subdomain_map = array();
+
+		foreach ($rows as $row) {
+			if (!in_array($row->finyear, $seen_years)) {
+				$seen_years[] = $row->finyear;
+				$years[]      = $row->finyear;
+			}
+			if (!isset($subdomain_map[$row->subdomain_id])) {
+				$subdomain_map[$row->subdomain_id] = array(
+					'subdomain_id' => $row->subdomain_id,
+					'subdomain'    => $row->subdomain,
+					'site_name'    => $row->site_name ?: $row->subdomain,
+					'server'       => $row->server,
+					'data'         => array(),
+				);
+			}
+			$subdomain_map[$row->subdomain_id]['data'][$row->finyear] = array(
+				'students'  => (int)$row->numberofstudents,
+				'app_users' => (int)$row->numberofappusers,
+			);
+		}
+
+		sort($years);
+
+		echo json_encode(array(
+			'years'            => $years,
+			'subdomains'       => array_values($subdomain_map),
+			'total_subdomains' => count($subdomain_map),
+		));
 	}
 
 	public function get_db_host() {

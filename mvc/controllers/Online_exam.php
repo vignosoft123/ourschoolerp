@@ -275,6 +275,7 @@ class Online_exam extends Admin_Controller {
                     }
                     $array['examStatus'] = $this->input->post('examStatus');
                     $array['published']   = $this->input->post('published');
+                    $array['showMarkAfterExam'] = (int)$this->input->post('showMarkAfterExam');
                     $array['create_date'] = date("Y-m-d H:i:s");
                     $array['modify_date'] = date("Y-m-d H:i:s");
                     $array['create_userID'] =$usertypeID;
@@ -386,6 +387,7 @@ class Online_exam extends Admin_Controller {
                             $array['modify_date'] = date("Y-m-d H:i:s");
                             $array['examStatus']  = $this->input->post('examStatus');
                             $array['published']   = $this->input->post('published');
+                            $array['showMarkAfterExam'] = (int)$this->input->post('showMarkAfterExam');
 
                             $this->online_exam_m->update_online_exam($array, $id);
                             $this->session->set_flashdata('success', $this->lang->line('menu_success'));

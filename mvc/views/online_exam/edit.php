@@ -521,6 +521,19 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="showMarkAfterExam" class="col-sm-2 control-label">
+                            <?=$this->lang->line("online_exam_showMarkAfterExam")?>
+                        </label>
+                        <div class="col-sm-6">
+                            <?php
+                                $smArray['0'] = $this->lang->line("online_exam_no");
+                                $smArray['1'] = $this->lang->line("online_exam_yes");
+                                echo form_dropdown("showMarkAfterExam", $smArray, set_value("showMarkAfterExam", $online_exam->showMarkAfterExam), "id='showMarkAfterExam' class='form-control select2'");
+                            ?>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-8">
                             <input type="submit" class="btn btn-success" value="<?=$this->lang->line("update_class")?>" >
                         </div>

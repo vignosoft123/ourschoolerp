@@ -479,7 +479,7 @@
                             $isScheduled = isset($examSubjects[$examID]) && in_array($subjectID, $examSubjects[$examID]);
                             if (!$isScheduled || !customCompute($markpercentages)) {
                                 for ($na = 0; $na < $examColCount; $na++) { ?>
-                                    <td>N/A</td>
+                                    <td>-</td>
                                 <?php }
                             } else {
                                 foreach ($markpercentages as $markpercentageID) {
@@ -571,47 +571,6 @@
             } ?>
         </tr>
 
-        <!-- Average Marks Row -->
-        <tr>
-            <td colspan="<?= $leftColumn ?>">Average Marks </td>
-            <?php
-            if (customCompute($markpercentagesexamArr)) {
-                foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
-                    $totalExamMarks = 0;
-                    $subjectCount = 0;
-                    if (customCompute($subjectList)) {
-                        foreach ($subjectList as $sID => $sobj) {
-                            $isOptional = isset($optionalSubjects[$student->srclassesID]) && isset($optionalSubjects[$student->srclassesID][$sID]);
-                            if ($isOptional && ($student->sroptionalsubjectID > 0) && ($student->sroptionalsubjectID != $sID)) {
-                                continue;
-                            }
-                            $subjectCount++;
-
-                            $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
-                            $markpercentages = [];
-                            if (customCompute($uniquepercentageArr)) {
-                                $uniqueandown = (($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own';
-                                $markpercentages = isset($uniquepercentageArr[$uniqueandown]) ? $uniquepercentageArr[$uniqueandown] : '';
-                            }
-
-                            if (customCompute($markpercentages)) {
-                                foreach ($markpercentages as $markpercentageID) {
-                                    $mark = 0;
-                                    if (isset($retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID])) {
-                                        $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$sID][$markpercentageID];
-                                    }
-                                    $totalExamMarks += is_numeric($mark) ? $mark : 0;
-                                }
-                            }
-                        }
-                    }
-                    $subjectCount = $subjectCount ? $subjectCount : 1;
-                    ?>
-                    <td><b><?= ini_round($totalExamMarks / $subjectCount) ?></b></td>
-                <?php }
-            } ?>
-        </tr>
-
         <!-- Percentage Row -->
         <tr>
             <td colspan="<?= $leftColumn ?>">Percentage</td>
@@ -629,8 +588,8 @@
                             
                             $isScheduled = isset($examSubjects[$examID]) && in_array($sID, $examSubjects[$examID]);
                             if ($isScheduled) {
-                                $totalMaxMarks += $sobj->finalmark;
-                                
+                                $totalMaxMarks += isset($exam_max_marks[$examID]) ? $exam_max_marks[$examID] : 0;
+
                                 $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
                                 $markpercentages = [];
                                 if (customCompute($uniquepercentageArr)) {
@@ -674,8 +633,8 @@
                             
                             $isScheduled = isset($examSubjects[$examID]) && in_array($sID, $examSubjects[$examID]);
                             if ($isScheduled) {
-                                $totalMaxMarks += $sobj->finalmark;
-                                
+                                $totalMaxMarks += isset($exam_max_marks[$examID]) ? $exam_max_marks[$examID] : 0;
+
                                 $uniquepercentageArr = isset($markpercentagessubjectArr[$sID]) ? $markpercentagessubjectArr[$sID] : [];
                                 $markpercentages = [];
                                 if (customCompute($uniquepercentageArr)) {

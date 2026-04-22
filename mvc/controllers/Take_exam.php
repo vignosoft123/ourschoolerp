@@ -378,6 +378,9 @@ Class Take_exam extends Admin_Controller {
                     $this->data['totalCorrectMark'] = $totalCorrectMark;
                     $this->data['totalQuestionMark'] = $totalQuestionMark;
                     $this->data['userExamCheck'] = $userExamCheck;
+                    $this->data['examtimeID']   = $examTimeCounter;
+                    $this->data['onlineExamID'] = $onlineExamID;
+                    $this->data['onlineExam']   = $online_exam;
                     $this->data["subview"] = "online_exam/take_exam/result";
                     return $this->load->view('_layout_main', $this->data);
                 }
@@ -418,6 +421,65 @@ Class Take_exam extends Admin_Controller {
             $this->data["subview"] = "error";
             $this->load->view('_layout_main', $this->data);
         }
+    }
+
+    public function answerbooklet()
+    {
+        $onlineExamID = (int)$this->uri->segment(3);
+        $examtimeID   = (int)$this->uri->segment(4);
+        $loginuserID  = $this->session->userdata('loginuserID');
+
+        if(!$onlineExamID || !$examtimeID) {
+            $this->data["subview"] = "error";
+            return $this->load->view('_layout_main', $this->data);
+        }
+
+        $exam = $this->online_exam_m->get_single_online_exam(['onlineExamID' => $onlineExamID]);
+        if(!customCompute($exam) || $exam->showMarkAfterExam != 1) {
+            $this->data["subview"] = "error";
+            return $this->load->view('_layout_main', $this->data);
+        }
+
+        $statusRecord = $this->online_exam_user_status_m->get_single_online_exam_user_status([
+            'onlineExamID' => $onlineExamID,
+            'userID'       => $loginuserID,
+            'examtimeID'   => $examtimeID
+        ]);
+        if(!customCompute($statusRecord)) {
+            $this->data["subview"] = "error";
+            return $this->load->view('_layout_main', $this->data);
+        }
+
+        $examquestions = pluck(
+            $this->online_exam_question_m->get_order_by_online_exam_question(['onlineExamID' => $onlineExamID]),
+            'questionID'
+        );
+        $this->data['examquestionsuseranswer'] = pluck(
+            $this->online_exam_user_answer_option_m->get_order_by_online_exam_user_answer_option([
+                'onlineExamID' => $onlineExamID,
+                'userID'       => $loginuserID,
+                'examtimeID'   => $examtimeID
+            ]),
+            'obj', 'questionID'
+        );
+        $this->data['examquestionsanswer'] = pluck(
+            $this->question_answer_m->get_question_answerArray($examquestions, 'questionID'),
+            'obj', 'questionID'
+        );
+        $this->data['questions'] = pluck(
+            $this->question_bank_m->get_question_bank_questionArray($examquestions, 'questionBankID'),
+            'obj', 'questionBankID'
+        );
+        $this->data['question_options'] = pluck_multi_array(
+            $this->question_option_m->get_question_option_by_questionArray($examquestions, 'questionID'),
+            'obj', 'questionID'
+        );
+        $this->data['exam']         = $exam;
+        $this->data['statusRecord'] = $statusRecord;
+        $this->data['onlineExamID'] = $onlineExamID;
+        $this->data['examtimeID']   = $examtimeID;
+        $this->data["subview"] = "online_exam/take_exam/answerbooklet";
+        return $this->load->view('_layout_main', $this->data);
     }
 
     public function instruction()

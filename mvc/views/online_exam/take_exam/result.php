@@ -130,6 +130,14 @@
             </div>
         </div>
     </div>
+    <?php if(customCompute($onlineExam) && $onlineExam->showMarkAfterExam == 1) { ?>
+    <div class="text-center" style="margin: 15px 0 10px;">
+        <a href="<?=base_url('take_exam/answerbooklet/'.$onlineExamID.'/'.$examtimeID)?>"
+           class="btn btn-primary btn-lg">
+            <i class="fa fa-book"></i> <?=$this->lang->line('online_exam_answer_key')?>
+        </a>
+    </div>
+    <?php } ?>
 </section>
 
 <script type="text/javascript" >
