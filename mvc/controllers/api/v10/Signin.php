@@ -15,6 +15,7 @@ class Signin extends REST_Controller
         $this->load->model('setting_m');
         $this->load->model('usertype_m');
         $this->load->model('permission_m');
+        $this->load->model('schoolyear_m');
     }
 
     public function index_post()
@@ -52,8 +53,10 @@ class Signin extends REST_Controller
                     $teacher_name =  $result['teacher_name'];
                 }
                 
-                $this->retdata['teacher_phone'] = $teacher_phone;
-                $this->retdata['teacher_name'] = $teacher_name;
+                $schoolyear = $this->schoolyear_m->get_single_schoolyear(['schoolyearID' => $userInfo['defaultschoolyearID']]);
+                $this->retdata['academic_year']       = $schoolyear ? $schoolyear->schoolyear : '';
+                $this->retdata['teacher_phone']       = $teacher_phone;
+                $this->retdata['teacher_name']        = $teacher_name;
                 $this->retdata['correspondent_phone'] = $correspondent_phone;
 
                 $this->response([

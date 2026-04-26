@@ -369,12 +369,18 @@ class Mark extends Api_Controller
             return;
         }
 
-        // Fetch students for this class-section-schoolyear
-        $students = $this->studentrelation_m->get_order_by_student([
-            'srclassesID'    => $classesID,
-            'srsectionID'    => $sectionID,
-            'srschoolyearID' => $schoolyearID
-        ]);
+        // Fetch students with a direct query — bypasses the usertypeID-based routing in
+        // get_order_by_student() which would restrict subject teachers (not class teachers)
+        // to an empty list because userRelation() finds no classes for them.
+        $this->db->select('studentrelation.*, student.studentID, student.name, student.photo, student.active, studentrelation.srroll as roll');
+        $this->db->from('studentrelation');
+        $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'left');
+        $this->db->where('studentrelation.srclassesID',    $classesID);
+        $this->db->where('studentrelation.srsectionID',    $sectionID);
+        $this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+        $this->db->where('student.active', 1);
+        $this->db->order_by('studentrelation.srroll', 'asc');
+        $students = $this->db->get()->result();
 
         if (!customCompute($students)) {
             $this->response([
@@ -385,16 +391,42 @@ class Mark extends Api_Controller
             return;
         }
 
-        // Fetch subjects directly from examschedule — bypasses the usertypeID-based routing in
-        // Subject_m::get_order_by_subject() which would restrict teacher tokens to their assigned
-        // subjects only and would return no max_mark. We always drive from examschedule so that
-        // only subjects actually scheduled for this exam+section are returned, with correct max/min marks.
+        // Determine which subjects this user may access.
+        // - Admin/superadmin (usertypeID != 2): all scheduled subjects
+        // - Teacher who is class teacher for this classesID: all scheduled subjects
+        // - Teacher assigned to specific subjects only: only those subjects
+        $allowedSubjectIDs = null; // null = no filter
+        if ($this->session->userdata('usertypeID') == 2) {
+            $teacherID = (int)$this->session->userdata('loginuserID');
+            $isClassTeacher = $this->db->get_where('classes', [
+                'classesID' => $classesID,
+                'teacherID' => $teacherID
+            ])->row();
+
+            if (!$isClassTeacher) {
+                $assigned = $this->db->get_where('subjectteacher', [
+                    'classesID' => $classesID,
+                    'teacherID' => $teacherID
+                ])->result();
+                $allowedSubjectIDs = array_column($assigned, 'subjectID');
+            }
+        }
+
+        // Fetch subjects from examschedule (INNER JOIN ensures only scheduled subjects are returned
+        // with correct max/min marks), then apply teacher subject filter if needed.
         $this->db->select('subject.*, examschedule.max_mark, examschedule.min_mark');
         $this->db->from('examschedule');
         $this->db->join('subject', 'subject.subjectID = examschedule.subjectID', 'inner');
         $this->db->where('examschedule.examID', $examID);
         $this->db->where('examschedule.sectionID', $sectionID);
         $this->db->where('subject.classesID', $classesID);
+        if ($allowedSubjectIDs !== null) {
+            if (empty($allowedSubjectIDs)) {
+                $this->db->where('subject.subjectID', 0); // no assignments → empty result
+            } else {
+                $this->db->where_in('subject.subjectID', $allowedSubjectIDs);
+            }
+        }
         $this->db->order_by('subject.subjectID', 'ASC');
         $subjects = $this->db->get()->result();
 
