@@ -794,6 +794,50 @@ class Mark extends Api_Controller
 
         $this->response(['status' => true, 'message' => 'Overall attendance saved successfully'], REST_Controller::HTTP_OK);
     }
+
+    // Returns exams available for a class (mirrors web examcall AJAX)
+    public function examcall_post()
+    {
+        $classesID = $this->post('classesID');
+        if (!(int)$classesID) {
+            $this->response(['status' => false, 'message' => 'classesID is required', 'data' => []], REST_Controller::HTTP_BAD_REQUEST);
+            return;
+        }
+
+        $marktypeID = $this->data['siteinfos']->marktypeID;
+        $raw        = $this->marksetting_m->get_exam($marktypeID, $classesID);
+        $exams      = [];
+        foreach ($raw as $e) {
+            $exams[] = [
+                'examID' => $e->examID,
+                'exam'   => $e->exam,
+                'date'   => $e->date,
+            ];
+        }
+
+        $this->response(['status' => true, 'message' => 'Success', 'data' => ['exams' => $exams]], REST_Controller::HTTP_OK);
+    }
+
+    // Returns sections for a class (mirrors web sectioncall AJAX)
+    public function sections_post()
+    {
+        $classesID = $this->post('classesID');
+        if (!(int)$classesID) {
+            $this->response(['status' => false, 'message' => 'classesID is required', 'data' => []], REST_Controller::HTTP_BAD_REQUEST);
+            return;
+        }
+
+        $raw      = $this->section_m->get_order_by_section(['classesID' => $classesID]);
+        $sections = [];
+        foreach ($raw as $s) {
+            $sections[] = [
+                'sectionID' => $s->sectionID,
+                'section'   => $s->section,
+            ];
+        }
+
+        $this->response(['status' => true, 'message' => 'Success', 'data' => ['sections' => $sections]], REST_Controller::HTTP_OK);
+    }
 }
 
 /**
@@ -876,4 +920,22 @@ class Mark extends Api_Controller
  *    --header 'Authorization: Bearer <TOKEN>' \
  *    --header 'Content-Type: application/json' \
  *    --data '{ "attendance": "Absent", "examID": "1", "classesID": "1", "sectionID": "1", "studentID": "456" }'
+ *
+ * 8. Get Exams Dropdown for a Class (mirrors web examcall AJAX)
+ *    URL: api/v10/mark/examcall
+ *    Inputs: { "classesID": "1" }
+ *    curl --location --request POST 'http://localhost/ourschoolerp/api/v10/mark/examcall' \
+ *    --header 'Authorization: Bearer <TOKEN>' \
+ *    --header 'Content-Type: application/json' \
+ *    --data '{ "classesID": "1" }'
+ *    Response: { "status": true, "data": { "exams": [ { "examID": "13", "exam": "FA-1", "date": "2025-06-08" } ] } }
+ *
+ * 9. Get Sections Dropdown for a Class (mirrors web sectioncall AJAX)
+ *    URL: api/v10/mark/sections
+ *    Inputs: { "classesID": "1" }
+ *    curl --location --request POST 'http://localhost/ourschoolerp/api/v10/mark/sections' \
+ *    --header 'Authorization: Bearer <TOKEN>' \
+ *    --header 'Content-Type: application/json' \
+ *    --data '{ "classesID": "1" }'
+ *    Response: { "status": true, "data": { "sections": [ { "sectionID": "1", "section": "A" } ] } }
  */
