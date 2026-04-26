@@ -68,22 +68,36 @@ class Marksetting_m extends MY_Model {
 
 	public function get_exam($marktypeID= '', $classesID=0) {
 
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$schoolyearID  = $this->session->userdata('defaultschoolyearID');
+		$classesID     = (int)$classesID;
+
+		// Only return exams that have at least one subject scheduled in examschedule for this class.
+		$scheduleFilter = $classesID
+			? "EXISTS (SELECT 1 FROM examschedule WHERE examschedule.examID = exam.examID AND examschedule.classesID = $classesID)"
+			: null;
 
 		if($marktypeID == 4) {
-			return $this->exam_m->get_exam();
+			// marktypeID 4 delegates to exam table directly; apply schedule filter when classesID given
+			$this->db->select('exam.*');
+			$this->db->from('exam');
+			if($scheduleFilter) {
+				$this->db->where($scheduleFilter, null, false);
+			}
+			return $this->db->get()->result();
 		} elseif(($marktypeID == 5) || ($marktypeID == 6)) {
-			if((int)$classesID) {
+			if($classesID) {
 				$this->db->select('marksetting.*, exam.exam,exam.date');
 				$this->db->from('marksetting');
 				$this->db->join('exam', 'marksetting.examID=exam.examID');
 				$this->db->where('marksetting.marktypeID', $marktypeID);
 				$this->db->where('marksetting.classesID', $classesID);
 				$this->db->where('exam.academic_year', $schoolyearID);
-
+				if($scheduleFilter) {
+					$this->db->where($scheduleFilter, null, false);
+				}
 				$query = $this->db->get();
 				return $query->result();
-			} 
+			}
 			return [];
 		} else {
 			$this->db->select('marksetting.*, exam.exam,exam.date');
@@ -91,7 +105,9 @@ class Marksetting_m extends MY_Model {
 			$this->db->join('exam', 'marksetting.examID=exam.examID');
 			$this->db->where('marksetting.marktypeID', $marktypeID);
 			$this->db->where('exam.academic_year', $schoolyearID);
-
+			if($scheduleFilter) {
+				$this->db->where($scheduleFilter, null, false);
+			}
 			$query = $this->db->get();
 			return $query->result();
 		}

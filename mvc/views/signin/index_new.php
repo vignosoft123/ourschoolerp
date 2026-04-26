@@ -30,7 +30,7 @@
   min-height: 100vh;
 }
 .bg-image {
-  background-image: url('../uploads/images/login-bg.webp');
+  background-image: url('<?=base_url('uploads/images/login_left_image.png')?>');
   background-size: cover;
   background-position: center center;
   width:100%;
