@@ -580,14 +580,10 @@ class Sattendance extends Admin_Controller
 		$mailandsmstemplate = $this->mailandsmstemplate_m->get_mailandsmstemplate($templateID);
 		$objStudents = pluck($this->studentrelation_m->get_order_by_student(array('srschoolyearID' => $schoolyearID, 'srclassesID' => $classesID, 'srsectionID' => $sectionID), TRUE), 'obj', 'srstudentID');
 
-		$parents = pluck($this->parents_m->get_parents(), 'phone', 'parentsID');
 		foreach ($students as $student) {
 			$studentID = $student->studentID;
 			$user = isset($objStudents[$studentID]) ? $objStudents[$studentID] : [];
-			$parentsID = isset($objStudents[$studentID]) ? $objStudents[$studentID]->parentID : 0;
-			$parentsPhonenumber = isset($parents[$parentsID]) ? $parents[$parentsID] : '';
-			if(customCompute($user) && $parentsID > 0 && $parentsPhonenumber != '') {
-				$user->phone = $parentsPhonenumber;
+			if (customCompute($user) && !empty($user->phone)) {
 				$message = $mailandsmstemplate->template;
 				$this->userConfigSMS($message, $user, 3, $attendance_smsgateway, $schoolyearID);
 			}
@@ -1687,17 +1683,15 @@ class Sattendance extends Admin_Controller
 
 		$objStudents = pluck($this->studentrelation_m->get_order_by_student(array('srschoolyearID' => $schoolyearID, 'srclassesID' => $classesID, 'srsectionID' => $sectionID), TRUE), 'obj', 'srstudentID');
 
-		$parents = pluck($this->parents_m->get_parents(), 'phone', 'parentsID');
 		foreach ($students as $student) {
 			$studentID = $student->studentID;
 			$user = isset($objStudents[$studentID]) ? $objStudents[$studentID] : [];
-			$parentsID = isset($objStudents[$studentID]) ? $objStudents[$studentID]->parentID : 0;
-			$parentsPhonenumber = isset($parents[$parentsID]) ? $parents[$parentsID] : '';
-			
-			if(customCompute($user) && $parentsID > 0 && $parentsPhonenumber != '') {
-				$user->phone = $parentsPhonenumber;
-				$message = $whatsapp_params['params'];
-				$this->userConfigWhatsapp($message, $user, 3, $schoolyearID,$whatsapp_params['template_name']);
+			if (customCompute($user)) {
+				$user->phone = !empty($user->alternative_phone1) ? $user->alternative_phone1 : $user->phone;
+				if (!empty($user->phone)) {
+					$message = $whatsapp_params['params'];
+					$this->userConfigWhatsapp($message, $user, 3, $schoolyearID, $whatsapp_params['template_name']);
+				}
 			}
 		}
 	}

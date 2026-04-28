@@ -256,5 +256,167 @@ public function index_get()
         return $this->response(['status' => true, 'message' => 'Leave application deleted'], REST_Controller::HTTP_OK);
     }
 
- 
-} 
+
+}
+
+/*
+=======================================================================
+ LEAVEAPPLY API — ENDPOINT REFERENCE
+ Base URL: https://yourdomain.com/api/v10/leaveapply
+ Auth:     Authorization: Bearer <JWT_TOKEN>
+=======================================================================
+
+-----------------------------------------------------------------------
+1. LIST MY LEAVE APPLICATIONS
+   GET /api/v10/leaveapply/index
+-----------------------------------------------------------------------
+Returns all leave applications submitted by the logged-in user for the
+current school year. Each record includes the leave category name.
+
+curl -X GET "https://yourdomain.com/api/v10/leaveapply/index" \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+
+Response:
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "leaveapplications": [
+      {
+        "leaveapplicationID": 1,
+        "leavecategoryID": 9,
+        "leavecategory_name": "home sick",
+        "from_date": "2026-04-29",
+        "to_date": "2026-04-29",
+        "leave_days": 1,
+        "reason": "<p>Feeling unwell</p>",
+        "status": "0",
+        "od_status": 0,
+        "applicationto_usertypeID": 1,
+        "applicationto_userID": 1,
+        "schoolyearID": 3,
+        "create_userID": 5,
+        "create_usertypeID": 2
+      }
+    ]
+  }
+}
+
+-----------------------------------------------------------------------
+2. VIEW A SINGLE LEAVE APPLICATION
+   GET /api/v10/leaveapply/view/{leaveapplicationID}
+-----------------------------------------------------------------------
+Returns full detail for one leave application (only owner can view).
+Includes applicant info, leave category, available leave days, and
+date breakdown (working days vs holidays/weekends).
+
+curl -X GET "https://yourdomain.com/api/v10/leaveapply/view/1" \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+
+Response:
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "leaveapply": {
+      "leaveapplicationID": 1,
+      "leavecategoryID": 9,
+      "from_date": "2026-04-29",
+      "to_date": "2026-04-29",
+      "leave_days": 1,
+      "reason": "<p>Feeling unwell</p>",
+      "status": "0",
+      "od_status": 0,
+      "category": "home sick",
+      "leaveavabledays": 7
+    },
+    "applicant": {
+      "name": "NARAYANASW",
+      "email": "teacher@school.com",
+      "phone": "9876543210",
+      "usertype": "Teacher"
+    },
+    "daysArray": {
+      "fromdate": "04/29/2026",
+      "todate": "04/29/2026",
+      "leavedayCount": 1,
+      "totaldayCount": 1
+    }
+  }
+}
+
+-----------------------------------------------------------------------
+3. ADD LEAVE APPLICATION
+   POST /api/v10/leaveapply/add_leave
+-----------------------------------------------------------------------
+Fields:
+  leave_schedule           string  required  "MM/DD/YYYY - MM/DD/YYYY"
+  leavecategoryID          int     required  Leave category ID
+  applicationto_usertypeID int     required  Recipient user type ID (1=Admin)
+  applicationto_userID     int     required  Recipient user ID
+  reason                   string  optional  Plain text or HTML reason
+  od_status                int     optional  0=Leave, 1=OD (default: 0)
+
+curl -X POST "https://yourdomain.com/api/v10/leaveapply/add_leave" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "leave_schedule": "04/29/2026 - 04/29/2026",
+    "leavecategoryID": 9,
+    "applicationto_usertypeID": 1,
+    "applicationto_userID": 1,
+    "reason": "Feeling unwell",
+    "od_status": 0
+  }'
+
+Response:
+{
+  "status": true,
+  "message": "Leave application added successfully"
+}
+
+-----------------------------------------------------------------------
+4. EDIT LEAVE APPLICATION
+   PUT /api/v10/leaveapply/edit_leave/{leaveapplicationID}
+-----------------------------------------------------------------------
+Fields: same as add_leave (all optional except leave_schedule).
+
+curl -X PUT "https://yourdomain.com/api/v10/leaveapply/edit_leave/1" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "leave_schedule": "04/30/2026 - 04/30/2026",
+    "leavecategoryID": 9,
+    "applicationto_usertypeID": 1,
+    "applicationto_userID": 1,
+    "reason": "Updated reason"
+  }'
+
+Response:
+{
+  "status": true,
+  "message": "Leave application updated"
+}
+
+-----------------------------------------------------------------------
+5. DELETE LEAVE APPLICATION
+   DELETE /api/v10/leaveapply/delete_leave/{leaveapplicationID}
+-----------------------------------------------------------------------
+curl -X DELETE "https://yourdomain.com/api/v10/leaveapply/delete_leave/1" \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+
+Response:
+{
+  "status": true,
+  "message": "Leave application deleted"
+}
+
+=======================================================================
+ NOTES
+ • leave_schedule format: "MM/DD/YYYY - MM/DD/YYYY" (matches web picker)
+ • Status values: "0"=Pending, "1"=Approved, "2"=Rejected
+ • od_status: 0=Regular Leave, 1=On Duty
+ • leave_days is auto-calculated server-side (excludes holidays/weekends)
+ • Only the owner (create_userID + create_usertypeID) can view/edit/delete
+=======================================================================
+*/

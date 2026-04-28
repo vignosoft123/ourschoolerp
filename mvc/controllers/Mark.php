@@ -482,7 +482,7 @@ class Mark extends Admin_Controller
                 $downloadFile       = $this->input->post('downloadFile');
 
                 if ((int)$classesID) {
-                    $this->data['exams']    = $this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID);
+                    $this->data['exams']    = $this->marksetting_m->get_exam_with_schedule_condition($this->data['siteinfos']->marktypeID, $classesID);
                     // $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID,'examID' => $examID,'sectionID' => $sectionID));
 
                     $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID),$examID,$sectionID);
@@ -924,7 +924,7 @@ public function load_students_ajax() {
                 $downloadFile       = $this->input->post('downloadFile');
 
                 if ((int)$classesID) {
-                    $this->data['exams']    = $this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID);
+                    $this->data['exams']    = $this->marksetting_m->get_exam_with_schedule_condition($this->data['siteinfos']->marktypeID, $classesID);
                     // $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID,'examID' => $examID,'sectionID' => $sectionID));
 
                     $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID),$examID,$sectionID);
@@ -1237,7 +1237,7 @@ public function get_students_page() {
 					$downloadFile       = $this->input->post('downloadFile');
 
 					if ((int)$classesID) {
-        				$this->data['exams']    = $this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID);
+        				$this->data['exams']    = $this->marksetting_m->get_exam_with_schedule_condition($this->data['siteinfos']->marktypeID, $classesID);
         				// $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID,'examID' => $examID,'sectionID' => $sectionID));
         				
         				$subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID),$examID,$sectionID);
@@ -1480,7 +1480,7 @@ public function get_students_page() {
 
 
 					if ((int)$classesID) {
-        				$this->data['exams']    = $this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID);
+        				$this->data['exams']    = $this->marksetting_m->get_exam_with_schedule_condition($this->data['siteinfos']->marktypeID, $classesID);
         				// $subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID,'examID' => $examID,'sectionID' => $sectionID));
         				
         				$subjectsss = $this->data['subjects'] = $this->subject_m->get_order_by_subject(array('classesID' => $classesID),$examID,$sectionID);
@@ -2450,7 +2450,7 @@ public function get_students_page() {
 	{
 		$classesID = $this->input->post('classesID');
 		if ((int)$classesID) {
-			$exams    = pluck($this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID), 'obj', 'examID');
+			$exams    = pluck($this->marksetting_m->get_exam_with_schedule_condition($this->data['siteinfos']->marktypeID, $classesID), 'obj', 'examID');
 			
 			// echo "<pre>";print_r($exams);die;
 			

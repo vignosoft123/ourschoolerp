@@ -284,23 +284,6 @@
                     </a>
                 </div>
             </div>
-            <div class="col-lg-2 col-xs-4">
-                <div class="small-box light-blue-clr">
-                    <a class="small-box-footer" href="<?= base_url('mailandsms');?>">
-                        <div class="icon icon-bg dark-blue-clr">
-                        <img src="../uploads/images/voice-count.svg" alt="Voice Count"/> 
-                        </div>
-                        <div class="inner ">
-                        <p class="para-txt">
-                                Voice Count
-                            </p>
-                            <h3 class="h3-title">
-                                <?php echo $voice_count;?>
-                            </h3>                           
-                        </div>
-                    </a>
-                </div>
-            </div>
             <?php } ?>
 </div>
 

@@ -805,7 +805,7 @@ class Mark extends Api_Controller
         }
 
         $marktypeID = $this->data['siteinfos']->marktypeID;
-        $raw        = $this->marksetting_m->get_exam($marktypeID, $classesID);
+        $raw        = $this->marksetting_m->get_exam_with_schedule_condition($marktypeID, $classesID);
         $exams      = [];
         foreach ($raw as $e) {
             $exams[] = [

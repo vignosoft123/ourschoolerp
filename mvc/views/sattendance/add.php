@@ -145,34 +145,41 @@
                     </form>
                 <?php } ?>
 
-                <?php if (customCompute($sattendanceinfo)) { ?>
-                    <div class="col-sm-4 col-sm-offset-4 box-layout-fame">
-                   
-                   
-                        <?php
-                        echo '<h5><center>' . $this->lang->line('attendance_details') . '</center></h5>';
-                        echo '<h5><center>' . $this->lang->line('attendance_classes') . ' : ' . $sattendanceinfo['class'] . '</center></h5>';
-                        echo '<h5><center>' . $this->lang->line('attendance_section') . ' : ' . $sattendanceinfo['section'] . '</center></h5>';
-                        if ($setting->attendance == "subject") {
-                            echo '<h5><center>' . $this->lang->line('attendance_subject') . ' : ' . $sattendanceinfo['subject'] . '</center></h5>';
-                        }
-                        echo '<h5><center>' . $this->lang->line('attendance_day') . ' : ' . $sattendanceinfo['day'] . '</center></h5>';
-                        echo '<h5><center>' . $this->lang->line('attendance_date') . ' : ' . $sattendanceinfo['date'] . '</center></h5>';
-                        ?>
-                    </div>
-                <?php } ?>
             </div>
             <div class="col-sm-12">
                 <?php if (customCompute($students)) { ?>
+
+                    <div id="bulk-action-bar" class="well well-sm" style="margin-bottom: 10px;">
+                        <div style="display: inline-block; margin-right: 12px;">
+                            <strong>Mark All As:</strong>&nbsp;
+                            <button type="button" class="btn btn-success btn-sm bulk-mark-all" data-val="P"><i class="fa fa-check"></i> Full Day</button>&nbsp;
+                            <button type="button" class="btn btn-danger btn-sm bulk-mark-all" data-val="A"><i class="fa fa-times"></i> Absent</button>&nbsp;
+                            <button type="button" class="btn btn-warning btn-sm bulk-mark-all" data-val="M">Morning</button>&nbsp;
+                            <button type="button" class="btn btn-info btn-sm bulk-mark-all" data-val="AF">Afternoon</button>
+                        </div>
+                        <div id="selected-bulk-panel" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
+                            <span id="selected-count" style="font-weight: 600; margin-right: 10px; color: #337ab7;"></span>
+                            <strong>Mark Selected As:</strong>&nbsp;
+                            <button type="button" class="btn btn-success btn-sm bulk-mark-selected" data-val="P"><i class="fa fa-check"></i> Full Day</button>&nbsp;
+                            <button type="button" class="btn btn-danger btn-sm bulk-mark-selected" data-val="A"><i class="fa fa-times"></i> Absent</button>&nbsp;
+                            <button type="button" class="btn btn-warning btn-sm bulk-mark-selected" data-val="M">Morning</button>&nbsp;
+                            <button type="button" class="btn btn-info btn-sm bulk-mark-selected" data-val="AF">Afternoon</button>&nbsp;
+                            <button type="button" class="btn btn-default btn-sm" id="clear-selection"><i class="fa fa-remove"></i> Clear Selection</button>
+                        </div>
+                    </div>
 
                     <div id="hide-table">
                         <table class="table tableBorder table-bordered table-hover" id="attendance_table">
                             <thead>
                                 <tr>
+                                    <th class="col-sm-1" style="width: 40px; text-align: center;">
+                                        <input type="checkbox" id="select-all-check" title="Select All">
+                                    </th>
                                     <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
                                     <th class="col-sm-1"><?= $this->lang->line('attendance_photo') ?></th>
                                     <th class="col-sm-2"><?= $this->lang->line('attendance_name') ?></th>
                                     <th class="col-sm-1"><?= $this->lang->line('attendance_phone') ?></th>
+                                    <th class="col-sm-1">Whatsapp No</th>
                                     <th class="col-sm-1">Village</th>
                                     <th class="col-sm-1">Student Type</th>
                                     <th class="col-sm-1"><?= $this->lang->line('attendance_roll') ?></th>
@@ -186,7 +193,10 @@
                                     $i = 1;
                                     foreach ($students as $student) {
                                         if (isset($attendances[$student->studentID])) { ?>
-                                            <tr>
+                                            <tr data-studenttype="<?= $student->studentType ?>" data-attendanceid="<?= $attendances[$student->studentID]->attendanceID ?>">
+                                                <td style="text-align: center; vertical-align: middle;">
+                                                    <input type="checkbox" class="student-row-check">
+                                                </td>
                                                 <td data-title="<?= $this->lang->line('slno') ?>">
                                                     <?php echo $i; ?>
                                                 </td>
@@ -198,6 +208,9 @@
                                                 </td>
                                                 <td data-title="<?= $this->lang->line('attendance_phone') ?>">
                                                     <?php echo $student->phone; ?>
+                                                </td>
+                                                <td data-title="Whatsapp No">
+                                                    <?php echo $student->alternative_phone1; ?>
                                                 </td>
                                                 <td data-title="Village">
                                                     <?php echo $student->villageName; ?>
@@ -706,6 +719,78 @@ $(document).ready(function() {
     });
 });
 
+// ============ BULK ATTENDANCE ACTIONS ============
+function applyBulkAttendanceValue(attendanceID, val) {
+    var $radios   = $('input.attendance-radio[data-studentid="' + attendanceID + '"]');
+    var $dropdown = $('select.halfday-dropdown[data-studentid="' + attendanceID + '"]');
+    if (val === 'M' || val === 'AF') {
+        $radios.prop('checked', false);
+        $dropdown.show().val(val);
+    } else if (val === 'P') {
+        $radios.filter('[value="P"]').prop('checked', true);
+        $radios.filter('[value="A"]').prop('checked', false);
+        $dropdown.show().val('');
+    } else if (val === 'A') {
+        $radios.filter('[value="A"]').prop('checked', true);
+        $radios.filter('[value="P"]').prop('checked', false);
+        $dropdown.hide().val('');
+    }
+}
 
+function updateSelectedPanel() {
+    var count = $('.student-row-check:checked').length;
+    if (count > 0) {
+        $('#selected-count').text(count + (count === 1 ? ' student' : ' students') + ' selected —');
+        $('#selected-bulk-panel').show();
+    } else {
+        $('#selected-bulk-panel').hide();
+    }
+}
+
+// Mark All buttons
+$('.bulk-mark-all').on('click', function() {
+    var val = $(this).data('val');
+    var processed = {};
+    $('input.attendance-radio').each(function() {
+        var id = $(this).data('studentid');
+        if (!processed[id]) {
+            processed[id] = true;
+            applyBulkAttendanceValue(id, val);
+        }
+    });
+});
+
+// Mark Selected buttons
+$('.bulk-mark-selected').on('click', function() {
+    var val = $(this).data('val');
+    $('.student-row-check:checked').each(function() {
+        var attendanceID = $(this).closest('tr').data('attendanceid');
+        applyBulkAttendanceValue(attendanceID, val);
+    });
+});
+
+// Select All checkbox in header
+$('#select-all-check').on('change', function() {
+    var checked = $(this).prop('checked');
+    $('.student-row-check').prop('checked', checked);
+    updateSelectedPanel();
+});
+
+// Individual row checkbox
+$(document).on('change', '.student-row-check', function() {
+    var total      = $('.student-row-check').length;
+    var checkedCnt = $('.student-row-check:checked').length;
+    $('#select-all-check')
+        .prop('indeterminate', checkedCnt > 0 && checkedCnt < total)
+        .prop('checked', checkedCnt === total);
+    updateSelectedPanel();
+});
+
+// Clear selection
+$('#clear-selection').on('click', function() {
+    $('.student-row-check').prop('checked', false);
+    $('#select-all-check').prop('checked', false).prop('indeterminate', false);
+    updateSelectedPanel();
+});
 
 </script>

@@ -122,14 +122,12 @@ $pivotData = [];
 // echo "<pre>";print_r($students);die;
 foreach($getDueFeesReports as $report) {
     $studentID = $report->studentID;
-    $invoiceDate = date('Y-m-d', strtotime($report->create_date)); // Group by invoice date
-    $key = $studentID . '-' . $invoiceDate;
+    $key = $studentID;
 
     // Initialize if not already set
     if (!isset($pivotData[$key])) {
         $pivotData[$key] = [
             'student' => isset($students[$studentID]) ? $students[$studentID] : null,
-            'invoice_date' => $invoiceDate,
             'fees' => [],
         ];
     }
@@ -148,7 +146,6 @@ foreach($getDueFeesReports as $report) {
     <thead>
         <tr>
             <th><?=$this->lang->line('slno')?></th>
-            <th><?=$this->lang->line('duefeesreport_invoice_date')?></th>
             <th><?=$this->lang->line('duefeesreport_name')?></th>
             <th>Father</th>
             <th>Phone</th>
@@ -169,7 +166,6 @@ foreach($getDueFeesReports as $report) {
         <?php foreach($pivotData as $key => $entry): ?>
             <tr>
                 <td><?=$i++?></td>
-                <td><?=date('d M Y', strtotime($entry['invoice_date']))?></td>
                 <td><?=$entry['student'] ? $entry['student']->srname : ''?></td>
                 <td><?=$entry['student'] ? $entry['student']->father_name : ''?></td>
                 <td><?=$entry['student'] ? $entry['student']->phone : ''?></td>
@@ -210,7 +206,7 @@ foreach($getDueFeesReports as $report) {
         <?php endforeach; ?>
 
         <tr>
-            <td colspan="<?=5 + ($classesID == 0 ? 1 : 0) + ($sectionID == 0 ? 1 : 0) + count($allFeeTypes)?>" class="text-right text-bold">
+            <td colspan="<?=6 + ($classesID == 0 ? 1 : 0) + ($sectionID == 0 ? 1 : 0) + count($allFeeTypes)?>" class="text-right text-bold">
                 <?=$this->lang->line('duefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : '' ?>
             </td>
             <td class="text-bold"><?=number_format($grandTotal,2)?></td>

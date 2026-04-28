@@ -57,7 +57,7 @@
                             </div>
                         </div>
                     </div>
-                <?php } 
+                <?php }
                 if(customCompute($getDueFeesReports)) { ?>
                     <div class="col-sm-12">
                         <div id="hide-table">
@@ -81,41 +81,38 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $totalDue = 0; $i = 0; foreach($getDueFeesReports as $getDueFeesReport) { 
+                                    <?php $totalDue = 0; $i = 0; foreach($getDueFeesReports as $getDueFeesReport) {
                                         if($sectionID > 0) { if(isset($students[$getDueFeesReport->studentID]) && $students[$getDueFeesReport->studentID]->srsectionID == $sectionID) { $i++; ?>
                                             <tr>
                                                 <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
                                                 <td data-title="<?=$this->lang->line('duefeesreport_invoice_date')?>"><?=date('d M Y',strtotime($getDueFeesReport->create_date))?></td>
-
                                                 <td data-title="<?=$this->lang->line('duefeesreport_name')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '' ?></td>
                                                 <td data-title="<?=$this->lang->line('duefeesreport_registerNO')?>">
                                                     <?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srregisterNO : '' ?>
                                                 </td>
-                                                <?php 
-                                                    if($classesID == 0) { 
+                                                <?php
+                                                    if($classesID == 0) {
                                                         echo "<td data-title='".$this->lang->line('duefeesreport_class')."'>";
                                                         if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stclassID = $students[$getDueFeesReport->studentID]->srclassesID;
                                                             echo isset($classes[$stclassID]) ? $classes[$stclassID] : '';
-                                                        } 
+                                                        }
                                                         echo "</td>";
-                                                    } 
+                                                    }
                                                 ?>
-
-                                                <?php 
-                                                    if($sectionID == 0) { 
+                                                <?php
+                                                    if($sectionID == 0) {
                                                         echo "<td data-title='".$this->lang->line('duefeesreport_section')."'>";
                                                             if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stsectionID = $students[$getDueFeesReport->studentID]->srsectionID;
                                                             echo isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
-                                                        } 
+                                                        }
                                                         echo "</td>";
                                                     }
                                                 ?>
-
                                                 <td data-title="<?=$this->lang->line('duefeesreport_roll')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '' ?></td>
                                                 <td data-title="<?=$this->lang->line('duefeesreport_feetype')?>">
-                                                    <?php 
+                                                    <?php
                                                         if(isset($feetypes[$getDueFeesReport->feetypeID])) {
                                                             echo $feetypes[$getDueFeesReport->feetypeID];
                                                         }
@@ -134,7 +131,7 @@
                                                             echo number_format($due,2);
                                                             $totalDue += $due;
                                                         }
-                                                    ?>    
+                                                    ?>
                                                 </td>
                                             </tr>
                                         <?php } } else { $i++;?>
@@ -145,33 +142,29 @@
                                                 <td data-title="<?=$this->lang->line('duefeesreport_registerNO')?>">
                                                     <?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srregisterNO : '' ?>
                                                 </td>
-
-                                                <?php 
-                                                    if($classesID == 0) { 
+                                                <?php
+                                                    if($classesID == 0) {
                                                         echo "<td data-title='".$this->lang->line('duefeesreport_class')."'>";
                                                         if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stclassID = $students[$getDueFeesReport->studentID]->srclassesID;
                                                             echo isset($classes[$stclassID]) ? $classes[$stclassID] : '';
-                                                        } 
+                                                        }
                                                         echo "</td>";
-                                                    } 
+                                                    }
                                                 ?>
-
-                                                <?php 
-                                                    if($sectionID == 0) { 
+                                                <?php
+                                                    if($sectionID == 0) {
                                                         echo "<td data-title='".$this->lang->line('duefeesreport_section')."'>";
                                                             if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stsectionID = $students[$getDueFeesReport->studentID]->srsectionID;
                                                             echo isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
-                                                        } 
+                                                        }
                                                         echo "</td>";
                                                     }
                                                 ?>
-
-                                                
                                                 <td data-title="<?=$this->lang->line('duefeesreport_roll')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '' ?></td>
                                                 <td data-title="<?=$this->lang->line('duefeesreport_feetype')?>">
-                                                    <?php 
+                                                    <?php
                                                         if(isset($feetypes[$getDueFeesReport->feetypeID])) {
                                                             echo $feetypes[$getDueFeesReport->feetypeID];
                                                         }
@@ -190,21 +183,19 @@
                                                             echo number_format($due,2);
                                                             $totalDue += $due;
                                                         }
-                                                    ?>    
+                                                    ?>
                                                 </td>
                                             </tr>
                                     <?php  } } ?>
                                     <tr>
-                                        <?php 
+                                        <?php
                                             $colspan = 7;
                                             if($classesID == 0) {
                                                 $colspan = 8;
                                             }
-
                                             if($sectionID == 0) {
                                                 $colspan = 8;
                                             }
-
                                             if($classesID == 0 && $sectionID == 0) {
                                                 $colspan = 9;
                                             }

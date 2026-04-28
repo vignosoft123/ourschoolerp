@@ -66,7 +66,7 @@ class Marksetting_m extends MY_Model {
 		return $query->result();
 	}
 
-	public function get_exam($marktypeID= '', $classesID=0) {
+	public function get_exam_with_schedule_condition($marktypeID= '', $classesID=0) {
 
 		$schoolyearID  = $this->session->userdata('defaultschoolyearID');
 		$classesID     = (int)$classesID;
@@ -108,6 +108,37 @@ class Marksetting_m extends MY_Model {
 			if($scheduleFilter) {
 				$this->db->where($scheduleFilter, null, false);
 			}
+			$query = $this->db->get();
+			return $query->result();
+		}
+	}
+
+	public function get_exam($marktypeID= '', $classesID=0) {
+
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+		if($marktypeID == 4) {
+			return $this->exam_m->get_exam();
+		} elseif(($marktypeID == 5) || ($marktypeID == 6)) {
+			if((int)$classesID) {
+				$this->db->select('marksetting.*, exam.exam,exam.date');
+				$this->db->from('marksetting');
+				$this->db->join('exam', 'marksetting.examID=exam.examID');
+				$this->db->where('marksetting.marktypeID', $marktypeID);
+				$this->db->where('marksetting.classesID', $classesID);
+				$this->db->where('exam.academic_year', $schoolyearID);
+
+				$query = $this->db->get();
+				return $query->result();
+			}
+			return [];
+		} else {
+			$this->db->select('marksetting.*, exam.exam,exam.date');
+			$this->db->from('marksetting');
+			$this->db->join('exam', 'marksetting.examID=exam.examID');
+			$this->db->where('marksetting.marktypeID', $marktypeID);
+			$this->db->where('exam.academic_year', $schoolyearID);
+
 			$query = $this->db->get();
 			return $query->result();
 		}
