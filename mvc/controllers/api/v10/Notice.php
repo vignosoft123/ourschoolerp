@@ -14,7 +14,9 @@ class Notice extends Api_Controller
     public function index_get()
     {
         $schoolyearID = $this->session->userdata("defaultschoolyearID");
-        $this->retdata['notices'] = $this->notice_m->get_order_by_notice(array('schoolyearID' => $schoolyearID));
+        $notices = $this->notice_m->get_order_by_notice(array('schoolyearID' => $schoolyearID));
+        usort($notices, function($a, $b) { return $b->noticeID - $a->noticeID; });
+        $this->retdata['notices'] = $notices;
         
         $this->response([
             'status'    => true,

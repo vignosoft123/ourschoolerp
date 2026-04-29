@@ -325,5 +325,92 @@
     {
         "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'college_group_delete' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'college_group_delete'))",
         "type": "raw"
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `title` VARCHAR(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "title"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `description` TEXT COLLATE utf8_unicode_ci NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "description"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `subject_id` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "subject_id"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `section_id` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "section_id"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `created_by` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "created_by"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `created_by_usertype` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "created_by_usertype"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `view_count` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "view_count"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `sort_order` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "sort_order"
+        }
+    },
+    {
+        "query": "ALTER TABLE `youtube_links` ADD `updated_at` DATETIME NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "youtube_links",
+            "column": "updated_at"
+        }
+    },
+    {
+        "query": "CREATE TABLE `youtube_likes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `youtube_id` int(11) NOT NULL, `user_id` int(11) NOT NULL, `usertype_id` int(11) NOT NULL, `created_at` datetime DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `unique_like` (`youtube_id`, `user_id`, `usertype_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+        "type": "create",
+        "check_table": "youtube_likes"
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('youtube_links', 'youtube', 'fa-youtube-play', '1', '17', '190')",
+        "type": "insert",
+        "check_row": {
+            "table": "menu",
+            "where": {
+                "menuName": "youtube_links"
+            }
+        }
     }
 ]

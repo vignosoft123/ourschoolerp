@@ -261,6 +261,7 @@
                             <?php } ?>
                         </div>
                     </div> <!-- nav-tabs-custom -->
+                    </form><!-- /bulkDeleteForm -->
                 <?php } else { ?>
                     <div class="nav-tabs-custom">
                         <ul class="nav nav-tabs">
@@ -430,20 +431,23 @@
 </script>
 
 <script type="text/javascript">
-    // Select all handling for the various tables
+    // Select all — only check items within the same table, not across all tabs
     $(document).on('change', '#select_all, #select_all_2, #select_all_3', function() {
         var checked = $(this).prop('checked');
-        $('.select_item').prop('checked', checked);
+        $(this).closest('table').find('.select_item').prop('checked', checked);
     });
 
-    // Ensure at least one item selected and confirm before submitting
+    // On submit, uncheck items outside the active tab so only active-section IDs are sent
     $(document).on('submit', '#bulkDeleteForm', function(e) {
-        if(!$('[name="selected[]"]:checked').length) {
+        var $activePane = $('.tab-pane.active');
+        $('[name="selected[]"]').not($activePane.find('[name="selected[]"]')).prop('checked', false);
+
+        if (!$activePane.find('[name="selected[]"]:checked').length) {
             e.preventDefault();
             alert('Please select at least one exam schedule to delete.');
             return false;
         }
-        if(!confirm('Are you sure you want to delete selected exam schedules?')) {
+        if (!confirm('Are you sure you want to delete selected exam schedules?')) {
             e.preventDefault();
             return false;
         }

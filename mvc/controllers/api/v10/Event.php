@@ -15,7 +15,9 @@ class Event extends Api_Controller
     public function index_get() 
     {
         $schoolyearID = $this->session->userdata("defaultschoolyearID");
-        $this->retdata['events'] = $this->event_m->get_order_by_event(array('schoolyearID' => $schoolyearID));
+        $events = $this->event_m->get_order_by_event(array('schoolyearID' => $schoolyearID));
+        usort($events, function($a, $b) { return $b->eventID - $a->eventID; });
+        $this->retdata['events'] = $events;
 
         $this->response([
             'status'    => true,

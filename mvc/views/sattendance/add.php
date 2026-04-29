@@ -152,18 +152,18 @@
                     <div id="bulk-action-bar" class="well well-sm" style="margin-bottom: 10px;">
                         <div style="display: inline-block; margin-right: 12px;">
                             <strong>Mark All As:</strong>&nbsp;
-                            <button type="button" class="btn btn-success btn-sm bulk-mark-all" data-val="P"><i class="fa fa-check"></i> Full Day</button>&nbsp;
+                            <button type="button" class="btn btn-success btn-sm bulk-mark-all" data-val="P"><i class="fa fa-check"></i> Present</button>&nbsp;
                             <button type="button" class="btn btn-danger btn-sm bulk-mark-all" data-val="A"><i class="fa fa-times"></i> Absent</button>&nbsp;
-                            <button type="button" class="btn btn-warning btn-sm bulk-mark-all" data-val="M">Morning</button>&nbsp;
-                            <button type="button" class="btn btn-info btn-sm bulk-mark-all" data-val="AF">Afternoon</button>
+                            <button type="button" class="btn btn-warning btn-sm bulk-mark-all" data-val="M">Morning - Present</button>&nbsp;
+                            <button type="button" class="btn btn-info btn-sm bulk-mark-all" data-val="AF">Afternoon - Present</button>
                         </div>
                         <div id="selected-bulk-panel" style="display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #ddd;">
                             <span id="selected-count" style="font-weight: 600; margin-right: 10px; color: #337ab7;"></span>
                             <strong>Mark Selected As:</strong>&nbsp;
-                            <button type="button" class="btn btn-success btn-sm bulk-mark-selected" data-val="P"><i class="fa fa-check"></i> Full Day</button>&nbsp;
+                            <button type="button" class="btn btn-success btn-sm bulk-mark-selected" data-val="P"><i class="fa fa-check"></i> Present</button>&nbsp;
                             <button type="button" class="btn btn-danger btn-sm bulk-mark-selected" data-val="A"><i class="fa fa-times"></i> Absent</button>&nbsp;
-                            <button type="button" class="btn btn-warning btn-sm bulk-mark-selected" data-val="M">Morning</button>&nbsp;
-                            <button type="button" class="btn btn-info btn-sm bulk-mark-selected" data-val="AF">Afternoon</button>&nbsp;
+                            <button type="button" class="btn btn-warning btn-sm bulk-mark-selected" data-val="M">Morning - Present</button>&nbsp;
+                            <button type="button" class="btn btn-info btn-sm bulk-mark-selected" data-val="AF">Afternoon - Present</button>&nbsp;
                             <button type="button" class="btn btn-default btn-sm" id="clear-selection"><i class="fa fa-remove"></i> Clear Selection</button>
                         </div>
                     </div>
@@ -304,7 +304,7 @@
         <label class="btn btn-outline-success mb-0">
             <input type="radio" name="attendance[<?= $student->studentID ?>]" value="P"
     class="attendance-radio attendance" data-studentid="<?= $attendances[$student->studentID]->attendanceID ?>"
-    <?= $attendanceValue == 'P' ? 'checked' : '' ?>> Full Day
+    <?= $attendanceValue == 'P' ? 'checked' : '' ?>> Present
         </label>
 
         <!-- Absent Radio -->
@@ -318,8 +318,8 @@
       <select name="halfday[<?= $student->studentID ?>]" class="form-control halfday-dropdown attendance"
     data-studentid="<?= $attendances[$student->studentID]->attendanceID ?>">
     <option value="">-- Select --</option>
-    <option value="M" <?= $attendanceValue == 'M' ? 'selected' : '' ?>>Morning Session</option>
-    <option value="AF" <?= $attendanceValue == 'AF' ? 'selected' : '' ?>>Afternoon Session</option>
+    <option value="M" <?= $attendanceValue == 'M' ? 'selected' : '' ?>>Morning - Present</option>
+    <option value="AF" <?= $attendanceValue == 'AF' ? 'selected' : '' ?>>Afternoon - Present</option>
 </select>
 
     </div>
@@ -343,17 +343,26 @@
                             </tbody>
                         </table>
                     </div>
-                    <span style="margin-top: 20px;margin-left:6px;" class="btn btn-success pull-right  save_attendance_send_whatsapp"> Save & Send Whatsapp</span>&nbsp;&nbsp;&nbsp;
-                    <span style="margin-top: 20px;" class="btn btn-primary pull-right save_attendance">Save & Send SMS</span>
+                    <div id="attendance-action-bar" style="
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        right: 0;
+                        z-index: 1050;
+                        background: rgba(255,255,255,0.88);
+                        backdrop-filter: blur(4px);
+                        -webkit-backdrop-filter: blur(4px);
+                        border-top: 1px solid #ddd;
+                        padding: 10px 24px;
+                        text-align: right;
+                        box-shadow: 0 -2px 8px rgba(0,0,0,0.08);
+                    ">
+                        <span class="btn btn-default submit_attendance_only">Submit</span>&nbsp;&nbsp;
+                        <span class="btn btn-primary save_attendance">Submit &amp; Send SMS</span>&nbsp;&nbsp;
+                        <span class="btn btn-success save_attendance_send_whatsapp">Submit &amp; Send Whatsapp</span>
+                    </div>
+                    <div style="height: 60px;"></div>
                     <?php } ?>
-
-                    <div class="col-md-12">
-                        <?php if ($siteinfos->note == 1) { ?>
-                            <div class="callout callout-danger">
-                                <p><b>Note:</b> There are two types of attendance, day wise and class wise. you can select your institute attendance system in <a href="<?= base_url('setting') ?>" class="text-blue">settings.</a></p>
-                            </div>
-                        <?php } ?>
-                   </div>
 
                     <script type="text/javascript">
                         window.addEventListener('load', function() {
@@ -487,6 +496,62 @@ $('.attendance').each(function() {
                             }
                         });
 
+                        $('.submit_attendance_only').click(function() {
+                            var attendance = {};
+$('.attendance').each(function() {
+    var $this = $(this);
+    var studentID = $this.data('studentid');
+    var key = 'attendance' + studentID;
+    if ($this.is(':radio')) {
+        if ($this.is(':checked')) { attendance[key] = $this.val(); }
+    } else if ($this.is('select')) {
+        var selectedVal = $this.val();
+        if (selectedVal === 'M' || selectedVal === 'AF') { attendance[key] = selectedVal; }
+    }
+});
+$('.attendance').each(function() {
+    var studentID = $(this).data('studentid');
+    var key = 'attendance' + studentID;
+    if (attendance[key] === undefined) { attendance[key] = 'A'; }
+});
+                            var day = "<?= $day ?>";
+                            var classes = "<?= $set ?>";
+                            var section = "<?= $sectionID ?>";
+                            var monthyear = "<?= $monthyear ?>";
+                            <?php if ($setting->attendance == "subject") { ?>
+                                var subjectID = "<?= $subjectID ?>";
+                            <?php } else { ?>
+                                var subjectID = 0;
+                            <?php } ?>
+                            if (parseInt(classes) && parseInt(day)) {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: "<?= base_url('sattendance/save_attendace') ?>",
+                                    data: {
+                                        "day": day,
+                                        "classes": classes,
+                                        "section": section,
+                                        "subject": subjectID,
+                                        "monthyear": monthyear,
+                                        "attendance": attendance,
+                                        "send_whatsapp": 2
+                                    },
+                                    dataType: "html",
+                                    success: function(data) {
+                                        var response = JSON.parse(data);
+                                        if (response.status == true) {
+                                            toastr["success"](response.message);
+                                            toastr.options = {"closeButton":true,"positionClass":"toast-top-right","timeOut":"5000"};
+                                        } else {
+                                            $.each(response, function(index, value) {
+                                                if (index != 'status') { toastr["error"](value); }
+                                            });
+                                        }
+                                    }
+                                });
+                            }
+                        });
+
                         $('.save_attendance_send_whatsapp').click(function() {
                             // var attendance = {};
                             // $('.attendance').each(function(i) {
@@ -607,6 +672,26 @@ $('.attendance').each(function() {
     </div><!-- Body -->
 </div><!-- /.box -->
 
+<button id="scroll-to-top-btn" title="Back to top" style="
+    display: none;
+    position: fixed;
+    bottom: 70px;
+    right: 24px;
+    z-index: 1100;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(51,122,183,0.80);
+    color: #fff;
+    font-size: 18px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+    transition: opacity 0.3s;
+    padding: 0;
+">&#8679;</button>
 
 <script type="text/javascript">
     $('.select2').select2();
@@ -791,6 +876,18 @@ $('#clear-selection').on('click', function() {
     $('.student-row-check').prop('checked', false);
     $('#select-all-check').prop('checked', false).prop('indeterminate', false);
     updateSelectedPanel();
+});
+
+// Scroll to top button
+$(window).on('scroll', function() {
+    if ($(this).scrollTop() > 200) {
+        $('#scroll-to-top-btn').fadeIn(300);
+    } else {
+        $('#scroll-to-top-btn').fadeOut(300);
+    }
+});
+$('#scroll-to-top-btn').on('click', function() {
+    $('html, body').animate({ scrollTop: 0 }, 400);
 });
 
 </script>

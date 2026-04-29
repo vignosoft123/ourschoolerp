@@ -1,96 +1,145 @@
 <link rel="stylesheet" href="/assets/css/report-buttons.css">
+<style>
+.due-filter-card {
+    background: linear-gradient(135deg, #f8fffe 0%, #edf7ee 100%);
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 18px 20px 12px;
+}
+.due-filter-card .filter-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #388e3c;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c8e6c9;
+}
+.due-filter-card label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 5px;
+    display: block;
+}
+.due-filter-actions {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #c8e6c9;
+    text-align: right;
+}
+.btn-due-report {
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    letter-spacing: 0.2px;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+    min-width: 170px;
+}
+.btn-due-report i { margin-right: 7px; }
+.btn-due-report:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+#due-loader {
+    display: none;
+    text-align: center;
+    padding: 40px 0;
+    color: #777;
+}
+#due-loader i { display: block; margin-bottom: 10px; }
+</style>
+
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa iniicon-duefeesreport"></i> <?=$this->lang->line('panel_title')?></h3>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
-            <li class="active"> <?=$this->lang->line('menu_duefeesreport')?></li>
+            <li class="active"><?=$this->lang->line('menu_duefeesreport')?></li>
         </ol>
     </div><!-- /.box-header -->
-    <!-- form start -->
+
     <div class="box-body">
-        <div class="row">
-            <div class="col-sm-12">
+        <div class="due-filter-card">
+            <div class="filter-title"><i class="fa fa-filter"></i>&nbsp; Filter Options</div>
+
+            <!-- Row 1: Class · Section · Student -->
+            <div class="row">
                 <div class="form-group col-sm-4" id="classesDiv">
                     <label><?=$this->lang->line("duefeesreport_class")?></label>
                     <?php
-                        $classesArray = array(
-                            "0" => $this->lang->line("duefeesreport_please_select"),
-                        );
+                        $classesArray = array("0" => $this->lang->line("duefeesreport_please_select"));
                         if(customCompute($classes)) {
-                            foreach ($classes as $classaKey => $classa) {
+                            foreach ($classes as $classa) {
                                 $classesArray[$classa->classesID] = $classa->classes;
                             }
                         }
                         echo form_dropdown("classesID", $classesArray, set_value("classesID"), "id='classesID' class='form-control select2'");
-                     ?>
+                    ?>
                 </div>
-
                 <div class="form-group col-sm-4" id="sectionDiv">
                     <label><?=$this->lang->line("duefeesreport_section")?></label>
                     <?php
-                        $sectionArray = array(
-                            "0" => $this->lang->line("duefeesreport_please_select"),
-                        );
-                        echo form_dropdown("sectionID", $sectionArray, set_value("sectionID"), "id='sectionID' class='form-control select2'");
-                     ?>
+                        echo form_dropdown("sectionID", array("0" => $this->lang->line("duefeesreport_please_select")), set_value("sectionID"), "id='sectionID' class='form-control select2'");
+                    ?>
                 </div>
-
                 <div class="form-group col-sm-4" id="studentDiv">
                     <label><?=$this->lang->line("duefeesreport_student")?></label>
                     <?php
-                        $studentArray = array(
-                            "0" => $this->lang->line("duefeesreport_please_select"),
-                        );
-                        echo form_dropdown("studentID", $studentArray, set_value("studentID"), "id='studentID' class='form-control select2'");
-                     ?>
+                        echo form_dropdown("studentID", array("0" => $this->lang->line("duefeesreport_please_select")), set_value("studentID"), "id='studentID' class='form-control select2'");
+                    ?>
                 </div>
-
-                <div class="form-group col-sm-4" id="feetypeDiv">
-                    <label><?=$this->lang->line("duefeesreport_feetype")?></label>
-           <?php
-    $feetypeArray = [];
-    if(customCompute($feetypes)) {
-        foreach($feetypes as $feetype) {
-            $feetypeArray[$feetype->feetypesID] = $feetype->feetypes;
-        }
-    }
-
-    echo form_dropdown(
-        "feetypeID[]",   // <-- make it array
-        $feetypeArray,
-        set_value("feetypeID[]"),
-        "id='feetypeID' class='form-control select2' multiple='multiple'"
-    );
-?>
-
-                </div>
-
-                <div class="form-group col-sm-4" id="fromdateDiv">
-                    <label for="fromdate" ><?=$this->lang->line("duefeesreport_fromdate")?></label>
-                    <input type="text" name="fromdate" class="form-control" id="fromdate">
-                </div>
-
-                <div class="form-group col-sm-4" id="todateDiv">
-                    <label><?=$this->lang->line("duefeesreport_todate")?></label>
-                    <input type="text" name="todate" class="form-control" id="todate">
-                </div>
-
-
-
-                <div class="col-sm-4">
-                    <button id="get_duefeesreport" class="btn btn-success get_duefeesreport" style="margin-top:23px;" view_type="horizontal">Get Horizontal Report</button>
-
-                    <button id="get_duefeesreport" class="btn btn-success get_duefeesreport" style="margin-top:23px;" view_type="vertical">Get Vertival Report</button>
-
-                </div>
-
             </div>
 
-        </div><!-- row -->
+            <!-- Row 2: Fee Type · From Date · To Date -->
+            <div class="row">
+                <div class="form-group col-sm-4" id="feetypeDiv">
+                    <label><?=$this->lang->line("duefeesreport_feetype")?></label>
+                    <?php
+                        $feetypeArray = [];
+                        if(customCompute($feetypes)) {
+                            foreach($feetypes as $feetype) {
+                                $feetypeArray[$feetype->feetypesID] = $feetype->feetypes;
+                            }
+                        }
+                        echo form_dropdown("feetypeID[]", $feetypeArray, set_value("feetypeID[]"), "id='feetypeID' class='form-control select2' multiple='multiple'");
+                    ?>
+                </div>
+                <div class="form-group col-sm-4" id="fromdateDiv">
+                    <label for="fromdate"><?=$this->lang->line("duefeesreport_fromdate")?></label>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input type="text" name="fromdate" class="form-control" id="fromdate" placeholder="DD-MM-YYYY" autocomplete="off">
+                    </div>
+                </div>
+                <div class="form-group col-sm-4" id="todateDiv">
+                    <label><?=$this->lang->line("duefeesreport_todate")?></label>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input type="text" name="todate" class="form-control" id="todate" placeholder="DD-MM-YYYY" autocomplete="off">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="due-filter-actions">
+                <button class="btn btn-default btn-due-report get_duefeesreport" view_type="horizontal">
+                    <i class="fa fa-table"></i> Horizontal Report
+                </button>
+                <button class="btn btn-success btn-due-report get_duefeesreport" view_type="vertical">
+                    <i class="fa fa-list-alt"></i> Vertical Report
+                </button>
+            </div>
+        </div>
     </div><!-- Body -->
 </div><!-- /.box -->
 
+<div id="due-loader">
+    <i class="fa fa-spinner fa-spin fa-2x text-success"></i>
+    <span class="text-muted" style="font-size:13px;">Loading report&hellip;</span>
+</div>
 <div id="load_duefeesreport"></div>
 
 
@@ -266,14 +315,23 @@
     }
 
     function ajaxCall(passData) {
+        $('#load_duefeesreport').html('');
+        $('#due-loader').show();
+        $('.btn-due-report').prop('disabled', true);
         $.ajax({
             type: 'POST',
             url: "<?=base_url('duefeesreport/getDueFeesReport')?>",
             data: passData,
             dataType: "html",
             success: function(data) {
+                $('#due-loader').hide();
+                $('.btn-due-report').prop('disabled', false);
                 var response = JSON.parse(data);
                 renderLoder(response, passData);
+            },
+            error: function() {
+                $('#due-loader').hide();
+                $('.btn-due-report').prop('disabled', false);
             }
         });
     }

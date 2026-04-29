@@ -309,7 +309,7 @@ if (customCompute($profile)) { ?>
 
 									<div class="profile-view-tab">
 										<div class="profile-details">
-											<label class="label-txt">Alternative Phone1</label>
+											<label class="label-txt">Whatsapp</label>
 											<div class="para"><?= $profile->alternative_phone1 ?></div>
 										</div>
 									</div>

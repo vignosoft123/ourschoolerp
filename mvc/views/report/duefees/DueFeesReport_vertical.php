@@ -1,82 +1,155 @@
  
 
 <style>
-/* Style the table header */
+/* ── Table header ───────────────────────────────── */
 #myTable thead th {
-    background-color: #4CAF50; /* Green background */
-    color: white;               /* White text */
-    padding: 10px;              /* Padding inside headers */
-    text-align: center;         /* Center the header text */
-    font-weight: bold;          /* Bold text */
-    border: 1px solid #ddd;     /* Light border */
-    font-size: 14px;            /* Font size */
-    white-space: nowrap;        /* Prevent headers from wrapping */
-}
-
-/* Table rows */
-#myTable tbody td {
-    padding: 8px;
+    background-color: #2e7d32;
+    color: #fff;
+    padding: 11px 10px;
     text-align: center;
-    border: 1px solid #ddd;
+    font-weight: 700;
+    border: 1px solid #388e3c;
     font-size: 13px;
-}
-
-/* Table overall */
-#myTable {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 1200px; /* make sure table scrolls */
-}
-
-/* Scrollbar wrapping div */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-}
-
-/* Optional: sticky headers when scrolling */
-#myTable thead th {
+    white-space: nowrap;
     position: sticky;
     top: 0;
     z-index: 2;
 }
+
+/* ── Table body cells ───────────────────────────── */
+#myTable tbody td {
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+    font-size: 13px;
+    background: #fff;
+}
+
+/* ── Table overall ──────────────────────────────── */
+#myTable {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1200px;
+}
+
+/* ── Scroll wrapper ─────────────────────────────── */
+.table-responsive { width: 100%; overflow-x: auto; }
+
+/* ── Sticky Name column (left) ──────────────────── */
+#myTable th:nth-child(2),
+#myTable td:nth-child(2) {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: #e3f2fd;
+    box-shadow: 3px 0 5px rgba(0,0,0,0.08);
+    font-weight: 600;
+    text-align: left;
+}
+#myTable thead th:nth-child(2) {
+    background: #1565c0;
+    z-index: 3;
+}
+
+/* ── Sticky Total Due column (right) ────────────── */
+#myTable th:last-child,
+#myTable td:last-child {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background: #e8f5e9;
+    box-shadow: -3px 0 5px rgba(0,0,0,0.08);
+    font-weight: 700;
+}
+#myTable thead th:last-child {
+    background: #2e7d32;
+    z-index: 3;
+}
+
+/* ── Grand total row ────────────────────────────── */
+#myTable tbody tr:last-child td {
+    background: #f5f5f5 !important;
+    font-weight: 700;
+    border-top: 2px solid #388e3c;
+}
+#myTable tbody tr:last-child td:last-child {
+    background: #c8e6c9 !important;
+    color: #1b5e20;
+    font-size: 14px;
+}
+
+/* ── Report action buttons ──────────────────────── */
+.due-report-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0 8px;
+    flex-wrap: wrap;
+}
+.btn-rpt-action {
+    padding: 7px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.btn-rpt-action i { margin-right: 6px; }
+.btn-rpt-action:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+
+/* ── Report box header ──────────────────────────── */
+.due-report-box-header {
+    background: linear-gradient(90deg, #e8f5e9, #f1f8e9);
+    border-left: 4px solid #43a047;
+    padding: 10px 16px;
+    border-radius: 4px 4px 0 0;
+    margin-bottom: 0;
+}
+.due-report-box-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+/* ── Class / Section info bar ───────────────────── */
+.due-class-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f9fbe7;
+    border: 1px solid #dcedc8;
+    border-radius: 4px;
+    padding: 8px 14px;
+    margin: 10px 0 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #33691e;
+}
 </style>
 
 
-<div class="row">
-    <div class="col-sm-12" style="margin:10px 0px">
-        <?php
-            if($fromdate !='' && $todate !='') {
-                $pdf_preview_uri = base_url('duefeesreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID.'/'.$feetypeID.'/'.strtotime($fromdate).'/'.strtotime($todate));
-            } else {
-                $pdf_preview_uri = base_url('duefeesreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID.'/'.$feetypeID);
-            }
-
-            if($fromdate !='' && $todate !='') {
-                $xml_preview_uri = base_url('duefeesreport/xlsx/'.$classesID.'/'.$sectionID.'/'.$studentID.'/'.$feetypeID.'/'.strtotime($fromdate).'/'.strtotime($todate));
-            } else {
-                $xml_preview_uri = base_url('duefeesreport/xlsx/'.$classesID.'/'.$sectionID.'/'.$studentID.'/'.$feetypeID);
-            }
-
-            echo btn_printReport('duefeesreport', $this->lang->line('report_print'), 'printablediv');
-            // echo btn_pdfPreviewReport('duefeesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            echo btn_xmlReport('duefeesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
-            // echo btn_sentToMailReport('duefeesreport', $this->lang->line('report_send_pdf_to_mail'));
-        ?>
- 
-
-        <button id="exportBtn" class="btn btn-default">Download Excel - Vertical View</button>
-
-
-
-    </div>
+<?php
+    if($fromdate !='' && $todate !='') {
+        $xml_preview_uri = base_url('duefeesreport/xlsx/'.$classesID.'/'.$sectionID.'/'.$studentID.'/'.$feetypeID.'/'.strtotime($fromdate).'/'.strtotime($todate));
+    } else {
+        $xml_preview_uri = base_url('duefeesreport/xlsx/'.$classesID.'/'.$sectionID.'/'.$studentID.'/'.$feetypeID);
+    }
+?>
+<div class="due-report-actions">
+    <a href="<?=$xml_preview_uri?>" class="btn btn-success btn-rpt-action">
+        <i class="fa fa-file-excel-o"></i> Export XLSX
+    </a>
+    <button id="exportBtn" class="btn btn-info btn-rpt-action">
+        <i class="fa fa-download"></i> Download Excel – Vertical View
+    </button>
 </div>
 
-<div class="box">
-    <div class="box-header bg-gray">
-        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i>
-            <?=$this->lang->line('duefeesreport_report_for')?> - 
-            <?=$this->lang->line('duefeesreport_duefees');?>
+<div class="box" style="border-top: 3px solid #43a047;">
+    <div class="due-report-box-header">
+        <h3><i class="fa fa-clipboard"></i>
+            <?=$this->lang->line('duefeesreport_report_for')?> &mdash; <?=$this->lang->line('duefeesreport_duefees')?>
         </h3>
     </div><!-- /.box-header -->
     <div id="printablediv">
@@ -88,24 +161,18 @@
                 </div>
                 <?php if($classesID >= 0 || $sectionID >= 0 ) { ?>
                     <div class="col-sm-12">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <h5 class="pull-left">
-                                    <?php 
-                                        echo $this->lang->line('duefeesreport_class')." : ";
-                                        echo isset($classes[$classesID]) ? $classes[$classesID] : $this->lang->line('duefeesreport_all_class');
-                                    ?>
-                                </h5>                         
-                                <h5 class="pull-right">
-                                    <?php
-                                       echo $this->lang->line('duefeesreport_section')." : ";
-                                       echo isset($sections[$sectionID]) ? $sections[$sectionID] : $this->lang->line('duefeesreport_all_section');
-                                    ?>
-                                </h5>
-                            </div>
+                        <div class="due-class-info">
+                            <span><i class="fa fa-graduation-cap"></i>&nbsp;
+                                <?=$this->lang->line('duefeesreport_class')?>:&nbsp;
+                                <strong><?=isset($classes[$classesID]) ? $classes[$classesID] : $this->lang->line('duefeesreport_all_class')?></strong>
+                            </span>
+                            <span><i class="fa fa-users"></i>&nbsp;
+                                <?=$this->lang->line('duefeesreport_section')?>:&nbsp;
+                                <strong><?=isset($sections[$sectionID]) ? $sections[$sectionID] : $this->lang->line('duefeesreport_all_section')?></strong>
+                            </span>
                         </div>
                     </div>
-                <?php } 
+                <?php }
                 if(customCompute($getDueFeesReports)) { ?>
                     <div class="col-sm-12">
                         <div id="hide-table">
@@ -142,7 +209,8 @@ foreach($getDueFeesReports as $report) {
 }
 ?>
 
-<table class="table table-bordered table-responsive" id="myTable">
+<div class="table-responsive" id="due-table-scroll">
+<table class="table table-bordered" id="myTable">
     <thead>
         <tr>
             <th><?=$this->lang->line('slno')?></th>
@@ -213,6 +281,7 @@ foreach($getDueFeesReports as $report) {
         </tr>
     </tbody>
 </table>
+</div><!-- /table-responsive -->
 
                         </div>
                     </div>
@@ -303,6 +372,78 @@ foreach($getDueFeesReports as $report) {
 </form>
 
 
+
+<!-- Sticky horizontal scrollbar -->
+<div id="sticky-hscroll-bar" style="display:none; position:fixed; bottom:0; overflow-x:auto; overflow-y:hidden; z-index:1049; height:14px; background:#f0f0f0; border-top:1px solid #ccc;">
+    <div id="sticky-hscroll-inner" style="height:1px;"></div>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var wrap  = document.getElementById('due-table-scroll');
+    var bar   = document.getElementById('sticky-hscroll-bar');
+    var inner = document.getElementById('sticky-hscroll-inner');
+    if (!wrap) return;
+
+    function reposition() {
+        var rect = wrap.getBoundingClientRect();
+        bar.style.left  = rect.left + 'px';
+        bar.style.width = rect.width + 'px';
+        inner.style.width = wrap.scrollWidth + 'px';
+    }
+
+    function checkVisibility() {
+        var rect  = wrap.getBoundingClientRect();
+        var winH  = window.innerHeight;
+        var wide  = wrap.scrollWidth > wrap.clientWidth;
+        // Show only when table is horizontally scrollable AND its native
+        // bottom scrollbar is hidden below the viewport fold
+        bar.style.display = (wide && rect.top < winH && rect.bottom > winH) ? 'block' : 'none';
+    }
+
+    reposition();
+    checkVisibility();
+
+    bar.addEventListener('scroll', function() { wrap.scrollLeft = bar.scrollLeft; });
+    wrap.addEventListener('scroll', function() { bar.scrollLeft  = wrap.scrollLeft; });
+    window.addEventListener('scroll', function() { reposition(); checkVisibility(); });
+    window.addEventListener('resize', function() { reposition(); checkVisibility(); });
+})();
+</script>
+
+<button id="scroll-to-top-btn" title="Back to top" style="
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1100;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(51,122,183,0.80);
+    color: #fff;
+    font-size: 18px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+    transition: opacity 0.3s;
+    padding: 0;
+">&#8679;</button>
+
+<script type="text/javascript">
+    $(window).on('scroll', function() {
+        if ($(this).scrollTop() > 200) {
+            $('#scroll-to-top-btn').fadeIn(300);
+        } else {
+            $('#scroll-to-top-btn').fadeOut(300);
+        }
+    });
+    $('#scroll-to-top-btn').on('click', function() {
+        $('html, body').animate({ scrollTop: 0 }, 400);
+    });
+</script>
 
 <script type="text/javascript">
     function check_email(email) {

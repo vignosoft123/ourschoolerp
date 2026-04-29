@@ -443,7 +443,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         
                                                         <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
-                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
+                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
                                                             <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
                                                         </td>
                                                         
@@ -580,7 +580,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         
                                                         <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
-                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)$student->phone); ?>
+                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
                                                             <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
                                                         </td>
                                                         

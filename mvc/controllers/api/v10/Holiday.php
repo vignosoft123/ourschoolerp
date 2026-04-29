@@ -14,7 +14,9 @@ class Holiday extends Api_Controller
     public function index_get() 
     {
         $schoolyearID = $this->session->userdata('defaultschoolyearID');
-        $this->retdata['holidays'] = $this->holiday_m->get_order_by_holiday(array('schoolyearID' => $schoolyearID));
+        $holidays = $this->holiday_m->get_order_by_holiday(array('schoolyearID' => $schoolyearID));
+        usort($holidays, function($a, $b) { return $b->holidayID - $a->holidayID; });
+        $this->retdata['holidays'] = $holidays;
         
         $this->response([
             'status'    => true,

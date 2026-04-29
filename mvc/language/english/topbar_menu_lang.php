@@ -238,6 +238,7 @@ $lang['menu_sponsorshipreport'] = 'Sponsorship Report';
 
 $lang['menu_villages']            = 'Villages';
 $lang['menu_college_group']       = 'College Group';
+$lang['menu_youtube_links']       = 'YouTube Links';
 
 
 

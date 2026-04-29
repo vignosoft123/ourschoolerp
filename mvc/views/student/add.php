@@ -583,7 +583,7 @@
                         echo "<div class='col-md-4' >";
                     ?>
                     <label for="alternative_phone1" class="  control-label">
-                        Alternative Phone1
+                        Whatsapp
                     </label>
                     
                         <input type="text" class="form-control" id="alternative_phone1" name="alternative_phone1" value="<?= set_value('alternative_phone1') ?>">

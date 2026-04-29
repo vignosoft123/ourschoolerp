@@ -1,0 +1,24 @@
+<?php
+$lang['menu_youtube_links']     = 'YouTube Links';
+$lang['youtube_title']          = 'YouTube Links';
+$lang['youtube_add']            = 'Add YouTube Link';
+$lang['youtube_edit']           = 'Edit YouTube Link';
+$lang['youtube_title_label']    = 'Title';
+$lang['youtube_link']           = 'YouTube URL';
+$lang['youtube_class']          = 'Class';
+$lang['youtube_section']        = 'Section';
+$lang['youtube_subject']        = 'Subject';
+$lang['youtube_description']    = 'Description';
+$lang['youtube_sort_order']     = 'Sort Order';
+$lang['youtube_status']         = 'Status';
+$lang['youtube_thumbnail']      = 'Thumbnail';
+$lang['youtube_views']          = 'Views';
+$lang['youtube_action']         = 'Action';
+$lang['youtube_save_btn']       = 'Save';
+$lang['youtube_update_btn']     = 'Update';
+$lang['youtube_back_btn']       = 'Back';
+$lang['youtube_edit_btn']       = 'Edit';
+$lang['youtube_delete_btn']     = 'Delete';
+$lang['youtube_add_success']    = 'YouTube link added successfully.';
+$lang['youtube_update_success'] = 'YouTube link updated successfully.';
+$lang['youtube_delete_success'] = 'YouTube link deleted successfully.';
