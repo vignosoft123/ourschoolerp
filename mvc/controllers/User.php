@@ -925,4 +925,26 @@ class User extends Admin_Controller {
 		}
 		return $retArray;
 	}
+
+	public function uploadPhoto()
+	{
+		$id = isset($_POST['userID']) ? (int)$_POST['userID'] : 0;
+		if (!$id || !isset($_FILES['file'])) {
+			echo "Invalid request"; return;
+		}
+		$file      = $_FILES['file'];
+		$uploadDir = 'uploads/images/';
+		$ext       = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+		if (!in_array($ext, ['jpg','jpeg','png','gif'])) {
+			echo "Invalid file type"; return;
+		}
+		$newFileName = 'user_' . $id . '_' . time() . '.' . $ext;
+		if (move_uploaded_file($file['tmp_name'], $uploadDir . $newFileName)) {
+			$this->db->where('userID', $id);
+			$this->db->update('user', ['photo' => $newFileName]);
+			echo "success";
+		} else {
+			echo "Upload failed";
+		}
+	}
 }

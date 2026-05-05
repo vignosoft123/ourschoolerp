@@ -229,68 +229,91 @@
                         </span>
                     </div>
 
-                    <?php
-                        if(form_error('photo'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="photo" class="control-label">
-                            <?=$this->lang->line("teacher_photo")?>
-                        </label>
-                        <div class="input-filed">
-                            <div class="input-group image-preview">
-                                <input type="text" class="form-control image-preview-filename" disabled="disabled">
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-default image-preview-clear" style="display:none;">
-                                        <span class="fa fa-remove"></span>
-                                        <?=$this->lang->line('teacher_clear')?>
-                                    </button>
-                                    <div class="btn btn-primary image-preview-input">
-                                        <span class="fa fa-repeat"></span>
-                                        <span class="image-preview-input-title">
-                                        <?=$this->lang->line('teacher_file_browse')?></span>
-                                        <input type="file" accept="image/png, image/jpeg, image/gif" name="photo"/>
-                                    </div>
-                                </span>
+                    <!-- Photo + Signature side by side -->
+                    <div class="form-group" style="grid-column: span 2;">
+                        <div style="display:flex; gap:30px; align-items:flex-start; flex-wrap:wrap;">
+
+                            <!-- Photo -->
+                            <div style="flex:1; min-width:200px;">
+                                <label class="control-label"><?=$this->lang->line("teacher_photo")?></label>
+                                <?php if($teacher->photo && $teacher->photo != 'default.png'): ?>
+                                <div style="margin-bottom:8px;" id="current-photo-wrap">
+                                    <img id="current-photo-preview"
+                                         src="<?=base_url('uploads/images/'.$teacher->photo)?>"
+                                         style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:2px solid #ddd;display:block;"
+                                         onerror="document.getElementById('current-photo-wrap').style.display='none'">
+                                    <div style="font-size:11px;color:#888;margin-top:4px;">Current photo</div>
+                                </div>
+                                <?php endif; ?>
+                                <div class="input-group image-preview">
+                                    <input type="text" class="form-control image-preview-filename" disabled="disabled">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default image-preview-clear" style="display:none;">
+                                            <span class="fa fa-remove"></span> <?=$this->lang->line('teacher_clear')?>
+                                        </button>
+                                        <div class="btn btn-primary image-preview-input">
+                                            <span class="fa fa-repeat"></span>
+                                            <span class="image-preview-input-title"><?=$this->lang->line('teacher_file_browse')?></span>
+                                            <input type="file" accept="image/png,image/jpeg,image/gif,.jpeg" name="photo"/>
+                                        </div>
+                                    </span>
+                                </div>
+                                <span class="control-label text-danger"><?php echo form_error('photo'); ?></span>
                             </div>
-                        </div>
 
-                        <span class="control-label">
-                            <?php echo form_error('photo'); ?>
-                        </span>
-                    </div>
-
-                    <?php
-                        if(form_error('signature'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="signature" class="control-label">
-                            <?=$this->lang->line("teacher_signature")?>
-                        </label>
-                        <div class="input-filed">
-                            <div class="input-group image-preview-signature">
-                                <input type="text" class="form-control image-preview-filename-signature" disabled="disabled">
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-default image-preview-clear-signature" style="display:none;">
-                                        <span class="fa fa-remove"></span>
-                                        <?=$this->lang->line('teacher_clear')?>
-                                    </button>
-                                    <div class="btn btn-primary image-preview-input-signature">
-                                        <span class="fa fa-repeat"></span>
-                                        <span class="image-preview-input-signature-title">
-                                        <?=$this->lang->line('teacher_file_browse')?></span>
-                                        <input type="file" accept="image/png, image/jpeg, image/gif" name="signature"/>
+                            <!-- Signature -->
+                            <div style="flex:1; min-width:200px;">
+                                <label class="control-label"><?=$this->lang->line("teacher_signature")?></label>
+                                <?php
+                                    $sig_data_uri = null;
+                                    $sig_found_path = '';
+                                    if($teacher->signature && $teacher->signature != 'default.png') {
+                                        $sig_paths = [
+                                            FCPATH.'uploads/signatures/'.$teacher->signature,
+                                            FCPATH.'uploads/images/'.$teacher->signature,
+                                        ];
+                                        foreach($sig_paths as $sp) {
+                                            if(file_exists($sp)) {
+                                                $mime = strpos($teacher->signature, '.png') !== false ? 'image/png' : 'image/jpeg';
+                                                $sig_data_uri = 'data:'.$mime.';base64,'.base64_encode(file_get_contents($sp));
+                                                $sig_found_path = $sp;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                ?>
+                                <div style="margin-bottom:8px;" id="current-signature-wrap">
+                                    <?php if($sig_data_uri): ?>
+                                    <img id="current-signature-preview"
+                                         src="<?=$sig_data_uri?>"
+                                         style="width:180px;height:80px;object-fit:contain;border-radius:4px;border:2px solid #ddd;background:#fff;padding:4px;display:block;">
+                                    <div style="font-size:11px;color:#888;margin-top:4px;">Current signature</div>
+                                    <?php else: ?>
+                                    <div style="width:180px;height:80px;border:1px solid #ddd;border-radius:4px;background:#fff;display:flex;align-items:center;justify-content:center;" id="sig-empty-box">
+                                        <i class="fa fa-image" style="font-size:28px;color:#ddd;"></i>
                                     </div>
-                                </span>
+                                    <div style="font-size:10px;color:#bbb;margin-top:3px;">
+                                        DB: <?=htmlspecialchars($teacher->signature ? substr($teacher->signature,0,30).'...' : '(empty)')?>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="input-group image-preview-signature">
+                                    <input type="text" class="form-control image-preview-filename-signature" disabled="disabled">
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-default image-preview-clear-signature" style="display:none;">
+                                            <span class="fa fa-remove"></span> <?=$this->lang->line('teacher_clear')?>
+                                        </button>
+                                        <div class="btn btn-primary image-preview-input-signature">
+                                            <span class="fa fa-repeat"></span>
+                                            <span class="image-preview-input-signature-title"><?=$this->lang->line('teacher_file_browse')?></span>
+                                            <input type="file" accept="image/png,image/jpeg,image/gif,.jpeg" name="signature"/>
+                                        </div>
+                                    </span>
+                                </div>
+                                <span class="control-label text-danger"><?php echo form_error('signature'); ?></span>
                             </div>
-                        </div>
 
-                        <span class="control-label">
-                            <?php echo form_error('signature'); ?>
-                        </span>
+                        </div>
                     </div>
 
                    
@@ -323,6 +346,29 @@
     </div>
 </div>
 
+
+<style>
+.image-preview-input-signature {
+    position: relative;
+    overflow: hidden;
+    margin: 0px;
+    color: #333;
+    background-color: #fff;
+    border-color: #ccc;
+}
+.image-preview-input-signature input[type=file] {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+    filter: alpha(opacity=0);
+    overflow: hidden;
+}
+</style>
 
 <script type="text/javascript">
 $('#username').keyup(function() {
@@ -387,11 +433,13 @@ $(function() {
         reader.onload = function (e) {
             $(".image-preview-input-title").text("<?=$this->lang->line('teacher_file_browse')?>");
             $(".image-preview-clear").show();
-            $(".image-preview-filename").val(file.name);            
+            $(".image-preview-filename").val(file.name);
             img.attr('src', e.target.result);
             $(".image-preview").attr("data-content",$(img)[0].outerHTML).popover("show");
             $('.content').css('padding-bottom', '120px');
-        }        
+            // update inline current-photo preview
+            $('#current-photo-preview').attr('src', e.target.result).show();
+        }
         reader.readAsDataURL(file);
     });
 
@@ -425,9 +473,11 @@ $(function() {
         reader.onload = function (e) {
             $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
             $(".image-preview-clear-signature").show();
-            $(".image-preview-filename-signature").val(file.name);            
+            $(".image-preview-filename-signature").val(file.name);
             img.attr('src', e.target.result);
             $(".image-preview-signature").attr("data-content",$(img)[0].outerHTML).popover("show");
+            // update inline current-signature preview
+            $('#current-signature-preview').attr('src', e.target.result).show();
             $('.content').css('padding-bottom', '120px');
         }        
         reader.readAsDataURL(file);

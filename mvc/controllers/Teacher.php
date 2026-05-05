@@ -175,11 +175,11 @@ class Teacher extends Admin_Controller {
             if ( customCompute($explode) >= 2 ) {
                 $new_file                = $file_name_rename . '.' . end($explode);
                 $config['upload_path']   = "./uploads/images";
-                $config['allowed_types'] = "gif|jpg|png";
+                $config['allowed_types'] = "gif|jpg|png|jpeg";
                 $config['file_name']     = $new_file;
-                $config['max_size']      = '1024';
-                $config['max_width']     = '3000';
-                $config['max_height']    = '3000';
+                $config['max_size']      = '5120';
+                $config['max_width']     = '0';
+                $config['max_height']    = '0';
                 $this->load->library('upload');
                 $this->upload->initialize($config);
                 if ( !$this->upload->do_upload("photo") ) {
@@ -223,11 +223,11 @@ class Teacher extends Admin_Controller {
             if ( customCompute($explode) >= 2 ) {
                 $new_file                = $file_name_rename . '.' . end($explode);
                 $config['upload_path']   = "./uploads/signatures";
-                $config['allowed_types'] = "gif|jpg|png";
+                $config['allowed_types'] = "gif|jpg|jpeg|png";
                 $config['file_name']     = $new_file;
-                $config['max_size']      = '1024';
-                $config['max_width']     = '3000';
-                $config['max_height']    = '3000';
+                $config['max_size']      = '5120';
+                $config['max_width']     = '0';
+                $config['max_height']    = '0';
                 $this->load->library('upload');
                 $this->upload->initialize($config);
                 if ( !$this->upload->do_upload("signature") ) {
@@ -351,7 +351,7 @@ class Teacher extends Admin_Controller {
             if ( $this->data['teacher'] ) {
                 if ( $_POST ) {
                     $rules = $this->rules();
-                    unset($rules[11]);
+                    unset($rules[11], $rules[12]); // remove username-callback and password (not on edit form)
                     $this->form_validation->set_rules($rules);
                     if ( $this->form_validation->run() == false ) {//echo 'if';die;
                         $this->data["subview"] = "teacher/edit";
@@ -1053,5 +1053,27 @@ class Teacher extends Admin_Controller {
             }
         }
         return $retArray;
+    }
+
+    public function uploadPhoto()
+    {
+        $id = isset($_POST['teacherID']) ? (int)$_POST['teacherID'] : 0;
+        if (!$id || !isset($_FILES['file'])) {
+            echo "Invalid request"; return;
+        }
+        $file      = $_FILES['file'];
+        $uploadDir = 'uploads/images/';
+        $ext       = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ['jpg','jpeg','png','gif'])) {
+            echo "Invalid file type"; return;
+        }
+        $newFileName = 'teacher_' . $id . '_' . time() . '.' . $ext;
+        if (move_uploaded_file($file['tmp_name'], $uploadDir . $newFileName)) {
+            $this->db->where('teacherID', $id);
+            $this->db->update('teacher', ['photo' => $newFileName]);
+            echo "success";
+        } else {
+            echo "Upload failed";
+        }
     }
 }
