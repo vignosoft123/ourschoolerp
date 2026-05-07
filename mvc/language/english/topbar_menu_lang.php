@@ -168,7 +168,8 @@ $lang['menu_purchase']             = 'Purchase';
 $lang['menu_pages']            = 'Pages';
 $lang['menu_posts']            = 'Posts';
 $lang['menu_posts_categories'] = 'Posts Categories';
-$lang['menu_global_payment']   = 'Global Payment';
+$lang['menu_global_payment']     = 'Global Payment';
+$lang['menu_global_payment_new'] = 'Global Payment (New)';
 $lang['menu_income']           = 'Income';
 $lang['menu_sociallink']       = 'Social Link';
 

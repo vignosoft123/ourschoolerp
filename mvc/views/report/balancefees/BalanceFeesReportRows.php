@@ -128,10 +128,17 @@ if(isset($students) && customCompute($students)) {
                     ?>
                 </td>
 
+                <td style="background:#fff3e0; color:#e65100; font-weight:700;">
+                    <?php
+                        $cfPrev = isset($prevBalanceMap[$student->srstudentID]) ? $prevBalanceMap[$student->srstudentID] : 0;
+                        echo $cfPrev > 0 ? formatIndianCurrency($cfPrev) : '';
+                    ?>
+                </td>
+
                 <td>
-                    <?php 
+                    <?php
                     $fee_paid_balance = $feeamount."^".$paidAmount."^".$Balance;
-                    $fee_paid_balance = encrypt_data($fee_paid_balance); 
+                    $fee_paid_balance = encrypt_data($fee_paid_balance);
                     ?>
                     <input type="checkbox" st_ids="<?= $student->studentID ?>" st_names="<?= $student->name ?>" mobile_no="<?= $student->phone ?>" balance="<?= $fee_paid_balance ?>" name="send_sms_balance" id="send_sms_balance" class="checkbox">
                 </td>

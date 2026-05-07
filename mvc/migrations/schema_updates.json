@@ -412,5 +412,34 @@
                 "menuName": "youtube_links"
             }
         }
+    },
+    {
+        "query": "CREATE TABLE `student_carry_forward` (`id` int(11) NOT NULL AUTO_INCREMENT, `studentID` int(11) NOT NULL, `from_schoolyearID` int(11) NOT NULL, `to_schoolyearID` int(11) NOT NULL, `from_year_name` varchar(128) NOT NULL DEFAULT '', `total_fee` double NOT NULL DEFAULT 0, `total_discount` double NOT NULL DEFAULT 0, `total_paid_in_year` double NOT NULL DEFAULT 0, `total_waiver` double NOT NULL DEFAULT 0, `carry_forward_due` double NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'pending', `created_at` datetime NOT NULL, `updated_at` datetime NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `uniq_cf` (`studentID`,`from_schoolyearID`,`to_schoolyearID`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        "type": "create",
+        "check_table": "student_carry_forward"
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('global_payment_new', 'global_payment_new', 'fa-balance-scale', '1', '16', '239')",
+        "type": "insert",
+        "check_row": {
+            "table": "menu",
+            "where": {
+                "menuName": "global_payment_new"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('global_payment_new', 'global_payment_new')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "global_payment_new"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'global_payment_new' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'global_payment_new'))",
+        "type": "raw"
     }
 ]

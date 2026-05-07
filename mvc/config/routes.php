@@ -11,4 +11,7 @@
     });
 
     $route['version']            = 'app/version';
+    $route['global_payment/new']                       = 'global_payment_new/index';
+    $route['global_payment/new/(:num)/(:num)']         = 'global_payment_new/index/$1/$2';
+    $route['global_payment/new/(:any)']                = 'global_payment_new/index/$1';
     $route['default_controller'] = 'frontend/index';

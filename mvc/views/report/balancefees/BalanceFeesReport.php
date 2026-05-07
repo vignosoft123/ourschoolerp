@@ -303,6 +303,7 @@ function formatIndianCurrency($number, $decimals = 2) {
                             <th rowspan="2">Discount/Weaver</th>
                             <th rowspan="2"><?=$this->lang->line('balancefeesreport_paid')?></th>
                             <th rowspan="2"><?=$this->lang->line('balancefeesreport_balance')?></th>
+                            <th rowspan="2" style="background:#e65100;">Prev C/F</th>
                             <th rowspan="2">
                                 Send SMS <input type="checkbox" id="checkAll" name="send_sms_balance"><br/>
                                 <input type="date" name="date" id="date">
@@ -429,11 +430,18 @@ function formatIndianCurrency($number, $decimals = 2) {
                                 ?>
                             </td>
 
+                            <td style="background:#fff3e0; color:#e65100; font-weight:700;">
+                                <?php
+                                    $cfPrev = isset($prevBalanceMap[$student->srstudentID]) ? $prevBalanceMap[$student->srstudentID] : 0;
+                                    $totalPrevCFBalance = ($totalPrevCFBalance ?? 0) + $cfPrev;
+                                    echo $cfPrev > 0 ? formatIndianCurrency($cfPrev) : '';
+                                ?>
+                            </td>
                             <td>
-                                <?php 
+                                <?php
                                 $fee_paid_balance = $feeamount."^".$paid."^".$Balance;
-                                $fee_paid_balance = encrypt_data($fee_paid_balance); 
-                                // $fee_paid_balance = $Balance; 
+                                $fee_paid_balance = encrypt_data($fee_paid_balance);
+                                // $fee_paid_balance = $Balance;
 
                                 ?>
                                 <input type="checkbox" st_ids="<?=$student->studentID?>" st_names="<?=$student->name?>" mobile_no="<?=$student->phone?>" balance="<?=$fee_paid_balance?>" name="send_sms_balance" id="send_sms_balance" class="checkbox">
@@ -472,6 +480,10 @@ function formatIndianCurrency($number, $decimals = 2) {
                             <td style="color:green" class="text-bold"><?=formatIndianCurrency($totalPayments)?></td>
 
                             <td style="color:red" class="text-bold"><?=formatIndianCurrency($totalBalance)?></td>
+
+                            <td style="color:#e65100; background:#fff3e0;" class="text-bold">
+                                <?php echo isset($totalPrevCFBalance) && $totalPrevCFBalance > 0 ? formatIndianCurrency($totalPrevCFBalance) : ''; ?>
+                            </td>
 
                             <td></td>
                         </tr>   

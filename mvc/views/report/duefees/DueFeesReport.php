@@ -171,10 +171,11 @@
                                         <th><?=$this->lang->line('duefeesreport_feetype')?></th>
                                         <th><?=$this->lang->line('duefeesreport_discount')?></th>
                                         <th><?=$this->lang->line('duefeesreport_due') ?></th>
+                                        <th style="background:#e65100;">Prev C/F</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $totalDue = 0; $i = 0; foreach($getDueFeesReports as $getDueFeesReport) {
+                                    <?php $totalDue = 0; $totalPrevCF = 0; $i = 0; $lastStudentID = 0; $seenStudents = []; foreach($getDueFeesReports as $getDueFeesReport) {
                                         if($sectionID > 0) { if(isset($students[$getDueFeesReport->studentID]) && $students[$getDueFeesReport->studentID]->srsectionID == $sectionID) { $i++; ?>
                                             <tr>
                                                 <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
@@ -223,6 +224,17 @@
                                                             $due = ($getDueFeesReport->amount - $discount);
                                                             echo number_format($due,2);
                                                             $totalDue += $due;
+                                                        }
+                                                    ?>
+                                                </td>
+                                                <td data-title="Prev C/F" style="background:#fff3e0;">
+                                                    <?php
+                                                        $cf_sid = $getDueFeesReport->studentID;
+                                                        if (!isset($seenStudents[$cf_sid])) {
+                                                            $seenStudents[$cf_sid] = true;
+                                                            $cfVal = isset($prevBalanceMap[$cf_sid]) ? $prevBalanceMap[$cf_sid] : 0;
+                                                            $totalPrevCF += $cfVal;
+                                                            echo $cfVal > 0 ? '<strong style="color:#e65100;">'.number_format($cfVal,2).'</strong>' : '';
                                                         }
                                                     ?>
                                                 </td>
@@ -278,6 +290,17 @@
                                                         }
                                                     ?>
                                                 </td>
+                                                <td data-title="Prev C/F" style="background:#fff3e0;">
+                                                    <?php
+                                                        $cf_sid = $getDueFeesReport->studentID;
+                                                        if (!isset($seenStudents[$cf_sid])) {
+                                                            $seenStudents[$cf_sid] = true;
+                                                            $cfVal = isset($prevBalanceMap[$cf_sid]) ? $prevBalanceMap[$cf_sid] : 0;
+                                                            $totalPrevCF += $cfVal;
+                                                            echo $cfVal > 0 ? '<strong style="color:#e65100;">'.number_format($cfVal,2).'</strong>' : '';
+                                                        }
+                                                    ?>
+                                                </td>
                                             </tr>
                                     <?php  } } ?>
                                     <tr>
@@ -297,6 +320,9 @@
                                             <?=$this->lang->line('duefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : '' ?>
                                         </td>
                                         <td data-title="<?=$this->lang->line('duefeesreport_total_due')?>" class="text-bold"><?=number_format($totalDue,2)?></td>
+                                        <td class="text-bold" style="background:#ffe0b2; color:#e65100;">
+                                            <?=$totalPrevCF > 0 ? number_format($totalPrevCF, 2) : ''?>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>

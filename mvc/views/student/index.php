@@ -498,7 +498,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                         if( $global_payment_permission){
                                                                         ?>
 
-                                                                         <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
+                                                                         <!-- <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> -->
+                                                                         <a href="<?php echo base_url('global_payment/new/').$student->classesID.'/'.$student->srstudentID;?>" class="btn btn-warning btn-xs mrg" data-placement="top" data-toggle="tooltip" data-original-title="Global Payment (New)"><i class="fa fa-money"></i></a>
                                                               <?php   }}  ?>
 
                                                                
@@ -634,9 +635,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                         
                                                                         ?>
 
-                                                                        <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> 
-                                                                        
-                                                              <?php  } 
+                                                                        <!-- <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> -->
+                                                                        <a href="<?php echo base_url('global_payment/new/').$student->classesID.'/'.$student->srstudentID;?>" class="btn btn-warning btn-xs mrg" data-placement="top" data-toggle="tooltip" data-original-title="Global Payment (New)"><i class="fa fa-money"></i></a>
+
+                                                              <?php  }
                                                               }?>
 
                                                                

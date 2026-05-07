@@ -98,6 +98,28 @@ class Balancefeesreport extends Admin_Controller{
 		$this->load->view('_layout_main', $this->data);
 	}
 
+	// ─── Carry-forward: sum all previous-year dues for one student ───────────────
+	private function getPrevBalanceDue($studentID, $currentSchoolyearID) {
+		$allYears = $this->db->select('schoolyearID')
+		                     ->where('schoolyearID <', $currentSchoolyearID)
+		                     ->order_by('schoolyearID', 'DESC')
+		                     ->get('schoolyear')->result();
+		$totalDue = 0;
+		foreach ($allYears as $yr) {
+			$invs = $this->invoice_m->get_order_by_invoice_join_maininvoice($studentID, $yr->schoolyearID, 1);
+			if (!customCompute($invs)) continue;
+			$pmts = $this->payment_m->get_order_by_payment(['studentID' => $studentID, 'schoolyearID' => $yr->schoolyearID]);
+			$wavs = $this->weaverandfine_m->get_order_by_weaverandfine(['studentID' => $studentID, 'schoolyearID' => $yr->schoolyearID]);
+			$pMap = []; foreach ((array)$pmts as $p) { $pMap[$p->invoiceID] = ($pMap[$p->invoiceID] ?? 0) + $p->paymentamount; }
+			$wMap = []; foreach ((array)$wavs as $w) { $wMap[$w->invoiceID] = ($wMap[$w->invoiceID] ?? 0) + $w->weaver; }
+			foreach ($invs as $inv) {
+				$due = ($inv->amount - $inv->discount) - ($pMap[$inv->invoiceID] ?? 0) - ($wMap[$inv->invoiceID] ?? 0);
+				$totalDue += $due;
+			}
+		}
+		return max(0, round($totalDue, 2));
+	}
+
 	public function getSection() {
 		$classesID = $this->input->post('classesID');
 		if((int)$classesID) {
@@ -214,6 +236,15 @@ class Balancefeesreport extends Admin_Controller{
 
 					// echo "<pre>=========";print_r($this->data['totalweavar']);die;
 
+					// Previous year carry-forward balance per student
+					$prevBalanceMap = [];
+					if (customCompute($this->data['students'])) {
+						foreach ($this->data['students'] as $stdID => $student) {
+							$prevBalanceMap[$stdID] = $this->getPrevBalanceDue($stdID, $schoolyearID);
+						}
+					}
+					$this->data['prevBalanceMap'] = $prevBalanceMap;
+
 					$retArray['render'] = $this->load->view('report/balancefees/BalanceFeesReport', $this->data, true);
 					$retArray['status'] = TRUE;
 					echo json_encode($retArray);
@@ -299,6 +330,15 @@ class Balancefeesreport extends Admin_Controller{
 					$this->data['totalPayment_split']   = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
 					$this->data['totalweavar']          = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
 					$this->data['startIndex']           = $offset;
+
+					// Previous year carry-forward balance per student
+					$prevBalanceMap = [];
+					if (customCompute($this->data['students'])) {
+						foreach ($this->data['students'] as $stdID => $student) {
+							$prevBalanceMap[$stdID] = $this->getPrevBalanceDue($stdID, $schoolyearID);
+						}
+					}
+					$this->data['prevBalanceMap'] = $prevBalanceMap;
 
 					$retArray['rows'] = $this->load->view('report/balancefees/BalanceFeesReportRows', $this->data, true);
 					$nextOffset = $offset + $perPage;

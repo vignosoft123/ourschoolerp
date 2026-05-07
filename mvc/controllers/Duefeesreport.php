@@ -247,6 +247,28 @@ class Duefeesreport extends Admin_Controller{
 			exit;
 		}
 	}
+	// ─── Carry-forward: sum all previous-year dues for one student ───────────────
+	private function getPrevBalanceDue($studentID, $currentSchoolyearID) {
+		$allYears = $this->db->select('schoolyearID')
+		                     ->where('schoolyearID <', $currentSchoolyearID)
+		                     ->order_by('schoolyearID', 'DESC')
+		                     ->get('schoolyear')->result();
+		$totalDue = 0;
+		foreach ($allYears as $yr) {
+			$invs = $this->invoice_m->get_order_by_invoice_join_maininvoice($studentID, $yr->schoolyearID, 1);
+			if (!customCompute($invs)) continue;
+			$pmts = $this->payment_m->get_order_by_payment(['studentID' => $studentID, 'schoolyearID' => $yr->schoolyearID]);
+			$wavs = $this->weaverandfine_m->get_order_by_weaverandfine(['studentID' => $studentID, 'schoolyearID' => $yr->schoolyearID]);
+			$pMap = []; foreach ((array)$pmts as $p) { $pMap[$p->invoiceID] = ($pMap[$p->invoiceID] ?? 0) + $p->paymentamount; }
+			$wMap = []; foreach ((array)$wavs as $w) { $wMap[$w->invoiceID] = ($wMap[$w->invoiceID] ?? 0) + $w->weaver; }
+			foreach ($invs as $inv) {
+				$due = ($inv->amount - $inv->discount) - ($pMap[$inv->invoiceID] ?? 0) - ($wMap[$inv->invoiceID] ?? 0);
+				$totalDue += $due;
+			}
+		}
+		return max(0, round($totalDue, 2));
+	}
+
 public function getDueFeesReport() {
     $retArray['status'] = FALSE;
     $retArray['render'] = '';
@@ -328,6 +350,17 @@ public function getDueFeesReport() {
 
                 // ✅ Due Fees
                 $this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report_multi($this->input->post());
+
+                // Previous year carry-forward balance per student
+                $prevBalanceMap = [];
+                if (customCompute($this->data['getDueFeesReports'])) {
+                    foreach ($this->data['getDueFeesReports'] as $dRow) {
+                        if (!isset($prevBalanceMap[$dRow->studentID])) {
+                            $prevBalanceMap[$dRow->studentID] = $this->getPrevBalanceDue($dRow->studentID, $schoolyearID);
+                        }
+                    }
+                }
+                $this->data['prevBalanceMap'] = $prevBalanceMap;
 
                 // Render
                 if($_POST['view_type'] == 'horizontal'){
