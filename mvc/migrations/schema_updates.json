@@ -1,5 +1,60 @@
 [
     {
+        "query": "CREATE TABLE `banks` ( `banksID` int(11) NOT NULL AUTO_INCREMENT, `bank_name` varchar(255) NOT NULL, `status` int(11) DEFAULT '1', PRIMARY KEY (`banksID`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        "type": "create",
+        "check_table": "banks"
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('banks', 'banks', 'fa-university', '1', '16', '240')",
+        "type": "insert",
+        "check_row": { "table": "menu", "column": "link", "value": "banks" }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`usertypeID`, `menuName`, `action`) VALUES (1, 'banks_add', 1), (1, 'banks_edit', 1), (1, 'banks_delete', 1)",
+        "type": "insert",
+        "check_row": { "table": "permissions", "column": "menuName", "value": "banks_add" }
+    },
+    {
+        "query": "ALTER TABLE `payment` ADD `payment_other_details` VARCHAR(255) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": { "table": "payment", "column": "payment_other_details" }
+    },
+    {
+        "query": "ALTER TABLE `payment` ADD INDEX `idx_pay_student_year` (`studentID`, `schoolyearID`)",
+        "type": "index",
+        "check_index": { "table": "payment", "index": "idx_pay_student_year" }
+    },
+    {
+        "query": "ALTER TABLE `payment` ADD INDEX `idx_pay_globalpayment` (`globalpaymentID`)",
+        "type": "index",
+        "check_index": { "table": "payment", "index": "idx_pay_globalpayment" }
+    },
+    {
+        "query": "ALTER TABLE `weaverandfine` ADD INDEX `idx_wf_student_year` (`studentID`, `schoolyearID`)",
+        "type": "index",
+        "check_index": { "table": "weaverandfine", "index": "idx_wf_student_year" }
+    },
+    {
+        "query": "ALTER TABLE `weaverandfine` ADD INDEX `idx_wf_invoice` (`invoiceID`)",
+        "type": "index",
+        "check_index": { "table": "weaverandfine", "index": "idx_wf_invoice" }
+    },
+    {
+        "query": "ALTER TABLE `weaverandfine` ADD INDEX `idx_wf_payment` (`paymentID`)",
+        "type": "index",
+        "check_index": { "table": "weaverandfine", "index": "idx_wf_payment" }
+    },
+    {
+        "query": "ALTER TABLE `invoice` ADD INDEX `idx_inv_student_year` (`studentID`, `schoolyearID`)",
+        "type": "index",
+        "check_index": { "table": "invoice", "index": "idx_inv_student_year" }
+    },
+    {
+        "query": "ALTER TABLE `globalpayment` ADD INDEX `idx_gp_student_year` (`studentID`, `schoolyearID`)",
+        "type": "index",
+        "check_index": { "table": "globalpayment", "index": "idx_gp_student_year" }
+    },
+    {
         "query": "ALTER TABLE `income` ADD `incomecategoriesID` INT NULL DEFAULT '0'",
         "type": "alter",
         "check_column": {

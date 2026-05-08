@@ -73,6 +73,7 @@
 
 .inv-discount  { color: #6c757d; }
 .inv-paid      { color: #28a745; font-weight: 600; }
+.inv-balance   { color: #dc3545; font-weight: 600; }
 /* Tooltip cursor hint on Grand Total Amount */
 #invoice-pivot-table td.inv-gt-amount { cursor: help; }
 
@@ -113,7 +114,7 @@
                         <?php foreach ($feetypesList as $fid => $fname): ?>
                             <th colspan="2"><?= htmlspecialchars($fname) ?></th>
                         <?php endforeach; ?>
-                        <th colspan="4" class="col-grand">Grand Total</th>
+                        <th colspan="5" class="col-grand">Grand Total</th>
                     </tr>
                     <!-- Row 2 sub-headers -->
                     <tr>
@@ -125,6 +126,7 @@
                         <th class="col-grand-sub">Discount</th>
                         <th class="col-grand-sub">Paid</th>
                         <th class="col-grand-sub">Net</th>
+                        <th class="col-grand-sub">Balance</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -137,6 +139,7 @@
                 $grandAmount   = 0;
                 $grandDiscount = 0;
                 $grandPaid     = 0;
+                $grandBalance  = 0;
 
                 foreach ($students as $sid => $student):
                     $rowAmount   = 0;
@@ -146,6 +149,7 @@
                     $ttDiscount  = [];
                     $ttPaid      = [];
                     $ttNet       = [];
+                    $ttBalance   = [];
                 ?>
                     <tr>
                         <td class="col-fixed col-sno"><?= $i++ ?></td>
@@ -159,10 +163,12 @@
                                 $discount = $pivot[$sid][$fid]['discount'];
                                 $paid     = $pivot[$sid][$fid]['paid'];
                                 $net      = $amount - $discount;
+                                $balance  = $net - $paid;
                                 $ttAmount[]   = $fname . ': ' . number_format($amount,   2);
                                 if ($discount > 0) $ttDiscount[] = $fname . ': ' . number_format($discount, 2);
                                 if ($paid    > 0) $ttPaid[]     = $fname . ': ' . number_format($paid,     2);
                                 $ttNet[]      = $fname . ': ' . number_format($net,      2);
+                                $ttBalance[]  = $fname . ': ' . number_format($balance,  2);
                             } else {
                                 $amount = $discount = $paid = null;
                             }
@@ -179,9 +185,11 @@
 
                         <?php
                             $rowNet        = $rowAmount - $rowDiscount;
+                            $rowBalance    = $rowNet - $rowPaid;
                             $grandAmount   += $rowAmount;
                             $grandDiscount += $rowDiscount;
                             $grandPaid     += $rowPaid;
+                            $grandBalance  += $rowBalance;
                         ?>
                         <td class="inv-gt-amount" data-toggle="tooltip" data-placement="top"
                             title="<?= implode('&#10;', $ttAmount) ?>">
@@ -199,6 +207,10 @@
                             title="<?= implode('&#10;', $ttNet) ?>">
                             <strong><?= number_format($rowNet, 2) ?></strong>
                         </td>
+                        <td class="inv-balance inv-gt-amount" data-toggle="tooltip" data-placement="top"
+                            title="<?= count($ttBalance) ? implode('&#10;', $ttBalance) : 'No balance' ?>">
+                            <strong><?= number_format($rowBalance, 2) ?></strong>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
                 </tbody>
@@ -215,6 +227,7 @@
                         <td><?= number_format($grandDiscount,                  2) ?></td>
                         <td><?= number_format($grandPaid,                      2) ?></td>
                         <td><?= number_format($grandAmount - $grandDiscount,   2) ?></td>
+                        <td><?= number_format($grandBalance,                   2) ?></td>
                     </tr>
                 </tfoot>
             </table>

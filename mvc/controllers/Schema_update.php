@@ -173,6 +173,15 @@ class Schema_update extends Admin_Controller {
                 } else {
                     echo "Skipped CREATE (TABLE $table already exists)<br>";
                 }
+            } elseif ($update['type'] === 'index' && isset($update['check_index'])) {
+                $table = $update['check_index']['table'];
+                $index = $update['check_index']['index'];
+                if (!$this->index_exists($table, $index)) {
+                    $this->db->query($update['query']);
+                    echo "Executed INDEX: {$update['query']}<br>";
+                } else {
+                    echo "Skipped INDEX (already exists): $index on $table<br>";
+                }
             } elseif ($update['type'] === 'raw') {
                 $this->db->query($update['query']);
                 echo "Executed RAW Query: {$update['query']}<br>";
@@ -181,10 +190,15 @@ class Schema_update extends Admin_Controller {
             }
         }
     }
-    
+
     private function column_exists($table, $column) {
         $fields = $this->db->list_fields($table);
         return in_array($column, $fields);
+    }
+
+    private function index_exists($table, $index) {
+        $q = $this->db->query("SHOW INDEX FROM `$table` WHERE Key_name = ?", [$index]);
+        return $q && $q->num_rows() > 0;
     }
 
     

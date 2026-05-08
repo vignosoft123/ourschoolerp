@@ -1178,6 +1178,12 @@ if ( !defined('BASEPATH') ) {
                     if ($query->num_rows() == 0) {
                         $this->db->query($update['query']);
                     }
+                } elseif ($update['type'] === 'index' && isset($update['check_index'])) {
+                    $table = $update['check_index']['table'];
+                    $index = $update['check_index']['index'];
+                    if (!$this->index_exists($table, $index)) {
+                        $this->db->query($update['query']);
+                    }
                 } elseif ($update['type'] === 'raw') {
                     $this->db->query($update['query']);
                 } else {
@@ -1185,10 +1191,15 @@ if ( !defined('BASEPATH') ) {
                 }
             }
         }
-        
+
         private function column_exists($table, $column) {
             $fields = $this->db->list_fields($table);
             return in_array($column, $fields);
+        }
+
+        private function index_exists($table, $index) {
+            $q = $this->db->query("SHOW INDEX FROM `$table` WHERE Key_name = ?", [$index]);
+            return $q && $q->num_rows() > 0;
         }
 
       

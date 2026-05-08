@@ -203,7 +203,11 @@
 <div class="box">
     <div class="box-header no-print">
         <h3 class="box-title"><i class="fa fa-balance-scale"></i> <?=$this->lang->line('panel_title')?></h3>
-
+        <?php if (!empty($receipt_back_url)): ?>
+        <a href="<?=htmlspecialchars($receipt_back_url)?>" class="btn btn-default btn-sm" style="margin-bottom:6px;">
+            <i class="fa fa-arrow-left"></i> Back
+        </a>
+        <?php endif; ?>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li class="active"><a href="<?=base_url("global_payment")?>"><?=$this->lang->line('menu_global_payment')?></a></li>

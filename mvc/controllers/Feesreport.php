@@ -256,13 +256,14 @@ public function getFeesReport_date_wise() {
 
     $schoolyearID = $this->session->userdata('defaultschoolyearID');
 
-    $classesID = $this->input->post('classesID');
-    $sectionID = $this->input->post('sectionID');
-    $studentID = $this->input->post('studentID');
-    $feetypeID = $this->input->post('feetypeID');
-    $fromdate  = $this->input->post('fromdate');
-    $todate    = $this->input->post('todate');
-    $userID    = $this->input->post('userID');
+    $classesID   = $this->input->post('classesID');
+    $sectionID   = $this->input->post('sectionID');
+    $studentID   = $this->input->post('studentID');
+    $feetypeID   = $this->input->post('feetypeID');
+    $fromdate    = $this->input->post('fromdate');
+    $todate      = $this->input->post('todate');
+    $userID      = $this->input->post('userID');
+    $paymenttype = $this->input->post('paymenttype');
 
     // Normalize dates
     if (!empty($fromdate)) $fromdate = date('Y-m-d', strtotime($fromdate));
@@ -277,7 +278,8 @@ public function getFeesReport_date_wise() {
         p.paymentdate,
         SUM(CASE WHEN p.paymenttype = 'Cash' THEN p.paymentamount ELSE 0 END) AS cash_amount,
         SUM(CASE WHEN p.paymenttype = 'Digital' THEN p.paymentamount ELSE 0 END) AS digital_amount,
-        SUM(CASE WHEN p.paymenttype = 'Cheque' THEN p.paymentamount ELSE 0 END) AS cheque_amount
+        SUM(CASE WHEN p.paymenttype = 'Cheque' THEN p.paymentamount ELSE 0 END) AS cheque_amount,
+        SUM(CASE WHEN p.paymenttype = 'Others' THEN p.paymentamount ELSE 0 END) AS others_amount
     ");
     $this->db->from('payment p');
     $this->db->join('globalpayment g', 'g.globalpaymentID = p.globalpaymentID', 'left');
@@ -302,6 +304,9 @@ public function getFeesReport_date_wise() {
     if (!empty($userID)) {
         $this->db->where('p.userID', $userID);
     }
+    if (!empty($paymenttype)) {
+        $this->db->where('p.paymenttype', $paymenttype);
+    }
 
     $this->db->group_by('p.paymentdate');
     $this->db->order_by('p.paymentdate', 'ASC');
@@ -316,6 +321,28 @@ public function getFeesReport_date_wise() {
     exit;
 }
 
+
+public function getDistinctOtherDetails() {
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+    $rows = $this->payment_m->get_distinct_other_details($schoolyearID);
+    echo json_encode(['status' => TRUE, 'data' => $rows]);
+    exit;
+}
+
+public function getOthersDetailByDate() {
+    $date         = $this->input->post('date');
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+    $result = $this->db
+        ->select('payment_other_details, SUM(paymentamount) AS total')
+        ->where('paymenttype', 'Others')
+        ->where('paymentdate', $date)
+        ->where('schoolyearID', $schoolyearID)
+        ->where('payment_other_details !=', '')
+        ->group_by('payment_other_details')
+        ->get('payment')->result();
+    echo json_encode(['status' => TRUE, 'rows' => $result]);
+    exit;
+}
 
 public function getFeesReport_date_wise_bkp() {
     $retArray['status'] = FALSE;

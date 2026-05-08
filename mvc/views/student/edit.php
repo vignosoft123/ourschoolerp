@@ -864,6 +864,136 @@
                                 </div>
                                 </div>
 
+                                <div class="row">
+                                    <?php
+                                        if (form_error('studentType'))
+                                            echo "<div class='col-md-4 has-error'>";
+                                        else
+                                            echo "<div class='col-md-4'>";
+                                    ?>
+                                        <label for="studentType" class="control-label">
+                                            <?= $this->lang->line("studentType") ?>
+                                        </label>
+                                        <?php
+                                            $studentTypeArr = array(3 => "DAY SCHOLAR", 1 => "TRANSPORT", 2 => "HOSTEL");
+                                            echo form_dropdown("studentType", $studentTypeArr, set_value("studentType", $student->studentType), "id='studentType' class='form-control select2'");
+                                        ?>
+                                        <span class="control-label">
+                                            <?php echo form_error('studentType'); ?>
+                                        </span>
+                                    </div>
+                                </div>
+
+                    </div><!-- End student address details sec -->
+
+                    <div class="transport-details-sec" id="transport_div" style="display:none;">
+                        <h2 class="h2-title">Transport Details</h2>
+                        <div class="row">
+                            <?php
+                                if (form_error('transportID'))
+                                    echo "<div class='col-md-4 has-error'>";
+                                else
+                                    echo "<div class='col-md-4'>";
+                            ?>
+                                <label for="transportID" class="control-label">
+                                    <?= $this->lang->line("tmember_route_name") ?> <span class="text-red">*</span>
+                                </label>
+                                <?php
+                                    $tarray = array(0 => $this->lang->line("classes_select_route_name"));
+                                    foreach ($transports as $transport) {
+                                        $tarray[$transport->transportID] = $transport->route;
+                                    }
+                                    $selectedTransport = $studntTransportDetails ? $studntTransportDetails->transportID : 0;
+                                    echo form_dropdown("transportID", $tarray, set_value("transportID", $selectedTransport), "id='transportID' class='form-control clear-dropdown select2'");
+                                ?>
+                                <span class="control-label">
+                                    <?php echo form_error('transportID'); ?>
+                                </span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label for="pickup_id" class="control-label">
+                                    Pickup Point <span class="text-red">*</span>
+                                </label>
+                                <select id="pickup_id" name="pickup_id" class="form-control clear-dropdown select2">
+                                    <option value="0">Select Pickup point</option>
+                                    <?php if (!empty($pickup_points)): ?>
+                                        <?php $selectedPickup = $student->pickup_id ?? 0; ?>
+                                        <?php foreach ($pickup_points as $pp): ?>
+                                            <option value="<?= $pp['id'] ?>" <?= ($pp['id'] == $selectedPickup) ? 'selected' : '' ?>><?= $pp['pickup_point'] ?></option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+                            <?php
+                                if (form_error('tbalance'))
+                                    echo "<div class='col-md-4 has-error'>";
+                                else
+                                    echo "<div class='col-md-4'>";
+                            ?>
+                                <label for="tbalance" class="control-label">
+                                    <?= $this->lang->line("tmember_tfee") ?> <span class="text-red">*</span>
+                                </label>
+                                <?php $selectedTBalance = $studntTransportDetails ? $studntTransportDetails->tbalance : '0.00'; ?>
+                                <input type="text" class="form-control clear-dropdown" id="tbalance" name="tbalance" value="<?= set_value('tbalance', $selectedTBalance) ?>" readonly>
+                                <span class="control-label">
+                                    <?php echo form_error('tbalance'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hostel-details-sec" id="hostel_div" style="display:none;">
+                        <h2 class="h2-title">Hostel Details</h2>
+                        <div class="row">
+                            <?php
+                                if (form_error('hostelID'))
+                                    echo "<div class='col-md-4 has-error'>";
+                                else
+                                    echo "<div class='col-md-4'>";
+                            ?>
+                                <label for="hostelID" class="control-label">
+                                    <?= $this->lang->line("hmember_hname") ?> <span class="text-red">*</span>
+                                </label>
+                                <?php
+                                    $harray = array(0 => $this->lang->line("hmember_select_hostel_name"));
+                                    foreach ($hostels as $hostel) {
+                                        $harray[$hostel->hostelID] = $hostel->name;
+                                    }
+                                    $selectedHostel = $studntHostelDetails ? $studntHostelDetails->hostelID : 0;
+                                    echo form_dropdown("hostelID", $harray, set_value("hostelID", $selectedHostel), "id='hostelID' class='form-control clear-dropdown select2'");
+                                ?>
+                                <span class="control-label">
+                                    <?php echo form_error('hostelID'); ?>
+                                </span>
+                            </div>
+
+                            <?php
+                                if (form_error('categoryID'))
+                                    echo "<div class='col-md-4 has-error'>";
+                                else
+                                    echo "<div class='col-md-4'>";
+                            ?>
+                                <label for="categoryID" class="control-label">
+                                    <?= $this->lang->line("hmember_class_type") ?> <span class="text-red">*</span>
+                                </label>
+                                <?php
+                                    $carray = array(0 => $this->lang->line("hmember_select_class_type"));
+                                    if (customCompute($categorys)) {
+                                        foreach ($categorys as $category) {
+                                            $carray[$category->categoryID] = $category->class_type;
+                                        }
+                                    }
+                                    $selectedCategory = $studntHostelDetails ? $studntHostelDetails->categoryID : 0;
+                                    echo form_dropdown("categoryID", $carray, set_value("categoryID", $selectedCategory), "id='categoryID' class='form-control clear-dropdown select2'");
+                                ?>
+                                <span class="control-label">
+                                    <?php echo form_error('categoryID'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
                                 <div class="student-address-sec">
                     <h2 class="h2-title">Reference &amp; Sibling Details</h2>

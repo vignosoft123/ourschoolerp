@@ -208,10 +208,18 @@ var cfYearData = <?=json_encode($cfYearData)?>;
         html += '<div><label style="' + lbl + '"><?=$this->lang->line('global_payment_status')?></label>';
         html += '<select id="cfpn-paymentstatus" class="form-control"><option value="paid"><?=$this->lang->line('global_paid')?></option><option value="partial"><?=$this->lang->line('global_partial')?></option><option value="unpaid"><?=$this->lang->line('global_unpaid')?></option></select></div>';
         html += '<div><label style="' + lbl + '"><?=$this->lang->line('global_payment_type')?></label>';
-        html += '<select id="cfpn-paymenttype" class="form-control"><option value="cash"><?=$this->lang->line('global_cash')?></option><option value="chaque"><?=$this->lang->line('global_chaque')?></option><option value="digital">Digital</option></select></div>';
+        html += '<select id="cfpn-paymenttype" class="form-control"><option value="cash"><?=$this->lang->line('global_cash')?></option><option value="chaque"><?=$this->lang->line('global_chaque')?></option><option value="digital">Digital</option><option value="others">Others</option></select>';
+        html += '<div id="cfpn-other-bank-div" style="display:none;margin-top:6px;"><div class="input-group">';
+        html += '<select id="cfpn-payment-other-details" class="form-control" style="width:calc(100% - 38px);"><option value="">-- Select Bank --</option></select>';
+        html += '<span class="input-group-btn"><button type="button" class="btn btn-default" id="cfpn-add-bank-btn" title="Add new bank"><i class="fa fa-plus"></i></button></span>';
+        html += '</div></div>';
+        html += '</div>';
         html += '<div><label style="' + lbl + '"><?=$this->lang->line('global_payment_date')?></label>';
         html += '<input type="date" id="cfpn-date" class="form-control" value="' + todayStr + '"></div>';
-        html += '<div></div>';
+        html += '<div style="display:flex;align-items:flex-end;padding-bottom:2px;">';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:#4a5568;font-weight:600;text-transform:none;letter-spacing:0;margin:0;">';
+        html += '<input type="checkbox" id="cfpn-send-whatsapp" checked> Send WhatsApp';
+        html += '</label></div>';
         html += '</div>';
 
         // Invoice rows (no Fine column)
@@ -276,6 +284,38 @@ var cfYearData = <?=json_encode($cfYearData)?>;
         return html;
     }
 
+    // ── Show/hide Others bank dropdown in Pay Now modal ──────────────────
+    $(document).on('change', '#cfpn-paymenttype', function () {
+        if ($(this).val() === 'others') {
+            $('#cfpn-other-bank-div').show();
+            loadBanksDropdown('#cfpn-payment-other-details', null);
+        } else {
+            $('#cfpn-other-bank-div').hide();
+            $('#cfpn-payment-other-details').val('');
+        }
+    });
+
+    // Add bank inline from prev-year modal
+    $(document).on('click', '#cfpn-add-bank-btn', function () {
+        $('#cfpn-new-bank-name').val('');
+        $('#cfpnAddBankError').hide().text('');
+        $('#addBankModalPrev').modal('show');
+    });
+
+    $(document).on('click', '#cfpnSaveBankBtn', function () {
+        var name = $.trim($('#cfpn-new-bank-name').val());
+        if (!name) { $('#cfpnAddBankError').text('Bank name is required').show(); return; }
+        $.post('<?= base_url('banks/addBankAjax') ?>', { bank_name: name }, function (data) {
+            var r = JSON.parse(data);
+            if (r.status) {
+                $('#addBankModalPrev').modal('hide');
+                loadBanksDropdown('#cfpn-payment-other-details', r.bank_name);
+            } else {
+                $('#cfpnAddBankError').text(r.msg).show();
+            }
+        }, 'html');
+    });
+
     // ── Live totals in Pay Now modal ──────────────────────────────────────
     $(document).on('keyup input', '.cfpn-paid-input, .cfpn-weaver-input', function () {
         // Paid + Waiver for each row must not exceed that row's due amount
@@ -325,11 +365,13 @@ var cfYearData = <?=json_encode($cfYearData)?>;
 
         var paid = [];
         $('[name^="cfpn-paid-"]').each(function () {
+            if (!(parseFloat(this.value) > 0)) return;
             var parts = this.name.split('-'); // ['cfpn','paid',invoiceID,feetypeID]
             paid.push({ paidFieldID: 'paid-' + parts[2] + '-' + parts[3], value: this.value });
         });
         var weaver = [];
         $('[name^="cfpn-weaver-"]').each(function () {
+            if (!(parseFloat(this.value) > 0)) return;
             var parts = this.name.split('-');
             weaver.push({ weaverFieldID: 'weaver-' + parts[2] + '-' + parts[3], value: this.value });
         });
@@ -352,7 +394,8 @@ var cfYearData = <?=json_encode($cfYearData)?>;
                 weaver              : weaver,
                 fine                : [],
                 created_date        : $('#cfpn-date').val(),
-                send_whatsapp       : 0,
+                payment_other_details: ($('#cfpn-paymenttype').val() === 'others') ? $('#cfpn-payment-other-details').val() : '',
+                send_whatsapp       : $('#cfpn-send-whatsapp').is(':checked') ? 1 : 0,
                 schoolyearID        : syid,
                 is_previous_year_amount: yearName
             },
@@ -497,6 +540,29 @@ var cfYearData = <?=json_encode($cfYearData)?>;
 
 })();
 </script>
+
+<!-- Add Bank Modal (prev year dues) -->
+<div class="modal fade" id="addBankModalPrev" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="max-width:380px;">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#1d4e9e; color:#fff; border-radius:4px 4px 0 0;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-university"></i> Add New Bank</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Bank Name</label>
+                    <input type="text" id="cfpn-new-bank-name" class="form-control" placeholder="e.g. HDFC, ICICI, Axis...">
+                    <span id="cfpnAddBankError" class="text-danger" style="display:none;"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="cfpnSaveBankBtn">Save Bank</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     </div><!-- /.gp-card-body -->
 </div><!-- /.gp-card (Card 3) -->

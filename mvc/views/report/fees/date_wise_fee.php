@@ -1,20 +1,33 @@
-<?php 
-$current_url = current_url(); 
-?>
- 
-<div class="text-right">
-    
-<a href="<?= base_url('feesreport'); ?>" 
-   class="btn <?= ($current_url == base_url('feesreport')) ? 'btn-success' : 'btn-primary'; ?>">
-   Detailed Fee Report
-</a>
+<?php $current_url = current_url(); ?>
 
-<a href="<?= base_url('feesreport/date_wise_fee'); ?>" 
-   class="btn <?= ($current_url == base_url('feesreport/date_wise_fee')) ? 'btn-success' : 'btn-primary'; ?>">
-   Date Wise Fee Report
-</a>
- 
-</div><br/>
+<div style="display:flex; justify-content:flex-end; margin-bottom:14px;">
+    <?php
+    $detailActive   = ($current_url == base_url('feesreport'));
+    $dateWiseActive = ($current_url == base_url('feesreport/date_wise_fee'));
+    ?>
+    <a href="<?= base_url('feesreport') ?>"
+       style="display:inline-flex; align-items:center; gap:7px;
+              padding:9px 20px; font-size:13px; font-weight:700; text-decoration:none;
+              border:2px solid #1a6b3e; border-radius:6px 0 0 6px;
+              <?= $detailActive ? 'background:#1a6b3e; color:#fff;' : 'background:#fff; color:#1a6b3e;' ?>
+              transition:all .2s;">
+        <i class="fa fa-list-alt"></i> Detailed Fee Report
+        <?php if($detailActive): ?>
+            <span style="background:rgba(255,255,255,0.25); border-radius:10px; padding:1px 7px; font-size:11px; margin-left:2px;">Active</span>
+        <?php endif; ?>
+    </a>
+    <a href="<?= base_url('feesreport/date_wise_fee') ?>"
+       style="display:inline-flex; align-items:center; gap:7px;
+              padding:9px 20px; font-size:13px; font-weight:700; text-decoration:none;
+              border:2px solid #1a6b3e; border-left:none; border-radius:0 6px 6px 0;
+              <?= $dateWiseActive ? 'background:#1a6b3e; color:#fff;' : 'background:#fff; color:#1a6b3e;' ?>
+              transition:all .2s;">
+        <i class="fa fa-calendar"></i> Date Wise Fee Report
+        <?php if($dateWiseActive): ?>
+            <span style="background:rgba(255,255,255,0.25); border-radius:10px; padding:1px 7px; font-size:11px; margin-left:2px;">Active</span>
+        <?php endif; ?>
+    </a>
+</div>
 
 
 <div class="box">
@@ -108,6 +121,17 @@ $current_url = current_url();
                     <?php } ?>
 
 
+
+                <div class="form-group col-sm-4" id="paymenttypeDiv">
+                    <label>Payment Type</label>
+                    <select id="paymenttype" name="paymenttype" class="form-control select2">
+                        <option value="0">All</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Cheque">Cheque</option>
+                        <option value="Digital">Digital</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
 
                 <div class="col-sm-4">
                     <button id="get_feesreport" class="btn btn-success" style="margin-top:23px;"> <?= $this->lang->line("feesreport_submit") ?></button>
@@ -229,14 +253,17 @@ $current_url = current_url();
         var userID = $('#userID').val();
         var error = 0;
 
+        var paymenttype = $('#paymenttype').val();
+
         var field = {
-            "classesID": classesID,
-            "sectionID": sectionID,
-            "studentID": studentID,
-            "feetypeID": feetypeID,
-            "fromdate": fromdate,
-            "todate": todate,
-            "userID":userID
+            "classesID":   classesID,
+            "sectionID":   sectionID,
+            "studentID":   studentID,
+            "feetypeID":   feetypeID,
+            "fromdate":    fromdate,
+            "todate":      todate,
+            "userID":      userID,
+            "paymenttype": paymenttype !== '0' ? paymenttype : ''
         }
 
         if (fromdate != '' && todate == '') {

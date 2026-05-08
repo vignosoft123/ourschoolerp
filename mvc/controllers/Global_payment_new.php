@@ -444,18 +444,21 @@ class Global_payment_new extends Admin_Controller
         $post_schoolyearID = $this->input->post('schoolyearID');
         $effectiveYearID   = (!empty($post_schoolyearID)) ? (int)$post_schoolyearID : (int)$schoolyearID;
 
-        $paids              = $this->input->post('paid');
-        $weavers            = $this->input->post('weaver');
-        $fines              = $this->input->post('fine');
+        $paids              = $this->input->post('paid')   ?: [];
+        $weavers            = $this->input->post('weaver') ?: [];
+        $isPrevYear         = $this->input->post('is_previous_year_amount') ?: 0;
         $studentID          = $this->input->post('studentID');
         $classesID          = $this->input->post('classesID');
         $invoicename        = $this->input->post('invoicename');
-        $invoicedescription = $this->input->post('invoicedescription');
+        $invoicedescription = $this->input->post('invoicedescription') ?: '';
         $invoicenumber      = $this->input->post('invoicenumber');
         $paymentyear        = $this->input->post('paymentyear');
         $payment_status     = $this->input->post('payment_status');
-        $payment_type       = $this->input->post('payment_type');
-        $sectionID          = 0;
+        $payment_type          = $this->input->post('payment_type');
+        $payment_other_details = (strtolower($this->input->post('payment_type')) === 'others')
+                                 ? ($this->input->post('payment_other_details') ?: '')
+                                 : '';
+        $sectionID             = 0;
 
         $payment_date = $this->input->post('created_date')
             ? date("Y-m-d", strtotime($this->input->post('created_date')))
@@ -492,17 +495,36 @@ class Global_payment_new extends Admin_Controller
             exit;
         }
 
-        $payments       = [];
-        $weaverandfines = [];
-        $j = (customCompute($paids) - 1);
+        // Build invoiceID-keyed maps — skip empty entries upfront
+        $paidMap   = [];
+        $weaverMap = [];
+        foreach ($paids as $p) {
+            if ($p['value'] === '' || $p['value'] === null) continue;
+            $parts = explode('-', $p['paidFieldID']);
+            if (isset($parts[1])) $paidMap[$parts[1]] = (float)$p['value'];
+        }
+        foreach ($weavers as $w) {
+            $wv = (float)($w['value'] ?? 0);
+            if ($wv <= 0) continue;
+            $parts = explode('-', $w['weaverFieldID']);
+            if (isset($parts[1])) $weaverMap[$parts[1]] = $wv;
+        }
+        $activeInvoiceIDs = array_unique(array_merge(array_keys($paidMap), array_keys($weaverMap)));
 
-        for ($i = 0; $i <= $j; $i++) {
-            $expPaidField = explode('-', $paids[$i]['paidFieldID']);
-            $payments[$i] = [
+        $insertPaymentIDS = [];
+        $entered_payment  = 0;
+
+        // Wrap all inserts in one transaction — single disk flush instead of N
+        $this->db->trans_start();
+        foreach ($activeInvoiceIDs as $invoiceID) {
+            $amount = $paidMap[$invoiceID]   ?? 0;
+            $wv     = $weaverMap[$invoiceID] ?? 0;
+
+            $this->payment_m->insert_payment([
                 'schoolyearID'            => $effectiveYearID,
-                'invoiceID'               => $expPaidField[1],
+                'invoiceID'               => $invoiceID,
                 'studentID'               => $studentID,
-                'paymentamount'           => ($paids[$i]['value'] == '') ? NULL : $paids[$i]['value'],
+                'paymentamount'           => $amount > 0 ? $amount : NULL,
                 'paymenttype'             => ucfirst($payment_type),
                 'paymentdate'             => $payment_date,
                 'paymentday'              => $day1,
@@ -513,44 +535,33 @@ class Global_payment_new extends Admin_Controller
                 'uname'                   => $this->session->userdata('name'),
                 'transactionID'           => 'CASHANDCHEQUE' . random19(),
                 'globalpaymentID'         => $globalLastID,
-                'is_previous_year_amount' => $this->input->post('is_previous_year_amount') ?? 0,
-            ];
+                'is_previous_year_amount' => $isPrevYear,
+                'payment_other_details'   => $payment_other_details,
+            ]);
+            $pid = $this->db->insert_id();
+            $insertPaymentIDS[$invoiceID] = $pid;
+            $entered_payment += $amount;
 
-            $wv = isset($weavers[$i]['value']) ? (float)$weavers[$i]['value'] : 0;
-            $fn = isset($fines[$i]['value'])   ? (float)$fines[$i]['value']   : 0;
-            if ($wv > 0 || $fn > 0) {
-                $weaverandfines[$i] = [
-                    'weaver'         => $wv,
-                    'fine'           => $fn,
-                    'globalpaymentID'=> $globalLastID,
-                    'invoiceID'      => $expPaidField[1],
-                    'studentID'      => $studentID,
-                    'schoolyearID'   => $effectiveYearID,
-                ];
+            if ($wv > 0) {
+                $this->weaverandfine_m->insert_weaverandfine([
+                    'weaver'          => $wv,
+                    'fine'            => 0,
+                    'globalpaymentID' => $globalLastID,
+                    'invoiceID'       => $invoiceID,
+                    'studentID'       => $studentID,
+                    'schoolyearID'    => $effectiveYearID,
+                    'paymentID'       => $pid,
+                ]);
             }
         }
+        $this->db->trans_complete();
 
-        $insertPaymentIDS = [];
-        $entered_payment  = 0;
-        if (customCompute($payments)) {
-            foreach ($payments as $p) {
-                $this->payment_m->insert_payment($p);
-                $pid = $this->db->insert_id();
-                $insertPaymentIDS[$p['invoiceID']] = $pid;
-                $entered_payment += $p['paymentamount'];
-            }
-            $retArray['status'] = TRUE;
+        if (!$this->db->trans_status()) {
+            $retArray['message'] = 'Failed to save payment details';
+            echo json_encode($retArray);
+            exit;
         }
-
-        if (customCompute($weaverandfines)) {
-            foreach ($weaverandfines as $wf) {
-                if (isset($insertPaymentIDS[$wf['invoiceID']])) {
-                    $wf['paymentID'] = $insertPaymentIDS[$wf['invoiceID']];
-                    $this->weaverandfine_m->insert_weaverandfine($wf);
-                }
-            }
-            $retArray['status'] = TRUE;
-        }
+        $retArray['status'] = !empty($activeInvoiceIDs);
 
         // BUG FIX 1: fetch invoices/payments for the EFFECTIVE year (prev or current)
         $invoices = $this->invoice_m->get_order_by_invoice_join_maininvoice($studentID, $effectiveYearID, 1);
@@ -580,35 +591,26 @@ class Global_payment_new extends Admin_Controller
 
         $student->balance_amount = number_format(($totalInvoiceAmount - ($totalPaymentAmount + $totalWeaverAmount)), 2, '.', '');
 
-        // Update invoice paidstatus for effectiveYearID invoices
-        for ($i = 0; $i <= $j; $i++) {
-            $expPaidField = explode('-', $paids[$i]['paidFieldID']);
-            if (!isset($expPaidField[1])) continue;
+        // Build invoice map for O(1) lookup instead of nested loop per invoice
+        $invoiceMap = [];
+        if (customCompute($invoices)) {
+            foreach ($invoices as $inv) { $invoiceMap[$inv->invoiceID] = $inv; }
+        }
 
-            $invoiceID = $expPaidField[1];
+        // Update paidstatus only for invoices that actually received payment/waiver
+        foreach ($activeInvoiceIDs as $invoiceID) {
+            if (!isset($invoiceMap[$invoiceID])) continue;
+            $matchedInvoice = $invoiceMap[$invoiceID];
 
-            // Find matching invoice
-            $matchedInvoice = NULL;
-            if (customCompute($invoices)) {
-                foreach ($invoices as $inv) {
-                    if ($inv->invoiceID == $invoiceID) { $matchedInvoice = $inv; break; }
-                }
-            }
-            if (!$matchedInvoice) continue;
-
-            $totalPaymentWeaver = 0;
-            if (isset($allPaymentsAgg[$invoiceID])) $totalPaymentWeaver += $allPaymentsAgg[$invoiceID];
-            if (isset($allWeaversAgg[$invoiceID]))  $totalPaymentWeaver += $allWeaversAgg[$invoiceID];
-
-            // BUG FIX 2: flat-amount discount
-            $totalAmount = $matchedInvoice->amount - $matchedInvoice->discount;
+            $totalPaymentWeaver = ($allPaymentsAgg[$invoiceID] ?? 0) + ($allWeaversAgg[$invoiceID] ?? 0);
+            $totalAmount        = $matchedInvoice->amount - $matchedInvoice->discount;
 
             if (number_format($totalAmount, 2, '.', '') == number_format($totalPaymentWeaver, 2, '.', '')) {
-                $status = 2; // paid
+                $status = 2;
             } elseif ($totalPaymentWeaver > 0) {
-                $status = 1; // partial
+                $status = 1;
             } else {
-                $status = 0; // unpaid
+                $status = 0;
             }
 
             $this->invoice_m->update_invoice(['paidstatus' => $status], $invoiceID);

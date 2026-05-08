@@ -126,6 +126,7 @@ This is a JSON array of migration entries. The system reads each entry and runs 
 - **2026-04-29**: Documented **Sticky Bottom Action Bar** and **Scroll-to-Top Button** as reusable UI patterns (Section 8). Reference implementation: Student Attendance page (`mvc/views/sattendance/add.php`).
 - **2026-04-30**: Documented **Database Migration System** (Section 5) — `mvc/migrations/schema_updates.json` with entry types, safety checks, and skeleton examples.
 - **2026-04-30**: Documented **Sidebar Menu Language Key gotcha** (Section 4) — all menu labels must go in `topbar_menu_lang.php`, not the controller's own lang file.
+- **2026-05-09**: Documented **Client-Side Excel Export via SheetJS** (Section 8.3) — clone table → strip tooltip attrs → replace em-dashes → `table_to_sheet` → `writeFile`. Reference: Invoice Report (`mvc/views/report/invoicereport/InvoicereportReport.php`). colspan/rowspan merged headers preserved automatically.
 
 ## 8. Reusable UI Patterns
 
@@ -217,3 +218,56 @@ $('#scroll-to-top-btn').on('click', function() {
 ---
 
 **Reference implementation**: `mvc/views/sattendance/add.php` (Student Attendance page, added 2026-04-29).
+
+---
+
+### 8.3 Client-Side Excel Export (SheetJS)
+
+Export any HTML table to `.xlsx` entirely in the browser — no server-side PHP or backend endpoint needed.
+
+**Library**: SheetJS — load via CDN at the **bottom of the view file** (after the table markup):
+```html
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+```
+
+**Pattern** (Invoice Report reference: `mvc/views/report/invoicereport/InvoicereportReport.php`):
+```javascript
+$('#your-excel-btn').on('click', function () {
+    var wb = XLSX.utils.book_new();
+
+    // 1. Clone the table so the original DOM is not mutated
+    var tbl = document.getElementById('your-table-id').cloneNode(true);
+
+    // 2. Strip Bootstrap tooltip attributes — they appear as extra columns in Excel
+    $(tbl).find('[data-toggle]').removeAttr('data-toggle data-placement title');
+
+    // 3. Replace em-dash placeholder cells with blank (cosmetic — avoids "—" in Excel)
+    $(tbl).find('td, th').each(function () {
+        if ($(this).html() === '&mdash;' || $(this).text().trim() === '—') {
+            $(this).text('');
+        }
+    });
+
+    // 4. Convert cleaned table to worksheet
+    var ws = XLSX.utils.table_to_sheet(tbl, { raw: false });
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet Name');
+
+    // 5. Build a descriptive filename and trigger download
+    var label = $('#some-select option:selected').text().trim().replace(/\s+/g, '_');
+    var today = new Date();
+    var dateStr = today.getFullYear() + '-' +
+                  String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                  String(today.getDate()).padStart(2, '0');
+    XLSX.writeFile(wb, 'ReportName_' + label + '_' + dateStr + '.xlsx');
+});
+```
+
+**Key rules:**
+- Always **clone** the table before manipulating it so live tooltips and DOM state are preserved on screen.
+- **Strip `data-toggle`/`title` attributes** from the clone first — SheetJS reads `title` as a cell value, producing extra garbage columns.
+- Replace `&mdash;` (`—`) display placeholders with empty strings so Excel cells are truly blank, not literal dash characters.
+- Filename convention used in this project: `ReportName_SelectedFilter_YYYY-MM-DD.xlsx`.
+- The `{ raw: false }` option in `table_to_sheet` tells SheetJS to read cell text as-is (formatted strings) rather than trying to parse numbers — avoids mis-formatting large numbers.
+- **colspan/rowspan headers** (pivot-style tables) are handled automatically by SheetJS — merged cells are preserved in the `.xlsx` output.
+
+**When to use**: Any report view that renders a `<table>` with a "Download Excel" button. This avoids a round-trip to the server and works instantly even for large tables.

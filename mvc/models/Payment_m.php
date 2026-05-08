@@ -395,22 +395,40 @@ public function get_order_by_payment_new_summary($schoolyearID, $fee_type = null
 			$this->db->where('paymentdate <=', $todate);
 		}
 
+		if (!empty($queryArray['paymenttype'])) {
+			$pt = ucfirst(strtolower($queryArray['paymenttype']));
+			$this->db->where('payment.paymenttype', $pt);
+			if ($pt === 'Others' && !empty($queryArray['payment_other_details_filter'])) {
+				$this->db->where('payment.payment_other_details', $queryArray['payment_other_details_filter']);
+			}
+		}
+
 		$userID=$this->session->userdata('loginuserID');
 		$usertypeID=$this->session->userdata('usertypeID');
 		if($usertypeID!=1)
 		{
 			$this->db->where(array('payment.userID' => $userID));
-			$this->db->where(array('payment.usertypeID' => 5));	
+			$this->db->where(array('payment.usertypeID' => 5));
 		}
 		elseif($queryArray['userID']!=0)
 		{
 			$this->db->where(array('payment.userID' => $queryArray['userID']));
-			$this->db->where(array('payment.usertypeID' => 5));	
+			$this->db->where(array('payment.usertypeID' => 5));
 		}
 
 		$query = $this->db->get();
 		// echo $this->db->last_query();die;
 		return $query->result();
+	}
+
+	public function get_distinct_other_details($schoolyearID) {
+		return $this->db
+			->select('DISTINCT payment_other_details')
+			->where('paymenttype', 'Others')
+			->where('payment_other_details !=', '')
+			->where('schoolyearID', $schoolyearID)
+			->get('payment')
+			->result();
 	}
 
 public function get_all_payment_for_report_multi($queryArray) {

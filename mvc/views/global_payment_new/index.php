@@ -366,8 +366,19 @@
                 <select class="form-control" id="payment_type">
                     <option value="cash"><?=$this->lang->line('global_cash')?></option>
                     <option value="chaque"><?=$this->lang->line('global_chaque')?></option>
-                    <option value="digita">Digital</option>
+                    <option value="digital">Digital</option>
+                    <option value="others">Others</option>
                 </select>
+                <div id="payment_other_details_div" style="display:none; margin-top:6px;">
+                    <div class="input-group">
+                        <select id="payment_other_details" class="form-control" style="width:calc(100% - 38px);">
+                            <option value="">-- Select Bank --</option>
+                        </select>
+                        <span class="input-group-btn">
+                            <button type="button" class="btn btn-default" id="add_bank_btn" title="Add new bank"><i class="fa fa-plus"></i></button>
+                        </span>
+                    </div>
+                </div>
             </div>
             <div>
                 <label>Payment Date</label>
@@ -614,6 +625,53 @@ $("#sectionID").change(function() {
     });
 });
 
+// Banks dropdown helper
+function loadBanksDropdown(selector, selectVal) {
+    $.post('<?= base_url('banks/getBanksList') ?>', {}, function (data) {
+        var r = JSON.parse(data);
+        var opts = '<option value="">-- Select Bank --</option>';
+        if (r.status) {
+            $.each(r.banks, function (i, b) {
+                opts += '<option value="' + b.bank_name + '"' + (b.bank_name === selectVal ? ' selected' : '') + '>' + b.bank_name + '</option>';
+            });
+        }
+        $(selector).html(opts);
+    }, 'html');
+}
+
+// Show/hide "Others" bank dropdown based on payment type selection
+$(document).on('change', '#payment_type', function () {
+    if ($(this).val() === 'others') {
+        $('#payment_other_details_div').show();
+        loadBanksDropdown('#payment_other_details', null);
+    } else {
+        $('#payment_other_details_div').hide();
+        $('#payment_other_details').val('');
+    }
+});
+
+// Add bank inline — open modal
+$(document).on('click', '#add_bank_btn', function () {
+    $('#new_bank_name').val('');
+    $('#addBankError').hide().text('');
+    $('#addBankModal').modal('show');
+});
+
+// Save new bank from modal
+$(document).on('click', '#saveBankBtn', function () {
+    var name = $.trim($('#new_bank_name').val());
+    if (!name) { $('#addBankError').text('Bank name is required').show(); return; }
+    $.post('<?= base_url('banks/addBankAjax') ?>', { bank_name: name }, function (data) {
+        var r = JSON.parse(data);
+        if (r.status) {
+            $('#addBankModal').modal('hide');
+            loadBanksDropdown('#payment_other_details', r.bank_name);
+        } else {
+            $('#addBankError').text(r.msg).show();
+        }
+    }, 'html');
+});
+
 // ── Number helpers ─────────────────────────────────────────────────────────
 var globalPaid=0, globalFine=0, globalWeaver=0;
 
@@ -662,9 +720,9 @@ $('#add_payment').on('click', function() {
     if (!paymentyear.val() || paymentyear.val().length != 4) { paymentyear.addClass('errorClass'); error++; } else { paymentyear.removeClass('errorClass'); }
     if (error > 0) return;
 
-    var paid   = $('input[name^="paid-"]').map(function(){ return {paidFieldID:this.name, value:this.value}; }).get();
-    var weaver = $('input[name^="weaver-"]').map(function(){ return {weaverFieldID:this.name, value:this.value}; }).get();
-    var fine   = $('input[name^="fine-"]').map(function(){ return {fineFieldID:this.name, value:this.value}; }).get();
+    var paid   = $('input[name^="paid-"]').filter(function(){ return parseFloat(this.value) > 0; }).map(function(){ return {paidFieldID:this.name, value:this.value}; }).get();
+    var weaver = $('input[name^="weaver-"]').filter(function(){ return parseFloat(this.value) > 0; }).map(function(){ return {weaverFieldID:this.name, value:this.value}; }).get();
+    var paymentOtherDetails = $('#payment_type').val() === 'others' ? $('#payment_other_details').val() : '';
 
     $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
 
@@ -679,10 +737,10 @@ $('#add_payment').on('click', function() {
             paymentyear:        paymentyear.val(),
             payment_status:     $('#payment_status').val(),
             payment_type:       $('#payment_type').val(),
-            paid:               paid,
-            weaver:             weaver,
-            fine:               fine,
-            created_date:       $('#created_date').val(),
+            paid:                    paid,
+            weaver:                  weaver,
+            payment_other_details:   paymentOtherDetails,
+            created_date:            $('#created_date').val(),
             send_whatsapp:      $('#send_whatsapp').is(':checked') ? 1 : 0
         },
         dataType:'html',
@@ -716,3 +774,26 @@ $(document).on('click', '.update_single', function() {
     }
 });
 </script>
+
+<!-- Add Bank Modal -->
+<div class="modal fade" id="addBankModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="max-width:380px;">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#1d4e9e; color:#fff; border-radius:4px 4px 0 0;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-university"></i> Add New Bank</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Bank Name</label>
+                    <input type="text" id="new_bank_name" class="form-control" placeholder="e.g. HDFC, ICICI, Axis...">
+                    <span id="addBankError" class="text-danger" style="display:none;"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="saveBankBtn">Save Bank</button>
+            </div>
+        </div>
+    </div>
+</div>

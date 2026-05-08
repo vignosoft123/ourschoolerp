@@ -148,16 +148,22 @@
             $cash_amount = 0;
             $cheque_amount = 0;
             $digital_amount = 0;
+            $others_amount = 0;
+            $others_detail = [];
             $i = 0;
 
             foreach($getFeesReports as $getFeesReport) {
 
                 if($getFeesReport->paymenttype == 'Cash'){
                     $cash_amount += $getFeesReport->paymentamount;
-                } else if($getFeesReport->paymenttype == 'Cheque'){
+                } else if($getFeesReport->paymenttype == 'Cheque' || $getFeesReport->paymenttype == 'Chaque'){
                     $cheque_amount += $getFeesReport->paymentamount;
                 } else if($getFeesReport->paymenttype == 'Digital' || $getFeesReport->paymenttype == 'Digita'){
                     $digital_amount += $getFeesReport->paymentamount;
+                } else if($getFeesReport->paymenttype == 'Others'){
+                    $others_amount += $getFeesReport->paymentamount;
+                    $bank = !empty($getFeesReport->payment_other_details) ? $getFeesReport->payment_other_details : 'Unknown';
+                    $others_detail[$bank] = ($others_detail[$bank] ?? 0) + $getFeesReport->paymentamount;
                 }
 
                 if(isset($weaverandfine[$getFeesReport->paymentID]) &&
@@ -214,16 +220,24 @@
                 <?php } ?>
             </td>
             <td>
-                <?php 
-                if($getFeesReport->paymenttype == 'Cash'){
-                    $class="text-green";
-                    $p_type = 'Cash';
-                }else if($getFeesReport->paymenttype == 'Digita'){
-                    $class = "text-blue";
-                    $p_type = 'Digital';
-
-                }?>
-                <span class="<?= $class?>"> <?= $p_type?><span>
+                <?php
+                $pt = $getFeesReport->paymenttype;
+                if ($pt === 'Cash') {
+                    $p_class = 'text-green'; $p_label = 'Cash';
+                } elseif ($pt === 'Cheque' || $pt === 'Chaque') {
+                    $p_class = 'text-navy';  $p_label = 'Cheque';
+                } elseif ($pt === 'Digital' || $pt === 'Digita') {
+                    $p_class = 'text-blue';  $p_label = 'Digital';
+                } elseif ($pt === 'Others') {
+                    $p_class = 'text-orange'; $p_label = 'Others';
+                    if (!empty($getFeesReport->payment_other_details)) {
+                        $p_label .= ' (' . htmlspecialchars($getFeesReport->payment_other_details) . ')';
+                    }
+                } else {
+                    $p_class = ''; $p_label = htmlspecialchars($pt);
+                }
+                ?>
+                <span class="<?= $p_class ?>"><?= $p_label ?></span>
             </td>
 
             <td data-title="<?=$this->lang->line('feesreport_weaver')?>">
@@ -257,18 +271,23 @@
             if($sectionID == 0) $colspan++;
         ?>
 
-        <tr style="font-weight: bold">
+        <tr style="font-weight: bold; background:#f8f9fa;">
             <td colspan="<?=$colspan?>"></td>
-            <td>Cash:</td>
-            <td align="right"><?=number_format($cash_amount,2)?></td>
-        </tr>
-
-        <tr style="font-weight: bold">
-            <td colspan="<?=$colspan?>"></td>
-            <td>Digital:</td>
-            <td align="right"><?=number_format($digital_amount,2)?></td>
-            <td>Cheque:</td>
-            <td align="right"><?=number_format($cheque_amount,2)?></td>
+            <td colspan="4" style="padding:8px 10px; white-space:nowrap;">
+                <span class="text-green">Cash:&nbsp;<?=number_format($cash_amount,2)?></span>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <span class="text-blue">Digital:&nbsp;<?=number_format($digital_amount,2)?></span>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <span class="text-navy">Cheque:&nbsp;<?=number_format($cheque_amount,2)?></span>
+                &nbsp;&nbsp;|&nbsp;&nbsp;
+                <span class="text-orange">Others:&nbsp;<?=number_format($others_amount,2)?>
+                    <?php if($others_amount > 0): ?>
+                    <i class="fa fa-info-circle" id="othersBreakdownIcon"
+                       style="cursor:pointer; color:#e67e22; margin-left:4px;"
+                       title="View bank breakdown"></i>
+                    <?php endif; ?>
+                </span>
+            </td>
         </tr>
 
         <tr style="font-weight: bold">
@@ -290,6 +309,53 @@
                         </div>
                     <?php } ?>
                 </div>
+
+<!-- Others Breakdown Modal -->
+<div class="modal fade" id="othersBreakdownModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" style="max-width:420px;">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#e67e22; color:#fff; border-radius:4px 4px 0 0;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff; opacity:1;">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-university"></i> Others — Bank Breakdown</h4>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <table class="table table-bordered table-condensed" style="margin-bottom:0;">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th>Bank / Detail</th>
+                            <th class="text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $othersDetailSorted = $others_detail ?? [];
+                        arsort($othersDetailSorted);
+                        foreach ($othersDetailSorted as $bankName => $bankAmt): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($bankName) ?></td>
+                            <td class="text-right"><?= number_format($bankAmt, 2) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot>
+                        <tr style="background:#fef9e7; font-weight:700;">
+                            <td>Total</td>
+                            <td class="text-right"><?= number_format($others_amount ?? 0, 2) ?></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+$(document).on('click', '#othersBreakdownIcon', function () {
+    $('#othersBreakdownModal').modal('show');
+});
+</script>
                 <div class="col-sm-12 text-center footerAll">
                     <?=reportfooter($siteinfos, $schoolyearsessionobj)?>
                 </div>
