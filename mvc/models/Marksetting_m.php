@@ -66,6 +66,17 @@ class Marksetting_m extends MY_Model {
 		return $query->result();
 	}
 
+	public function get_marksetting_ids_by_array($array = []) {
+		$this->db->select('marksettingID');
+		$this->db->from('marksetting');
+		if (customCompute($array)) {
+			foreach ($array as $k => $v) {
+				$this->db->where($k, $v);
+			}
+		}
+		return $this->db->get()->result_array();
+	}
+
 	public function get_exam_with_schedule_condition($marktypeID= '', $classesID=0) {
 
 		$schoolyearID  = $this->session->userdata('defaultschoolyearID');

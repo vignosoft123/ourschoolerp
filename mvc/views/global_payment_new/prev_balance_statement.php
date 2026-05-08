@@ -278,6 +278,25 @@ var cfYearData = <?=json_encode($cfYearData)?>;
 
     // ── Live totals in Pay Now modal ──────────────────────────────────────
     $(document).on('keyup input', '.cfpn-paid-input, .cfpn-weaver-input', function () {
+        // Paid + Waiver for each row must not exceed that row's due amount
+        var $tr          = $(this).closest('tr');
+        var $dueTd       = $tr.find('[data-inv-due]');
+        var maxDue       = parseFloat($dueTd.data('inv-due')) || 0;
+        var $paidInput   = $tr.find('.cfpn-paid-input');
+        var $weaverInput = $tr.find('.cfpn-weaver-input');
+
+        if ($(this).hasClass('cfpn-paid-input')) {
+            var waiver  = parseFloat($weaverInput.val()) || 0;
+            var entered = parseFloat($(this).val()) || 0;
+            var maxPaid = Math.max(0, maxDue - waiver);
+            if (entered > maxPaid) $(this).val(maxPaid.toFixed(2));
+        } else {
+            var paidVal  = parseFloat($paidInput.val()) || 0;
+            var entered  = parseFloat($(this).val()) || 0;
+            var maxWvr   = Math.max(0, maxDue - paidVal);
+            if (entered > maxWvr) $(this).val(maxWvr.toFixed(2));
+        }
+
         var paid = 0, weaver = 0;
         $('.cfpn-paid-input:visible').each(function () { paid   += parseFloat($(this).val()) || 0; });
         $('.cfpn-weaver-input:visible').each(function () { weaver += parseFloat($(this).val()) || 0; });

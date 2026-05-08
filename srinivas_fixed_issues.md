@@ -28,6 +28,75 @@ Removed the two `maininvoiceuname` WHERE conditions from both methods in:
 
 ---
 
+## Issue #2 – Marks not saved for current academic year / Mark Settings overwrite across years
+
+**Date:** 2026-05-08
+**School:** All schools (multi-year tenants)
+**Symptom 1:** Entering marks for the current year (e.g., 2026-2027) appears to succeed (no error), but marks vanish on page reload. Previous year marks save correctly.
+**Symptom 2:** Saving "Exam Wise" (or any Mark Setting type) for one academic year silently overwrites settings saved for other years.
+
+### Root Cause – Symptom 1 (Marks not saving)
+
+`Mark.php` → `mark_send()` (line ~2002) used:
+```php
+$schoolyearID = $this->data['siteinfos']->school_year;  // global site default — WRONG
+```
+while `loadStudentsAjax()` (line 2793) correctly uses:
+```php
+$schoolyearID = $this->session->userdata('defaultschoolyearID');  // session year — CORRECT
+```
+For previous years, mark records already exist so `markID != 0` and `schoolyearID` is never needed in the save path. For the current year there are no records yet, so `markID = 0` and `mark_send()` creates a new mark record using the wrong year ID. The record saves but is never found on reload because `loadStudentsAjax()` fetches by the correct session year.
+
+### Root Cause – Symptom 2 (Mark Settings overwrite)
+
+The `marksetting` table had **no `schoolyear_id` column**. The save logic for every mark type (0–6) did:
+```php
+$this->marksetting_m->delete_marksetting_by_array(['marktypeID' => X]);           // deletes ALL years
+$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID' => X]); // same
+```
+This wiped every year's settings whenever any year saved, then inserted only the current selection.
+
+### Fix – Symptom 1
+
+**`mvc/controllers/Mark.php`** — `mark_send()`:
+```php
+// Before:
+$schoolyearID = $this->data['siteinfos']->school_year;
+// After:
+$schoolyearID = $this->session->userdata('defaultschoolyearID');
+```
+
+### Fix – Symptom 2
+
+1. **`mvc/migrations/schema_updates.json`** — Added:
+   - `ALTER TABLE marksetting ADD schoolyear_id INT(11) NOT NULL DEFAULT '0'` (guarded by `check_column`)
+   - `UPDATE marksetting ms JOIN exam e ON ms.examID = e.examID SET ms.schoolyear_id = e.academic_year WHERE ms.schoolyear_id = 0 AND ms.examID > 0` (`raw` type — idempotent backfill, safe to run every page load)
+
+2. **`mvc/models/Marksetting_m.php`** — New helper method `get_marksetting_ids_by_array($array)` returns `marksettingID`s matching a filter.
+
+3. **`mvc/controllers/Marksetting.php`** — `index()`:
+   - Load: `get_marksetting_with_marksettingrelation(['schoolyear_id' => $schoolyearID])` so UI shows only current year's settings.
+   - All 7 type branches (0–6): replaced global delete pattern with year-scoped pattern:
+     ```php
+     // 1. Get old IDs for current year
+     $_oldIDsX = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => X, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+     // 2. Delete their relations
+     if (!empty($_oldIDsX)) { $this->db->where_in('marksettingID', $_oldIDsX)->delete('marksettingrelation'); }
+     // 3. Delete their marksettings
+     $this->marksetting_m->delete_marksetting_by_array(['marktypeID' => X, 'schoolyear_id' => $schoolyearID]);
+     ```
+   - Added `$marksettingArr['schoolyear_id'] = $schoolyearID` to every insert loop.
+
+### Data Impact on Existing Schools
+- Marks: no impact — the fix only affects new mark records (`markID = 0` path).
+- Mark Settings types 0–3, 5, 6 (exam-linked): backfill migration auto-runs on first dashboard load and sets `schoolyear_id` from `exam.academic_year`. Existing settings preserved.
+- Mark Settings type 4 (`examID = 0`, class+subject): cannot be backfilled (no exam link). Existing records keep `schoolyear_id = 0` and become invisible in the UI until re-saved once. Type 4 is rarely the active mode.
+
+### Key Principle
+> Any query that creates or deletes records scoped to an academic year must use `$this->session->userdata('defaultschoolyearID')`, not `$this->data['siteinfos']->school_year`. The `siteinfos` value is the global DB default and does not change when the user switches year via the dropdown.
+
+---
+
 ## General Debugging Patterns
 
 ### 1. Record visible in Report but not in List

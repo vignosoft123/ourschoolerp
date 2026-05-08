@@ -1999,7 +1999,7 @@ public function get_students_page() {
 				$classesID		= $this->input->post("classesID");
 				$subjectID 		= $this->input->post("subjectID");
 				$inputs 		= $this->input->post("inputs");
-				$schoolyearID 	= $this->data['siteinfos']->school_year;
+				$schoolyearID 	= $this->session->userdata('defaultschoolyearID');
 
 				// Debug logging
 				// log_message('debug', 'Mark Send - Payload: ' . json_encode($_POST));

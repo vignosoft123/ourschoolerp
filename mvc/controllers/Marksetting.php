@@ -72,7 +72,7 @@ class Marksetting extends Admin_Controller {
 		$this->data['subjects']        = pluck_multi_array($this->subject_m->general_get_subject(), 'obj', 'classesID');
 		$this->data['markpercentages'] = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
 
-		$marksetting                     = $this->marksetting_m->get_marksetting_with_marksettingrelation();
+		$marksetting                     = $this->marksetting_m->get_marksetting_with_marksettingrelation(['schoolyear_id' => $schoolyearID]);
 
 		$examArr                       = [];
 		$markpercentageArr             = [];
@@ -115,7 +115,8 @@ class Marksetting extends Admin_Controller {
 				$this->data["subview"]          = "marksetting/index";
 				$this->load->view('_layout_main', $this->data);
 			} else {
-				$marktypeID = $this->input->post('marktypeID');
+				$marktypeID   = $this->input->post('marktypeID');
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
 				$this->setting_m->insertorupdate(['marktypeID'=> $marktypeID]);
 
 				$marksettingArr         = [];
@@ -127,15 +128,21 @@ class Marksetting extends Admin_Controller {
 						foreach ($exams as $exam) {
 							$examArr = explode('_', $exam);
 							$examID  = isset($examArr[1]) ? $examArr[1] : 0;
-							$marksettingArr[$i]['examID']     = $examID;
-							$marksettingArr[$i]['classesID']  = 0;
-							$marksettingArr[$i]['subjectID']  = 0;
-							$marksettingArr[$i]['marktypeID'] = 0;
+							$marksettingArr[$i]['examID']       = $examID;
+							$marksettingArr[$i]['classesID']    = 0;
+							$marksettingArr[$i]['subjectID']    = 0;
+							$marksettingArr[$i]['marktypeID']   = 0;
+							$marksettingArr[$i]['schoolyear_id'] = $schoolyearID;
 							$i++;
 						}
 					}
 
-					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 0]);
+					$_oldIDs0 = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => 0, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+					if (!empty($_oldIDs0)) {
+						$this->db->where_in('marksettingID', $_oldIDs0)->delete('marksettingrelation');
+					}
+					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 0, 'schoolyear_id' => $schoolyearID]);
+
 					$marksettingCount  = ((customCompute($marksettingArr) > 0) ? customCompute($marksettingArr) : 0);
 					$marksettingID     = 0;
 					if($marksettingCount > 0) {
@@ -149,7 +156,7 @@ class Marksetting extends Admin_Controller {
 							foreach ($markpercentages as $markpercentage) {
 								$markpercentage    = explode('_', $markpercentage);
 								$markpercentageID  = isset($markpercentage[1]) ? $markpercentage[1] : 0;
-								
+
 								$marksettingRelationArr[$i]['marktypeID']       = 0;
 								$marksettingRelationArr[$i]['marksettingID']    = $marksettingID;
 								$marksettingRelationArr[$i]['markpercentageID'] = $markpercentageID;
@@ -159,7 +166,6 @@ class Marksetting extends Admin_Controller {
 						$j++; $marksettingID++;
 					}
 
-					$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID'=> 0]);
 					if(customCompute($marksettingRelationArr)) {
 						$this->marksettingrelation_m->insert_batch_marksettingrelation($marksettingRelationArr);
 					}
@@ -176,7 +182,12 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 1]);
+					$_oldIDs1 = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => 1, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+					if (!empty($_oldIDs1)) {
+						$this->db->where_in('marksettingID', $_oldIDs1)->delete('marksettingrelation');
+					}
+					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 1, 'schoolyear_id' => $schoolyearID]);
+
 					$exams = $this->input->post('exams');
 					if(customCompute($exams)) {
 						$j=0;
@@ -185,10 +196,11 @@ class Marksetting extends Admin_Controller {
 							$examID  = isset($examArr[1]) ? $examArr[1] : 0;
 							if(customCompute($markpercentageArr)) {
 								foreach ($markpercentageArr as $classesID => $markpercentages) {
-									$marksettingArr['examID']     = $examID;
-									$marksettingArr['classesID']  = $classesID;
-									$marksettingArr['subjectID']  = 0;
-									$marksettingArr['marktypeID'] = 1;
+									$marksettingArr['examID']        = $examID;
+									$marksettingArr['classesID']     = $classesID;
+									$marksettingArr['subjectID']     = 0;
+									$marksettingArr['marktypeID']    = 1;
+									$marksettingArr['schoolyear_id'] = $schoolyearID;
 
 									$marksettingID = $this->marksetting_m->insert_marksetting($marksettingArr);
 									if(customCompute($markpercentages)) {
@@ -204,7 +216,6 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID'=> 1]);
 					if(customCompute($marksettingRelationArr)) {
 						$this->marksettingrelation_m->insert_batch_marksettingrelation($marksettingRelationArr);
 					}
@@ -221,14 +232,20 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 2]);
+					$_oldIDs2 = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => 2, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+					if (!empty($_oldIDs2)) {
+						$this->db->where_in('marksettingID', $_oldIDs2)->delete('marksettingrelation');
+					}
+					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 2, 'schoolyear_id' => $schoolyearID]);
+
 					$j = 0;
 					if(customCompute($markpercentageArr)) {
 						foreach ($markpercentageArr as $examID => $markpercentages) {
-							$marksettingArr['examID']     = $examID;
-							$marksettingArr['classesID']  = 0;
-							$marksettingArr['subjectID']  = 0;
-							$marksettingArr['marktypeID'] = 2;
+							$marksettingArr['examID']        = $examID;
+							$marksettingArr['classesID']     = 0;
+							$marksettingArr['subjectID']     = 0;
+							$marksettingArr['marktypeID']    = 2;
+							$marksettingArr['schoolyear_id'] = $schoolyearID;
 
 							$marksettingID = $this->marksetting_m->insert_marksetting($marksettingArr);
 							if(customCompute($markpercentages)) {
@@ -242,7 +259,6 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID'=> 2]);
 					if(customCompute($marksettingRelationArr)) {
 						$this->marksettingrelation_m->insert_batch_marksettingrelation($marksettingRelationArr);
 					}
@@ -259,14 +275,20 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 3]);
+					$_oldIDs3 = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => 3, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+					if (!empty($_oldIDs3)) {
+						$this->db->where_in('marksettingID', $_oldIDs3)->delete('marksettingrelation');
+					}
+					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 3, 'schoolyear_id' => $schoolyearID]);
+
 					$j = 0;
 					if(customCompute($markpercentageArr)) {
 						foreach ($markpercentageArr as $examID => $markpercentages) {
-							$marksettingArr['examID']     = $examID;
-							$marksettingArr['classesID']  = 0;
-							$marksettingArr['subjectID']  = 0;
-							$marksettingArr['marktypeID'] = 3;
+							$marksettingArr['examID']        = $examID;
+							$marksettingArr['classesID']     = 0;
+							$marksettingArr['subjectID']     = 0;
+							$marksettingArr['marktypeID']    = 3;
+							$marksettingArr['schoolyear_id'] = $schoolyearID;
 
 							$marksettingID = $this->marksetting_m->insert_marksetting($marksettingArr);
 							if(customCompute($markpercentages)) {
@@ -280,7 +302,6 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID'=> 3]);
 					if(customCompute($marksettingRelationArr)) {
 						$this->marksettingrelation_m->insert_batch_marksettingrelation($marksettingRelationArr);
 					}
@@ -297,16 +318,22 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 4]);
+					$_oldIDs4 = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => 4, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+					if (!empty($_oldIDs4)) {
+						$this->db->where_in('marksettingID', $_oldIDs4)->delete('marksettingrelation');
+					}
+					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 4, 'schoolyear_id' => $schoolyearID]);
+
 					$i = 0;
 					if(customCompute($markpercentageArr)) {
 						foreach ($markpercentageArr as $classesID => $subjectmarkpercentageArr) {
 							if(customCompute($subjectmarkpercentageArr)) {
 								foreach ($subjectmarkpercentageArr as $subjectID=> $markpercentages) {
-									$marksettingArr['examID']     = 0;
-									$marksettingArr['classesID']  = $classesID;
-									$marksettingArr['subjectID']  = $subjectID;
-									$marksettingArr['marktypeID'] = 4;
+									$marksettingArr['examID']        = 0;
+									$marksettingArr['classesID']     = $classesID;
+									$marksettingArr['subjectID']     = $subjectID;
+									$marksettingArr['marktypeID']    = 4;
+									$marksettingArr['schoolyear_id'] = $schoolyearID;
 									$marksettingID = $this->marksetting_m->insert_marksetting($marksettingArr);
 
 									if(customCompute($markpercentages)) {
@@ -322,7 +349,7 @@ class Marksetting extends Admin_Controller {
 							}
 						}
 					}
-					$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID'=> 4]);
+
 					if(customCompute($marksettingRelationArr)) {
 						$this->marksettingrelation_m->insert_batch_marksettingrelation($marksettingRelationArr);
 					}
@@ -340,16 +367,22 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 5]);
+					$_oldIDs5 = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => 5, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+					if (!empty($_oldIDs5)) {
+						$this->db->where_in('marksettingID', $_oldIDs5)->delete('marksettingrelation');
+					}
+					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 5, 'schoolyear_id' => $schoolyearID]);
+
 					$j=0;
 					if(customCompute($markpercentageArr)) {
 						foreach ($markpercentageArr as $classesID => $exammarkpercentageArr) {
 							if(customCompute($exammarkpercentageArr)) {
 								foreach($exammarkpercentageArr as $examID=> $markpercentages) {
-									$marksettingArr['examID']     = $examID;
-									$marksettingArr['classesID']  = $classesID;
-									$marksettingArr['subjectID']  = 0;
-									$marksettingArr['marktypeID'] = 5;
+									$marksettingArr['examID']        = $examID;
+									$marksettingArr['classesID']     = $classesID;
+									$marksettingArr['subjectID']     = 0;
+									$marksettingArr['marktypeID']    = 5;
+									$marksettingArr['schoolyear_id'] = $schoolyearID;
 
 									$marksettingID = $this->marksetting_m->insert_marksetting($marksettingArr);
 									if(customCompute($markpercentages)) {
@@ -366,7 +399,6 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID'=> 5]);
 					if(customCompute($marksettingRelationArr)) {
 						$this->marksettingrelation_m->insert_batch_marksettingrelation($marksettingRelationArr);
 					}
@@ -385,7 +417,12 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 6]);
+					$_oldIDs6 = array_column($this->marksetting_m->get_marksetting_ids_by_array(['marktypeID' => 6, 'schoolyear_id' => $schoolyearID]), 'marksettingID');
+					if (!empty($_oldIDs6)) {
+						$this->db->where_in('marksettingID', $_oldIDs6)->delete('marksettingrelation');
+					}
+					$this->marksetting_m->delete_marksetting_by_array(['marktypeID'=> 6, 'schoolyear_id' => $schoolyearID]);
+
 					$j=0;
 					if(customCompute($markpercentageArr)) {
 						foreach ($markpercentageArr as $classesID => $examsubjectmarkpercentageArr) {
@@ -393,11 +430,12 @@ class Marksetting extends Admin_Controller {
 								foreach($examsubjectmarkpercentageArr as $examID=> $subjectmarkpercentages) {
 									if(customCompute($subjectmarkpercentages)) {
 										foreach ($subjectmarkpercentages as $subjectID => $markpercentages) {
-											$marksettingArr['examID']     = $examID;
-											$marksettingArr['classesID']  = $classesID;
-											$marksettingArr['subjectID']  = $subjectID;
-											$marksettingArr['marktypeID'] = 6;
-											
+											$marksettingArr['examID']        = $examID;
+											$marksettingArr['classesID']     = $classesID;
+											$marksettingArr['subjectID']     = $subjectID;
+											$marksettingArr['marktypeID']    = 6;
+											$marksettingArr['schoolyear_id'] = $schoolyearID;
+
 											$marksettingID = $this->marksetting_m->insert_marksetting($marksettingArr);
 											if(customCompute($markpercentages)) {
 												foreach ($markpercentages as $markpercentage) {
@@ -415,7 +453,6 @@ class Marksetting extends Admin_Controller {
 						}
 					}
 
-					$this->marksettingrelation_m->delete_marksettingrelation_by_array(['marktypeID'=> 6]);
 					if(customCompute($marksettingRelationArr)) {
 						$this->marksettingrelation_m->insert_batch_marksettingrelation($marksettingRelationArr);
 					}

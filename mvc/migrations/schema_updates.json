@@ -441,5 +441,14 @@
     {
         "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'global_payment_new' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'global_payment_new'))",
         "type": "raw"
+    },
+    {
+        "query": "ALTER TABLE `marksetting` ADD `schoolyear_id` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": { "table": "marksetting", "column": "schoolyear_id" }
+    },
+    {
+        "query": "UPDATE `marksetting` ms JOIN `exam` e ON ms.examID = e.examID SET ms.schoolyear_id = e.academic_year WHERE ms.schoolyear_id = 0 AND ms.examID > 0",
+        "type": "raw"
     }
 ]
