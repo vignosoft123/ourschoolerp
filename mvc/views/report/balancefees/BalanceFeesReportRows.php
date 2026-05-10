@@ -22,16 +22,20 @@ if (!function_exists('formatIndianCurrency')) {
     }
 }
 
-// Prepare Fee Type List (dynamic headers - must match main view)
-$allFeeTypes = [];
-if(isset($totalPayment_split) && customCompute($totalPayment_split)) {
-    foreach ($totalPayment_split as $studentID => $feeTypes) {
-        foreach ($feeTypes as $feeType => $values) {
-            $allFeeTypes[$feeType] = $feeType;
+// Use controller-provided allFeeTypes (filtered to current students, non-zero only)
+if (!isset($allFeeTypes) || empty($allFeeTypes)) {
+    $allFeeTypes = [];
+    if(isset($totalPayment_split) && customCompute($totalPayment_split)) {
+        foreach ($totalPayment_split as $sId => $feeTypes) {
+            foreach ($feeTypes as $feeType => $values) {
+                if (!empty($values['total'])) {
+                    $allFeeTypes[$feeType] = $feeType;
+                }
+            }
         }
     }
+    $allFeeTypes = array_values($allFeeTypes);
 }
-$allFeeTypes = array_values($allFeeTypes);
 
 $totalAmount   = 0;
 $totalDiscount = 0;
@@ -47,10 +51,10 @@ if(isset($students) && customCompute($students)) {
             $i++;
             ?>
             <tr>
-                <td><?= $i ?></td>
-                <td><?= $student->srname ?></td>
-                <td><?= $student->father_name ?></td>
-                <td><?= $student->srregisterNO ?></td>
+                <td class="sticky-col"><?= $i ?></td>
+                <td class="sticky-col"><?= $student->srname ?></td>
+                <td class="sticky-col"><?= $student->father_name ?></td>
+                <td class="sticky-col"><?= $student->srregisterNO ?></td>
                 <td><?= $student->village_name ?></td>
 
                 <?php if(isset($classesID) && (int)$classesID == 0) { ?>

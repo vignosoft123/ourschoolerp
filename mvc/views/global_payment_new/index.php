@@ -681,31 +681,53 @@ function recalculateGrandTotalDue() {
     $("#set_total_due").text(remaining.toFixed(2));
 }
 
-$(document).on("keyup", ".paid_amount", function() {
-    var sum=0;
+function recalcPaidAndWeaver() {
+    var paidSum = 0, weaverSum = 0;
     $(".paid_amount").each(function(i) {
-        var original = parseFloat($('#_due_'+i).data('original')) || 0;
-        var weaver   = parseFloat($('._weaver_'+i).val()) || 0;
+        var original = parseFloat($('#_due_' + i).data('original')) || 0;
+        var weaver   = parseFloat($('._weaver_' + i).val()) || 0;
         var val      = parseFloat($(this).val()) || 0;
         if (val + weaver > original) {
             $(this).val(Math.max(0, original - weaver).toFixed(2));
             val = parseFloat($(this).val()) || 0;
-            toastr["error"]('Collection + Waiver cannot cross amount ' + original);
         }
-        sum += val;
+        paidSum += val;
     });
-    globalPaid = sum;
-    $("#set_paid_amount").text(sum.toFixed(2));
+    $(".weaver").each(function() { weaverSum += parseFloat($(this).val()) || 0; });
+    globalPaid   = paidSum;
+    globalWeaver = weaverSum;
+    $("#set_paid_amount").text(paidSum.toFixed(2));
     $("#TottalCollection").text(globalPaid.toFixed(2));
+    $("#set_weaver").text(weaverSum.toFixed(2));
     recalculateGrandTotalDue();
+}
+
+$(document).on("keyup input", ".paid_amount", function() {
+    var match = $(this).attr('class').match(/_paid_(\d+)/);
+    if (match) {
+        var idx      = match[1];
+        var original = parseFloat($('#_due_' + idx).data('original')) || 0;
+        var weaver   = parseFloat($('._weaver_' + idx).val()) || 0;
+        var maxPaid  = Math.max(0, original - weaver);
+        if ((parseFloat($(this).val()) || 0) > maxPaid) {
+            $(this).val(maxPaid.toFixed(2));
+        }
+    }
+    recalcPaidAndWeaver();
 });
 
-$(document).on("keyup", ".weaver", function() {
-    var sum=0;
-    $(".weaver").each(function() { sum += parseFloat($(this).val()) || 0; });
-    globalWeaver = sum;
-    $("#set_weaver").text(sum.toFixed(2));
-    recalculateGrandTotalDue();
+$(document).on("keyup input", ".weaver", function() {
+    var match = $(this).attr('class').match(/_weaver_(\d+)/);
+    if (match) {
+        var idx      = match[1];
+        var original = parseFloat($('#_due_' + idx).data('original')) || 0;
+        var paidVal  = parseFloat($('._paid_' + idx).val()) || 0;
+        var maxWvr   = Math.max(0, original - paidVal);
+        if ((parseFloat($(this).val()) || 0) > maxWvr) {
+            $(this).val(maxWvr.toFixed(2));
+        }
+    }
+    recalcPaidAndWeaver();
 });
 
 // ── Current-year payment submit ────────────────────────────────────────────

@@ -232,6 +232,20 @@ class Balancefeesreport extends Admin_Controller{
 
 					// echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
 
+					// Build allFeeTypes: only fee types with non-zero totals for filtered students
+					$allFeeTypesSet = [];
+					$allStudentKeys = array_keys($allStudents);
+					foreach ($this->data['totalPayment_split'] as $sId => $ftypes) {
+						if (in_array($sId, $allStudentKeys)) {
+							foreach ($ftypes as $feeType => $values) {
+								if (!empty($values['total'])) {
+									$allFeeTypesSet[$feeType] = $feeType;
+								}
+							}
+						}
+					}
+					$this->data['allFeeTypes'] = array_values($allFeeTypesSet);
+
 					$this->data['totalweavar'] = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
 
 					// echo "<pre>=========";print_r($this->data['totalweavar']);die;
@@ -328,6 +342,21 @@ class Balancefeesreport extends Admin_Controller{
 					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
 					$this->data['totalPayment']         = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
 					$this->data['totalPayment_split']   = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
+
+					// Build allFeeTypes: only fee types with non-zero totals for filtered students
+					$allFeeTypesSet = [];
+					$allStudentKeys = array_keys($allStudents);
+					foreach ($this->data['totalPayment_split'] as $sId => $ftypes) {
+						if (in_array($sId, $allStudentKeys)) {
+							foreach ($ftypes as $feeType => $values) {
+								if (!empty($values['total'])) {
+									$allFeeTypesSet[$feeType] = $feeType;
+								}
+							}
+						}
+					}
+					$this->data['allFeeTypes'] = array_values($allFeeTypesSet);
+
 					$this->data['totalweavar']          = $this->totalWeaver($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)));
 					$this->data['startIndex']           = $offset;
 

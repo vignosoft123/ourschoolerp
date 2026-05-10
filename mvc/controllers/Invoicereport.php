@@ -113,9 +113,9 @@ class Invoicereport extends Admin_Controller
                 sr.srstudentID,
                 i.feetypeID,
                 ft.feetypes,
-                SUM(i.amount)                        AS total_amount,
-                SUM(COALESCE(i.discount, 0))         AS total_discount,
-                COALESCE(SUM(pagg.paid_sum), 0)      AS total_paid
+                SUM(i.amount)                                                           AS total_amount,
+                SUM(COALESCE(i.discount, 0) + COALESCE(wagg.weaver_sum, 0))            AS total_discount,
+                COALESCE(SUM(pagg.paid_sum), 0)                                         AS total_paid
             FROM studentrelation sr
             JOIN maininvoice mi
                 ON  mi.maininvoicestudentID   = sr.srstudentID
@@ -130,6 +130,11 @@ class Invoicereport extends Admin_Controller
                 FROM payment
                 GROUP BY invoiceID
             ) pagg ON pagg.invoiceID = i.invoiceID
+            LEFT JOIN (
+                SELECT invoiceID, SUM(weaver) AS weaver_sum
+                FROM weaverandfine
+                GROUP BY invoiceID
+            ) wagg ON wagg.invoiceID = i.invoiceID
             WHERE sr.srschoolyearID = ?
         ";
         $pivotParams = [$schoolyearID];

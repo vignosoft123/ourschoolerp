@@ -1,4 +1,4 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
+﻿<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script>
 
 <?php
 // Helper function for Indian number formatting
@@ -24,173 +24,8 @@ function formatIndianCurrency($number, $decimals = 2) {
 }
 ?>
 
-<style>
-    /* Fee Type Section */
-.fee-type {
-    margin-bottom: 15px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-}
-
-/* Fee Type Name Styling */
-.fee-type-name {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: #333;
-}
-
-/* Total Amount Styling */
-.total-amount {
-    font-size: 0.9em;
-    color: #777;
-    display: block;
-    margin-top: 5px;
-    color : blue;
-    font-weight: bold;
-}
-
-/* Payment Details Styling */
-.payment-details {
-    margin: 5px 0;
-    font-size: 0.95em;
-}
-
-/* Paid Amount Styling */
-.paid-amount {
-    color: green;
-    font-weight: bold;
-}
-
-/* Remaining Balance Styling */
-.remaining-balance {
-    color: red;
-    font-weight: bold;
-}
-
-/* Separator Styling */
-.separator {
-    border: none;
-    height: 1px;
-    background-color: #ccc;
-    margin-top: 10px;
-}
-
-</style>
 
 
-<style>
-/* Style the table header */
- .table-container {
-      /* Remove internal vertical scrolling; allow full page scroll */
-      border: 1px solid #ccc;
-    }
-
-#myTable thead th {
-    background-color: #4CAF50; /* Green background */
-    color: white;               /* White text */
-    padding: 10px;              /* Padding inside headers */
-    text-align: center;         /* Center the header text */
-    font-weight: bold;          /* Bold text */
-    border: 1px solid #ddd;     /* Light border */
-    font-size: 14px;            /* Font size */
-    white-space: nowrap;        /* Prevent headers from wrapping */
-
-     
-
-}
-
-#myTable thead tr:first-child th {
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    background-color: #4CAF50;
-    color: white;
-}
-
-#myTable thead tr:nth-child(2) th {
-    position: sticky;
-    top: 40px; /* Adjust this to match your first row height */
-    z-index: 2;
-    background-color: #66BB6A; /* Slightly different green for clarity */
-    color: white;
-}
-
-/* Table rows */
-#myTable tbody td {
-    padding: 8px;
-    text-align: center;
-    border: 1px solid #ddd;
-    font-size: 13px;
-}
-
-/* Table overall */
-#myTable {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 1200px; /* make sure table scrolls */
-}
-
-/* Scrollbar wrapping div */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-}
-
- 
-/* Top action buttons (Print, Export, SMS, WhatsApp) */
-.report-actions-bar {
-    margin: 10px 0;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-}
-
-.report-actions-bar .btn {
-    border-radius: 12px;
-    padding: 8px 18px;
-    font-weight: 600;
-    font-size: 13px;
-    border: none;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
-}
-
-.report-actions-bar .btn i,
-.report-actions-bar .btn span.fa {
-    margin-right: 6px;
-}
-
-.btn-export-excel {
-    background: linear-gradient(135deg, #28a745 0%, #7ed957 100%);
-    color: #fff;
-}
-
-.btn-export-excel:hover {
-    background: linear-gradient(135deg, #218838 0%, #6fc44e 100%);
-}
-
-.btn-sms {
-    background: linear-gradient(135deg, #17a2b8 0%, #6dd5fa 100%);
-    color: #fff;
-}
-
-.btn-sms:hover {
-    background: linear-gradient(135deg, #138496 0%, #5bc4e8 100%);
-}
-
-.btn-whatsapp {
-    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-    color: #fff;
-}
-
-.btn-whatsapp:hover {
-    background: linear-gradient(135deg, #1ebe5b 0%, #0f7569 100%);
-}
-
-
-</style>
 
 
 
@@ -267,24 +102,28 @@ function formatIndianCurrency($number, $decimals = 2) {
                     <div class="col-sm-12">
                         <div id="hide-table">
                         <?php
-    // Prepare Fee Type List (dynamic headers)
-    $allFeeTypes = [];
-    foreach ($totalPayment_split as $studentID => $feeTypes) {
-        foreach ($feeTypes as $feeType => $values) {
-            $allFeeTypes[$feeType] = $feeType;
+    // Use controller-provided allFeeTypes (filtered to current students, non-zero only)
+    if (empty($allFeeTypes)) {
+        $allFeeTypes = [];
+        foreach ($totalPayment_split as $sId => $feeTypes) {
+            foreach ($feeTypes as $feeType => $values) {
+                if (!empty($values['total'])) {
+                    $allFeeTypes[$feeType] = $feeType;
+                }
+            }
         }
+        $allFeeTypes = array_values($allFeeTypes);
     }
-    $allFeeTypes = array_values($allFeeTypes);
 ?>
             <div class="table-container" style="overflow-x: auto; margin-top: 20px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
 
                 <table class="table table-striped table-bordered" id="myTable" style="min-width: 1200px;">
                     <thead>
                         <tr>
-                            <th rowspan="2"><?=$this->lang->line('slno')?></th>
-                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_name')?></th>
-                            <th rowspan="2">Father Name </th>
-                            <th rowspan="2"><?=$this->lang->line('balancefeesreport_registerNO')?></th>
+                            <th rowspan="2" class="sticky-col"><?=$this->lang->line('slno')?></th>
+                            <th rowspan="2" class="sticky-col"><?=$this->lang->line('balancefeesreport_name')?></th>
+                            <th rowspan="2" class="sticky-col">Father Name</th>
+                            <th rowspan="2" class="sticky-col"><?=$this->lang->line('balancefeesreport_registerNO')?></th>
                             <th rowspan="2">Village</th>
                             <?php if($classesID == 0) { ?>
                                 <th rowspan="2"><?=$this->lang->line('balancefeesreport_class')?></th>
@@ -336,10 +175,10 @@ function formatIndianCurrency($number, $decimals = 2) {
                                 $i++;
                         ?>
                         <tr>
-                            <td><?=$i?></td>
-                            <td><?=$student->srname?></td>
-                            <td><?=$student->father_name?></td>
-                            <td><?=$student->srregisterNO?></td>
+                            <td class="sticky-col"><?=$i?></td>
+                            <td class="sticky-col"><?=$student->srname?></td>
+                            <td class="sticky-col"><?=$student->father_name?></td>
+                            <td class="sticky-col"><?=$student->srregisterNO?></td>
                             <td><?=$student->village_name?></td>
 
                             <?php if($classesID == 0) { ?>
@@ -686,6 +525,8 @@ $(document).ready(function() {
     $("#checkAll").click(function(){
         $('input:checkbox').not(this).prop('checked', this.checked);
     });
+
+    applyStickyColumns();
 });
 
        
@@ -852,5 +693,39 @@ $.ajax({
     //         XLSX.writeFile(wb, "table_data.xlsx");
     //     });
     // });
+</script>
+
+<script>
+function applyStickyColumns() {
+    var table = document.getElementById('myTable');
+    if (!table) return;
+
+    var firstRow = table.querySelector('thead tr:first-child');
+    if (!firstRow) return;
+
+    // Collect left offsets from the first header row sticky cells
+    var stickyCells = firstRow.querySelectorAll('th.sticky-col');
+    if (!stickyCells.length) return;
+
+    var offsets = [];
+    var cumLeft = 0;
+    stickyCells.forEach(function(th, idx) {
+        offsets[idx] = cumLeft;
+        th.style.left = cumLeft + 'px';
+        cumLeft += th.offsetWidth;
+        th.classList.toggle('sticky-col-shadow', idx === stickyCells.length - 1);
+    });
+
+    // Apply to every tbody row
+    table.querySelectorAll('tbody tr').forEach(function(tr) {
+        var tds = tr.querySelectorAll('td.sticky-col');
+        tds.forEach(function(td, idx) {
+            if (idx < offsets.length) {
+                td.style.left = offsets[idx] + 'px';
+                td.classList.toggle('sticky-col-shadow', idx === tds.length - 1);
+            }
+        });
+    });
+}
 </script>
 

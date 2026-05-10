@@ -1,0 +1,299 @@
+/* ============================================================
+   reports.css — OurSchoolERP Report Design System
+   All report UI styles live here. Zero per-file <style> blocks.
+   ============================================================ */
+
+/* ── 1. Filter Card ─────────────────────────────────────────── */
+.rpt-filter-card {
+    background: linear-gradient(135deg, #f8fffe 0%, #edf7ee 100%);
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 18px 20px 12px;
+    margin-bottom: 0;
+}
+.rpt-filter-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #388e3c;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #c8e6c9;
+}
+.rpt-filter-card label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 5px;
+    display: block;
+}
+.rpt-filter-actions {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #c8e6c9;
+    text-align: right;
+}
+.rpt-filter-btn {
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    letter-spacing: 0.2px;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+    min-width: 140px;
+}
+.rpt-filter-btn i { margin-right: 7px; }
+.rpt-filter-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+
+/* ── 2. Report Header ──────────────────────────────────────── */
+.reportPage-header {
+    display: flex;
+    align-items: center;
+    padding: 12px 0 10px;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #4CAF50;
+}
+.rpt-logo { width: 80px; flex-shrink: 0; text-align: center; }
+.rpt-logo img { max-width: 70px; max-height: 70px; }
+.rpt-school-info { flex: 1; text-align: center; }
+.rpt-school-name { font-size: 22px; font-weight: 700; color: #222; margin: 0 0 2px; }
+.rpt-school-address { font-size: 13px; color: #666; margin: 0 0 2px; }
+.rpt-school-year { font-size: 12px; color: #999; margin: 0; }
+.rpt-student-block { width: 120px; text-align: center; flex-shrink: 0; }
+.rpt-student-photo { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #4CAF50; object-fit: cover; }
+.rpt-student-meta { font-size: 12px; color: #555; margin-top: 4px; }
+
+/* ── 3. Report Footer ───────────────────────────────────────── */
+.rpt-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-top: 1px solid #ddd;
+    padding-top: 10px;
+    margin-top: 14px;
+}
+.rpt-footer-logo { width: 28px; height: 28px; }
+.rpt-footer-text { font-size: 12px; color: #888; }
+
+/* ── 4. Report Box Header ───────────────────────────────────── */
+.rpt-box-header {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+    border-left: 4px solid #388e3c;
+    padding: 10px 16px;
+}
+.rpt-box-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1b5e20;
+}
+.rpt-box-header h3 i { margin-right: 8px; }
+
+/* ── 5. Class / Section Info Bar ───────────────────────────── */
+.rpt-class-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    background: #f1f8e9;
+    border: 1px solid #c5e1a5;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin: 10px 0 12px;
+    font-size: 13px;
+    color: #33691e;
+}
+.rpt-class-info strong { color: #1b5e20; }
+
+/* ── 6. Action / Export Buttons ────────────────────────────── */
+.rpt-action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+    align-items: center;
+}
+.rpt-action-btn {
+    padding: 7px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+.rpt-action-btn i { margin-right: 6px; }
+.rpt-action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+
+/* ── 7. Report Table ────────────────────────────────────────── */
+.rpt-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 12px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px;
+}
+.rpt-table {
+    border-collapse: collapse;
+    width: 100%;
+    white-space: nowrap;
+    font-size: 13px;
+    min-width: 1200px;
+}
+.rpt-table thead th {
+    background-color: #4CAF50;
+    color: #fff;
+    padding: 9px 10px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    border: 1px solid #43a047;
+    white-space: nowrap;
+}
+.rpt-table thead tr:first-child th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background-color: #4CAF50;
+}
+.rpt-table thead tr:nth-child(2) th {
+    position: sticky;
+    top: 40px;
+    z-index: 2;
+    background-color: #66BB6A;
+}
+.rpt-table tbody td {
+    padding: 8px 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+    font-size: 13px;
+}
+.rpt-table tbody tr:hover td { background: #f1f8e9 !important; }
+
+/* ── 8. Sticky Columns ──────────────────────────────────────── */
+.rpt-sticky-left {
+    position: sticky !important;
+    z-index: 2;
+    background: #fff;
+}
+.rpt-sticky-left-hd {
+    position: sticky !important;
+    z-index: 5 !important;
+    background-color: #4CAF50 !important;
+    color: #fff !important;
+}
+.rpt-table thead tr:nth-child(2) .rpt-sticky-left-hd {
+    z-index: 4 !important;
+    background-color: #66BB6A !important;
+    top: 40px;
+}
+.rpt-sticky-right {
+    position: sticky !important;
+    right: 0;
+    z-index: 2;
+    background: #e8f5e9;
+}
+.rpt-sticky-right-hd {
+    position: sticky !important;
+    right: 0;
+    z-index: 5 !important;
+    background: #2e7d32 !important;
+    color: #fff !important;
+}
+/* Shadow on last sticky-left column */
+.rpt-sticky-left-shadow {
+    box-shadow: 4px 0 6px -2px rgba(0,0,0,0.18);
+}
+
+/* Grand total row sticky cells */
+.grand-total-row .rpt-sticky-left { background: #263238 !important; color: #fff; }
+
+/* Zebra rows — sticky cells keep white */
+.rpt-table tbody tr:nth-child(even) .rpt-sticky-left { background: #f9f9f9; }
+.rpt-table tbody tr:hover .rpt-sticky-left { background: #e8f5e9 !important; }
+
+/* ── 9. Sticky Horizontal Scrollbar ────────────────────────── */
+.rpt-hscroll-bar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    height: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    z-index: 1000;
+    background: #f5f5f5;
+    border-top: 1px solid #ddd;
+}
+.rpt-hscroll-inner { height: 1px; }
+
+/* ── 10. Scroll-to-Top Button ───────────────────────────────── */
+.rpt-scroll-top-btn {
+    display: none;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 999;
+    background: #388e3c;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    line-height: 40px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    transition: all 0.2s ease;
+}
+.rpt-scroll-top-btn:hover {
+    background: #2e7d32;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* ── 11. Due Fees reference implementation ───────────────────── */
+/* Styles kept here so DueFeesReportView.php <style> can be removed later */
+.due-filter-card {
+    background: linear-gradient(135deg, #f8fffe 0%, #edf7ee 100%);
+    border: 1px solid #c8e6c9;
+    border-radius: 8px;
+    padding: 18px 20px 12px;
+}
+.due-filter-card .filter-title {
+    font-size: 12px; font-weight: 700; color: #388e3c;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 1px solid #c8e6c9;
+}
+.due-filter-card label {
+    font-size: 11px; font-weight: 700; color: #666;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    margin-bottom: 5px; display: block;
+}
+.due-filter-actions {
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid #c8e6c9; text-align: right;
+}
+.btn-due-report {
+    padding: 9px 20px; font-size: 13px; font-weight: 600;
+    border-radius: 4px; letter-spacing: 0.2px;
+    margin-left: 8px; transition: all 0.2s ease; min-width: 170px;
+}
+.btn-due-report i { margin-right: 7px; }
+.btn-due-report:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+
+/* ── 12. Print overrides ────────────────────────────────────── */
+@media print {
+    .rpt-hscroll-bar,
+    .rpt-scroll-top-btn,
+    .rpt-action-bar { display: none !important; }
+    .rpt-sticky-left, .rpt-sticky-left-hd,
+    .rpt-sticky-right, .rpt-sticky-right-hd { position: static !important; }
+    .rpt-table-wrap { overflow: visible !important; }
+}

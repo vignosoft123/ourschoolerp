@@ -1,7 +1,7 @@
 <?php
 
-$lang['panel_title'] = "User";
-$lang['add_title'] = "Add a user";
+$lang['panel_title'] = "Non Teaching Staff";
+$lang['add_title'] = "Add Non Teaching Staff";
 $lang['slno'] = "#";
 $lang['user_photo'] = "Photo";
 $lang['user_name'] = "Name";
@@ -39,8 +39,8 @@ $lang["mail"] = "Send Pdf to Mail";
 
 /* Add Language */
 $lang['personal_information'] = "Personal Information";
-$lang['add_user'] = 'Add User';
-$lang['update_user'] = 'Update User';
+$lang['add_user'] = 'Add Non Teaching Staff';
+$lang['update_user'] = 'Update Non Teaching Staff';
 
 $lang['to'] = 'To';
 $lang['subject'] = 'Subject';
