@@ -34,10 +34,30 @@ CREATE TABLE IF NOT EXISTS `admission_enquiry` (
   PRIMARY KEY (`enquiryID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `student_siblings` (
+CREATE TABLE IF NOT EXISTS `student_siblings` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `studentID` INT UNSIGNED NOT NULL,
   `sibling_studentID` INT UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `unique_sibling_pair` (`studentID`, `sibling_studentID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+ 
+
+CREATE TABLE  IF NOT EXISTS `youtube_links` (
+  `id` int(11) NOT NULL,
+  `link` text COLLATE utf8_unicode_ci NOT NULL,
+  `school_year_id` int(11) NOT NULL,
+  `class_id` int(11) NOT NULL,
+  `status` tinyint(1) DEFAULT '1',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `description` text COLLATE utf8_unicode_ci,
+  `subject_id` int(11) NOT NULL DEFAULT '0',
+  `section_id` int(11) NOT NULL DEFAULT '0',
+  `created_by` int(11) NOT NULL DEFAULT '0',
+  `created_by_usertype` int(11) NOT NULL DEFAULT '0',
+  `view_count` int(11) NOT NULL DEFAULT '0',
+  `sort_order` int(11) NOT NULL DEFAULT '0',
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

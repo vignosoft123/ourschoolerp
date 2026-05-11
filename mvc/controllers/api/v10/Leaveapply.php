@@ -11,6 +11,11 @@ class Leaveapply extends Api_Controller
         $this->load->model('leavecategory_m');
         $this->load->model('usertype_m');
         $this->load->model('leaveassign_m');
+        $this->load->model('student_m');
+        $this->load->model('teacher_m');
+        $this->load->model('parents_m');
+        $this->load->model('user_m');
+        $this->load->model('systemadmin_m');
     }
 
     // public function index_get() 
@@ -29,19 +34,35 @@ class Leaveapply extends Api_Controller
 public function index_get() 
 {
     $schoolyearID = $this->session->userdata('defaultschoolyearID');
+    $usertypeID = $this->session->userdata('usertypeID');
+    $loginuserID = $this->session->userdata('loginuserID');
 
-    $this->retdata['leaveapplications'] = $this->leaveapplication_m->get_order_by_leaveapply_with_user([
-        'leaveapplications.schoolyearID'        => $schoolyearID,
-        'leaveapplications.create_usertypeID'   => $this->session->userdata('usertypeID'),
-        'leaveapplications.create_userID'       => $this->session->userdata('loginuserID')
-    ]);
+    // Build filter array based on user role
+    $filterArray = [
+        'leaveapplications.schoolyearID' => $schoolyearID
+    ];
+
+    // If not admin, filter by current user's applications
+    if($usertypeID != 1) {
+        $filterArray['leaveapplications.create_usertypeID'] = $usertypeID;
+        $filterArray['leaveapplications.create_userID'] = $loginuserID;
+    }
+
+    $this->retdata['leaveapplications'] = $this->leaveapplication_m->get_order_by_leaveapply_with_user($filterArray);
+
+    // If no applications found and user provided explicit filter, log for debugging
+    if(empty($this->retdata['leaveapplications']) && $usertypeID != 1) {
+        error_log("No leave applications found for userID: {$loginuserID}, usertypeID: {$usertypeID}, schoolyearID: {$schoolyearID}");
+    }
 
     $leavecategories = pluck($this->leavecategory_m->get_leavecategory(), 'leavecategory', 'leavecategoryID');
 
-    foreach ($this->retdata['leaveapplications'] as &$leave) {
-        $leave->leavecategory_name = isset($leavecategories[$leave->leavecategoryID]) ? $leavecategories[$leave->leavecategoryID] : '';
+    if(!empty($this->retdata['leaveapplications'])) {
+        foreach ($this->retdata['leaveapplications'] as &$leave) {
+            $leave->leavecategory_name = isset($leavecategories[$leave->leavecategoryID]) ? $leavecategories[$leave->leavecategoryID] : '';
+        }
+        unset($leave);
     }
-    unset($leave);
 
     $this->response([
         'status'  => true,
@@ -50,7 +71,166 @@ public function index_get()
     ], REST_Controller::HTTP_OK);
 }
 
+public function index_post()
+{
+    $schoolyearID = $this->session->userdata('defaultschoolyearID');
+    $usertypeID = $this->session->userdata('usertypeID');
+    $loginuserID = $this->session->userdata('loginuserID');
 
+    // Build filter array
+    $filterArray = [
+        'leaveapplications.schoolyearID' => $schoolyearID
+    ];
+
+    // Allow filtering by specific user (admin only)
+    $filterUserID = $this->post('create_userID');
+    $filterUserTypeID = $this->post('create_usertypeID');
+    
+    if($filterUserID && $filterUserTypeID) {
+        // Admin can filter by any user
+        if($usertypeID == 1) {
+            $filterArray['leaveapplications.create_userID'] = $filterUserID;
+            $filterArray['leaveapplications.create_usertypeID'] = $filterUserTypeID;
+        } else {
+            // Non-admin can only filter for themselves
+            $filterArray['leaveapplications.create_userID'] = $loginuserID;
+            $filterArray['leaveapplications.create_usertypeID'] = $usertypeID;
+        }
+    } else if($usertypeID != 1) {
+        // Default: non-admin users see their own applications
+        $filterArray['leaveapplications.create_userID'] = $loginuserID;
+        $filterArray['leaveapplications.create_usertypeID'] = $usertypeID;
+    }
+    
+    // Optional status filter
+    $status = $this->post('status');
+    if($status !== false && $status !== null) {
+        $filterArray['leaveapplications.status'] = $status;
+    }
+
+    $this->retdata['leaveapplications'] = $this->leaveapplication_m->get_order_by_leaveapply_with_user($filterArray);
+
+    $leavecategories = pluck($this->leavecategory_m->get_leavecategory(), 'leavecategory', 'leavecategoryID');
+
+    if(!empty($this->retdata['leaveapplications'])) {
+        foreach ($this->retdata['leaveapplications'] as &$leave) {
+            $leave->leavecategory_name = isset($leavecategories[$leave->leavecategoryID]) ? $leavecategories[$leave->leavecategoryID] : '';
+        }
+        unset($leave);
+    }
+
+    $this->response([
+        'status'  => true,
+        'message' => 'Success',
+        'data'    => $this->retdata
+    ], REST_Controller::HTTP_OK);
+}
+
+/**
+ * API 1: GET ROLES DROPDOWN
+ * Returns only Admin and Teacher roles
+ * Endpoint: GET /api/v10/leaveapply/get_roles
+ */
+public function get_roles_get()
+{
+    // Get all usertypes and filter only Admin (1) and Teacher (2)
+    $allUsertypes = pluck(
+        $this->usertype_m->get_usertype(),
+        'usertype',
+        'usertypeID'
+    );
+    
+    $this->retdata['roles'] = [];
+    
+    // Add only Admin and Teacher
+    if(isset($allUsertypes[1])) {
+        $this->retdata['roles'][] = ['id' => 1, 'name' => $allUsertypes[1]];
+    }
+    if(isset($allUsertypes[2])) {
+        $this->retdata['roles'][] = ['id' => 2, 'name' => $allUsertypes[2]];
+    }
+
+    $this->response([
+        'status'  => true,
+        'message' => 'Success',
+        'data'    => $this->retdata
+    ], REST_Controller::HTTP_OK);
+}
+
+/**
+ * API 2: GET CATEGORIES DROPDOWN
+ * Returns all leave categories
+ * Endpoint: GET /api/v10/leaveapply/get_categories
+ */
+public function get_categories_get()
+{
+    // Get all leave categories
+    $categories = pluck(
+        $this->leavecategory_m->get_leavecategory(),
+        'leavecategory',
+        'leavecategoryID'
+    );
+    
+    $this->retdata['categories'] = [];
+    foreach($categories as $id => $name) {
+        $this->retdata['categories'][] = ['id' => $id, 'name' => $name];
+    }
+
+    $this->response([
+        'status'  => true,
+        'message' => 'Success',
+        'data'    => $this->retdata
+    ], REST_Controller::HTTP_OK);
+}
+
+/**
+ * API 3: GET USERS BY ROLE
+ * Returns users (Application To) based on selected role
+ * Endpoint: POST /api/v10/leaveapply/get_users_by_role
+ * Payload: {"role_id": 1} or {"role_id": 2}
+ */
+public function get_users_by_role_post()
+{
+    $roleId = $this->post('role_id');
+    
+    if(!$roleId) {
+        return $this->response([
+            'status'  => false,
+            'message' => 'Role ID is required'
+        ], REST_Controller::HTTP_BAD_REQUEST);
+    }
+    
+    $this->retdata['users'] = [];
+    
+    // Map roleId to table and id field
+    $roleMapping = [
+        1 => ['table' => 'systemadmin', 'id_field' => 'systemadminID', 'role_name' => 'Admin'],
+        2 => ['table' => 'teacher', 'id_field' => 'teacherID', 'role_name' => 'Teacher']
+    ];
+    
+    if(!isset($roleMapping[$roleId])) {
+        return $this->response([
+            'status'  => false,
+            'message' => 'Invalid role ID'
+        ], REST_Controller::HTTP_BAD_REQUEST);
+    }
+    
+    $config = $roleMapping[$roleId];
+    $users = $this->db->get_where($config['table'], ['active' => 1])->result();
+    
+    foreach($users as $user) {
+        $this->retdata['users'][] = [
+            'id' => $user->{$config['id_field']},
+            'name' => $user->name
+        ];
+    }
+
+    $this->response([
+        'status'  => true,
+        'message' => 'Success',
+        'data'    => $this->retdata
+    ], REST_Controller::HTTP_OK);
+}
 
     public function view_get($id = null) 
     {
@@ -256,6 +436,119 @@ public function index_get()
         return $this->response(['status' => true, 'message' => 'Leave application deleted'], REST_Controller::HTTP_OK);
     }
 
+    /**
+     * APPROVE LEAVE APPLICATION
+     * Endpoint: POST /api/v10/leaveapply/approve
+     * Payload: {"leaveapplicationID": 1}
+     */
+    public function approve_post()
+    {
+        $leaveapplicationID = $this->post('leaveapplicationID');
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+        $usertypeID = $this->session->userdata('usertypeID');
+        $loginuserID = $this->session->userdata('loginuserID');
+
+        if(!$leaveapplicationID) {
+            return $this->response([
+                'status'  => false,
+                'message' => 'Leave application ID is required'
+            ], REST_Controller::HTTP_BAD_REQUEST);
+        }
+
+        // Check if leave application exists
+        $leaveapp = $this->leaveapplication_m->get_single_leaveapplication([
+            'leaveapplicationID' => $leaveapplicationID,
+            'schoolyearID' => $schoolyearID
+        ]);
+
+        if(!$leaveapp) {
+            return $this->response([
+                'status'  => false,
+                'message' => 'Leave application not found'
+            ], REST_Controller::HTTP_NOT_FOUND);
+        }
+
+        // Check authorization: Only admin or the recipient can approve
+        if($usertypeID != 1 && !($leaveapp->applicationto_usertypeID == $usertypeID && $leaveapp->applicationto_userID == $loginuserID)) {
+            return $this->response([
+                'status'  => false,
+                'message' => 'You are not authorized to approve this application'
+            ], REST_Controller::HTTP_UNAUTHORIZED);
+        }
+
+        // Update status to approved (1)
+        $this->leaveapplication_m->update_leaveapplication([
+            'status' => 1,
+            'modify_date' => date('Y-m-d H:i:s')
+        ], $leaveapplicationID);
+
+        return $this->response([
+            'status'  => true,
+            'message' => 'Leave application approved successfully'
+        ], REST_Controller::HTTP_OK);
+    }
+
+    /**
+     * DECLINE/REJECT LEAVE APPLICATION
+     * Endpoint: POST /api/v10/leaveapply/decline
+     * Payload: {"leaveapplicationID": 1, "reason": "optional decline reason"}
+     */
+    public function decline_post()
+    {
+        $leaveapplicationID = $this->post('leaveapplicationID');
+        $declineReason = $this->post('reason') ?? '';
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+        $usertypeID = $this->session->userdata('usertypeID');
+        $loginuserID = $this->session->userdata('loginuserID');
+
+        if(!$leaveapplicationID) {
+            return $this->response([
+                'status'  => false,
+                'message' => 'Leave application ID is required'
+            ], REST_Controller::HTTP_BAD_REQUEST);
+        }
+
+        // Check if leave application exists
+        $leaveapp = $this->leaveapplication_m->get_single_leaveapplication([
+            'leaveapplicationID' => $leaveapplicationID,
+            'schoolyearID' => $schoolyearID
+        ]);
+
+        if(!$leaveapp) {
+            return $this->response([
+                'status'  => false,
+                'message' => 'Leave application not found'
+            ], REST_Controller::HTTP_NOT_FOUND);
+        }
+
+        // Check authorization: Only admin or the recipient can decline
+        if($usertypeID != 1 && !($leaveapp->applicationto_usertypeID == $usertypeID && $leaveapp->applicationto_userID == $loginuserID)) {
+            return $this->response([
+                'status'  => false,
+                'message' => 'You are not authorized to decline this application'
+            ], REST_Controller::HTTP_UNAUTHORIZED);
+        }
+
+        // Update status to rejected/declined (2)
+        // Note: Store decline reason in the reason field or add a new field if available
+        $updateData = [
+            'status' => 2,
+            'modify_date' => date('Y-m-d H:i:s')
+        ];
+
+        // If decline reason provided, append to existing reason
+        if($declineReason) {
+            $updateData['reason'] = 'DECLINED: ' . $declineReason;
+        }
+
+        $this->leaveapplication_m->update_leaveapplication($updateData, $leaveapplicationID);
+
+        return $this->response([
+            'status'  => true,
+            'message' => 'Leave application declined successfully'
+        ], REST_Controller::HTTP_OK);
+    }
+
 
 }
 
@@ -267,11 +560,83 @@ public function index_get()
 =======================================================================
 
 -----------------------------------------------------------------------
-1. LIST MY LEAVE APPLICATIONS
+0a. GET ROLES DROPDOWN
+    GET /api/v10/leaveapply/get_roles
+-----------------------------------------------------------------------
+Returns list of roles (Admin and Teacher only).
+
+curl -X GET "https://yourdomain.com/api/v10/leaveapply/get_roles" \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+
+Response:
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "roles": [
+      {"id": 1, "name": "Admin"},
+      {"id": 2, "name": "Teacher"}
+    ]
+  }
+}
+
+-----------------------------------------------------------------------
+0b. GET CATEGORIES DROPDOWN
+    GET /api/v10/leaveapply/get_categories
+-----------------------------------------------------------------------
+Returns list of all available leave categories.
+
+curl -X GET "https://yourdomain.com/api/v10/leaveapply/get_categories" \
+  -H "Authorization: Bearer <JWT_TOKEN>"
+
+Response:
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "categories": [
+      {"id": 1, "name": "Casual Leave"},
+      {"id": 9, "name": "Home Sick"},
+      {"id": 2, "name": "Earned Leave"}
+    ]
+  }
+}
+
+-----------------------------------------------------------------------
+0c. GET USERS BY ROLE
+    POST /api/v10/leaveapply/get_users_by_role
+-----------------------------------------------------------------------
+Returns list of users (Application To) based on selected role.
+Currently supports role_id: 1 (Admin) and 2 (Teacher).
+
+curl -X POST "https://yourdomain.com/api/v10/leaveapply/get_users_by_role" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"role_id": 1}'
+
+Response:
+{
+  "status": true,
+  "message": "Success",
+  "data": {
+    "users": [
+      {"id": 1, "name": "Admin User"},
+      {"id": 2, "name": "Another Admin"}
+    ]
+  }
+}
+
+Supported role_id values:
+  1 = Admin (fetches from systemadmin table)
+  2 = Teacher (fetches from teacher table)
+
+-----------------------------------------------------------------------
+1. LIST LEAVE APPLICATIONS
    GET /api/v10/leaveapply/index
 -----------------------------------------------------------------------
-Returns all leave applications submitted by the logged-in user for the
-current school year. Each record includes the leave category name.
+Returns leave applications:
+- For ADMIN users (usertypeID=1): All applications in the school year
+- For other users: Only their own applications submitted in the school year
 
 curl -X GET "https://yourdomain.com/api/v10/leaveapply/index" \
   -H "Authorization: Bearer <JWT_TOKEN>"
@@ -301,6 +666,25 @@ Response:
     ]
   }
 }
+
+-----------------------------------------------------------------------
+1b. FILTER LEAVE APPLICATIONS (POST)
+   POST /api/v10/leaveapply/index
+-----------------------------------------------------------------------
+Filter applications with optional parameters. Admin users can filter
+by specific user, others can only filter their own records.
+
+Payload (all optional):
+{
+  "create_userID": 5,           // User ID (admin only for others)
+  "create_usertypeID": 2,       // User type ID (admin only for others)
+  "status": 1                   // 0=Pending, 1=Approved, 2=Rejected
+}
+
+curl -X POST "https://yourdomain.com/api/v10/leaveapply/index" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"status": 1}'
 
 -----------------------------------------------------------------------
 2. VIEW A SINGLE LEAVE APPLICATION
@@ -411,12 +795,107 @@ Response:
   "message": "Leave application deleted"
 }
 
+-----------------------------------------------------------------------
+6. APPROVE LEAVE APPLICATION
+   POST /api/v10/leaveapply/approve
+-----------------------------------------------------------------------
+Approves a pending leave application. Only the recipient (admin/person
+application was sent to) or an admin user can approve.
+
+Payload:
+{
+  "leaveapplicationID": 1
+}
+
+curl -X POST "https://yourdomain.com/api/v10/leaveapply/approve" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"leaveapplicationID": 1}'
+
+Response:
+{
+  "status": true,
+  "message": "Leave application approved successfully"
+}
+
+Error Responses:
+{
+  "status": false,
+  "message": "Leave application not found"
+}
+
+{
+  "status": false,
+  "message": "You are not authorized to approve this application"
+}
+
+Status Values Updated:
+  0 = Pending
+  1 = Approved ✓
+  2 = Rejected
+
+-----------------------------------------------------------------------
+7. DECLINE/REJECT LEAVE APPLICATION
+   POST /api/v10/leaveapply/decline
+-----------------------------------------------------------------------
+Declines/rejects a pending leave application. Only the recipient or
+an admin user can decline. Optional reason can be provided.
+
+Payload:
+{
+  "leaveapplicationID": 1,
+  "reason": "optional decline reason"
+}
+
+curl -X POST "https://yourdomain.com/api/v10/leaveapply/decline" \
+  -H "Authorization: Bearer <JWT_TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"leaveapplicationID": 1, "reason": "Not approved at this time"}'
+
+Response:
+{
+  "status": true,
+  "message": "Leave application declined successfully"
+}
+
+Error Responses:
+{
+  "status": false,
+  "message": "Leave application not found"
+}
+
+{
+  "status": false,
+  "message": "You are not authorized to decline this application"
+}
+
+Status Values Updated:
+  0 = Pending
+  1 = Approved
+  2 = Rejected/Declined ✓
+
+=======================================================================
+ MOBILE APP WORKFLOW
+=======================================================================
+1. Load form: GET /get_roles → GET /get_categories
+2. On role select: POST /get_users_by_role {"role_id": selected_id}
+3. Submit form: POST /add_leave with all required fields
+4. View list: GET /index
+5. View detail: GET /view/{id}
+6. Edit: PUT /edit_leave/{id}
+7. APPROVE: POST /approve {"leaveapplicationID": id}
+8. DECLINE: POST /decline {"leaveapplicationID": id, "reason": "optional"}
+9. Delete: DELETE /delete_leave/{id}
+
 =======================================================================
  NOTES
- • leave_schedule format: "MM/DD/YYYY - MM/DD/YYYY" (matches web picker)
- • Status values: "0"=Pending, "1"=Approved, "2"=Rejected
- • od_status: 0=Regular Leave, 1=On Duty
- • leave_days is auto-calculated server-side (excludes holidays/weekends)
- • Only the owner (create_userID + create_usertypeID) can view/edit/delete
+=======================================================================
+• leave_schedule format: "MM/DD/YYYY - MM/DD/YYYY" (matches web picker)
+• Status values: "0"=Pending, "1"=Approved, "2"=Rejected
+• od_status: 0=Regular Leave, 1=On Duty
+• leave_days is auto-calculated server-side (excludes holidays/weekends)
+• Only the owner (create_userID + create_usertypeID) can view/edit/delete
+• get_users_by_role currently supports only Admin (1) and Teacher (2)
+• Approve/Decline: Only recipient or admin can approve/decline applications
 =======================================================================
 */
