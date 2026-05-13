@@ -505,5 +505,34 @@
     {
         "query": "UPDATE `marksetting` ms JOIN `exam` e ON ms.examID = e.examID SET ms.schoolyear_id = e.academic_year WHERE ms.schoolyear_id = 0 AND ms.examID > 0",
         "type": "raw"
+    },
+    {
+        "query": "CREATE TABLE `push_notification_log` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `message` text NOT NULL, `notification_type` varchar(50) DEFAULT 'general', `recipient_type` enum('class','section','all') NOT NULL, `classesID` int(11) DEFAULT NULL, `sectionID` int(11) DEFAULT NULL, `class_name` varchar(100) DEFAULT NULL, `section_name` varchar(100) DEFAULT NULL, `total_recipients` int(11) DEFAULT 0, `success_count` int(11) DEFAULT 0, `failure_count` int(11) DEFAULT 0, `sent_by_userID` int(11) DEFAULT NULL, `sent_by_name` varchar(100) DEFAULT NULL, `sent_at` datetime DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        "type": "create",
+        "check_table": "push_notification_log"
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('push_notification', 'Push_notification', 'fa-bell', '1', '20', '200')",
+        "type": "insert",
+        "check_row": {
+            "table": "menu",
+            "where": {
+                "menuName": "push_notification"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('push_notification', 'push_notification')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "push_notification"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'push_notification' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'push_notification'))",
+        "type": "raw"
     }
 ]

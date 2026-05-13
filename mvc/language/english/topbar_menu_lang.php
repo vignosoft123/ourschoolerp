@@ -215,7 +215,8 @@ $lang['menu_productsale']      = "Sale";
 $lang['menu_leavecategory']    = 'Leave Category';
 $lang['menu_leaveassign']      = 'Leave Assign';
 $lang['menu_leaveapply']       = 'Leave Apply';
-$lang['menu_leaveapplication'] = 'Leave Application';
+$lang['menu_leaveapplication']   = 'Leave Application';
+$lang['menu_push_notification']  = 'Push Notification';
 
 $lang['menu_menu']                  = 'Menu';
 $lang['menu_ebooks']                = 'E-Books';

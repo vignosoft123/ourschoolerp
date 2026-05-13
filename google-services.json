@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "484913770248",
+    "project_id": "our-school-erp-cbf37",
+    "storage_bucket": "our-school-erp-cbf37.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484913770248:android:c35735e2f7d963507ec6bd",
+        "android_client_info": {
+          "package_name": "com.sribhavani.state"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYmmdfjhvryO7HY3FkX4DCC4PGpDj_ZAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484913770248:android:123a4376e7598f3f7ec6bd",
+        "android_client_info": {
+          "package_name": "com.sribhavani.vidyaniketan"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYmmdfjhvryO7HY3FkX4DCC4PGpDj_ZAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484913770248:android:50d1184e3c7598c07ec6bd",
+        "android_client_info": {
+          "package_name": "io.ionic.ourschoolerp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYmmdfjhvryO7HY3FkX4DCC4PGpDj_ZAI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
