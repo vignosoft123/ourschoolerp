@@ -79,6 +79,7 @@ class Push_notification extends Admin_Controller {
         $title             = trim($this->input->post('title'));
         $message           = trim($this->input->post('message'));
         $notification_type = $this->input->post('notification_type') ?: 'general';
+        $image_url         = trim($this->input->post('image_url') ?: '');
 
         if (empty($title) || empty($message)) {
             echo json_encode(['status' => false, 'message' => 'Title and message are required.']);
@@ -111,7 +112,7 @@ class Push_notification extends Admin_Controller {
         }
 
         $tokens = array_column((array) $students, 'device_token');
-        $result = send_fcm_push_bulk($tokens, $title, $message, ['type' => $notification_type]);
+        $result = send_fcm_push_bulk($tokens, $title, $message, ['type' => $notification_type], $image_url ?: null);
 
         // Resolve names for the log
         $className   = null;

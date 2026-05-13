@@ -149,6 +149,23 @@
                 </div>
             </div>
 
+            <!-- Image URL (optional) -->
+            <div class="form-group">
+                <label class="col-sm-3 control-label">Image <span class="text-muted" style="font-weight:normal;">(optional)</span></label>
+                <div class="col-sm-9">
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-image"></i></span>
+                        <input type="url" id="pn_image_url" class="form-control" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <span class="help-block" style="margin-top:4px;">
+                        <i class="fa fa-info-circle"></i> Public HTTPS image URL. Shows as a banner image in the notification (Android). Recommended: JPEG/PNG, 1024×512 px.
+                    </span>
+                    <div id="img_preview_wrap" style="display:none; margin-top:8px;">
+                        <img id="img_preview" src="" alt="Preview" style="max-width:100%; max-height:120px; border-radius:4px; border:1px solid #ddd;">
+                    </div>
+                </div>
+            </div>
+
         </div><!-- /.form-horizontal -->
         </div><!-- /.box-body -->
         <div class="box-footer">
@@ -328,6 +345,17 @@ $(function () {
     $('#pn_title').on('input',   function () { $('#title_count').text($(this).val().length + ' / 200'); });
     $('#pn_message').on('input', function () { $('#msg_count').text($(this).val().length + ' / 500'); });
 
+    // ── Image URL live preview ──────────────────────────────
+    $('#pn_image_url').on('input', function () {
+        var url = $.trim($(this).val());
+        if (url) {
+            $('#img_preview').attr('src', url);
+            $('#img_preview_wrap').show();
+        } else {
+            $('#img_preview_wrap').hide();
+        }
+    });
+
     // ── Send ────────────────────────────────────────────────
     $('#btn_send').on('click', function () {
         var role    = $('#pn_role').val();
@@ -355,6 +383,7 @@ $(function () {
             title:             title,
             message:           message,
             notification_type: $('#pn_type').val(),
+            image_url:         $.trim($('#pn_image_url').val()),
         };
 
         if (selectedUsers && selectedUsers.length > 0) {

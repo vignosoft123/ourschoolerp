@@ -7,7 +7,7 @@ use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
 if (!function_exists('send_fcm_push_bulk')) {
-    function send_fcm_push_bulk(array $deviceTokens, $title, $body, $data = []) {
+    function send_fcm_push_bulk(array $deviceTokens, $title, $body, $data = [], $imageUrl = null) {
         try {
             $serviceAccountPath = APPPATH . 'third_party/firebase-service-account.json';
 
@@ -30,7 +30,7 @@ if (!function_exists('send_fcm_push_bulk')) {
             $factory   = (new Factory)->withServiceAccount($serviceAccountPath);
             $messaging = $factory->createMessaging();
 
-            $notification = Notification::create($title, $body);
+            $notification = Notification::create($title, $body, (!empty($imageUrl) ? $imageUrl : null));
 
             $successCount = 0;
             $failureCount = 0;
