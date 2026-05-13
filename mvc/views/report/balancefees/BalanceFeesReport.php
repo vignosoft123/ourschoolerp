@@ -29,33 +29,20 @@ function formatIndianCurrency($number, $decimals = 2) {
 
 
 
-<div class="row">
-	<div class="col-sm-12 report-actions-bar">
-        <?php
-            
-            $pdf_preview_uri = base_url('balancefeesreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID);
-            $xml_preview_uri = base_url('balancefeesreport/xlsx/'.$classesID.'/'.$sectionID.'/'.$studentID);
-
-            echo btn_printReport('balancefeesreport', $this->lang->line('report_print'), 'printablediv'); 
-
-            // echo btn_pdfPreviewReport('balancefeesreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            // echo btn_xmlReport('balancefeesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
-            // echo btn_sentToMailReport('balancefeesreport', $this->lang->line('report_send_pdf_to_mail'));
-        ?>
-
-        <button id="exportButton" class="btn btn-export-excel">Export to Excel</button>
-        <button class="btn btn-info " id="send_sms_balance_btn"><span class="fa fa-send"></span> Send SMS</button>
-        <button class="btn btn-success  " id="send_whatsapp_balance_btn"><span class="fa fa-send"></span> Send Whatsapp</button>
-
-       
-
-
-    </div>
+<div class="rpt-action-bar">
+    <?php
+        $pdf_preview_uri = base_url('balancefeesreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID);
+        $xml_preview_uri = base_url('balancefeesreport/xlsx/'.$classesID.'/'.$sectionID.'/'.$studentID);
+        echo btn_printReport('balancefeesreport', $this->lang->line('report_print'), 'printablediv');
+    ?>
+    <button id="exportButton" class="btn btn-success rpt-action-btn"><i class="fa fa-file-excel-o"></i> Export to Excel</button>
+    <button class="btn btn-info rpt-action-btn" id="send_sms_balance_btn"><i class="fa fa-send"></i> Send SMS</button>
+    <button class="btn btn-success rpt-action-btn" id="send_whatsapp_balance_btn"><i class="fa fa-whatsapp"></i> Send Whatsapp</button>
 </div>
 
 <div class="box">
-    <div class="box-header bg-gray">
-        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i>
+    <div class="box-header rpt-box-header">
+        <h3 class="box-title"><i class="fa fa-clipboard"></i>
             <?=$this->lang->line('balancefeesreport_report_for')?> - 
             <?=$this->lang->line('balancefeesreport_balancefees');?>
         </h3>
@@ -69,30 +56,10 @@ function formatIndianCurrency($number, $decimals = 2) {
                 </div>
                 <?php if($classesID >= 0 || $sectionID >= 0 ) { ?>
                     <div class="col-sm-12">
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <h5 class="pull-left">
-                                    <?php 
-                                        echo $this->lang->line('balancefeesreport_class')." : ";
-                                        echo isset($classes[$classesID]) ? $classes[$classesID] : $this->lang->line('balancefeesreport_all_class');
-                                    ?>
-                                </h5>      
-                                
-                                <h5 class="" style="margin-left:20%">
-                                    <?php 
-                                    // echo "<pre>";print_r($feetypes);die;
-                                        echo "Fees Type : ";
-                                        echo isset($feetypes->feetypes) ? $feetypes->feetypes : "All";
-                                    ?>
-                                </h5> 
-
-                                <h5 class="pull-right">
-                                    <?php
-                                       echo $this->lang->line('balancefeesreport_section')." : ";
-                                       echo isset($sections[$sectionID]) ? $sections[$sectionID] : $this->lang->line('balancefeesreport_all_section');
-                                    ?>
-                                </h5>                        
-                            </div>
+                        <div class="rpt-class-info">
+                            <span><?=$this->lang->line('balancefeesreport_class')?> : <strong><?=isset($classes[$classesID]) ? $classes[$classesID] : $this->lang->line('balancefeesreport_all_class')?></strong></span>
+                            <span>Fees Type : <strong><?=isset($feetypes->feetypes) ? $feetypes->feetypes : "All"?></strong></span>
+                            <span><?=$this->lang->line('balancefeesreport_section')?> : <strong><?=isset($sections[$sectionID]) ? $sections[$sectionID] : $this->lang->line('balancefeesreport_all_section')?></strong></span>
                         </div>
                     </div>
                 <?php }  else { ?>
@@ -115,15 +82,15 @@ function formatIndianCurrency($number, $decimals = 2) {
         $allFeeTypes = array_values($allFeeTypes);
     }
 ?>
-            <div class="table-container" style="overflow-x: auto; margin-top: 20px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+            <div class="rpt-table-wrap" id="rpt-wrap-fees">
 
-                <table class="table table-striped table-bordered" id="myTable" style="min-width: 1200px;">
+                <table class="rpt-table" id="myTable">
                     <thead>
                         <tr>
-                            <th rowspan="2" class="sticky-col"><?=$this->lang->line('slno')?></th>
-                            <th rowspan="2" class="sticky-col"><?=$this->lang->line('balancefeesreport_name')?></th>
-                            <th rowspan="2" class="sticky-col">Father Name</th>
-                            <th rowspan="2" class="sticky-col"><?=$this->lang->line('balancefeesreport_registerNO')?></th>
+                            <th rowspan="2" class="rpt-sticky-left-hd"><?=$this->lang->line('slno')?></th>
+                            <th rowspan="2" class="rpt-sticky-left-hd"><?=$this->lang->line('balancefeesreport_name')?></th>
+                            <th rowspan="2" class="rpt-sticky-left-hd">Father Name</th>
+                            <th rowspan="2" class="rpt-sticky-left-hd"><?=$this->lang->line('balancefeesreport_registerNO')?></th>
                             <th rowspan="2">Village</th>
                             <?php if($classesID == 0) { ?>
                                 <th rowspan="2"><?=$this->lang->line('balancefeesreport_class')?></th>
@@ -175,10 +142,10 @@ function formatIndianCurrency($number, $decimals = 2) {
                                 $i++;
                         ?>
                         <tr>
-                            <td class="sticky-col"><?=$i?></td>
-                            <td class="sticky-col"><?=$student->srname?></td>
-                            <td class="sticky-col"><?=$student->father_name?></td>
-                            <td class="sticky-col"><?=$student->srregisterNO?></td>
+                            <td class="rpt-sticky-left"><?=$i?></td>
+                            <td class="rpt-sticky-left"><?=$student->srname?></td>
+                            <td class="rpt-sticky-left"><?=$student->father_name?></td>
+                            <td class="rpt-sticky-left"><?=$student->srregisterNO?></td>
                             <td><?=$student->village_name?></td>
 
                             <?php if($classesID == 0) { ?>
@@ -330,6 +297,7 @@ function formatIndianCurrency($number, $decimals = 2) {
                 </table>
 
             </div>
+            <div class="rpt-hscroll-bar" id="hbar-fees"><div class="rpt-hscroll-inner" id="hbar-inner-fees"></div></div>
 
             <?php
                 // Show Load More button only if there are more than one page of results
@@ -360,6 +328,7 @@ function formatIndianCurrency($number, $decimals = 2) {
         </div><!-- Body -->
     </div>
 </div>
+<button class="rpt-scroll-top-btn" id="scroll-to-top-fees">&#8679;</button>
 
 
 <!-- email modal starts here -->
@@ -703,8 +672,7 @@ function applyStickyColumns() {
     var firstRow = table.querySelector('thead tr:first-child');
     if (!firstRow) return;
 
-    // Collect left offsets from the first header row sticky cells
-    var stickyCells = firstRow.querySelectorAll('th.sticky-col');
+    var stickyCells = firstRow.querySelectorAll('th.rpt-sticky-left-hd');
     if (!stickyCells.length) return;
 
     var offsets = [];
@@ -713,19 +681,58 @@ function applyStickyColumns() {
         offsets[idx] = cumLeft;
         th.style.left = cumLeft + 'px';
         cumLeft += th.offsetWidth;
-        th.classList.toggle('sticky-col-shadow', idx === stickyCells.length - 1);
+        th.classList.toggle('rpt-sticky-left-shadow', idx === stickyCells.length - 1);
     });
 
-    // Apply to every tbody row
     table.querySelectorAll('tbody tr').forEach(function(tr) {
-        var tds = tr.querySelectorAll('td.sticky-col');
+        var tds = tr.querySelectorAll('td.rpt-sticky-left');
         tds.forEach(function(td, idx) {
             if (idx < offsets.length) {
                 td.style.left = offsets[idx] + 'px';
-                td.classList.toggle('sticky-col-shadow', idx === tds.length - 1);
+                td.classList.toggle('rpt-sticky-left-shadow', idx === tds.length - 1);
             }
         });
     });
 }
+
+// Sticky horizontal scrollbar
+(function() {
+    var wrap  = document.getElementById('rpt-wrap-fees');
+    var hbar  = document.getElementById('hbar-fees');
+    var inner = document.getElementById('hbar-inner-fees');
+    if (!wrap || !hbar || !inner) return;
+
+    function syncBarWidth() {
+        var table = wrap.querySelector('.rpt-table');
+        inner.style.width = (table ? table.scrollWidth : wrap.scrollWidth) + 'px';
+        hbar.style.left   = wrap.getBoundingClientRect().left + 'px';
+        hbar.style.width  = wrap.clientWidth + 'px';
+        hbar.style.display = (wrap.scrollWidth > wrap.clientWidth) ? 'block' : 'none';
+    }
+
+    var syncing = false;
+    wrap.addEventListener('scroll', function() {
+        if (!syncing) { syncing = true; hbar.scrollLeft = wrap.scrollLeft; syncing = false; }
+    });
+    hbar.addEventListener('scroll', function() {
+        if (!syncing) { syncing = true; wrap.scrollLeft = hbar.scrollLeft; syncing = false; }
+    });
+
+    window.addEventListener('resize', syncBarWidth);
+    syncBarWidth();
+    setTimeout(syncBarWidth, 400);
+})();
+
+// Scroll to top
+(function() {
+    var btn = document.getElementById('scroll-to-top-fees');
+    if (!btn) return;
+    window.addEventListener('scroll', function() {
+        btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
+    btn.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+})();
 </script>
 

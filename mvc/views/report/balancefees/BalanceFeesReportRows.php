@@ -51,10 +51,10 @@ if(isset($students) && customCompute($students)) {
             $i++;
             ?>
             <tr>
-                <td class="sticky-col"><?= $i ?></td>
-                <td class="sticky-col"><?= $student->srname ?></td>
-                <td class="sticky-col"><?= $student->father_name ?></td>
-                <td class="sticky-col"><?= $student->srregisterNO ?></td>
+                <td class="rpt-sticky-left"><?= $i ?></td>
+                <td class="rpt-sticky-left"><?= $student->srname ?></td>
+                <td class="rpt-sticky-left"><?= $student->father_name ?></td>
+                <td class="rpt-sticky-left"><?= $student->srregisterNO ?></td>
                 <td><?= $student->village_name ?></td>
 
                 <?php if(isset($classesID) && (int)$classesID == 0) { ?>

@@ -93,25 +93,20 @@
                                      ?>
                                 </div>
 
-                                <div class="col-sm-4">
-                                    <label>&nbsp;</label>
-                                    <button id="get_duefeesreport" type="button" class="btn btn-success btn-block" style="margin-top:8px;">
-                                        <i class="fa fa-search"></i> Generate Report
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
+                        </form>
+                        <div class="rpt-filter-actions">
+                            <button id="get_duefeesreport" type="button" class="btn btn-success rpt-filter-btn"><i class="fa fa-search"></i> Generate Report</button>
                         </div>
                     </div>
                 </div><!-- /.tab-pane -->
                 
                 <!-- TAB 2: Class-wise Summary Report -->
                 <div class="tab-pane" id="tab_2">
-                    <div class="form-section-header">
-                        <i class="fa fa-bar-chart"></i> Class-wise Summary Report
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <form id="classWiseForm">
+                    <div class="rpt-filter-card">
+                        <div class="rpt-filter-title"><i class="fa fa-bar-chart"></i> Class-wise Summary Report</div>
+                        <form id="classWiseForm">
+                            <div class="row">
                                 <div class="form-group col-sm-6" id="classesMultiDiv">
                                     <label><i class="fa fa-graduation-cap"></i> Select Classes (Multi-selection)</label>
                                     <?php
@@ -155,24 +150,19 @@
                                     ?>
                                 </div>
 
-                                <div class="col-sm-6">
-                                    <label>&nbsp;</label>
-                                    <button id="getClassSummaryBtn" type="button" class="btn btn-info btn-block" style="margin-top:8px;">
-                                        <i class="fa fa-pie-chart"></i> Generate Summary
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
+                        </form>
+                        <div class="rpt-filter-actions">
+                            <button id="getClassSummaryBtn" type="button" class="btn btn-info rpt-filter-btn"><i class="fa fa-pie-chart"></i> Generate Summary</button>
                         </div>
                     </div>
                 </div><!-- /.tab-pane -->
                 <!-- TAB 3: Fee Due slip -->
                 <div class="tab-pane" id="tab_3">
-                    <div class="form-section-header">
-                        <i class="fa fa-envelope"></i> Fee Due Slip Report
-                    </div>
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <form id="feeDueSlipForm">
+                    <div class="rpt-filter-card">
+                        <div class="rpt-filter-title"><i class="fa fa-envelope"></i> Fee Due Slip Report</div>
+                        <form id="feeDueSlipForm">
+                            <div class="row">
                                 <div class="form-group col-sm-4">
                                     <label><i class="fa fa-graduation-cap"></i> <?=$this->lang->line("balancefeesreport_class")?></label>
                                     <?php
@@ -211,12 +201,10 @@
                                     <input type="text" id="due_date" class="form-control datepicker" value="<?=date('d-m-Y', strtotime('+7 days'))?>">
                                 </div>
 
-                                <div class="col-sm-4 col-sm-offset-4">
-                                    <button id="getFeeDueSlipBtn" type="button" class="btn btn-success btn-block" style="margin-top:8px;">
-                                        <i class="fa fa-search"></i> Generate Slips
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
+                        </form>
+                        <div class="rpt-filter-actions">
+                            <button id="getFeeDueSlipBtn" type="button" class="btn btn-success rpt-filter-btn"><i class="fa fa-search"></i> Generate Slips</button>
                         </div>
                     </div>
                 </div><!-- /.tab-pane -->
