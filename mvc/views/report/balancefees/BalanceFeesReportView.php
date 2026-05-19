@@ -333,6 +333,9 @@
                 renderLoder(response, passData);
                 // After initial load, ensure grand totals are correct
                 updateGrandTotals();
+            },
+            complete: function() {
+                $('#loading').hide();
             }
         });
     }

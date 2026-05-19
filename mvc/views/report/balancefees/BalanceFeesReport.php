@@ -495,7 +495,7 @@ $(document).ready(function() {
         $('input:checkbox').not(this).prop('checked', this.checked);
     });
 
-    applyStickyColumns();
+    if (typeof applyStickyColumns === 'function') applyStickyColumns();
 });
 
        

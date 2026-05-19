@@ -225,7 +225,7 @@
         <div class="main-heading">
           <h1 style="text-transform: capitalize; margin: 0px;"><?=$siteinfos->sname?></h1>
           <h3 style="margin: 0px;"><?=$siteinfos->address?></h3>
-          <h3 style="margin: 0px;">Phone:  <?=$siteinfos->phone?></h3>
+          <!-- <h3 style="margin: 0px;">Phone:  <?=$siteinfos->phone?></h3> -->
         </div>
       </div>
       <div class="student-details">
@@ -290,13 +290,18 @@
                         $paymentedPaidAmount += $paymented->paymentamount;
                         $count1++;?>
                         <tr>
-                            <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
+                            <td>
+                                <?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?>
+                                <?php if (!empty($is_prev_year_receipt) && !empty($receipt_year_name)): ?>
+                                    <small style="color:#8a4a10; font-size:11px; margin-left:4px;">(<?= htmlspecialchars($receipt_year_name) ?>)</small>
+                                <?php endif; ?>
+                            </td>
                             <td class="center"><?=$paymented->paymentamount.'.00'?></td>
                         </tr>
                     <?php  $mode = $paymented->paymenttype;
                       if($mode == 'Digita'){
-                        $mode = 'Digital'; 
-                      }  
+                        $mode = 'Digital';
+                      }
                   }
                 }  ?>
                      <?php  
@@ -359,7 +364,7 @@
           <div class="main-heading">
             <h1 style="text-transform: capitalize; margin: 0px;"><?=$siteinfos->sname?></h1>
             <h3 style="margin: 0px;"><?=$siteinfos->address?></h3>
-            <h3 style="margin: 0px;">Phone:  <?=$siteinfos->phone?></h3>
+            <!-- <h3 style="margin: 0px;">Phone:  <?=$siteinfos->phone?></h3> -->
           </div>
         </div>
         <div class="student-details">
@@ -424,14 +429,19 @@
                           $count++;
                           ?>
                           <tr>
-                              <td><?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?></td>
+                              <td>
+                                  <?=isset($feetypes[$invoicefeetype[$paymented->invoiceID]]) ? $feetypes[$invoicefeetype[$paymented->invoiceID]] : ''?>
+                                  <?php if (!empty($is_prev_year_receipt) && !empty($receipt_year_name)): ?>
+                                      <small style="color:#8a4a10; font-size:11px; margin-left:4px;">(<?= htmlspecialchars($receipt_year_name) ?>)</small>
+                                  <?php endif; ?>
+                              </td>
                               <td class="center"><?=$paymented->paymentamount.'.00'?></td>
                           </tr>
-                      <?php  $mode = $paymented->paymenttype; 
+                      <?php  $mode = $paymented->paymenttype;
                        if($mode == 'Digita'){
-                        $mode = 'Digital'; 
+                        $mode = 'Digital';
                       } }
-                  }  
+                  }
                   
                   ?>
                   <?php  

@@ -2300,7 +2300,7 @@ class Student extends Admin_Controller
 				}
 					
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-					redirect(base_url("student/index"));
+					redirect(base_url("student/admission_slip/$studentID"));
 				}
 			} else {
 				$this->data["subview"] = "student/add";
@@ -2310,6 +2310,61 @@ class Student extends Admin_Controller
 			$this->data["subview"] = "error";
 			$this->load->view('_layout_main', $this->data);
 		}
+	}
+
+	public function admission_slip()
+	{
+		$studentID = (int) htmlentities(escapeString($this->uri->segment(3)));
+		if (!$studentID) {
+			redirect(base_url('student/index'));
+			return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$student = $this->studentrelation_m->general_get_single_student(
+			['srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID], TRUE
+		);
+		if (!customCompute($student)) {
+			redirect(base_url('student/index'));
+			return;
+		}
+		$this->data['profile'] = $student;
+		$this->data['parents'] = ($student->parentID > 0)
+			? $this->parents_m->get_single_parents(['parentsID' => $student->parentID])
+			: null;
+
+		// Lookup arrays
+		$this->data['all_classes']   = pluck($this->classes_m->get_classes(), 'classes', 'classesID');
+		$this->data['student_groups']= pluck($this->studentgroup_m->get_studentgroup(), 'group', 'studentgroupID');
+		$this->data['subjects']      = pluck($this->subject_m->general_get_order_by_subject(), 'subject', 'subjectID');
+
+		// Transport (type=1)
+		$transport_details = $this->tmember_m->get_single_tmember(['studentID' => $studentID]);
+		$this->data['transport_details'] = $transport_details;
+		$this->data['transport_route']   = customCompute($transport_details)
+			? $this->transport_m->get_transport($transport_details->transportID)
+			: null;
+
+		// Hostel (type=2)
+		$this->data['hostel_details'] = $this->hmember_m->get_single_hmember(['studentID' => $studentID]);
+
+		// Siblings
+		$this->data['siblings'] = $this->studentsiblings_m->get_siblings_by_student($studentID);
+
+		// Referred By — decode stored value to display label
+		$refered_raw = $student->refered_by ?? '';
+		if (strpos($refered_raw, 'teacher-') === 0) {
+			$t = $this->teacher_m->get_single_teacher(['teacherID' => (int) substr($refered_raw, 8)]);
+			$this->data['refered_by_label'] = customCompute($t) ? $t->name . ' [Teacher]' : $refered_raw;
+		} elseif (strpos($refered_raw, 'user-') === 0) {
+			$u = $this->user_m->get_single_user(['userID' => (int) substr($refered_raw, 5)]);
+			$this->data['refered_by_label'] = customCompute($u) ? $u->name . ' [User]' : $refered_raw;
+		} elseif (strpos($refered_raw, 'others-') === 0) {
+			$this->data['refered_by_label'] = substr($refered_raw, 7);
+		} else {
+			$this->data['refered_by_label'] = $refered_raw;
+		}
+
+		$this->load->view('student/AdmissionSlip', $this->data);
 	}
 
 	public function edit()
