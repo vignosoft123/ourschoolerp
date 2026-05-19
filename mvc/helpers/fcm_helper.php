@@ -3,11 +3,13 @@
 require_once FCPATH . 'vendor/autoload.php';
 
 use Kreait\Firebase\Factory;
+use Kreait\Firebase\Messaging\AndroidConfig;
+use Kreait\Firebase\Messaging\ApnsConfig;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
 
 if (!function_exists('send_fcm_push_bulk')) {
-    function send_fcm_push_bulk(array $deviceTokens, $title, $body, $data = [], $imageUrl = null) {
+    function send_fcm_push_bulk(array $deviceTokens, $title, $body, $data = [], $imageUrl = null, $sound = 'school_1') {
         try {
             $serviceAccountPath = APPPATH . 'third_party/firebase-service-account.json';
 
@@ -32,6 +34,15 @@ if (!function_exists('send_fcm_push_bulk')) {
 
             $notification = Notification::create($title, $body, (!empty($imageUrl) ? $imageUrl : null));
 
+            $androidConfig = AndroidConfig::fromArray([
+                'priority'     => 'high',
+                'notification' => ['sound' => $sound],
+            ]);
+
+            $apnsConfig = ApnsConfig::fromArray([
+                'payload' => ['aps' => ['sound' => $sound]],
+            ]);
+
             $successCount = 0;
             $failureCount = 0;
             $responses    = [];
@@ -41,7 +52,9 @@ if (!function_exists('send_fcm_push_bulk')) {
                 try {
                     $message = CloudMessage::withTarget('token', $token)
                         ->withNotification($notification)
-                        ->withData($data);
+                        ->withData($data)
+                        ->withAndroidConfig($androidConfig)
+                        ->withApnsConfig($apnsConfig);
                     $messaging->send($message);
                     $successCount++;
                     $responses[] = ['success' => true];

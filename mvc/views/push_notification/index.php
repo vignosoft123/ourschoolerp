@@ -159,6 +159,9 @@
                     </div>
                     <span class="help-block" style="margin-top:4px;">
                         <i class="fa fa-info-circle"></i> Public HTTPS image URL. Shows as a banner image in the notification (Android). Recommended: JPEG/PNG, 1024×512 px.
+                        </span>
+                        <span>
+                        EX: https://picsum.photos/200/100.jpg
                     </span>
                     <div id="img_preview_wrap" style="display:none; margin-top:8px;">
                         <img id="img_preview" src="" alt="Preview" style="max-width:100%; max-height:120px; border-radius:4px; border:1px solid #ddd;">
