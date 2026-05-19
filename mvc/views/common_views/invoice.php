@@ -41,34 +41,73 @@
     <title>School</title>
     <style>
       body {
-        margin: 40px;
+        margin: 30px;
     }
     .main-wrapper {
-        border: 5px rgb(141, 139, 139);
-        border-style: groove;
-        height: 500px;
+        border: 2px solid #1a237e;
         width: 95%;
         margin: auto;
-        border-radius: 3%;
+        border-radius: 4px;
+        overflow: hidden;
     }
-    .logo-heading {
+
+    /* ── Improved Receipt Header ── */
+    .receipt-header {
         display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 16px 8px;
+        border-bottom: 3px solid #1a237e;
+        background: #fff;
     }
-    .logo-heading img {
-        width: 100px;
+    .receipt-header .rh-logo img {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
     }
-    .main-heading h1 {
-        color: #000000;
-    }
-    .logo {
-        width: 100px;
-        margin-left: 20px;
-        margin-top: 5px;
-    }
-    .main-heading {
-        margin: auto;
+    .receipt-header .rh-info {
+        flex: 1;
         text-align: center;
     }
+    .rh-school-name {
+        font-size: 22px;
+        font-weight: 900;
+        color: #1a237e;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        line-height: 1.2;
+    }
+    .rh-school-addr {
+        font-size: 11px;
+        color: #555;
+        margin-top: 3px;
+    }
+    .rh-divider {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin: 4px auto;
+        max-width: 300px;
+    }
+    .rh-divider .rh-line { flex: 1; height: 1px; background: linear-gradient(to right, #1a237e, #4caf50, #1a237e); }
+    .rh-divider .rh-dm   { color: #4caf50; font-size: 10px; }
+    .rh-school-phone { font-size: 11px; color: #1a237e; font-weight: 600; margin-top: 2px; }
+    .phone-toggle-bar { text-align: right; padding: 4px 16px; font-size: 12px; color: #555; }
+    .phone-toggle-bar label { cursor: pointer; user-select: none; }
+    .receipt-title-bar {
+        text-align: center;
+        background: #1a237e;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        padding: 5px 0;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    /* keep old class names working */
+    .logo-heading { display: none; }
+    .main-heading  { display: none; }
     .table-start table {
         width: 100%;
             font-weight: bolder;
@@ -145,23 +184,46 @@
       display:  none;
     }
         @media print {
+          @page { size: A4 portrait; margin: 5mm; }
           .print-button {
             display: none;
-        } 
+        }
           strong {
     display: none !important;
   }
   body {
-            margin: 0;
-            padding: 0;
-        }     
+            margin: 0 !important;
+            padding: 0 !important;
+        }
   .main-wrapper {
-        border: 5px rgb(141, 139, 139);
-        border-style: groove;
-        height: 500px;
-        width: 95%;
-        margin: auto;
+        border: 2px solid #1a237e !important;
+        width: 98%;
+        margin: 0 auto !important;
         border-radius: 3%;
+        page-break-inside: avoid;
+    }
+  .duplicate-print.admin-copy {
+        margin-top: 6px !important;
+    }
+  .receipt-header {
+        padding: 5px 10px 4px !important;
+    }
+  .rh-school-name {
+        font-size: 18px !important;
+    }
+  .receipt-title-bar {
+        padding: 3px 0 !important;
+        font-size: 13px !important;
+    }
+  .student-details {
+        padding: 4px 10px !important;
+    }
+  .table-start {
+        font-size: 11px !important;
+    }
+  .footer {
+        padding: 4px 10px !important;
+        font-size: 11px !important;
     }
 
   .student-copy, .admin-copy {
@@ -186,13 +248,12 @@
 
 
 
-        /* Ensure background is visible in print */
-        .table-start thead {
-          background-color: #4b4646 !important; /* Force background in print */
-        }
-        .table-start thead th {
-            color: #fff !important;
-        } 
+        /* Ensure backgrounds visible in print */
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
+        .table-start thead { background-color: #4b4646 !important; }
+        .table-start thead th { color: #fff !important; }
+        .receipt-title-bar { background: #1a237e !important; color: #fff !important; }
+        .main-wrapper { border: 2px solid #1a237e !important; }
     
         </style>
   </head>
@@ -215,19 +276,40 @@
     </div><!-- /.box-header -->
   </div>
 
-    <div class="main-wrapper student-copy">
-    <div class="center scopy"></div>
+    <!-- Phone number toggle (screen only) -->
+    <div class="no-print phone-toggle-bar">
+        <label>
+            <input type="checkbox" id="show_phone_chk" checked onchange="toggleReceiptPhone(this.checked)">
+            &nbsp;Show Phone Number on Receipt
+        </label>
+    </div>
 
-      <div class="logo-heading">
-        <div class="logo">
-        <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="Logo">
+    <div class="main-wrapper student-copy">
+    <div class="center scopy" style="text-align:center; font-size:11px; color:#888; padding:2px 0;"></div>
+
+      <!-- Receipt Header -->
+      <div class="receipt-header">
+        <div class="rh-logo">
+          <img src="<?= base_url('uploads/images/' . $siteinfos->photo) ?>" alt="Logo">
         </div>
-        <div class="main-heading">
-          <h1 style="text-transform: capitalize; margin: 0px;"><?=$siteinfos->sname?></h1>
-          <h3 style="margin: 0px;"><?=$siteinfos->address?></h3>
-          <!-- <h3 style="margin: 0px;">Phone:  <?=$siteinfos->phone?></h3> -->
+        <div class="rh-info">
+          <div class="rh-school-name"><?= htmlspecialchars($siteinfos->sname) ?></div>
+          <div class="rh-school-addr">
+            <?= htmlspecialchars($siteinfos->address) ?>
+            <?php if (!empty($siteinfos->village_name)): ?>
+                , <?= htmlspecialchars($siteinfos->village_name) ?>
+            <?php endif; ?>
+          </div>
+          <div class="rh-school-phone receipt-phone">
+            <?php if (!empty($siteinfos->phone)): ?>
+                &#128222; <?= htmlspecialchars($siteinfos->phone) ?>
+            <?php endif; ?>
+          </div>
+          <div class="rh-divider"><span class="rh-line"></span><span class="rh-dm">&#9670;</span><span class="rh-line"></span></div>
         </div>
       </div>
+      <div class="receipt-title-bar">FEE RECEIPT</div>
+
       <div class="student-details">
         <div>
           <table>
@@ -246,19 +328,6 @@
         </div>
         <table>
           <tbody>
-            <tr>
-              <td style="vertical-align: baseline;">
-                <h2 style="margin: 0px; color: #9c9898;">FEE RECEIPT</h2>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-
-        <table>
-          <tbody>
-
-          
-
             <tr> <td>Manual Receipt</td> <td>:  <?=$globalpayment[0]->invoicedescription?></td> </tr>
             <tr> <td>Receipt No</td> <td>:  INV-G-<?=$globalpayment[0]->globalpaymentID?></td> </tr>
             <tr> <td>Receipt Date</td> <td>: <?=isset($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID])) : '' ?></td> </tr>
@@ -355,25 +424,35 @@
     </div>
 
     
-    <div class="main-wrapper duplicate-print admin-copy" style= "margin-top:20px;">
-    <div class="center acopy"></div>
-        <div class="logo-heading">
-          <div class="logo">
-          <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="Logo">
+    <div class="main-wrapper duplicate-print admin-copy" style="margin-top:20px;">
+    <div class="center acopy" style="text-align:center; font-size:11px; color:#888; padding:2px 0;"></div>
+
+        <!-- Receipt Header (Admin Copy) -->
+        <div class="receipt-header">
+          <div class="rh-logo">
+            <img src="<?= base_url('uploads/images/' . $siteinfos->photo) ?>" alt="Logo">
           </div>
-          <div class="main-heading">
-            <h1 style="text-transform: capitalize; margin: 0px;"><?=$siteinfos->sname?></h1>
-            <h3 style="margin: 0px;"><?=$siteinfos->address?></h3>
-            <!-- <h3 style="margin: 0px;">Phone:  <?=$siteinfos->phone?></h3> -->
+          <div class="rh-info">
+            <div class="rh-school-name"><?= htmlspecialchars($siteinfos->sname) ?></div>
+            <div class="rh-school-addr">
+              <?= htmlspecialchars($siteinfos->address) ?>
+              <?php if (!empty($siteinfos->village_name)): ?>
+                  , <?= htmlspecialchars($siteinfos->village_name) ?>
+              <?php endif; ?>
+            </div>
+            <div class="rh-school-phone receipt-phone">
+              <?php if (!empty($siteinfos->phone)): ?>
+                  &#128222; <?= htmlspecialchars($siteinfos->phone) ?>
+              <?php endif; ?>
+            </div>
+            <div class="rh-divider"><span class="rh-line"></span><span class="rh-dm">&#9670;</span><span class="rh-line"></span></div>
           </div>
         </div>
+        <div class="receipt-title-bar">FEE RECEIPT</div>
+
         <div class="student-details">
           <div>
             <table>
-              <?php 
-              //  echo "<pre>";
-              //  print_r($single_student);
-               ?>
               <tbody>
                 <tr> <td>Admission No</td> <td>:  <?=$single_student->srregisterNO?></td> </tr>
                 <tr> <td>Student Name</td> <td>:  <?=customCompute($single_student) ? $single_student->srname : ''?></td> </tr>
@@ -382,26 +461,13 @@
               <tr> <td>Mobile Number</td> <td>: <?=$single_student->phone?></td> </tr>
               <?php }else{?>
               <tr> <td>Mother Name</td> <td>: <?=$single_student->mother_name?></td> </tr>
-
                 <?php }?>
               </tbody>
             </table>
           </div>
+
           <table>
             <tbody>
-              <tr>
-                <td style="vertical-align: baseline;">
-                  <h2 style="margin: 0px; color: #9c9898;">FEE RECEIPT</h2>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-  
-          <table>
-            <tbody>
-  
-            
-  
               <tr> <td>Receipt No</td> <td>:  INV-G-<?=$globalpayment[0]->globalpaymentID?></td> </tr>
               <tr> <td>Receipt Date</td> <td>: <?=isset($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID]) ? date('d-M-Y', strtotime($paidpayments['paiddate'][$globalpayment[0]->globalpaymentID])) : '' ?></td> </tr>
               <tr> <td>Class Name</td> <td>: <?=customCompute($single_classes) ? $single_classes->classes : ''?></td> </tr>
@@ -507,6 +573,14 @@
         //     window.print();
         // }
  
+  // Phone number toggle — controls all .receipt-phone elements in both copies
+  function toggleReceiptPhone(show) {
+      var els = document.querySelectorAll('.receipt-phone');
+      for (var i = 0; i < els.length; i++) {
+          els[i].style.display = show ? '' : 'none';
+      }
+  }
+
   function printSection(type) {
     // Remove any existing print-specific classes
     document.body.classList.remove('print-student', 'print-admin', 'print-both');
