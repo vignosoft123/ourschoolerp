@@ -1,13 +1,69 @@
 <style>
-  
+/* ── Required field indicator ── */
+.student-form-info .has-required .form-control {
+    border-left: 3px solid #27ae60 !important;
+    background-color: #fff !important;
+}
+.student-form-info .has-required .select2-container .select2-choice,
+.student-form-info .has-required .select2-container .select2-choices {
+    border-left: 3px solid #27ae60 !important;
+}
+.student-form-info .has-required > label { font-weight: 600; color: #2c3e50; }
+.bg-lpurple { background-color: #fff !important; border-left: none !important; }
+.val-error { color: #c0392b; font-size: 12px; display: block; margin-top: 3px; }
+.val-error i { margin-right: 3px; }
+.photo-upload-wrap .photo-preview-img {
+    max-width: 100px; max-height: 100px;
+    border: 2px solid #ddd; border-radius: 6px;
+    padding: 2px; margin-top: 6px; display: none;
+}
 
-/* Optional: highlight on hover */
-/* .select2-container-active .select2-choice, .select2-container-multi.select2-container-active .select2-choices {
-    background-color: #eec4ff82 !important;
-    color: #000;
-} */
-
-    </style>
+/* ── Accordion Panels ── */
+.student-accordion { margin-bottom: 10px; }
+.sap {
+    border: 1px solid #dde0e6;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+}
+.sap-header {
+    background: linear-gradient(135deg, #0cc035 0%, #0a9d2b 100%);
+    color: #fff;
+    padding: 13px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    transition: background 0.2s;
+}
+.sap-header:hover { background: linear-gradient(135deg, #0aa82e 0%, #088a25 100%); }
+.sap-header .sap-icon { font-size: 17px; width: 22px; text-align: center; }
+.sap-header .sap-title { flex: 1; font-size: 15px; font-weight: 600; letter-spacing: 0.3px; }
+.sap-header .sap-badge {
+    background: rgba(255,255,255,0.25);
+    font-size: 11px;
+    border-radius: 10px;
+    padding: 2px 8px;
+}
+.sap-chevron { transition: transform 0.3s ease; font-size: 13px; }
+.sap-header.collapsed .sap-chevron { transform: rotate(180deg); }
+.sap-body { background: #fff; padding: 22px 20px 10px; }
+.sap-body .col-md-4,
+.sap-body .col-md-3,
+.sap-body .col-md-9 { margin-bottom: 14px; }
+/* Required-fields legend note */
+.req-legend { font-size: 11px; color: #888; margin-bottom: 12px; }
+.req-legend .text-red { color: #e74c3c; font-weight: bold; }
+/* Per-section background tints */
+.sap-bg-1 { background: #f0f8ff !important; }
+.sap-bg-2 { background: #f0fff4 !important; }
+.sap-bg-3 { background: #fffbf0 !important; }
+.sap-bg-4 { background: #fff8f0 !important; }
+.sap-bg-5 { background: #f8f0ff !important; }
+.sap-bg-6 { background: #fff0f8 !important; }
+</style>
 
 <div class="box">
     <div class="box-header">
@@ -22,10 +78,16 @@
     <!-- form start -->
     <div class="box-body">
         <form class="form-horizontal student-form-info" role="form" method="post" enctype="multipart/form-data">
-        <div class="row">
-            <!-- <div class="col-sm-10"> -->
-        <div class="student-firm">
-            <h2 class="h2-title">Add Student Form</h2>
+        <div class="student-accordion">
+        <!-- Section 1: Basic Information -->
+        <div class="sap">
+            <div class="sap-header" data-toggle="collapse" data-target="#sap-basic">
+                <span class="sap-icon"><i class="fa fa-id-card-o"></i></span>
+                <span class="sap-title">Basic Information</span>
+                <i class="fa fa-chevron-up sap-chevron"></i>
+            </div>
+            <div id="sap-basic" class="collapse in sap-body sap-bg-1">
+            <p class="req-legend"><span class="text-red">*</span> Required fields</p>
             <div class="row">
                 <?php
                 if (form_error('registerNO'))
@@ -135,7 +197,7 @@
                     else
                         echo "<div class='col-md-4' >";
                     ?>
-                    <label for="classesID" class="control-label bg-lpurple">
+                    <label for="classesID" class="control-label">
                         <?= $this->lang->line("student_classes") ?> <span class="text-red">*</span>
                     </label>
                         <?php
@@ -143,7 +205,7 @@
                         foreach ($classes as $classa) {
                             $classArray[$classa->classesID] = $classa->classes;
                         }
-                        echo form_dropdown("classesID", $classArray, set_value("classesID"), "id='classesID' class='form-control bg-lpurple select2'");
+                        echo form_dropdown("classesID", $classArray, set_value("classesID"), "id='classesID' class='form-control select2'");
                         ?>
                     <span class=" control-label">
                         <?php echo form_error('classesID'); ?>
@@ -156,7 +218,7 @@
                         else
                             echo "<div class='col-md-4' >";
                         ?>
-                        <label for="sectionID" class="  control-label bg-lpurple">
+                        <label for="sectionID" class="control-label">
                             <?= $this->lang->line("student_section") ?> <span class="text-red">*</span>
                             <a title="Add Section" target="_blank" href="<?= base_url('section/add');?>"> <i class="fa fa-plus" ></i></a>
                         </label>
@@ -176,7 +238,7 @@
                                 $sID = $sectionID;
                             }
 
-                            echo form_dropdown("sectionID", $sectionArray, set_value("sectionID", $sID), "id='sectionID' class='form-control bg-lpurple select2'");
+                            echo form_dropdown("sectionID", $sectionArray, set_value("sectionID", $sID), "id='sectionID' class='form-control select2'");
                             ?>
                         <span class="  control-label">
                             <?php echo form_error('sectionID'); ?>
@@ -192,7 +254,7 @@
                             <label for="roll" class="  control-label">
                                 <?= $this->lang->line("student_roll") ?> <span class="text-red">*</span>
                             </label>
-                                <input type="text" class="form-control bg-lpurple" id="roll" name="roll" value="<?= set_value('roll') ?>">
+                                <input type="text" class="form-control" id="roll" name="roll" value="<?= set_value('roll') ?>">
                             <span class=" err control-label">
                                 <?php echo form_error('roll'); ?>
                             </span>
@@ -307,10 +369,18 @@
 
               
 
-            </div> <!------ end row----->
-        </div> <!-------- End Add student firm------>
-        <div class="student-details-sec">
-            <h2 class="h2-title">Student Details</h2>
+            </div>
+            </div><!-- /.sap-body -->
+        </div><!-- /.sap -->
+
+        <!-- Section 2: Student Details -->
+        <div class="sap">
+            <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-details">
+                <span class="sap-icon"><i class="fa fa-user-circle-o"></i></span>
+                <span class="sap-title">Student Details</span>
+                <i class="fa fa-chevron-up sap-chevron"></i>
+            </div>
+            <div id="sap-details" class="collapse sap-body sap-bg-2">
             <div class="row">
  
 
@@ -360,7 +430,7 @@
                             ID Card Name <span class="text-red">*</span>
                         </label>
                         
-                            <input type="text" class="form-control bg-lpurple" id="name_id" name="name" value="<?= set_value('name') ?>">
+                            <input type="text" class="form-control" id="name_id" name="name" value="<?= set_value('name') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('name'); ?>
@@ -500,7 +570,7 @@
                             Father Name <span class="text-red">*</span>
                         </label>
                         
-                            <input type="text" class="form-control bg-lpurple" id="father_name_id" name="father_name" value="<?= set_value('father_name') ?>">
+                            <input type="text" class="form-control" id="father_name_id" name="father_name" value="<?= set_value('father_name') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('father_name'); ?>
@@ -517,7 +587,7 @@
                             Father Aadhar
                         </label>
                         
-                            <input type="text" class="form-control bg-lpurple" id="father_aadhar" name="father_aadhar" value="<?= set_value('father_aadhar') ?>">
+                            <input type="text" class="form-control" id="father_aadhar" name="father_aadhar" value="<?= set_value('father_aadhar') ?>">
                         
                         <span class="  control-label">
                             <?php echo form_error('father_aadhar'); ?>
@@ -569,7 +639,7 @@
                         <?= $this->lang->line("student_phone") ?> <span class="text-red">*</span>
                     </label>
                     
-                        <input type="text" class="form-control bg-lpurple" id="phone" name="phone" maxlength="10"  value="<?= set_value('phone') ?>">
+                        <input type="text" class="form-control" id="phone" name="phone" maxlength="10" value="<?= set_value('phone') ?>">
                     
                         <span id="error-message" class="control-label" style="color:red;">
                                     <?php echo form_error('phone'); ?>
@@ -633,28 +703,24 @@
                     else
                         echo "<div class='col-md-4' >";
                     ?>
-                    <label for="photo" class="  control-label">
+                    <label for="photo_input" class="control-label">
                         <?= $this->lang->line("student_photo") ?>
                     </label>
-                        <div class="input-group image-preview">
-                            <input type="text" class="form-control image-preview-filename" disabled="disabled">
-                            <span class="input-group-btn">
-                                <button type="button" class="btn btn-default image-preview-clear" style="display:none;">
-                                    <span class="fa fa-remove"></span>
-                                    <?= $this->lang->line('student_clear') ?>
-                                </button>
-                                <div class="btn btn-primary image-preview-input">
-                                    <span class="fa fa-repeat"></span>
-                                    <span class="image-preview-input-title">
-                                        <?= $this->lang->line('student_file_browse') ?></span>
-                                    <input type="file" accept="image/png, image/jpeg, image/gif" name="photo" />
-                                </div>
-                            </span>
-                        </div>
-                    
-                    <span class=" ">
-                        <?php echo form_error('photo'); ?>
-                    </span>
+                    <div class="photo-upload-wrap">
+                        <label class="btn btn-primary btn-sm" style="cursor:pointer; margin-bottom:0;">
+                            <i class="fa fa-upload"></i> Choose Photo
+                            <input type="file" id="photo_input" name="photo" accept="image/png,image/jpeg,image/gif" style="display:none;">
+                        </label>
+                        <span id="photo_filename" style="margin-left:8px; color:#666; font-size:12px;"></span>
+                        <button type="button" id="photo_clear_btn" class="btn btn-xs btn-default" style="display:none; margin-left:6px;">
+                            <i class="fa fa-times"></i>
+                        </button>
+                        <br>
+                        <img id="photo_preview_img" class="photo-preview-img" src="" alt="Preview">
+                        <span id="photo_error" class="val-error" style="display:none;"></span>
+                        <div style="font-size:11px; color:#999; margin-top:4px;">JPG, PNG, GIF &mdash; max 1 MB</div>
+                    </div>
+                    <span><?php echo form_error('photo'); ?></span>
                 </div><!-------- End student Photo------>
                 <?php
                     if (form_error('mole1'))
@@ -691,10 +757,17 @@
                 </div><!-------- End Mole 2------>
 
             </div>
-        </div><!-------- End student details sec------>
+            </div><!-- /.sap-body -->
+        </div><!-- /.sap -->
 
-        <div class="student-address-sec">
-            <h2 class="h2-title">Student Address Details</h2>
+        <!-- Section 3: Address Details -->
+        <div class="sap">
+            <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-address">
+                <span class="sap-icon"><i class="fa fa-map-marker"></i></span>
+                <span class="sap-title">Student Address Details</span>
+                <i class="fa fa-chevron-up sap-chevron"></i>
+            </div>
+            <div id="sap-address" class="collapse sap-body sap-bg-3">
             <div class="row">
             <?php
                 if (form_error('address'))
@@ -902,9 +975,17 @@
 </div>
 
             </div>
-        </div> <!-------- End student address details sec------>
-        <div class="transport-details-sec" id="transport_div">
-            <h2 class="h2-title">Transport Details</h2>
+            </div><!-- /.sap-body -->
+        </div><!-- /.sap -->
+
+        <!-- Section 4: Transport Details -->
+        <div class="sap" id="transport_div">
+            <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-transport">
+                <span class="sap-icon"><i class="fa fa-bus"></i></span>
+                <span class="sap-title">Transport Details</span>
+                <i class="fa fa-chevron-up sap-chevron"></i>
+            </div>
+            <div id="sap-transport" class="collapse sap-body sap-bg-4">
             <div class="row">
             <?php 
                 if(form_error('transportID')) 
@@ -969,10 +1050,17 @@
 
 
             </div>
-       </div>
+            </div><!-- /.sap-body -->
+        </div><!-- /.sap -->
 
-       <div class="hostel-details-sec" id="hostel_div">
-            <h2 class="h2-title">Hostel Details</h2>
+        <!-- Section 5: Hostel Details -->
+        <div class="sap" id="hostel_div">
+            <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-hostel">
+                <span class="sap-icon"><i class="fa fa-home"></i></span>
+                <span class="sap-title">Hostel Details</span>
+                <i class="fa fa-chevron-up sap-chevron"></i>
+            </div>
+            <div id="sap-hostel" class="collapse sap-body sap-bg-5">
             <div class="row">
             <?php 
                 if(form_error('hostelID')) 
@@ -1020,15 +1108,18 @@
                 <span class="control-label <?= $this->input->post('studentType')=='2' ? '' : 'show'; ?> hostel" >
                     <?php echo form_error('categoryID'); ?>
                 </span>
-            </div><!----------End Hostel type ----------->
-        </div> 
-    </div> <!----------End Hostel details ----------->
+            </div>
+            </div><!-- /.sap-body -->
+        </div><!-- /.sap -->
 
-
-
-        <!-- Reference & Sibling Details -->
-    <div class="student-address-sec">
-        <h2 class="h2-title">Reference &amp; Sibling Details</h2>
+        <!-- Section 6: Reference & Sibling Details -->
+        <div class="sap">
+            <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-reference">
+                <span class="sap-icon"><i class="fa fa-users"></i></span>
+                <span class="sap-title">Reference &amp; Sibling Details</span>
+                <i class="fa fa-chevron-up sap-chevron"></i>
+            </div>
+            <div id="sap-reference" class="collapse sap-body sap-bg-6">
         <div class="row">
 
             <!-- Refered By -->
@@ -1097,13 +1188,15 @@
             </div>
 
         </div>
-    </div>
+            </div><!-- /.sap-body -->
+        </div><!-- /.sap -->
 
 <div class="student-btn-info form-group">
     <div class="add-student-btn">
         <input type="submit" class="ose-btn" value="<?= $this->lang->line("add_student") ?>">
     </div>
 </div>
+</div><!-- /.student-accordion -->
 </form>
 
 <?php if ($siteinfos->note == 1) { ?>
@@ -1111,376 +1204,255 @@
         <p><b>Note:</b> Create teacher, class, section before create a new student.</p>
     </div>
 <?php } ?>
-<!--</div>  col-sm-8 -->
 
-</div><!-- row -->
-</div><!-- Body -->
-<!--</div> /.box -->
+</div><!-- /.box-body -->
+</div><!-- /.box -->
 
 <script type="text/javascript">
-    $(".select2").select2();
-    $('#dob').datepicker({
-        startView: 2
+$(".select2").select2();
+
+// ── Datepickers (no future dates) ──
+$('#dob').datepicker({ startView: 2, format: 'dd-mm-yyyy', endDate: '0d', autoclose: true });
+$('#admission_date').datepicker({ format: 'dd-mm-yyyy', endDate: '0d', autoclose: true });
+
+// ── Mark required field groups with left-border indicator ──
+$(function() {
+    $('.student-form-info .col-md-4, .student-form-info .col-md-3').each(function() {
+        if ($(this).find('label .text-red, label .text-danger').length > 0)
+            $(this).addClass('has-required');
     });
-    $('#admission_date').datepicker({
-        startView: 2
-    });
+});
 
-    $('#username').keyup(function() {
-        $(this).val($(this).val().replace(/\s/g, ''));
-    });
-
-
-    $('#classesID').change(function(event) {
-        var classesID = $(this).val();
-        if (classesID === '0') {
-            $('#sectionID').val(0);
-        } else {
-            $.ajax({
-                async: false,
-                type: 'POST',
-                url: "<?= base_url('student/sectioncall') ?>",
-                data: "id=" + classesID,
-                dataType: "html",
-                success: function(data) {
-                    $('#sectionID').html(data);
-                }
-            });
-
-            $.ajax({
-                async: false,
-                type: 'POST',
-                url: "<?= base_url('student/optionalsubjectcall') ?>",
-                data: "id=" + classesID,
-                dataType: "html",
-                success: function(data2) {
-                    $('#optionalSubjectID').html(data2);
-                }
-            });
-        }
-    });
-
-    $('#sectionID').change(function(event) {
-        var sectionID = $(this).val();
-        var classesID = $('select[name="classesID"] option:selected').val();
-
-            $.ajax({
-                async: false,
-                type: 'POST',
-                url: "<?= base_url('student/get_auto_roll_no') ?>",
-                data: {"sectionID":sectionID,"classesID":classesID},
-                dataType: "json",
-                success: function(data) {
-                    $('#roll').val(data);
-                }
-            }); 
-    });
-
-    $(document).on('click', '#close-preview', function() {
-        $('.image-preview').popover('hide');
-        // Hover befor close the preview
-        $('.image-preview').hover(
-            function() {
-                $('.image-preview').popover('show');
-                $('.content').css('padding-bottom', '100px');
-            },
-            function() {
-                $('.image-preview').popover('hide');
-                $('.content').css('padding-bottom', '20px');
-            }
-        );
-    });
-
-    $(function() {
-        // Create the close button
-        var closebtn = $('<button/>', {
-            type: "button",
-            text: 'x',
-            id: 'close-preview',
-            style: 'font-size: initial;',
-        });
-        closebtn.attr("class", "close pull-right");
-        // Set the popover default content
-        $('.image-preview').popover({
-            trigger: 'manual',
-            html: true,
-            title: "<strong>Preview</strong>" + $(closebtn)[0].outerHTML,
-            content: "There's no image",
-            placement: 'bottom'
-        });
-        // Clear event
-        $('.image-preview-clear').click(function() {
-            $('.image-preview').attr("data-content", "").popover('hide');
-            $('.image-preview-filename').val("");
-            $('.image-preview-clear').hide();
-            $('.image-preview-input input:file').val("");
-            $(".image-preview-input-title").text("<?= $this->lang->line('student_file_browse') ?>");
-        });
-        // Create the preview image
-        $(".image-preview-input input:file").change(function() {
-            var img = $('<img/>', {
-                id: 'dynamic',
-                width: 250,
-                height: 200,
-                overflow: 'hidden'
-            });
-            var file = this.files[0];
-            var reader = new FileReader();
-            // Set preview image into the popover data-content
-            reader.onload = function(e) {
-                $(".image-preview-input-title").text("<?= $this->lang->line('student_file_browse') ?>");
-                $(".image-preview-clear").show();
-                $(".image-preview-filename").val(file.name);
-                img.attr('src', e.target.result);
-                $(".image-preview").attr("data-content", $(img)[0].outerHTML).popover("show");
-                $('.content').css('padding-bottom', '100px');
-            }
-            reader.readAsDataURL(file);
-        });
-    });
-
-
-    $("#transport_div").hide();
-    $("#hostel_div").hide();
-
-    $('#studentType').change(function() {
-        $(".clear-dropdown").val('');
-        $("#categoryID").val('0').change();;
-        $("#pickup_id").val('0').change();;
-        $("#hostelID").val('0').change();;
-        $("#transportID").val('0').change();;
-
-        var studentType = $('#studentType').val();
-        if(studentType == 1)
-        {   
-            // $('.transport').removeClass('hide');
-            // $('.hostel').addClass('hide');
-            $("#transport_div").show();
-            $("#hostel_div").hide();
-        }
-        else if(studentType==2){
-            // $('.transport').addClass('hide');
-            // $('.hostel').removeClass('hide');
-            $("#transport_div").hide();
-            $("#hostel_div").show();
-        }
-        else{
-            // $('.transport').addClass('hide');
-            // $('.hostel').addClass('hide');
-            $("#transport_div").hide();
-            $("#hostel_div").hide();
-        }
-    });
-
-    var transportID = $('#transportID').val();
-   
-    if(transportID == 0 || transportID == "" || transportID == null) {
-        $('#tbalance').val("0.00");
-    } else {
-        $.ajax({
-            type: 'POST',
-            url: "<?=base_url('tmember/transport_fare')?>",
-            data: "id=" + transportID,
-            dataType: "html",
-            success: function(data) {
-               $('#tbalance').val(data)
-            }
-        });
+// ── Auto-capitalize first letter in name fields ──
+$(document).on('input', '#first_name, #last_name, #father_name_id, #mother_name_id', function() {
+    var pos = this.selectionStart, v = $(this).val();
+    if (v.length > 0) {
+        $(this).val(v.charAt(0).toUpperCase() + v.slice(1));
+        try { this.setSelectionRange(pos, pos); } catch(e) {}
     }
-
-
-    $('#transportID').change(function() {
-        
-       var transportID = $(this).val();
-        if(transportID == 0 || transportID == "" || transportID == null) {
-            $('#tbalance').val("0.00");
-        } else {
-            $.ajax({
-                type: 'POST',
-                // url: "<?=base_url('tmember/transport_fare')?>",
-                url: "<?=base_url('Student/get_pickup_points')?>",
-                data: "id=" + transportID,
-                dataType: "html",
-                success: function(data) {
-                //    $('#tbalance').val(data)
-                   $('#pickup_id').html(data)
-                }
-            });
-        }
-    });
-
-    $('#pickup_id').change(function() {
-        
-        var pickup_id = $(this).val();
-         if(pickup_id == 0 || pickup_id == "" || pickup_id == null) {
-             $('#tbalance').val("0.00");
-         } else {
-             $.ajax({
-                 type: 'POST',
-                 // url: "<?=base_url('tmember/transport_fare')?>",
-                 url: "<?=base_url('Student/transport_fare')?>",
-                 data: "id=" + pickup_id,
-                 dataType: "html",
-                 success: function(data) {
-                    $('#tbalance').val(data) 
-                 }
-             });
-         }
-     });
-
-    $('#hostelID').change(function(event) {
-        $('#categoryID').val(0).select2()
-        var hostelID = $(this).val();
-        if(hostelID == 0 || hostelID == "" || hostelID == null) {
-            $('#categoryID').val(0).select2()
-        } else {
-            $.ajax({
-                type: 'POST',
-                url: "<?=base_url('hmember/categorycall')?>",
-                data: "id=" + hostelID,
-                dataType: "html",
-                success: function(data) {
-                $('#categoryID').html(data)
-                }
-            });
-        }
-});
-$(document).on("keyup",".id_card",function(){
-    var f_name= $("#first_name").val();
-   
-    let letter = f_name.charAt(0).toUpperCase(); 
-
-    var string= $("#last_name").val();
-    var l_name = string.charAt(0).toUpperCase() + string.slice(1);
-    var idcard = letter + " " + l_name;
-    // alert (idcart);
-    $("#name_id").val(idcard);
 });
 
-
-
-$(document).on("focusout","#roll",function(){
-    var classesID = $("#classesID").val();
-    var sectionID = $("#sectionID").val();
-    var rollNo = $("#roll").val();
-
-    $.ajax({
-            type: 'POST',
-            url: "<?=base_url('student/checkRoll')?>",
-            data: {"classesID":classesID,"sectionID":sectionID,"rollNo":rollNo},
-            dataType: "html",
-            success: function(data) {
-              $('.err').html(data);
-            }
-        });
-})
-
-
-
-$(document).ready(function(){
-    // Allow only numbers
-    $('#phone').on('keypress', function (e) {
-        var charCode = e.which ? e.which : e.keyCode;
-        if (charCode < 48 || charCode > 57) {
-            e.preventDefault();
-        }
-    });
-
-    // Limit to max 10 characters
-    $('#phone').on('input', function () {
-        var maxLength = 10;
-        if ($(this).val().length > maxLength) {
-            $(this).val($(this).val().slice(0, maxLength));
-        }
-    });
-
-    // Validate when the user leaves the input field
-    $('#phone').on('blur', function () {
-        var phoneNumber = $(this).val();
-        if (phoneNumber.length < 10) {
-            $('#error-message').text('Phone number must be exactly 10 digits.');
-        } else {
-            $('#error-message').text(''); // Clear error message if valid
-        }
-    });
+// ── Name fields: letters, spaces, hyphens, periods only ──
+$(document).on('keypress', '#first_name, #last_name, #father_name_id, #mother_name_id, #religion, #state', function(e) {
+    if (!/[a-zA-Z\s.\-']/.test(String.fromCharCode(e.which || e.keyCode))) e.preventDefault();
 });
 
-// Refered By "Others" toggle
+// ── Trim spaces on blur ──
+$(document).on('blur', '.student-form-info input[type="text"], .student-form-info textarea', function() {
+    $(this).val($.trim($(this).val()));
+});
+
+// ── Phone: digits only, max 10 digits ──
+$(document).on('keypress', '#phone, #alternative_phone1, #alternative_phone2', function(e) {
+    var c = e.which || e.keyCode;
+    if (c < 48 || c > 57) e.preventDefault();
+});
+$(document).on('input', '#phone, #alternative_phone1, #alternative_phone2', function() {
+    $(this).val($(this).val().replace(/\D/g, '').slice(0, 10));
+});
+
+// ── Photo upload: inline preview ──
+$('#photo_input').on('change', function() {
+    var file = this.files[0];
+    $('#photo_error').hide();
+    if (!file) return;
+    if (!file.type.match(/^image\/(jpeg|png|gif)$/)) {
+        $('#photo_error').text('Only JPG, PNG or GIF files allowed.').show();
+        $(this).val(''); return;
+    }
+    if (file.size > 1048576) {
+        $('#photo_error').text('File size must not exceed 1 MB.').show();
+        $(this).val(''); return;
+    }
+    $('#photo_filename').text(file.name);
+    $('#photo_clear_btn').show();
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        $('#photo_preview_img').attr('src', e.target.result).show();
+    };
+    reader.readAsDataURL(file);
+});
+$('#photo_clear_btn').on('click', function() {
+    $('#photo_input').val('');
+    $('#photo_filename').text('');
+    $('#photo_preview_img').hide().attr('src', '');
+    $(this).hide();
+    $('#photo_error').hide();
+});
+
+// ── ID card name auto-fill ──
+$(document).on("keyup", ".id_card", function() {
+    var f = $("#first_name").val(), l = $("#last_name").val();
+    $("#name_id").val(f.charAt(0).toUpperCase() + " " + l.charAt(0).toUpperCase() + l.slice(1));
+});
+
+$('#username').keyup(function() { $(this).val($(this).val().replace(/\s/g, '')); });
+
+// ── Class change: load sections + optional subjects ──
+$('#classesID').change(function() {
+    var id = $(this).val();
+    if (id === '0') { $('#sectionID').val(0); return; }
+    $.ajax({ async: false, type: 'POST', url: "<?= base_url('student/sectioncall') ?>", data: "id=" + id, dataType: "html",
+        success: function(d) { $('#sectionID').html(d); } });
+    $.ajax({ async: false, type: 'POST', url: "<?= base_url('student/optionalsubjectcall') ?>", data: "id=" + id, dataType: "html",
+        success: function(d) { $('#optionalSubjectID').html(d); } });
+});
+
+// ── Section change: auto roll ──
+$('#sectionID').change(function() {
+    var sID = $(this).val(), cID = $('select[name="classesID"] option:selected').val();
+    $.ajax({ async: false, type: 'POST', url: "<?= base_url('student/get_auto_roll_no') ?>",
+        data: {sectionID: sID, classesID: cID}, dataType: "json",
+        success: function(d) { $('#roll').val(d); } });
+});
+
+// ── Roll duplicate check ──
+$(document).on("focusout", "#roll", function() {
+    $.ajax({ type: 'POST', url: "<?= base_url('student/checkRoll') ?>",
+        data: {classesID: $("#classesID").val(), sectionID: $("#sectionID").val(), rollNo: $(this).val()},
+        dataType: "html", success: function(d) { $('.err').html(d); } });
+});
+
+// ── Student type show/hide ──
+$("#transport_div").hide(); $("#hostel_div").hide();
+$('#studentType').change(function() {
+    $(".clear-dropdown").val('');
+    $("#categoryID,#pickup_id,#hostelID,#transportID").val('0').change();
+    var t = $(this).val();
+    $("#transport_div").toggle(t == 1);
+    $("#hostel_div").toggle(t == 2);
+});
+
+// ── Transport / Pickup / Hostel ──
+(function() {
+    var tid = $('#transportID').val();
+    if (!tid || tid == 0) { $('#tbalance').val("0.00"); }
+    else { $.ajax({ type:'POST', url:"<?= base_url('tmember/transport_fare') ?>", data:"id="+tid, dataType:"html", success:function(d){$('#tbalance').val(d);} }); }
+})();
+$('#transportID').change(function() {
+    var id = $(this).val();
+    if (!id || id == 0) { $('#tbalance').val("0.00"); return; }
+    $.ajax({ type:'POST', url:"<?= base_url('Student/get_pickup_points') ?>", data:"id="+id, dataType:"html", success:function(d){$('#pickup_id').html(d);} });
+});
+$('#pickup_id').change(function() {
+    var id = $(this).val();
+    if (!id || id == 0) { $('#tbalance').val("0.00"); return; }
+    $.ajax({ type:'POST', url:"<?= base_url('Student/transport_fare') ?>", data:"id="+id, dataType:"html", success:function(d){$('#tbalance').val(d);} });
+});
+$('#hostelID').change(function() {
+    $('#categoryID').val(0).select2();
+    var id = $(this).val();
+    if (!id || id == 0) return;
+    $.ajax({ type:'POST', url:"<?= base_url('hmember/categorycall') ?>", data:"id="+id, dataType:"html", success:function(d){$('#categoryID').html(d);} });
+});
+
+// ── Refered By Others toggle ──
 $('#refered_by').on('change', function() {
-    if ($(this).val() === 'others') {
-        $('#refered_by_other_div').show();
-    } else {
-        $('#refered_by_other_div').hide().find('input').val('');
+    if ($(this).val() === 'others') $('#refered_by_other_div').show();
+    else $('#refered_by_other_div').hide().find('input').val('');
+});
+
+// ── Siblings ──
+var siblingRowCount = 0;
+function initSiblingRow(row) { row.find('.sibling-class-select').select2({width:'100%'}); }
+$('#add_sibling_btn').on('click', function() {
+    var t = $('#sibling_row_template').clone().attr('id','sibling_row_'+siblingRowCount).removeAttr('style');
+    $('#sibling_tbody').append(t); initSiblingRow(t); siblingRowCount++;
+});
+$(document).on('click', '.remove-sibling-btn', function() { $(this).closest('tr').remove(); });
+$(document).on('change', '.sibling-class-select', function() {
+    var cid = $(this).val(), row = $(this).closest('tr');
+    var ss = row.find('.sibling-section-select'), stu = row.find('.sibling-student-select');
+    if ($.fn.select2 && ss.hasClass('select2-hidden-accessible')) ss.select2('destroy');
+    if ($.fn.select2 && stu.hasClass('select2-hidden-accessible')) stu.select2('destroy');
+    ss.html('<option value="">--Select Section--</option>');
+    stu.html('<option value="">--Select Student--</option>');
+    if (cid > 0) {
+        $.ajax({ type:'POST', url:"<?= base_url('student/sectioncall') ?>", data:"id="+cid, dataType:"html", success:function(d){
+            ss.html(d);
+            ss.off('change.sibLoad').on('change.sibLoad', function() {
+                var sid = $(this).val();
+                if ($.fn.select2 && stu.hasClass('select2-hidden-accessible')) stu.select2('destroy');
+                stu.html('<option value="">--Select Student--</option>');
+                if (cid > 0 && sid > 0) {
+                    $.ajax({ type:'GET', url:"<?= base_url('student/get_students_by_class_section') ?>",
+                        data:{classesID:cid,sectionID:sid}, dataType:"json", success:function(studs){
+                            $.each(studs,function(i,s){ stu.append('<option value="'+s.studentID+'">'+s.name+(s.roll?' ('+s.roll+')':'')+'</option>'); });
+                            stu.select2({width:'100%',placeholder:'--Select Student--'});
+                        }});
+                }
+            });
+            ss.select2({width:'100%'});
+        }});
     }
 });
 
-// Siblings section
-var siblingRowCount = 0;
-
-function initSiblingRow(row) {
-    row.find('.sibling-class-select').select2({width: '100%'});
+// ── Form Validation ──
+function svErr($el, msg) {
+    var $p = $el.closest('.col-md-4,.col-md-3,.form-group');
+    $p.addClass('has-error');
+    $p.find('.val-error').remove();
+    $el.after('<span class="val-error"><i class="fa fa-exclamation-circle"></i> '+msg+'</span>');
+}
+function svClear($form) {
+    $form.find('.col-md-4,.col-md-3,.form-group').removeClass('has-error');
+    $form.find('.val-error').remove();
+    $('#error-message').text('');
 }
 
-$('#add_sibling_btn').on('click', function() {
-    var template = $('#sibling_row_template').clone();
-    template.attr('id', 'sibling_row_' + siblingRowCount);
-    template.removeAttr('style');
-    $('#sibling_tbody').append(template);
-    initSiblingRow(template);
-    siblingRowCount++;
-});
+$('.student-form-info').on('submit', function(e) {
+    svClear($(this));
+    var ok = true, $f = $(this);
+    $f.find('input[type="text"]').each(function() { $(this).val($.trim($(this).val())); });
 
-$(document).on('click', '.remove-sibling-btn', function() {
-    $(this).closest('tr').remove();
-});
+    // Required text fields
+    [['#registerNO','Admission No is required'],
+     ['#first_name','First Name is required'],
+     ['#last_name','Last Name is required'],
+     ['#name_id','ID Card Name is required'],
+     ['#father_name_id','Father Name is required'],
+     ['#phone','Phone number is required'],
+     ['#roll','Roll No is required']
+    ].forEach(function(r) {
+        var $el = $f.find(r[0]);
+        if ($el.length && !$.trim($el.val())) { svErr($el, r[1]); ok = false; }
+    });
 
-$(document).on('change', '.sibling-class-select', function() {
-    var classesID = $(this).val();
-    var row = $(this).closest('tr');
-    var sectionSelect = row.find('.sibling-section-select');
-    var studentSelect = row.find('.sibling-student-select');
-    if ($.fn.select2 && sectionSelect.hasClass('select2-hidden-accessible')) {
-        sectionSelect.select2('destroy');
+    // Required selects
+    [['#classesID','Please select a Class'],['#sectionID','Please select a Section']].forEach(function(r) {
+        var $el = $f.find(r[0]), v = $el.val();
+        if ($el.length && (!v || v == '0')) { svErr($el, r[1]); ok = false; }
+    });
+
+    // Name fields: letters only
+    ['#first_name','#last_name','#father_name_id','#mother_name_id'].forEach(function(id) {
+        var $el = $f.find(id), v = $.trim($el.val());
+        if ($el.length && v && !/^[a-zA-Z\s.\-']+$/.test(v)) {
+            svErr($el, 'Only letters, spaces and hyphens are allowed'); ok = false;
+        }
+    });
+
+    // Phone
+    var ph = $.trim($f.find('#phone').val());
+    if (ph && !/^\d{10}$/.test(ph)) { svErr($f.find('#phone'), 'Phone must be exactly 10 digits'); ok = false; }
+
+    // Email
+    var em = $.trim($f.find('#email').val());
+    if (em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { svErr($f.find('#email'), 'Enter a valid email address'); ok = false; }
+
+    // DOB: no future date
+    var dob = $.trim($f.find('#dob').val());
+    if (dob) {
+        var p = dob.split('-');
+        if (p.length === 3 && new Date(+p[2], +p[1]-1, +p[0]) > new Date()) {
+            svErr($f.find('#dob'), 'Date of birth cannot be a future date'); ok = false;
+        }
     }
-    if ($.fn.select2 && studentSelect.hasClass('select2-hidden-accessible')) {
-        studentSelect.select2('destroy');
-    }
-    sectionSelect.html('<option value="">--Select Section--</option>');
-    studentSelect.html('<option value="">--Select Student--</option>');
-    if (classesID > 0) {
-        $.ajax({
-            type: 'POST',
-            url: "<?= base_url('student/sectioncall') ?>",
-            data: "id=" + classesID,
-            dataType: "html",
-            success: function(data) {
-                sectionSelect.html(data);
-                sectionSelect.off('change.sibLoad').on('change.sibLoad', function() {
-                    var sectionID = $(this).val();
-                    if ($.fn.select2 && studentSelect.hasClass('select2-hidden-accessible')) {
-                        studentSelect.select2('destroy');
-                    }
-                    studentSelect.html('<option value="">--Select Student--</option>');
-                    if (classesID > 0 && sectionID > 0) {
-                        $.ajax({
-                            type: 'GET',
-                            url: "<?= base_url('student/get_students_by_class_section') ?>",
-                            data: {classesID: classesID, sectionID: sectionID},
-                            dataType: "json",
-                            success: function(studs) {
-                                $.each(studs, function(i, s) {
-                                    var label = s.name + (s.roll ? ' (' + s.roll + ')' : '');
-                                    studentSelect.append('<option value="' + s.studentID + '">' + label + '</option>');
-                                });
-                                studentSelect.select2({width: '100%', placeholder: '--Select Student--'});
-                            }
-                        });
-                    }
-                });
-                sectionSelect.select2({width: '100%'});
-            }
-        });
+
+    if (!ok) {
+        e.preventDefault();
+        var $first = $f.find('.has-error').first();
+        if ($first.length) $('html,body').animate({scrollTop: $first.offset().top - 120}, 400);
     }
 });
-
 </script>

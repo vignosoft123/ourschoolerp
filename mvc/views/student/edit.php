@@ -1,5 +1,42 @@
 <style>
-    .err{color: red; font-weight:bold;}
+    .err { color: red; font-weight: bold; }
+    /* Required field indicator: left green accent */
+    .student-form-info .has-required .form-control {
+        border-left: 3px solid #27ae60 !important;
+        background-color: #fff !important;
+    }
+    .student-form-info .has-required .select2-container .select2-choice,
+    .student-form-info .has-required .select2-container .select2-choices {
+        border-left: 3px solid #27ae60 !important;
+    }
+    .student-form-info .has-required > label { font-weight: 600; color: #2c3e50; }
+    .bg-lpurple { background-color: #fff !important; }
+    .val-error { color: #c0392b; font-size: 12px; display: block; margin-top: 3px; }
+    .val-error i { margin-right: 3px; }
+    .photo-upload-wrap .photo-preview-img {
+        max-width: 100px; max-height: 100px;
+        border: 2px solid #ddd; border-radius: 6px;
+        padding: 2px; margin-top: 6px; display: none;
+    }
+    /* ── Accordion Panels ── */
+    .student-accordion { margin-bottom: 10px; }
+    .sap { border: 1px solid #dde0e6; border-radius: 10px; margin-bottom: 14px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .sap-header { background: linear-gradient(135deg, #0cc035 0%, #0a9d2b 100%); color: #fff; padding: 13px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; user-select: none; transition: background 0.2s; }
+    .sap-header:hover { background: linear-gradient(135deg, #0aa82e 0%, #088a25 100%); }
+    .sap-header .sap-icon { font-size: 17px; width: 22px; text-align: center; }
+    .sap-header .sap-title { flex: 1; font-size: 15px; font-weight: 600; letter-spacing: 0.3px; }
+    .sap-chevron { transition: transform 0.3s ease; font-size: 13px; }
+    .sap-header.collapsed .sap-chevron { transform: rotate(180deg); }
+    .sap-body { padding: 22px 20px 10px; }
+    .sap-body .col-md-4, .sap-body .col-md-3, .sap-body .col-md-9 { margin-bottom: 14px; }
+    .req-legend { font-size: 11px; color: #888; margin-bottom: 12px; }
+    .req-legend .text-red { color: #e74c3c; font-weight: bold; }
+    .sap-bg-1 { background: #f0f8ff !important; }
+    .sap-bg-2 { background: #f0fff4 !important; }
+    .sap-bg-3 { background: #fffbf0 !important; }
+    .sap-bg-4 { background: #fff8f0 !important; }
+    .sap-bg-5 { background: #f8f0ff !important; }
+    .sap-bg-6 { background: #fff0f8 !important; }
 </style>
 <div class="box">
     <div class="box-header">
@@ -15,10 +52,16 @@
     <!-- form start -->
     <div class="box-body">
             <form class="form-horizontal student-form-info" role="form" method="post" enctype="multipart/form-data">
-                <div class="row">
-                     <!-- <div class="col-sm-10"> -->
-                    <div class="student-firm">
-                        <h2 class="h2-title">Add Student Firm</h2>
+                <div class="student-accordion">
+                <!-- Section 1: Basic Information -->
+                <div class="sap">
+                    <div class="sap-header" data-toggle="collapse" data-target="#sap-basic">
+                        <span class="sap-icon"><i class="fa fa-id-card-o"></i></span>
+                        <span class="sap-title">Basic Information</span>
+                        <i class="fa fa-chevron-up sap-chevron"></i>
+                    </div>
+                    <div id="sap-basic" class="collapse in sap-body sap-bg-1">
+                    <p class="req-legend"><span class="text-red">*</span> Required fields</p>
                         <div class="row">
                         <?php 
                             if(form_error('registerNO')) 
@@ -300,9 +343,17 @@
 
 
                         </div>
-                    </div><!-------- End Add student firm------>
-                    <div class="student-details-sec">
-                        <h2 class="h2-title">Student Details</h2>
+                    </div><!-- /.sap-body -->
+                </div><!-- /.sap -->
+
+                <!-- Section 2: Student Details -->
+                <div class="sap">
+                    <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-details">
+                        <span class="sap-icon"><i class="fa fa-user-circle-o"></i></span>
+                        <span class="sap-title">Student Details</span>
+                        <i class="fa fa-chevron-up sap-chevron"></i>
+                    </div>
+                    <div id="sap-details" class="collapse sap-body sap-bg-2">
                         <div class="row">
 
                         <?php 
@@ -664,28 +715,27 @@
                                 else
                                     echo "<div class='col-md-4' >";
                             ?>
-                                <label for="photo" class="control-label">
+                                <label for="photo_input" class="control-label">
                                     <?=$this->lang->line("student_photo")?>
                                 </label>
-                               
-                                    <div class="input-group image-preview">
-                                        <input type="text" class="form-control image-preview-filename" disabled="disabled">
-                                        <span class="input-group-btn">
-                                            <button type="button" class="btn btn-primary image-preview-clear" style="display:none;">
-                                                <span class="fa fa-remove"></span>
-                                                <?=$this->lang->line('student_clear')?>
-                                            </button>
-                                            <div class="btn btn-primary image-preview-input">
-                                                <span class="fa fa-repeat"></span>
-                                                <span class="image-preview-input-title">
-                                                <?=$this->lang->line('student_file_browse')?></span>
-                                                <input type="file" accept="image/png, image/jpeg, image/gif" name="photo"/>
-                                            </div>
-                                        </span>
-                                    </div>
-                                <span class="">
-                                    <?php echo form_error('photo'); ?>
-                                </span>
+                                <div class="photo-upload-wrap">
+                                    <?php if (!empty($student->photo) && $student->photo != 'default.png' && $student->photo != 'defualt.png'): ?>
+                                    <img src="<?= base_url('uploads/images/'.$student->photo) ?>" alt="Current Photo" style="max-width:80px;max-height:80px;border:2px solid #ddd;border-radius:4px;padding:2px;margin-bottom:6px;display:block;">
+                                    <?php endif; ?>
+                                    <label class="btn btn-primary btn-sm" style="cursor:pointer; margin-bottom:0;">
+                                        <i class="fa fa-upload"></i> Change Photo
+                                        <input type="file" id="photo_input" name="photo" accept="image/png,image/jpeg,image/gif" style="display:none;">
+                                    </label>
+                                    <span id="photo_filename" style="margin-left:8px; color:#666; font-size:12px;"></span>
+                                    <button type="button" id="photo_clear_btn" class="btn btn-xs btn-default" style="display:none; margin-left:6px;">
+                                        <i class="fa fa-times"></i>
+                                    </button>
+                                    <br>
+                                    <img id="photo_preview_img" class="photo-preview-img" src="" alt="New Preview">
+                                    <span id="photo_error" class="val-error" style="display:none;"></span>
+                                    <div style="font-size:11px;color:#999;margin-top:4px;">JPG, PNG, GIF &mdash; max 1 MB</div>
+                                </div>
+                                <span><?php echo form_error('photo'); ?></span>
                             </div>
                            
 
@@ -725,9 +775,17 @@
 
 
                         </div>
-                    </div><!-------- End student details sec------>
-                    <div class="student-address-sec">
-                        <h2 class="h2-title">Student Address Details</h2>
+                    </div><!-- /.sap-body -->
+                </div><!-- /.sap -->
+
+                <!-- Section 3: Address Details -->
+                <div class="sap">
+                    <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-address">
+                        <span class="sap-icon"><i class="fa fa-map-marker"></i></span>
+                        <span class="sap-title">Student Address Details</span>
+                        <i class="fa fa-chevron-up sap-chevron"></i>
+                    </div>
+                    <div id="sap-address" class="collapse sap-body sap-bg-3">
                         <div class="row">
                             <?php 
                                     if(form_error('address')) 
@@ -884,10 +942,17 @@
                                     </div>
                                 </div>
 
-                    </div><!-- End student address details sec -->
+                    </div><!-- /.sap-body -->
+                </div><!-- /.sap -->
 
-                    <div class="transport-details-sec" id="transport_div" style="display:none;">
-                        <h2 class="h2-title">Transport Details</h2>
+                <!-- Section 4: Transport Details -->
+                <div class="sap" id="transport_div" style="display:none;">
+                    <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-transport">
+                        <span class="sap-icon"><i class="fa fa-bus"></i></span>
+                        <span class="sap-title">Transport Details</span>
+                        <i class="fa fa-chevron-up sap-chevron"></i>
+                    </div>
+                    <div id="sap-transport" class="collapse sap-body sap-bg-4">
                         <div class="row">
                             <?php
                                 if (form_error('transportID'))
@@ -942,10 +1007,17 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </div><!-- /.sap-body -->
+                </div><!-- /.sap -->
 
-                    <div class="hostel-details-sec" id="hostel_div" style="display:none;">
-                        <h2 class="h2-title">Hostel Details</h2>
+                <!-- Section 5: Hostel Details -->
+                <div class="sap" id="hostel_div" style="display:none;">
+                    <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-hostel">
+                        <span class="sap-icon"><i class="fa fa-home"></i></span>
+                        <span class="sap-title">Hostel Details</span>
+                        <i class="fa fa-chevron-up sap-chevron"></i>
+                    </div>
+                    <div id="sap-hostel" class="collapse sap-body sap-bg-5">
                         <div class="row">
                             <?php
                                 if (form_error('hostelID'))
@@ -993,10 +1065,17 @@
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </div><!-- /.sap-body -->
+                </div><!-- /.sap -->
 
-                                <div class="student-address-sec">
-                    <h2 class="h2-title">Reference &amp; Sibling Details</h2>
+                <!-- Section 6: Reference & Sibling Details -->
+                <div class="sap">
+                    <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-reference">
+                        <span class="sap-icon"><i class="fa fa-users"></i></span>
+                        <span class="sap-title">Reference &amp; Sibling Details</span>
+                        <i class="fa fa-chevron-up sap-chevron"></i>
+                    </div>
+                    <div id="sap-reference" class="collapse sap-body sap-bg-6">
                     <div class="row">
 
                         <!-- Refered By -->
@@ -1101,7 +1180,8 @@
                         </div>
 
                     </div>
-                </div>
+                    </div><!-- /.sap-body -->
+                </div><!-- /.sap -->
 
                     <div class="student-btn-info form-group">
                         <div class="add-student-btn">
@@ -1109,7 +1189,7 @@
                         </div>
                     </div>
                         <!-- </div>  -->
-                        </div> <!-- row -->
+                        </div><!-- /.student-accordion wrapper -->
                     
                 </form>
 
@@ -1118,9 +1198,65 @@
 </div><!-- /.box -->
 
 <script type="text/javascript">
-$( ".select2" ).select2();
-$('#dob').datepicker({ startView: 2 });
-$('#admission_date').datepicker({ startView: 2 });
+$(".select2").select2();
+
+// ── Datepickers (no future dates) ──
+$('#dob').datepicker({ startView: 2, format: 'dd-mm-yyyy', endDate: '0d', autoclose: true });
+$('#admission_date').datepicker({ format: 'dd-mm-yyyy', endDate: '0d', autoclose: true });
+
+// ── Mark required field groups ──
+$(function() {
+    $('.student-form-info .col-md-4, .student-form-info .col-md-3').each(function() {
+        if ($(this).find('label .text-red, label .text-danger').length > 0)
+            $(this).addClass('has-required');
+    });
+});
+
+// ── Auto-capitalize first letter in name fields ──
+$(document).on('input', '#first_name, #last_name, #father_name, #mother_name', function() {
+    var pos = this.selectionStart, v = $(this).val();
+    if (v.length > 0) {
+        $(this).val(v.charAt(0).toUpperCase() + v.slice(1));
+        try { this.setSelectionRange(pos, pos); } catch(e) {}
+    }
+});
+
+// ── Name fields: letters only ──
+$(document).on('keypress', '#first_name, #last_name, #father_name, #mother_name, #religion, #state', function(e) {
+    if (!/[a-zA-Z\s.\-']/.test(String.fromCharCode(e.which || e.keyCode))) e.preventDefault();
+});
+
+// ── Trim spaces on blur ──
+$(document).on('blur', '.student-form-info input[type="text"], .student-form-info textarea', function() {
+    $(this).val($.trim($(this).val()));
+});
+
+// ── Phone: digits only, max 10 ──
+$(document).on('keypress', '#phone, #alternative_phone1, #alternative_phone2', function(e) {
+    var c = e.which || e.keyCode; if (c < 48 || c > 57) e.preventDefault();
+});
+$(document).on('input', '#phone, #alternative_phone1, #alternative_phone2', function() {
+    $(this).val($(this).val().replace(/\D/g, '').slice(0, 10));
+});
+
+// ── Photo upload: inline preview ──
+$('#photo_input').on('change', function() {
+    var file = this.files[0]; $('#photo_error').hide();
+    if (!file) return;
+    if (!file.type.match(/^image\/(jpeg|png|gif)$/)) { $('#photo_error').text('Only JPG, PNG or GIF files allowed.').show(); $(this).val(''); return; }
+    if (file.size > 1048576) { $('#photo_error').text('File size must not exceed 1 MB.').show(); $(this).val(''); return; }
+    $('#photo_filename').text(file.name); $('#photo_clear_btn').show();
+    var reader = new FileReader();
+    reader.onload = function(e) { $('#photo_preview_img').attr('src', e.target.result).show(); };
+    reader.readAsDataURL(file);
+});
+$('#photo_clear_btn').on('click', function() {
+    $('#photo_input').val(''); $('#photo_filename').text('');
+    $('#photo_preview_img').hide().attr('src', ''); $(this).hide(); $('#photo_error').hide();
+});
+
+// (replaced original block — new lines start below)
+var _dummy_placeholder_edit = true;
 
 $('#username').keyup(function() {
     $(this).val($(this).val().replace(/\s/g, ''));
@@ -1519,18 +1655,62 @@ $(document).on('change', '.sibling-class-select', function() {
     }
 });
 
-// $(document).ready(function () {
-//     // Initialize Select2
-//     $("#transportID").select2();
 
-//     // Trigger Select2 dropdown open on page load
-//     setTimeout(function () {
-//         $("#transportID").select2("open"); // Opens dropdown
-//     }, 500);
+// ── Form Validation ──
+function svErr($el, msg) {
+    var $p = $el.closest('.col-md-4,.col-md-3,.form-group');
+    $p.addClass('has-error');
+    $p.find('.val-error').remove();
+    $el.after('<span class="val-error"><i class="fa fa-exclamation-circle"></i> '+msg+'</span>');
+}
+function svClear($form) {
+    $form.find('.col-md-4,.col-md-3,.form-group').removeClass('has-error');
+    $form.find('.val-error').remove();
+    $('#error-message').text('');
+}
 
-//     // Ensure the change event fires for the already selected value
-//     $("#transportID").trigger("change");
-// });
+$('.student-form-info').on('submit', function(e) {
+    svClear($(this));
+    var ok = true, $f = $(this);
+    $f.find('input[type="text"]').each(function() { $(this).val($.trim($(this).val())); });
 
+    [['#registerNO','Admission No is required'],
+     ['#first_name','First Name is required'],
+     ['#last_name','Last Name is required'],
+     ['#name_id','ID Card Name is required'],
+     ['#father_name','Father Name is required'],
+     ['#roll','Roll No is required']
+    ].forEach(function(r) {
+        var $el=$f.find(r[0]);
+        if ($el.length&&!$.trim($el.val())) { svErr($el,r[1]); ok=false; }
+    });
 
+    [['#classesID','Please select a Class'],['#sectionID','Please select a Section']].forEach(function(r) {
+        var $el=$f.find(r[0]), v=$el.val();
+        if ($el.length&&(!v||v=='0')) { svErr($el,r[1]); ok=false; }
+    });
+
+    ['#first_name','#last_name','#father_name','#mother_name'].forEach(function(id) {
+        var $el=$f.find(id), v=$.trim($el.val());
+        if ($el.length&&v&&!/^[a-zA-Z\s.\-']+$/.test(v)) { svErr($el,'Only letters, spaces and hyphens are allowed'); ok=false; }
+    });
+
+    var ph=$.trim($f.find('#phone').val());
+    if (ph&&!/^\d{10}$/.test(ph)) { svErr($f.find('#phone'),'Phone must be exactly 10 digits'); ok=false; }
+
+    var em=$.trim($f.find('#email').val());
+    if (em&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { svErr($f.find('#email'),'Enter a valid email address'); ok=false; }
+
+    var dob=$.trim($f.find('#dob').val());
+    if (dob) {
+        var p=dob.split('-');
+        if (p.length===3&&new Date(+p[2],+p[1]-1,+p[0])>new Date()) { svErr($f.find('#dob'),'Date of birth cannot be a future date'); ok=false; }
+    }
+
+    if (!ok) {
+        e.preventDefault();
+        var $first=$f.find('.has-error').first();
+        if ($first.length) $('html,body').animate({scrollTop:$first.offset().top-120},400);
+    }
+});
 </script>

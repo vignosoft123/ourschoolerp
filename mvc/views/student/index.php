@@ -19,30 +19,53 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     .modal-body .form-label {
         color: #333 !important;
     }
-    .ose-btn1 {
-        background-color: #d9534f !important;
-        font-size: 16px;
-        border: none;
-        border-radius: 10px;
-        padding: 8px 12px;
-        color: #fff;
-        cursor: pointer;
+    /* ── Top action toolbar ── */
+    .student-top-bar {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding: 14px 18px;
+        background: #f8fafc;
+        border-radius: 12px;
+        margin-bottom: 20px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06);
     }
-
-    .ose-btn2 {
-        background-color: #4fd96fff !important;
-        font-size: 16px;
-        border: none;
-        border-radius: 10px;
-        padding: 8px 12px;
-        color: #fff;
-        cursor: pointer;
-        display: flex;
+    .sbar-btn {
+        display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 7px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        white-space: nowrap;
+        text-decoration: none !important;
+        transition: all 0.2s ease;
+        line-height: 1.3;
+        letter-spacing: 0.2px;
+    }
+    .sbar-btn:hover {
+        text-decoration: none !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 14px rgba(0,0,0,0.18);
+        color: #fff !important;
+    }
+    .sbar-btn i { font-size: 14px; }
+    .sbar-btn-add  { background: linear-gradient(135deg, #0cc035 0%, #0a9d2b 100%); color: #fff !important; }
+    .sbar-btn-quick{ background: linear-gradient(135deg, #1a73e8 0%, #1558b0 100%); color: #fff !important; }
+    .sbar-btn-excel{ background: linear-gradient(135deg, #217346 0%, #155a2e 100%); color: #fff !important; }
+    .sbar-btn-delete{ background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%); color: #fff !important; }
+    .sbar-btn-delete:disabled { background: #ccc !important; color: #888 !important; cursor: not-allowed; transform: none !important; box-shadow: none !important; opacity: 0.6; }
+    .sbar-class-wrap { margin-left: auto; display: flex; align-items: center; }
+    .sbar-class-wrap select { width: 220px !important; border-radius: 8px !important; font-size: 13px; }
+
+    /* Keep old class names working as fallback */
+    .ose-btn1, .ose-btn2 {
+        white-space: nowrap;
     }
 
     /* Enhanced Table Styling */
@@ -292,51 +315,49 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
             <div class="col-sm-12">
 
                 <?php if ((($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) || ($this->session->userdata('usertypeID') != 3)) { ?>
-                    <div class="page-header"> 
+                    <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
+                        <?php if (permissionChecker('student_add')) { ?>
+                        <div class="student-top-bar">
 
-                        
-                        <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
-                            <?php if (permissionChecker('student_add')) { ?>
-                                <a class="ose-btn2 create-btn" href="<?php echo base_url('student/add') ?>" style="margin-left: 15%;">
-                                    <i class="fa fa-plus"></i>
-                                    <?= $this->lang->line('add_title') ?>
-                                </a>
-                                <button type="button" class="ose-btn create-btn btn btn-primary" data-toggle="modal" data-target="#quickStudentModal" style="margin-left:8px;">
-                                    <i class="fa fa-plus"></i> Quick Student Creation
-                                </button>
-                                
-                                <a href="<?= base_url('student/export_comprehensive_excel/' . (isset($set) ? $set : '0')) ?>" class="ose-btn2 create-btn" style="margin-left:8px; background-color:#28a745 !important;">
-                                    <i class="fa fa-file-excel-o"></i> Download Comprehensive Excel
-                                </a>
+                            <a class="sbar-btn sbar-btn-add" href="<?php echo base_url('student/add') ?>">
+                                <i class="fa fa-plus"></i> Add Student
+                            </a>
 
-                                <?php if (permissionChecker('student_delete') && customCompute($students) > 0) { ?>
-                                    <form id="multiDeleteForm" method="post" action="<?= base_url('student/multi_delete') ?>" style="display:inline-block; margin-left:8px;">
-                                        <input type="hidden" name="ids" id="multi_delete_ids" value="" />
-                                        <input type="hidden" name="url" value="<?= isset($set) ? $set : '' ?>" />
-                                        <button type="button" id="bulkDeleteBtn" class="ose-btn1 create-btn btn btn-danger" onclick="confirmMultiDelete()" style="background-color:#d9534f !important;border-color:#d43f3a !important;color:#ffffff !important;">
-                                            <i class="fa fa-trash"></i> <?= 'Delete Selected' ?>
-                                        </button>
-                                    </form>
-                                <?php } ?>
+                            <button type="button" class="sbar-btn sbar-btn-quick" data-toggle="modal" data-target="#quickStudentModal">
+                                <i class="fa fa-bolt"></i> Quick Add
+                            </button>
 
-                                <span class="pull-right" style="display:inline-block; margin-left:auto;">
-                                <?php if ($this->session->userdata('usertypeID') != 3) { ?>
-                                    <?php
-                                    $array = array("0" => $this->lang->line("student_select_class"));
-                                    if (customCompute($classes)) {
-                                        foreach ($classes as $classa) {
-                                            $array[$classa->classesID] = $classa->classes;
-                                        }
+                            <a href="<?= base_url('student/export_comprehensive_excel/' . (isset($set) ? $set : '0')) ?>" class="sbar-btn sbar-btn-excel">
+                                <i class="fa fa-file-excel-o"></i> Export Excel
+                            </a>
+
+                            <?php if (permissionChecker('student_delete') && customCompute($students) > 0) { ?>
+                                <form id="multiDeleteForm" method="post" action="<?= base_url('student/multi_delete') ?>" style="display:contents;">
+                                    <input type="hidden" name="ids" id="multi_delete_ids" value="" />
+                                    <input type="hidden" name="url" value="<?= isset($set) ? $set : '' ?>" />
+                                    <button type="button" id="bulkDeleteBtn" class="sbar-btn sbar-btn-delete" onclick="confirmMultiDelete()" disabled>
+                                        <i class="fa fa-trash"></i> Delete Selected
+                                    </button>
+                                </form>
+                            <?php } ?>
+
+                            <?php if ($this->session->userdata('usertypeID') != 3) { ?>
+                            <div class="sbar-class-wrap">
+                                <?php
+                                $array = array("0" => $this->lang->line("student_select_class"));
+                                if (customCompute($classes)) {
+                                    foreach ($classes as $classa) {
+                                        $array[$classa->classesID] = $classa->classes;
                                     }
-                                    echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2' style='display:inline-block; width:260px;'");
-                                    ?>
-                                <?php } ?>
-                                </span>
+                                }
+                                echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2'");
+                                ?>
+                            </div>
+                            <?php } ?>
 
-                        </div>  
-                            <?php } ?> 
-
+                        </div><!-- /.student-top-bar -->
                         <?php } ?>
+                    <?php } ?>
 
 
 
@@ -403,7 +424,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
+                                                <th class="col-sm-2">Address</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                 <th>Class</th>
                                                 <th>Section</th>
@@ -447,8 +468,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
                                                         </td>
                                                         
-                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
-                                                            <?php echo $student->village_name; ?>
+                                                        <td data-title="Address">
+                                                            <?php echo htmlspecialchars($student->address ?? ''); ?>
                                                         </td>
                                                         <?php 
                                                             $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR", 0 =>'')
@@ -537,7 +558,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                     <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                     <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                     <th>WhatsApp</th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
+                                                    <th class="col-sm-2">Address</th>
                                                     <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
 
                                                      <th>Class</th>
@@ -585,8 +606,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
                                                         </td>
                                                         
-                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
-                                                            <?php echo $student->village_name; ?>
+                                                        <td data-title="Address">
+                                                            <?php echo htmlspecialchars($student->address ?? ''); ?>
                                                         </td>
                                                         <?php 
                                                             $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR", 0 =>'')
@@ -681,7 +702,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_village') ?></th>
+                                                <th class="col-sm-2">Address</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                  <th>Class</th>
                                                 <th>Section</th>
@@ -1350,12 +1371,8 @@ function getStudentID(studentID){
 
 <script type="text/javascript">
     // $(".select2").select2();
-    $('#dob').datepicker({
-        startView: 2
-    });
-    $('#admission_date').datepicker({
-        startView: 2
-    });
+    $('#dob').datepicker({ startView: 2, format: 'dd-mm-yyyy', endDate: '0d', autoclose: true });
+    $('#admission_date').datepicker({ format: 'dd-mm-yyyy', endDate: '0d', autoclose: true });
 
     $('#username').keyup(function() {
         $(this).val($(this).val().replace(/\s/g, ''));
@@ -1575,15 +1592,21 @@ function getStudentID(studentID){
             });
         }
 });
-$(document).on("keyup",".id_card",function(){
-    var f_name= $("#first_name").val();
-   
-    let letter = f_name.charAt(0).toUpperCase(); 
+// ── Quick modal: auto-capitalize name fields ──
+$(document).on('input', '#quickStudentModal #first_name, #quickStudentModal #last_name', function() {
+    var pos = this.selectionStart, v = $(this).val();
+    if (v.length > 0) {
+        $(this).val(v.charAt(0).toUpperCase() + v.slice(1));
+        try { this.setSelectionRange(pos, pos); } catch(e) {}
+    }
+});
+$(document).on('keypress', '#quickStudentModal #first_name, #quickStudentModal #last_name', function(e) {
+    if (!/[a-zA-Z\s.\-']/.test(String.fromCharCode(e.which || e.keyCode))) e.preventDefault();
+});
 
-    var string= $("#last_name").val();
-    var l_name = string.charAt(0).toUpperCase() + string.slice(1);
-    var idcard = letter + " " + l_name;
-    // alert (idcart);
+$(document).on("keyup", ".id_card", function(){
+    var f = $("#first_name").val(), l = $("#last_name").val();
+    var idcard = f.charAt(0).toUpperCase() + " " + l.charAt(0).toUpperCase() + l.slice(1);
     $("#name_id").val(idcard);
 });
 
@@ -1630,27 +1653,86 @@ $(document).ready(function(){
         if (phoneNumber.length < 10) {
             $('#error-message').text('Phone number must be exactly 10 digits.');
         } else {
-            $('#error-message').text(''); // Clear error message if valid
+            $('#error-message').text('');
         }
     });
 });
- 
 
+// ── Quick modal phone: digits only, max 10 ──
+$('#quickStudentModal').on('keypress', 'input[name="phone"]', function(e) {
+    var c = e.which || e.keyCode; if (c < 48 || c > 57) e.preventDefault();
+});
+$('#quickStudentModal').on('input', 'input[name="phone"]', function() {
+    $(this).val($(this).val().replace(/\D/g,'').slice(0,10));
+});
 
+// ── Quick modal form validation ──
+$('#quickStudentForm').on('submit', function(e) {
+    var ok = true, $f = $(this);
+    $f.find('.qs-val-error').remove();
+    $f.find('.form-group').removeClass('has-error');
 
+    function qsErr($el, msg) {
+        var $p = $el.closest('.form-group,.col-md-3,.col-md-4');
+        $p.addClass('has-error');
+        $p.find('.qs-val-error').remove();
+        $el.after('<span class="qs-val-error" style="color:#c0392b;font-size:12px;display:block;margin-top:2px;"><i class="fa fa-exclamation-circle"></i> '+msg+'</span>');
+    }
 
+    $f.find('input[type="text"]').each(function(){ $(this).val($.trim($(this).val())); });
+
+    [['input[name="first_name"]','First Name is required'],
+     ['input[name="phone"]','Phone number is required'],
+     ['input[name="registerNO"]','Admission No is required'],
+     ['input[name="roll"]','Roll No is required']
+    ].forEach(function(r){
+        var $el=$f.find(r[0]);
+        if ($el.length&&!$.trim($el.val())) { qsErr($el,r[1]); ok=false; }
+    });
+
+    [['select[name="classesID"]','Please select a Class'],
+     ['select[name="sectionID"]','Please select a Section']
+    ].forEach(function(r){
+        var $el=$f.find(r[0]), v=$el.val();
+        if ($el.length&&(!v||v=='0'||v=='')) { qsErr($el,r[1]); ok=false; }
+    });
+
+    var ph=$.trim($f.find('input[name="phone"]').val());
+    if (ph&&!/^\d{10}$/.test(ph)) { qsErr($f.find('input[name="phone"]'),'Phone must be exactly 10 digits'); ok=false; }
+
+    var dob=$.trim($f.find('input[name="dob"]').val());
+    if (dob) {
+        var p=dob.split('-');
+        if (p.length===3&&new Date(+p[2],+p[1]-1,+p[0])>new Date()) {
+            qsErr($f.find('input[name="dob"]'),'Date of birth cannot be a future date'); ok=false;
+        }
+    }
+
+    if (!ok) e.preventDefault();
+});
 </script>
 
 <script>
 // Bulk select / delete handlers
+function updateDeleteBtn() {
+    var anyChecked = $('.student-checkbox:checked').length > 0;
+    $('#bulkDeleteBtn').prop('disabled', !anyChecked);
+}
+
 $(document).on('change', '#select_all_students', function() {
     var checked = $(this).prop('checked');
     $('#example1').find('.student-checkbox').prop('checked', checked);
+    updateDeleteBtn();
 });
 
 $(document).on('change', '.select_all_section', function() {
     var checked = $(this).prop('checked');
     $(this).closest('table').find('.student-checkbox').prop('checked', checked);
+    updateDeleteBtn();
+});
+
+$(document).on('change', '.student-checkbox', function() {
+    updateDeleteBtn();
 });
 
 function confirmMultiDelete() {
