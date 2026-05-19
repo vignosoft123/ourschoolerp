@@ -58,7 +58,7 @@
         gap: 14px;
         padding: 10px 16px 8px;
         border-bottom: 3px solid #1a237e;
-        background: #fff;
+        background: #eeeeee;
     }
     .receipt-header .rh-logo img {
         width: 72px;
@@ -92,16 +92,17 @@
     .rh-divider .rh-line { flex: 1; height: 1px; background: linear-gradient(to right, #1a237e, #4caf50, #1a237e); }
     .rh-divider .rh-dm   { color: #4caf50; font-size: 10px; }
     .rh-school-phone { font-size: 11px; color: #1a237e; font-weight: 600; margin-top: 2px; }
-    .phone-toggle-bar { text-align: right; padding: 4px 16px; font-size: 12px; color: #555; }
+    .phone-toggle-bar { text-align: right; padding: 4px 16px; font-size: 12px; color: #555; background: #eeeeee; border-bottom: 1px solid #ddd; }
     .phone-toggle-bar label { cursor: pointer; user-select: none; }
     .receipt-title-bar {
         text-align: center;
-        background: #1a237e;
-        color: #fff;
+        background: #e0e0e0;
+        color: #1a237e;
         font-size: 13px;
         font-weight: 700;
         letter-spacing: 4px;
         padding: 5px 0;
+        border-bottom: 1px solid #bdbdbd;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
@@ -110,13 +111,13 @@
     .main-heading  { display: none; }
     .table-start table {
         width: 100%;
-            font-weight: bolder;
+        font-weight: bolder;
         border-collapse: collapse;
-        border-bottom: 2px solid lightgray;
+        border-bottom: 2px solid #ddd;
     }
     .table-start table thead {
-        background-color: #4b4646 !important; /* Make sure this color is applied */
-        color: #fff;
+        background-color: #e0e0e0 !important;
+        color: #1a237e;
         width: 100%;
     }
     .table-start table thead th {
@@ -128,23 +129,27 @@
     .table-start table tr td, .table-start table tr {
         padding: 5px;
     }
+    .table-start tbody tr:nth-child(odd)  td { background-color: #f5f5f5; }
+    .table-start tbody tr:nth-child(even) td { background-color: #ffffff; }
     .table-start thead th {
         border-left: 0px solid black;
     }
     .table-start tbody td:nth-child(2) {
-        border-left: 2px solid lightgray;
+        border-left: 2px solid #ddd;
         width: 30%;
     }
     .footer {
         padding: 10px;
-        display: flex;        
-        /*padding-top: 50px;*/
+        display: flex;
+        background: #eeeeee;
+        border-top: 1px solid #ddd;
     }
     .student-details {
-        padding-left: 20px;
-        padding-right: 20px;
+        padding: 10px 20px;
         display: flex;
         justify-content: space-between;
+        background: #eeeeee;
+        border-bottom: 1px solid #ddd;
     }
     .student-details table {
         font-weight: bold;
@@ -207,6 +212,7 @@
     }
   .receipt-header {
         padding: 5px 10px 4px !important;
+        background: #fff !important;
     }
   .rh-school-name {
         font-size: 18px !important;
@@ -214,17 +220,26 @@
   .receipt-title-bar {
         padding: 3px 0 !important;
         font-size: 13px !important;
+        background: #e0e0e0 !important;
+        color: #1a237e !important;
     }
   .student-details {
         padding: 4px 10px !important;
+        background: #fff !important;
+        border-bottom: 1px solid #ccc !important;
     }
+  .table-start tbody tr:nth-child(odd)  td,
+  .table-start tbody tr:nth-child(even) td { background: #fff !important; }
   .table-start {
         font-size: 11px !important;
     }
   .footer {
         padding: 4px 10px !important;
         font-size: 11px !important;
+        background: #fff !important;
+        border-top: 1px solid #ccc !important;
     }
+  .phone-toggle-bar { display: none !important; }
 
   .student-copy, .admin-copy {
     display: none; /* Default: Hide all sections */
@@ -250,9 +265,9 @@
 
         /* Ensure backgrounds visible in print */
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; }
-        .table-start thead { background-color: #4b4646 !important; }
-        .table-start thead th { color: #fff !important; }
-        .receipt-title-bar { background: #1a237e !important; color: #fff !important; }
+        .table-start thead { background-color: #e0e0e0 !important; }
+        .table-start thead th { color: #1a237e !important; }
+        .receipt-title-bar { background: #e0e0e0 !important; color: #1a237e !important; }
         .main-wrapper { border: 2px solid #1a237e !important; }
     
         </style>
@@ -414,13 +429,14 @@
               </span>
             </span>
           </div>
-          <div style="width: 30%; text-align: center; vertical-align: middle;bottom: -20px;position:relative">
-            <p style = "font-size:18px">Authorised Signatory</p>
+          <div style="width: 30%; text-align: center; display:flex; flex-direction:column; justify-content:flex-end; padding-top:30px;">
+            <div style="border-top:1px solid #999; margin: 0 20px 4px;"></div>
+            <p style="font-size:14px; margin:0; color:#333;">Authorised Signatory</p>
           </div>
         </div>
       </div>
 
-     
+
     </div>
 
     
@@ -550,8 +566,9 @@
                 </span>
               </span>
             </div>
-            <div style="width: 30%; text-align: center; vertical-align: middle;bottom: -35px;position:relative"; >
-              <p style = "font-size:18px">Authorised Signatory</p>
+            <div style="width: 30%; text-align: center; display:flex; flex-direction:column; justify-content:flex-end; padding-top:30px;">
+              <div style="border-top:1px solid #999; margin: 0 20px 4px;"></div>
+              <p style="font-size:14px; margin:0; color:#333;">Authorised Signatory</p>
             </div>
           </div>
         </div>
