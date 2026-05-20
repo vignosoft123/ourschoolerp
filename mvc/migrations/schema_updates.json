@@ -539,5 +539,10 @@
         "query": "ALTER TABLE `feetypes` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
         "type": "alter",
         "check_column": { "table": "feetypes", "column": "active_status" }
+    },
+    {
+        "query": "ALTER TABLE `student` ADD `refered_by` INT NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": { "table": "student", "column": "refered_by" }
     }
 ]
