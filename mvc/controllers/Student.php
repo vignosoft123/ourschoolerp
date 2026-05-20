@@ -1138,7 +1138,7 @@ class Student extends Admin_Controller
 						$h_amount = $p_res['hbalance'];
 					}
 
-					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' ")->row_array();
+					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' OR `feetypes` LIKE '%COLLEGE FEE%' ")->row_array();
 					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
 					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
 					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
@@ -1899,7 +1899,7 @@ class Student extends Admin_Controller
 						$h_amount = $p_res['hbalance'];
 					}
 
-					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' ")->row_array();
+					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' OR `feetypes` LIKE '%COLLEGE FEE%' ")->row_array();
 					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
 					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
 					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();

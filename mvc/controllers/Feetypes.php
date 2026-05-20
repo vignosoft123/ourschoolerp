@@ -130,15 +130,19 @@ class Feetypes extends Admin_Controller {
 		}	
 	}
 
-	public function delete() {
+	public function toggle_status() {
+		header('Content-Type: application/json');
 		$id = htmlentities(escapeString($this->uri->segment(3)));
-		if((int)$id) {
-			$this->feetypes_m->delete_feetypes($id);
-			$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-			redirect(base_url("feetypes/index"));
-		} else {
-			redirect(base_url("feetypes/index"));
+		if ((int)$id) {
+			$feetype = $this->feetypes_m->get_single_feetypes(array('feetypesID' => $id));
+			if ($feetype) {
+				$new_status = ($feetype->active_status == 1) ? 0 : 1;
+				$this->feetypes_m->update_feetypes(array('active_status' => $new_status), $id);
+				echo json_encode(array('success' => true, 'active_status' => $new_status));
+				return;
+			}
 		}
+		echo json_encode(array('success' => false));
 	}
 
 	public function unique_feetypes() {

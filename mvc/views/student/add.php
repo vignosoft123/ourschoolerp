@@ -1109,17 +1109,18 @@
                     <?php echo form_error('categoryID'); ?>
                 </span>
             </div>
-            </div><!-- /.sap-body -->
-        </div><!-- /.sap -->
+        </div><!-- row close -->
+        </div><!-- /.sap-body -->
+        </div><!-- /.sap panel #hostel_div -->
 
         <!-- Section 6: Reference & Sibling Details -->
         <div class="sap">
-            <div class="sap-header collapsed" data-toggle="collapse" data-target="#sap-reference">
+            <div class="sap-header" data-toggle="collapse" data-target="#sap-reference">
                 <span class="sap-icon"><i class="fa fa-users"></i></span>
                 <span class="sap-title">Reference &amp; Sibling Details</span>
                 <i class="fa fa-chevron-up sap-chevron"></i>
             </div>
-            <div id="sap-reference" class="collapse sap-body sap-bg-6">
+            <div id="sap-reference" class="collapse in sap-body sap-bg-6">
         <div class="row">
 
             <!-- Refered By -->
@@ -1191,12 +1192,12 @@
             </div><!-- /.sap-body -->
         </div><!-- /.sap -->
 
+</div><!-- /.student-accordion -->
 <div class="student-btn-info form-group">
     <div class="add-student-btn">
         <input type="submit" class="ose-btn" value="<?= $this->lang->line("add_student") ?>">
     </div>
 </div>
-</div><!-- /.student-accordion -->
 </form>
 
 <?php if ($siteinfos->note == 1) { ?>

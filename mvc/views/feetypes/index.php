@@ -1,4 +1,41 @@
 
+<style>
+.ft-toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    width: 58px;
+    height: 28px;
+    border-radius: 14px;
+    position: relative;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.3s;
+    padding: 0 6px;
+}
+.ft-toggle-on  { background: #4cd964; justify-content: flex-end; }
+.ft-toggle-off { background: #b0b0b0; justify-content: flex-start; }
+.ft-toggle-knob {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: left 0.3s;
+    top: 3px;
+}
+.ft-toggle-on  .ft-toggle-knob { right: 3px; left: auto; }
+.ft-toggle-off .ft-toggle-knob { left: 3px; }
+.ft-toggle-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    user-select: none;
+}
+.ft-toggle-on  .ft-toggle-label { margin-right: 26px; }
+.ft-toggle-off .ft-toggle-label { margin-left: 26px; }
+</style>
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-feetypes"></i> <?=$this->lang->line('panel_title')?></h3>
@@ -103,7 +140,8 @@
                                 <th class="col-sm-2"><?=$this->lang->line('slno')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('feetypes_name')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('feetypes_note')?></th>
-                                <?php if(permissionChecker('feetypes_edit') || permissionChecker('feetypes_delete')) { ?>
+                                <th class="col-sm-2">Status</th>
+                                <?php if(permissionChecker('feetypes_edit')) { ?>
                                 <th class="col-sm-2"><?=$this->lang->line('action')?></th>
                                 <?php } ?>
                             </tr>
@@ -117,14 +155,19 @@
                                     <td data-title="<?=$this->lang->line('feetypes_name')?>">
                                         <?php echo $feetype->feetypes; ?>
                                     </td>
-                  
+
                                     <td data-title="<?=$this->lang->line('feetypes_note')?>">
                                         <?php echo $feetype->note; ?>
                                     </td>
-                                    <?php if(permissionChecker('feetypes_edit') || permissionChecker('feetypes_delete')) { ?>
+                                    <td data-title="Status">
+                                        <span class="ft-toggle-switch <?=(isset($feetype->active_status) && $feetype->active_status == 1) ? 'ft-toggle-on' : 'ft-toggle-off'?>" data-id="<?=$feetype->feetypesID?>" title="Click to toggle status">
+                                            <span class="ft-toggle-knob"></span>
+                                            <span class="ft-toggle-label"><?=(isset($feetype->active_status) && $feetype->active_status == 1) ? 'ON' : 'OFF'?></span>
+                                        </span>
+                                    </td>
+                                    <?php if(permissionChecker('feetypes_edit')) { ?>
                                         <td data-title="<?=$this->lang->line('action')?>">
                                             <?php echo btn_edit('feetypes/edit/'.$feetype->feetypesID, $this->lang->line('edit')) ?>
-                                            <?php echo btn_delete('feetypes/delete/'.$feetype->feetypesID, $this->lang->line('delete')) ?>
                                         </td>
                                     <?php } ?>
                                 </tr>
@@ -137,3 +180,30 @@
         </div>
     </div>
 </div>
+
+<script>
+$(document).on('click', '.ft-toggle-switch', function () {
+    var $toggle = $(this);
+    var id = $toggle.data('id');
+    $toggle.css('opacity', '0.6').css('pointer-events', 'none');
+    $.ajax({
+        url: '<?=base_url("feetypes/toggle_status")?>' + '/' + id,
+        type: 'POST',
+        dataType: 'json',
+        success: function (res) {
+            if (res.success) {
+                if (res.active_status == 1) {
+                    $toggle.removeClass('ft-toggle-off').addClass('ft-toggle-on');
+                    $toggle.find('.ft-toggle-label').text('ON');
+                } else {
+                    $toggle.removeClass('ft-toggle-on').addClass('ft-toggle-off');
+                    $toggle.find('.ft-toggle-label').text('OFF');
+                }
+            }
+        },
+        complete: function () {
+            $toggle.css('opacity', '1').css('pointer-events', 'auto');
+        }
+    });
+});
+</script>

@@ -534,5 +534,10 @@
     {
         "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'push_notification' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'push_notification'))",
         "type": "raw"
+    },
+    {
+        "query": "ALTER TABLE `feetypes` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
+        "type": "alter",
+        "check_column": { "table": "feetypes", "column": "active_status" }
     }
 ]
