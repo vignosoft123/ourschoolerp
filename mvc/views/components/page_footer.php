@@ -172,15 +172,45 @@
 $('.dataTable').DataTable({
     pageLength: 50,
     lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
-    dom: '<"row mb-2"<"col-md-6 d-flex align-items-center"l><"col-md-6 d-flex justify-content-end"f>>Bfrtip',
-      buttons : [
-                'copyHtml5',
-                'excelHtml5',
-                'csvHtml5',
-                'pdfHtml5'
-              ],
-              // dom : 'Bfrtip',
-    // l = length dropdown, f = search box, t = table, i = info, p = pagination
+    language: { lengthMenu: '_MENU_' },
+    dom: '<"dt-top-bar"<"dt-top-left"lf><"dt-top-right"B>>rtip',
+    buttons: [
+        { extend: 'copyHtml5',  text: '<i class="fa fa-clone"></i> Copy',  className: 'dt-btn dt-btn-copy'  },
+        { extend: 'excelHtml5', text: '<i class="fa fa-file-excel-o"></i> Excel', className: 'dt-btn dt-btn-excel' },
+        { extend: 'csvHtml5',   text: '<i class="fa fa-file-text-o"></i> CSV',   className: 'dt-btn dt-btn-csv'   },
+        { extend: 'pdfHtml5',   text: '<i class="fa fa-file-pdf-o"></i> PDF',    className: 'dt-btn dt-btn-pdf'   }
+    ],
+    initComplete: function() {
+        var $table   = $(this.api().table().node());
+        var $wrapper = $table.closest('.dataTables_wrapper');
+        var $dtLeft  = $wrapper.find('.dt-top-left');
+        var $dtRight = $wrapper.find('.dt-top-right');
+
+        // 1) Student section tabs — move Download Excel button into left bar
+        var $tabPane = $wrapper.closest('.tab-pane');
+        if ($tabPane.length) {
+            var $dlBtn = $tabPane.find('.section-download-btn').first();
+            if ($dlBtn.length) {
+                var $dlWrap = $dlBtn.parent();
+                $dlBtn.detach().appendTo($dtLeft);
+                if ($dlWrap.children().length === 0) $dlWrap.remove();
+            }
+            return;
+        }
+
+        // 2) All other modules — move .create-btn to the right side
+        // $wrapper is inside #hide-table (or similar); .page-header is a sibling of that parent
+        var $createBtn = $wrapper.parent().siblings().find('.create-btn').first();
+        if (!$createBtn.length) {
+            // fallback: search any ancestor col- container
+            $createBtn = $wrapper.closest('[class*="col-"]').find('.create-btn').first();
+        }
+        if ($createBtn.length && $dtRight.length) {
+            var $header = $createBtn.closest('.page-header, h5, h4, h3');
+            $createBtn.detach().appendTo($dtRight);
+            if ($header.length && $header.children(':not(br)').length === 0) $header.hide();
+        }
+    }
 });
 
 

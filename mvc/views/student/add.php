@@ -1224,8 +1224,8 @@ $(function() {
     });
 });
 
-// ── Auto-capitalize first letter in name fields ──
-$(document).on('input', '#first_name, #last_name, #father_name_id, #mother_name_id', function() {
+// ── Auto-capitalize first letter in name/text fields ──
+$(document).on('input', '#first_name, #last_name, #father_name_id, #mother_name_id, #religion, #mole1, #mole2, #address, #bank_name, #branch_name, #refered_by_other', function() {
     var pos = this.selectionStart, v = $(this).val();
     if (v.length > 0) {
         $(this).val(v.charAt(0).toUpperCase() + v.slice(1));
@@ -1250,6 +1250,15 @@ $(document).on('keypress', '#phone, #alternative_phone1, #alternative_phone2', f
 });
 $(document).on('input', '#phone, #alternative_phone1, #alternative_phone2', function() {
     $(this).val($(this).val().replace(/\D/g, '').slice(0, 10));
+});
+
+// ── Digits only: aadhar / account fields ──
+$(document).on('keypress', '#father_aadhar, #mother_aadhar, #aadharCardNumber, #account_no', function(e) {
+    var c = e.which || e.keyCode;
+    if (c < 48 || c > 57) e.preventDefault();
+});
+$(document).on('input', '#father_aadhar, #mother_aadhar, #aadharCardNumber, #account_no', function() {
+    $(this).val($(this).val().replace(/\D/g, ''));
 });
 
 // ── Photo upload: inline preview ──

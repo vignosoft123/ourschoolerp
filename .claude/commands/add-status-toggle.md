@@ -127,38 +127,91 @@ Replace `$row` with the actual foreach loop variable and `{primary_key}` with th
 
 Remove the `btn_delete(...)` call from the action `<td>`. Update the permission check on the action column from `permissionChecker('{module}_edit') || permissionChecker('{module}_delete')` to just `permissionChecker('{module}_edit')`.
 
-### 5e — Add the AJAX script
+### 5e — Load SweetAlert 2 (if not already loaded globally)
+
+Check `mvc/views/components/page_footer.php` and `page_header.php` for an existing SweetAlert 2 script tag. If not found, add these two lines at the **top of the view file** (after the opening `<?php` block):
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+```
+
+### 5f — Add the AJAX script with SweetAlert confirmation
 
 Append this block at the very bottom of the view file, after the closing `</div>` of the box:
 
 ```html
 <script>
 $(document).on('click', '.ft-toggle-switch', function () {
-    var $toggle = $(this);
-    var id = $toggle.data('id');
-    $toggle.css('opacity', '0.6').css('pointer-events', 'none');
-    $.ajax({
-        url: '<?=base_url("$ARGUMENTS/toggle_status")?>' + '/' + id,
-        type: 'POST',
-        dataType: 'json',
-        success: function (res) {
-            if (res.success) {
-                if (res.active_status == 1) {
-                    $toggle.removeClass('ft-toggle-off').addClass('ft-toggle-on');
-                    $toggle.find('.ft-toggle-label').text('ON');
+    var $toggle   = $(this);
+    var id        = $toggle.data('id');
+    var isOn      = $toggle.hasClass('ft-toggle-on');
+    var actionLabel = isOn ? 'Deactivate' : 'Activate';
+    var btnColor    = isOn ? '#e53935'    : '#0cc035';
+
+    Swal.fire({
+        title: actionLabel + '?',
+        text: 'Are you sure you want to ' + actionLabel.toLowerCase() + ' this record?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: btnColor,
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, ' + actionLabel + '!',
+        cancelButtonText: 'Cancel'
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+
+        $toggle.css('opacity', '0.6').css('pointer-events', 'none');
+
+        $.ajax({
+            url: '<?=base_url("$ARGUMENTS/toggle_status")?>' + '/' + id,
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+                if (res.success) {
+                    if (res.active_status == 1) {
+                        $toggle.removeClass('ft-toggle-off').addClass('ft-toggle-on');
+                        $toggle.find('.ft-toggle-label').text('ON');
+                    } else {
+                        $toggle.removeClass('ft-toggle-on').addClass('ft-toggle-off');
+                        $toggle.find('.ft-toggle-label').text('OFF');
+                    }
+                    toastr.success('Status updated successfully.');
                 } else {
-                    $toggle.removeClass('ft-toggle-on').addClass('ft-toggle-off');
-                    $toggle.find('.ft-toggle-label').text('OFF');
+                    toastr.error('Failed to update status. Please try again.');
                 }
+            },
+            error: function () {
+                toastr.error('Request failed. Please try again.');
+            },
+            complete: function () {
+                $toggle.css('opacity', '1').css('pointer-events', 'auto');
             }
-        },
-        complete: function () {
-            $toggle.css('opacity', '1').css('pointer-events', 'auto');
-        }
+        });
     });
 });
 </script>
 ```
+
+> **Key rule for modules that use a real checkbox toggle (like the Student module's `onoffswitch-small`):**
+> Use the `change` event — NOT `click` — because the user clicks the visible **label**, not the checkbox itself.
+> Read the new state after toggle, immediately revert with `.prop('checked', prevState)` (`.prop()` does NOT re-fire `change`, so no infinite loop), show SweetAlert, then re-apply on confirm.
+>
+> ```javascript
+> $(document).on('change', '.onoffswitch-small-checkbox', function () {
+>     var checkbox  = $(this);
+>     var isNowOn   = checkbox.prop('checked');   // state AFTER browser toggled
+>     var prevState = !isNowOn;
+>     checkbox.prop('checked', prevState);         // revert immediately — awaiting confirm
+>
+>     Swal.fire({ ... }).then(function (result) {
+>         if (!result.isConfirmed) return;
+>         checkbox.prop('checked', isNowOn);       // apply on confirm
+>         $.ajax({ ... });                         // fire to student/active
+>     });
+> });
+> ```
+> Reference implementation: `mvc/views/student/index.php` (added 2026-05-24).
 
 ## Step 6 — Confirm
 

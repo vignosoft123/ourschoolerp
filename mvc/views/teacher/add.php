@@ -1,472 +1,275 @@
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
+<style>
+.taf-wrap { padding: 4px 0 20px; }
+.taf-section { margin-bottom: 18px; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border: 1px solid #dde0e6; }
+.taf-section-header { background: linear-gradient(135deg, #1a73e8 0%, #1558b0 100%); color: #fff; padding: 11px 20px; display: flex; align-items: center; gap: 9px; font-weight: 600; font-size: 14px; }
+.taf-section-body { background: #f7f9ff; padding: 18px 18px 6px; }
+.taf-section-body .form-group { margin-bottom: 16px; }
+.taf-section-body label.control-label { font-weight: 600; font-size: 12.5px; color: #3d4050; margin-bottom: 5px; display: block; }
+.taf-section-body .form-control { border-radius: 7px; border: 1.5px solid #d0d5e0; font-size: 13.5px; height: 36px; padding: 6px 11px; background: #fff; transition: border-color 0.2s; }
+.taf-section-body select.form-control { height: 36px; }
+.taf-section-body .form-control:focus { border-color: #1a73e8; box-shadow: 0 0 0 3px rgba(26,115,232,0.1); outline: none; }
+.taf-section-body .has-error .form-control { border-color: #e53935 !important; }
+.taf-err { font-size: 11.5px; color: #e53935; margin-top: 3px; display: block; min-height: 16px; }
+.taf-file-btn { display: inline-flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #1a73e8, #1558b0); color: #fff; border: none; border-radius: 7px; padding: 7px 14px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap; margin-bottom: 0; }
+.taf-file-btn:hover { opacity: 0.88; }
+.taf-file-name { font-size: 12px; color: #666; }
+.taf-file-clear { background: #e53935; color: #fff; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11.5px; cursor: pointer; display: none; }
+.taf-preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid #ddd; display: none; margin-bottom: 6px; }
+.taf-sig-img  { width: 160px; height: 70px; object-fit: contain; border-radius: 6px; border: 2px solid #ddd; background: #fff; display: none; margin-bottom: 6px; }
+.taf-file-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.taf-btn-row { padding: 10px 0 20px; text-align: center; }
+.taf-submit-btn { background: linear-gradient(135deg, #1a73e8 0%, #1558b0 100%); color: #fff; border: none; border-radius: 8px; padding: 10px 44px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 3px 10px rgba(26,115,232,0.25); }
+.taf-submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+</style>
+
 <div class="box">
-    <div class="box-header">
+    <div class="box-header with-border">
         <h3 class="box-title"><i class="fa icon-teacher"></i> <?=$this->lang->line('panel_title')?></h3>
-
-
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li><a href="<?=base_url("teacher/index")?>"><?=$this->lang->line('menu_teacher')?></a></li>
             <li class="active"><?=$this->lang->line('menu_add')?> <?=$this->lang->line('menu_teacher')?></li>
         </ol>
-    </div><!-- /.box-header -->
-    <!-- form start -->
+    </div>
     <div class="box-body">
-        <div class="row">
-            <div class="col-sm-12">
+        <form class="teacher-form-info taf-wrap" role="form" method="post" enctype="multipart/form-data">
 
-                <form class="form-horizontal teacher-form-info" role="form" method="post" enctype="multipart/form-data">
-                    <?php
-                        if(form_error('name'))
-                            echo "<div class='form-group has-error'>";
-                        else
-                            echo "<div class='form-group'>";
-                    ?>
-                        <label for="name_id" class="control-label">
-                            <?=$this->lang->line("teacher_name")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="name_id" name="name" value="<?=set_value('name')?>" >
+            <!-- Section 1: Basic Information -->
+            <div class="taf-section">
+                <div class="taf-section-header">
+                    <i class="fa fa-user"></i> Basic Information
+                </div>
+                <div class="taf-section-body">
+                    <div class="row">
+                        <div class="col-md-4 form-group <?= form_error('name') ? 'has-error' : '' ?>">
+                            <label for="name_id" class="control-label"><?=$this->lang->line("teacher_name")?> <span class="text-red">*</span></label>
+                            <input type="text" class="form-control" id="name_id" name="name" value="<?=set_value('name')?>">
+                            <span class="taf-err"><?= form_error('name') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('name'); ?>
-                        </span>
-                    </div>
-
-                    <?php
-                        if(form_error('rfid'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="rfid" class="control-label">
-                            RFID
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="rfid" name="rfid" value="<?=set_value('rfid')?>" >
+                        <div class="col-md-4 form-group <?= form_error('rfid') ? 'has-error' : '' ?>">
+                            <label for="rfid" class="control-label">RFID</label>
+                            <input type="text" class="form-control" id="rfid" name="rfid" value="<?=set_value('rfid')?>">
+                            <span class="taf-err"><?= form_error('rfid') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('rfid'); ?>
-                        </span>
-                    </div>
-
-                    <?php
-                        if(form_error('designation'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="designation" class="control-label">
-                            <?=$this->lang->line("teacher_designation")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="designation" name="designation" value="<?=set_value('designation')?>" >
+                        <div class="col-md-4 form-group <?= form_error('designation') ? 'has-error' : '' ?>">
+                            <label for="designation" class="control-label"><?=$this->lang->line("teacher_designation")?> <span class="text-red">*</span></label>
+                            <input type="text" class="form-control" id="designation" name="designation" value="<?=set_value('designation')?>">
+                            <span class="taf-err"><?= form_error('designation') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('designation'); ?>
-                        </span>
                     </div>
-
-                    <?php
-                        if(form_error('default_login_time'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="default_login_time" class="control-label">
-                            <?=$this->lang->line("default_login_time")?>
-                        </label>
-                        <div class="input-field">
-                            <input placeholder="Select Time" type="text" class="form-control" id="default_login_time" name="default_login_time" value="<?=set_value('default_login_time')?>" >
-                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('default_login_time'); ?>
-                        </span>
-                    </div>
-
-
-                       <?php
-                        if(form_error('default_logout_time'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="default_logout_time" class="control-label">
-                            <?=$this->lang->line("default_logout_time")?>
-                        </label>
-                        <div class="input-field">
-                            <input placeholder="Select Time" type="text" class="form-control" id="default_logout_time" name="default_logout_time" value="<?=set_value('default_logout_time')?>" >
-                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('default_logout_time'); ?>
-                        </span>
-                    </div>
-
-
-                    <?php
-                        if(form_error('dob'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="dob" class="control-label">
-                            <?=$this->lang->line("teacher_dob")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="dob" name="dob" value="<?=set_value('dob')?>" >
+                    <div class="row">
+                        <div class="col-md-4 form-group <?= form_error('dob') ? 'has-error' : '' ?>">
+                            <label for="dob" class="control-label"><?=$this->lang->line("teacher_dob")?> <span class="text-red">*</span></label>
+                            <input type="text" class="form-control" id="dob" name="dob" value="<?=set_value('dob')?>">
+                            <span class="taf-err"><?= form_error('dob') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('dob'); ?>
-                        </span>
-                    </div>
-
-
-                    <?php
-                        if(form_error('email'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="email" class="control-label">
-                            <?=$this->lang->line("teacher_email")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="email" name="email" value="<?=set_value('email')?>" >
+                        <div class="col-md-4 form-group <?= form_error('jod') ? 'has-error' : '' ?>">
+                            <label for="jod" class="control-label"><?=$this->lang->line("teacher_jod")?> <span class="text-red">*</span></label>
+                            <input type="text" class="form-control" id="jod" name="jod" value="<?=set_value('jod')?>">
+                            <span class="taf-err"><?= form_error('jod') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('email'); ?>
-                        </span>
-                    </div>
-                    <?php
-                        if(form_error('jod'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="jod" class="control-label">
-                            <?=$this->lang->line("teacher_jod")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="jod" name="jod" value="<?=set_value('jod')?>" >
+                        <div class="col-md-4 form-group <?= form_error('sex') ? 'has-error' : '' ?>">
+                            <label for="sex" class="control-label"><?=$this->lang->line("teacher_sex")?></label>
+                            <?= form_dropdown("sex", array($this->lang->line('teacher_sex_male') => $this->lang->line('teacher_sex_male'), $this->lang->line('teacher_sex_female') => $this->lang->line('teacher_sex_female')), set_value("sex"), "id='sex' class='form-control'") ?>
+                            <span class="taf-err"><?= form_error('sex') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('jod'); ?>
-                        </span>
                     </div>
-
-                    <?php
-                        if(form_error('sex'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="sex" class="control-label">
-                            <?=$this->lang->line("teacher_sex")?>
-                        </label>
-                        <div class="input-field">
-                            <?php
-                                echo form_dropdown("sex", array($this->lang->line('teacher_sex_male') => $this->lang->line('teacher_sex_male'), $this->lang->line('teacher_sex_female') => $this->lang->line('teacher_sex_female')), set_value("sex"), "id='sex' class='form-control'");
-                            ?>
+                    <div class="row">
+                        <div class="col-md-4 form-group <?= form_error('religion') ? 'has-error' : '' ?>">
+                            <label for="religion" class="control-label"><?=$this->lang->line("teacher_religion")?></label>
+                            <input type="text" class="form-control" id="religion" name="religion" value="<?=set_value('religion')?>">
+                            <span class="taf-err"><?= form_error('religion') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('sex'); ?>
-                        </span>
-                    </div>
-
-                    <?php
-                        if(form_error('religion'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="religion" class="control-label">
-                            <?=$this->lang->line("teacher_religion")?>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="religion" name="religion" value="<?=set_value('religion')?>" >
+                        <div class="col-md-4 form-group <?= form_error('phone') ? 'has-error' : '' ?>">
+                            <label for="phone" class="control-label"><?=$this->lang->line("teacher_phone")?> <span class="text-red">*</span></label>
+                            <input type="text" class="form-control" id="phone" name="phone" value="<?=set_value('phone')?>" maxlength="10">
+                            <span class="taf-err"><?= form_error('phone') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('religion'); ?>
-                        </span>
-                    </div>
-
-                    
-
-                    <?php
-                        if(form_error('phone'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="phone" class="control-label">
-                            <?=$this->lang->line("teacher_phone")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="phone" name="phone" value="<?=set_value('phone')?>" required>
+                        <div class="col-md-4 form-group <?= form_error('address') ? 'has-error' : '' ?>">
+                            <label for="address" class="control-label"><?=$this->lang->line("teacher_address")?></label>
+                            <input type="text" class="form-control" id="address" name="address" value="<?=set_value('address')?>">
+                            <span class="taf-err"><?= form_error('address') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('phone'); ?>
-                        </span>
                     </div>
-
-                    <?php
-                        if(form_error('address'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="address" class="control-label">
-                            <?=$this->lang->line("teacher_address")?>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="address" name="address" value="<?=set_value('address')?>" >
+                    <div class="row">
+                        <div class="col-md-4 form-group <?= form_error('email') ? 'has-error' : '' ?>">
+                            <label for="email" class="control-label"><?=$this->lang->line("teacher_email")?> <span class="text-red">*</span></label>
+                            <input type="text" class="form-control" id="email" name="email" value="<?=set_value('email')?>">
+                            <span class="taf-err"><?= form_error('email') ?></span>
                         </div>
-                        <span class="control-label">
-                            <?php echo form_error('address'); ?>
-                        </span>
+                        <div class="col-md-4 form-group <?= form_error('default_login_time') ? 'has-error' : '' ?>">
+                            <label for="default_login_time" class="control-label"><?=$this->lang->line("default_login_time")?></label>
+                            <input placeholder="Select Time" type="text" class="form-control" id="default_login_time" name="default_login_time" value="<?=set_value('default_login_time')?>">
+                            <span class="taf-err"><?= form_error('default_login_time') ?></span>
+                        </div>
+                        <div class="col-md-4 form-group <?= form_error('default_logout_time') ? 'has-error' : '' ?>">
+                            <label for="default_logout_time" class="control-label"><?=$this->lang->line("default_logout_time")?></label>
+                            <input placeholder="Select Time" type="text" class="form-control" id="default_logout_time" name="default_logout_time" value="<?=set_value('default_logout_time')?>">
+                            <span class="taf-err"><?= form_error('default_logout_time') ?></span>
+                        </div>
                     </div>
+                </div>
+            </div>
 
-                    
-
-                    <?php
-                        if(form_error('photo'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="photo" class="control-label">
-                            <?=$this->lang->line("teacher_photo")?>
-                        </label>
-                        <div class="">
-                            <div class="input-group image-preview">
-                                <input type="text" class="form-control image-preview-filename" disabled="disabled">
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-primary image-preview-clear" style="display:none;">
-                                        <span class="fa fa-remove"></span>
-                                        <?=$this->lang->line('teacher_clear')?>
-                                    </button>
-                                    <div class="btn btn-primary image-preview-input">
-                                        <span class="fa fa-repeat"></span>
-                                        <span class="image-preview-input-title">
-                                        <?=$this->lang->line('teacher_file_browse')?></span>
-                                        <input type="file" accept="image/png, image/jpeg, image/gif" name="photo"/>
-                                    </div>
-                                </span>
+            <!-- Section 2: Photo & Signature -->
+            <div class="taf-section">
+                <div class="taf-section-header">
+                    <i class="fa fa-image"></i> Photo &amp; Signature
+                </div>
+                <div class="taf-section-body">
+                    <div class="row">
+                        <div class="col-md-4 form-group <?= form_error('photo') ? 'has-error' : '' ?>">
+                            <label class="control-label"><?=$this->lang->line("teacher_photo")?></label>
+                            <img id="taf-photo-preview" class="taf-preview-img" src="" alt="Preview">
+                            <div class="taf-file-row">
+                                <label class="taf-file-btn">
+                                    <i class="fa fa-repeat"></i> <?=$this->lang->line('teacher_file_browse')?>
+                                    <input type="file" name="photo" id="taf-photo-input" accept="image/png,image/jpeg,image/gif" style="display:none;">
+                                </label>
+                                <span id="taf-photo-name" class="taf-file-name">No file chosen</span>
+                                <button type="button" id="taf-photo-clear" class="taf-file-clear"><i class="fa fa-times"></i></button>
                             </div>
+                            <span class="taf-err"><?= form_error('photo') ?></span>
                         </div>
-
-                        <span class="control-label">
-                            <?php echo form_error('photo'); ?>
-                        </span>
-                    </div>
-
-                    <?php
-                        if(form_error('signature'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="signature" class="control-label">
-                            <?=$this->lang->line("teacher_signature")?>
-                        </label>
-                        <div class="">
-                            <div class="input-group image-preview-signature">
-                                <input type="text" class="form-control image-preview-filename-signature" disabled="disabled">
-                                <span class="input-group-btn">
-                                    <button type="button" class="btn btn-primary image-preview-clear-signature" style="display:none;">
-                                        <span class="fa fa-remove"></span>
-                                        <?=$this->lang->line('teacher_clear')?>
-                                    </button>
-                                    <div class="btn btn-primary image-preview-input-signature">
-                                        <span class="fa fa-repeat"></span>
-                                        <span class="image-preview-input-signature-title">
-                                        <?=$this->lang->line('teacher_file_browse')?></span>
-                                        <input type="file" accept="image/png, image/jpeg, image/gif" name="signature"/>
-                                    </div>
-                                </span>
+                        <div class="col-md-5 form-group <?= form_error('signature') ? 'has-error' : '' ?>">
+                            <label class="control-label"><?=$this->lang->line("teacher_signature")?></label>
+                            <img id="taf-sig-preview" class="taf-sig-img" src="" alt="Preview">
+                            <div class="taf-file-row">
+                                <label class="taf-file-btn">
+                                    <i class="fa fa-repeat"></i> <?=$this->lang->line('teacher_file_browse')?>
+                                    <input type="file" name="signature" id="taf-sig-input" accept="image/png,image/jpeg,image/gif" style="display:none;">
+                                </label>
+                                <span id="taf-sig-name" class="taf-file-name">No file chosen</span>
+                                <button type="button" id="taf-sig-clear" class="taf-file-clear"><i class="fa fa-times"></i></button>
                             </div>
-                        </div>
-
-                        <span class="control-label">
-                            <?php echo form_error('signature'); ?>
-                        </span>
-                    </div>
-
-                    
-
-
-                    <?php
-                        if(form_error('username'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="username" class="control-label">
-                            <?=$this->lang->line("teacher_username")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="text" class="form-control" id="username" name="username" value="<?=set_value('username')?>" >
-                        </div>
-                         <span class="control-label">
-                            <?php echo form_error('username'); ?>
-                        </span>
-                    </div>
-
-                    <?php
-                        if(form_error('password'))
-                            echo "<div class='form-group has-error' >";
-                        else
-                            echo "<div class='form-group' >";
-                    ?>
-                        <label for="password" class="control-label">
-                            <?=$this->lang->line("teacher_password")?> <span class="text-red">*</span>
-                        </label>
-                        <div class="input-field">
-                            <input type="password" class="form-control" id="password" name="password" value="<?=set_value('password')?>" >
-                        </div>
-                         <span class="control-label">
-                            <?php echo form_error('password'); ?>
-                        </span>
-                    </div>
-
-                <div class="col-md-12">
-                        <div class="btn-center">
-                            <input type="submit" class="ose-btn" value="<?=$this->lang->line("add_teacher")?>" >
+                            <span class="taf-err"><?= form_error('signature') ?></span>
                         </div>
                     </div>
-                    </form>
+                </div>
+            </div>
 
+            <!-- Section 3: Login Credentials -->
+            <div class="taf-section">
+                <div class="taf-section-header">
+                    <i class="fa fa-lock"></i> Login Credentials
+                </div>
+                <div class="taf-section-body">
+                    <div class="row">
+                        <div class="col-md-4 form-group <?= form_error('username') ? 'has-error' : '' ?>">
+                            <label for="username" class="control-label"><?=$this->lang->line("teacher_username")?> <span class="text-red">*</span></label>
+                            <input type="text" class="form-control" id="username" name="username" value="<?=set_value('username')?>">
+                            <span class="taf-err"><?= form_error('username') ?></span>
+                        </div>
+                        <div class="col-md-4 form-group <?= form_error('password') ? 'has-error' : '' ?>">
+                            <label for="password" class="control-label"><?=$this->lang->line("teacher_password")?> <span class="text-red">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" value="<?=set_value('password')?>">
+                            <span class="taf-err"><?= form_error('password') ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-            </div><!-- /col-sm-8 -->
-        </div>
+            <div class="taf-btn-row">
+                <button type="submit" class="taf-submit-btn"><i class="fa fa-plus"></i> <?=$this->lang->line("add_teacher")?></button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script type="text/javascript">
-$('#username').keyup(function() {
-    $(this).val($(this).val().replace(/\s/g, ''));
-});
+// Username: no spaces
+$('#username').on('input', function() { $(this).val($(this).val().replace(/\s/g, '')); });
 
+// Date pickers
 $('#dob').datepicker({ startView: 2 });
 $('#jod').datepicker();
 
-$(document).on('click', '#close-preview', function(){
-    $('.image-preview').popover('hide');
-    // Hover befor close the preview
-    $('.image-preview').hover(
-        function () {
-           $('.image-preview').popover('show');
-           $('.content').css('padding-bottom', '100px');
-        },
-         function () {
-           $('.image-preview').popover('hide');
-           $('.content').css('padding-bottom', '20px');
-        }
-    );
+// Flatpickr time
+flatpickr("#default_login_time",  { enableTime: true, noCalendar: true, dateFormat: "H:i" });
+flatpickr("#default_logout_time", { enableTime: true, noCalendar: true, dateFormat: "H:i" });
+
+// Auto-capitalize first letter
+$(document).on('input', '#name_id, #designation, #religion, #address', function() {
+    var pos = this.selectionStart, v = $(this).val();
+    if (v.length > 0) { $(this).val(v.charAt(0).toUpperCase() + v.slice(1)); try { this.setSelectionRange(pos,pos); } catch(e){} }
 });
 
-$(function() {
-    // Create the close button
-    var closebtn = $('<button/>', {
-        type:"button",
-        text: 'x',
-        id: 'close-preview',
-        style: 'font-size: initial;',
-    });
-    closebtn.attr("class","close pull-right");
-    // Set the popover default content
-    $('.image-preview').popover({
-        trigger:'manual',
-        html:true,
-        title: "<strong>Preview</strong>"+$(closebtn)[0].outerHTML,
-        content: "There's no image",
-        placement:'bottom'
-    });
-    // Clear event
-    $('.image-preview-clear').click(function(){
-        $('.image-preview').attr("data-content","").popover('hide');
-        $('.image-preview-filename').val("");
-        $('.image-preview-clear').hide();
-        $('.image-preview-input input:file').val("");
-        $(".image-preview-input-title").text("<?=$this->lang->line('teacher_file_browse')?>");
-    });
-    // Create the preview image
-    $(".image-preview-input input:file").change(function (){
-        var img = $('<img/>', {
-            id: 'dynamic',
-            width:250,
-            height:200,
-            overflow:'hidden'
-        });
-        var file = this.files[0];
-        var reader = new FileReader();
-        // Set preview image into the popover data-content
-        reader.onload = function (e) {
-            $(".image-preview-input-title").text("<?=$this->lang->line('teacher_file_browse')?>");
-            $(".image-preview-clear").show();
-            $(".image-preview-filename").val(file.name);
-            img.attr('src', e.target.result);
-            $(".image-preview").attr("data-content",$(img)[0].outerHTML).popover("show");
-            $('.content').css('padding-bottom', '100px');
-        }
-        reader.readAsDataURL(file);
-    });
-
-    //signature code
-    $('.image-preview-signature').popover({
-        trigger:'manual',
-        html:true,
-        title: "<strong>Preview</strong>"+$(closebtn)[0].outerHTML,
-        content: "There's no image",
-        placement:'bottom'
-    });
-
-     // Clear event
-     $('.image-preview-clear-signature').click(function(){
-        $('.image-preview-signature').attr("data-content","").popover('hide');
-        $('.image-preview-filename-signature').val("");
-        $('.image-preview-clear-signature').hide();
-        $('.image-preview-input-signature input:file').val("");
-        $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
-    });
-    // Create the preview image
-    $(".image-preview-input-signature input:file").change(function (){
-        var img = $('<img/>', {
-            id: 'dynamic',
-            width:250,
-            height:200,
-            overflow:'hidden'
-        });
-        var file = this.files[0];
-        var reader = new FileReader();
-        // Set preview image into the popover data-content
-        reader.onload = function (e) {
-            $(".image-preview-input-signature-title").text("<?=$this->lang->line('teacher_file_browse')?>");
-            $(".image-preview-clear-signature").show();
-            $(".image-preview-filename-signature").val(file.name);
-            img.attr('src', e.target.result);
-            $(".image-preview-signature").attr("data-content",$(img)[0].outerHTML).popover("show");
-            $('.content').css('padding-bottom', '100px');
-        }
-        reader.readAsDataURL(file);
-    });
-    //signature code end
-});
-</script>
-<script>
-flatpickr("#default_login_time", {
-    enableTime: true,
-    noCalendar: true,
-    dateFormat: "H:i", // 24-hour format
+// Name: letters, spaces, hyphens only
+$(document).on('keypress', '#name_id', function(e) {
+    if (!/[a-zA-Z\s.\-']/.test(String.fromCharCode(e.which || e.keyCode))) e.preventDefault();
 });
 
-flatpickr("#default_logout_time", {
-    enableTime: true,
-    noCalendar: true,
-    dateFormat: "H:i", // 24-hour format
+// Phone: digits only, max 10
+$(document).on('keypress', '#phone', function(e) {
+    var c = e.which || e.keyCode; if (c < 48 || c > 57) e.preventDefault();
+});
+$(document).on('input', '#phone', function() {
+    $(this).val($(this).val().replace(/\D/g,'').slice(0,10));
 });
 
+// Photo preview
+$('#taf-photo-input').on('change', function() {
+    var file = this.files[0]; if (!file) return;
+    $('#taf-photo-name').text(file.name); $('#taf-photo-clear').show();
+    var r = new FileReader();
+    r.onload = function(e) { $('#taf-photo-preview').attr('src', e.target.result).show(); };
+    r.readAsDataURL(file);
+});
+$('#taf-photo-clear').on('click', function() {
+    $('#taf-photo-input').val(''); $('#taf-photo-name').text('No file chosen');
+    $('#taf-photo-preview').hide().attr('src',''); $(this).hide();
+});
+
+// Signature preview
+$('#taf-sig-input').on('change', function() {
+    var file = this.files[0]; if (!file) return;
+    $('#taf-sig-name').text(file.name); $('#taf-sig-clear').show();
+    var r = new FileReader();
+    r.onload = function(e) { $('#taf-sig-preview').attr('src', e.target.result).show(); };
+    r.readAsDataURL(file);
+});
+$('#taf-sig-clear').on('click', function() {
+    $('#taf-sig-input').val(''); $('#taf-sig-name').text('No file chosen');
+    $('#taf-sig-preview').hide().attr('src',''); $(this).hide();
+});
+
+// Form validation
+$('.teacher-form-info').on('submit', function(e) {
+    var ok = true, $f = $(this);
+    function svErr($el, msg) { $el.closest('.form-group').addClass('has-error'); $el.closest('.form-group').find('.taf-err').text(msg); }
+    function svOk($el)       { $el.closest('.form-group').removeClass('has-error'); $el.closest('.form-group').find('.taf-err').text(''); }
+
+    var nm = $.trim($f.find('#name_id').val());
+    if (!nm) { svErr($f.find('#name_id'), 'Name is required'); ok = false; } else { svOk($f.find('#name_id')); }
+
+    var des = $.trim($f.find('#designation').val());
+    if (!des) { svErr($f.find('#designation'), 'Designation is required'); ok = false; } else { svOk($f.find('#designation')); }
+
+    var dob = $.trim($f.find('#dob').val());
+    if (!dob) { svErr($f.find('#dob'), 'Date of birth is required'); ok = false; } else { svOk($f.find('#dob')); }
+
+    var jod = $.trim($f.find('#jod').val());
+    if (!jod) { svErr($f.find('#jod'), 'Joining date is required'); ok = false; } else { svOk($f.find('#jod')); }
+
+    var em = $.trim($f.find('#email').val());
+    if (!em) { svErr($f.find('#email'), 'Email is required'); ok = false; }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) { svErr($f.find('#email'), 'Enter a valid email address'); ok = false; }
+    else { svOk($f.find('#email')); }
+
+    var ph = $.trim($f.find('#phone').val());
+    if (!ph) { svErr($f.find('#phone'), 'Phone is required'); ok = false; }
+    else if (ph.length < 10) { svErr($f.find('#phone'), 'Phone must be 10 digits'); ok = false; }
+    else { svOk($f.find('#phone')); }
+
+    var un = $.trim($f.find('#username').val());
+    if (!un) { svErr($f.find('#username'), 'Username is required'); ok = false; } else { svOk($f.find('#username')); }
+
+    var pw = $f.find('#password').val();
+    if (!pw) { svErr($f.find('#password'), 'Password is required'); ok = false; } else { svOk($f.find('#password')); }
+
+    if (!ok) e.preventDefault();
+});
 </script>

@@ -1,10 +1,12 @@
-<?php 
+<?php
 // echo "<pre>";print_r($this->session->userdata('usertypeID'));die;
 $global_payment_permission = false;
 if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('usertypeID') == 5){ //admin & accountant
     $global_payment_permission = true;
 }
 ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
 <style>
     label { 
     color: #ffff;
@@ -59,7 +61,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     .sbar-btn-quick{ background: linear-gradient(135deg, #1a73e8 0%, #1558b0 100%); color: #fff !important; }
     .sbar-btn-excel{ background: linear-gradient(135deg, #217346 0%, #155a2e 100%); color: #fff !important; }
     .sbar-btn-delete{ background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%); color: #fff !important; }
-    .sbar-btn-delete:disabled { background: #ccc !important; color: #888 !important; cursor: not-allowed; transform: none !important; box-shadow: none !important; opacity: 0.6; }
+    .sbar-btn.sbar-disabled { background: #ccc !important; color: #888 !important; border-color: #ccc !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.7; }
     .sbar-class-wrap { margin-left: auto; display: flex; align-items: center; }
     .sbar-class-wrap select { width: 220px !important; border-radius: 8px !important; font-size: 13px; }
 
@@ -82,7 +84,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     }
 
     #example1 thead {
-        background: linear-gradient(135deg, #0cc035 0%, #0cc035 100%) !important;
+        background: linear-gradient(135deg, #1a73e8 0%, #1045a8 100%) !important;
         color: white !important;
     }
 
@@ -156,7 +158,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         transform: scale(1.1) !important;
     }
 
-    /* Action buttons styling */
+    /* Action buttons styling — DO NOT change, student listing looks good */
+    .action-btns { white-space: nowrap !important; text-align: center; }
     .action-btns .btn {
         margin: 2px !important;
         border-radius: 4px !important;
@@ -164,7 +167,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         padding: 4px 8px !important;
         transition: all 0.3s ease !important;
     }
-
     .action-btns .btn:hover {
         transform: translateY(-1px) !important;
         box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
@@ -257,46 +259,29 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
     }
 
-    /* Tab content styling */
-    .tab-content {
-        background: #fff !important;
-        border-radius: 0 0 8px 8px !important;
-        padding: 20px !important;
-    }
-
-    .nav-tabs > li > a {
-        border-radius: 8px 8px 0 0 !important;
-        margin-right: 2px !important;
-        transition: all 0.3s ease !important;
-    }
-
-    .nav-tabs > li.active > a {
-        background: linear-gradient(135deg, #0cc035 0%, #0cc035 100%) !important;
-        color: white !important;
-        border-color: #0cc035 !important;
-    }
-
     /* Download button for sections */
     .section-download-btn {
-        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%) !important;
+        background: linear-gradient(135deg, #217346, #155a2e) !important;
         border: none !important;
         border-radius: 8px !important;
-        padding: 10px 16px !important;
-        color: white !important;
+        padding: 6px 14px !important;
+        color: #fff !important;
+        font-size: 12.5px !important;
         font-weight: 600 !important;
         text-decoration: none !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.2s ease !important;
         display: inline-flex !important;
         align-items: center !important;
-        gap: 8px !important;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        gap: 5px !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.12) !important;
+        line-height: 1.4 !important;
     }
-
     .section-download-btn:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4) !important;
-        color: white !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.18) !important;
+        color: #fff !important;
         text-decoration: none !important;
+        opacity: 0.92 !important;
     }
 
 </style>
@@ -335,10 +320,35 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                 <form id="multiDeleteForm" method="post" action="<?= base_url('student/multi_delete') ?>" style="display:contents;">
                                     <input type="hidden" name="ids" id="multi_delete_ids" value="" />
                                     <input type="hidden" name="url" value="<?= isset($set) ? $set : '' ?>" />
-                                    <button type="button" id="bulkDeleteBtn" class="sbar-btn sbar-btn-delete" onclick="confirmMultiDelete()" disabled>
+                                    <button type="button" id="bulkDeleteBtn" class="sbar-btn sbar-btn-delete sbar-disabled" onclick="confirmMultiDelete()">
                                         <i class="fa fa-trash"></i> Delete Selected
                                     </button>
                                 </form>
+                            <?php } ?>
+                            <?php if (permissionChecker('student_edit') && customCompute($students) > 0) { ?>
+                                <div style="position:relative;display:inline-block;">
+                                    <button type="button" id="bulkLoginDetailsBtn" class="sbar-btn sbar-disabled" style="background:#1a73e8;color:#fff;border-color:#1558b0;" onclick="toggleLoginDropdown(event)">
+                                        <i class="fa fa-paper-plane"></i> Send Login Details
+                                    </button>
+                                    <!-- Dropdown popover -->
+                                    <div id="loginDetailsDropdown" style="display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:9999;background:#fff;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.18);min-width:230px;padding:16px 18px;">
+                                        <div style="font-weight:700;font-size:13px;color:#1a73e8;margin-bottom:12px;border-bottom:1px solid #e8eaf6;padding-bottom:8px;">
+                                            <i class="fa fa-paper-plane"></i> Send Login Details
+                                        </div>
+                                        <p style="font-size:12px;color:#777;margin-bottom:12px;">Select channel(s) to send to <strong id="loginDetailsCount">0</strong> student(s).</p>
+                                        <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#333;cursor:pointer;margin-bottom:10px;">
+                                            <input type="checkbox" id="chkSendSms" style="width:16px;height:16px;accent-color:#27ae60;cursor:pointer;">
+                                            <i class="fa fa-comment" style="color:#27ae60;"></i> Send SMS
+                                        </label>
+                                        <label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#333;cursor:pointer;margin-bottom:14px;">
+                                            <input type="checkbox" id="chkSendWa" style="width:16px;height:16px;accent-color:#25D366;cursor:pointer;">
+                                            <i class="fa fa-whatsapp" style="color:#25D366;"></i> Send WhatsApp
+                                        </label>
+                                        <button type="button" id="loginDetailsSendBtn" class="btn btn-primary btn-sm btn-block" disabled>
+                                            <i class="fa fa-paper-plane"></i> Send
+                                        </button>
+                                    </div>
+                                </div>
                             <?php } ?>
 
                             <?php if ($this->session->userdata('usertypeID') != 3) { ?>
@@ -421,7 +431,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
                                                 <th class="col-sm-1">Adm No</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
                                                 <th class="col-sm-2">Address</th>
@@ -429,7 +438,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th>Class</th>
                                                 <th>Section</th>
                                                 <th>RFID</th>
-                                                <th>Invoice</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>
@@ -458,9 +466,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
-                                                            <?php echo $student->srname; ?>
+                                                            <?php echo $student->srname; ?><?php if (!empty($student->srroll)) { echo ' (' . $student->srroll . ')'; } ?>
                                                         </td>
-                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:1px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
                                                         <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
@@ -486,11 +493,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
-                                                            <a href="<?php echo base_url('student/view/'). $student->srstudentID . '/' . $set.'/inv'?>"> invoice </a>
-                                                             
-
-                                                        </td>
 
                                                         <?php if (permissionChecker('student_edit')) { ?>
                                                             <td data-title="<?= $this->lang->line('student_status') ?>">
@@ -513,9 +515,12 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
                                                                 if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                                                                     echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
-                                                                        echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
-                                                                        
-                                                                        
+                                                                        // echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
+                                                                        ?>
+                                                                        <button class="btn btn-success btn-xs mrg btn-send-sms" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login SMS"><i class="fa fa-comment"></i></button>
+                                                                        <button class="btn btn-xs mrg btn-send-wa" style="background:#25D366;color:#fff;border-color:#128C7E;" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login WhatsApp"><i class="fa fa-whatsapp"></i></button>
+                                                                        <button class="btn btn-info btn-xs mrg btn-change-login" data-id="<?= $student->srstudentID ?>" data-username="<?= htmlspecialchars($student->username) ?>" data-name="<?= htmlspecialchars($student->srname) ?>" data-toggle="tooltip" data-placement="top" title="Change Login Details"><i class="fa fa-key"></i></button>
+                                                                        <?php
                                                                         if( $global_payment_permission){
                                                                         ?>
 
@@ -555,7 +560,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                     <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
                                                     <th class="col-sm-1">Adm No</th>
                                                     <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                    <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                     <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                     <th>WhatsApp</th>
                                                     <th class="col-sm-2">Address</th>
@@ -564,7 +568,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                      <th>Class</th>
                                                     <th>Section</th>
                                                     <th>RFID</th>
-                                                    <th>Invoice</th>
                                                     <?php if (permissionChecker('student_edit')) { ?>
                                                         <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                     <?php } ?>
@@ -596,9 +599,8 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
-                                                            <?php echo $student->srname; ?>
+                                                            <?php echo $student->srname; ?><?php if (!empty($student->srroll)) { echo ' (' . $student->srroll . ')'; } ?>
                                                         </td>
-                                                        <td id="rollNo" studentID="<?= $student->srstudentID ?>" classId="<?= $student->srclassesID ?>" sectionId="<?= $student->srsectionID ?>"   style="color:green;border:1px solid gray;" contenteditable="true" data-title="<?= $this->lang->line('student_roll') ?>"><?php echo $student->srroll; ?></td>
                                                         
                                                         <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <td>
@@ -624,11 +626,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
-                                                            <a href="<?php echo base_url('student/view/'). $student->srstudentID . '/' . $set.'/inv'?>"> invoice </a>
-                                                             
-
-                                                        </td>
 
                                                         <?php if (permissionChecker('student_edit')) { ?>
                                                             <td data-title="<?= $this->lang->line('student_status') ?>">
@@ -651,9 +648,14 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
                                                                 if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                                                                     echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
-                                                                        echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
+                                                                        // echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
+                                                                        ?>
+                                                                        <button class="btn btn-success btn-xs mrg btn-send-sms" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login SMS"><i class="fa fa-comment"></i></button>
+                                                                        <button class="btn btn-xs mrg btn-send-wa" style="background:#25D366;color:#fff;border-color:#128C7E;" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login WhatsApp"><i class="fa fa-whatsapp"></i></button>
+                                                                        <button class="btn btn-info btn-xs mrg btn-change-login" data-id="<?= $student->srstudentID ?>" data-username="<?= htmlspecialchars($student->username) ?>" data-name="<?= htmlspecialchars($student->srname) ?>" data-toggle="tooltip" data-placement="top" title="Change Login Details"><i class="fa fa-key"></i></button>
+                                                                        <?php
                                                                         if( $global_payment_permission){
-                                                                        
+
                                                                         ?>
 
                                                                         <!-- <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> -->
@@ -699,7 +701,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
                                                 <th class="col-sm-1">Adm No</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_roll') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
                                                 <th class="col-sm-2">Address</th>
@@ -707,7 +708,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                  <th>Class</th>
                                                 <th>Section</th>
                                                 <th>RFID</th>
-                                                <th>Invoice</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>
@@ -1235,66 +1235,52 @@ $(document).on('click', '.photo-zoom-icon', function(e){
     });
 
 
-    var status = '';
-    var id = 0;
-    $('.onoffswitch-small-checkbox').click(function() {
-        if ($(this).prop('checked')) {
-            status = 'chacked';
-            id = $(this).parent().attr("id");
-        } else {
-            status = 'unchacked';
-            id = $(this).parent().attr("id");
-        }
+    $(document).on('change', '.onoffswitch-small-checkbox', function() {
+        var checkbox    = $(this);
+        var isNowOn     = checkbox.prop('checked');   // state AFTER browser toggled it
+        var prevState   = !isNowOn;                   // state BEFORE
+        var newStatus   = isNowOn ? 'chacked' : 'unchacked';
+        var actionLabel = isNowOn ? 'Activate' : 'Deactivate';
+        var btnColor    = isNowOn ? '#0cc035'  : '#e53935';
+        var studentID   = checkbox.closest('.onoffswitch-small').attr('id');
 
-        if ((status != '' || status != null) && (id != '')) {
+        // Immediately revert the visual toggle — wait for user confirmation
+        // Note: .prop() does NOT re-trigger the 'change' event, so no infinite loop
+        checkbox.prop('checked', prevState);
+
+        Swal.fire({
+            title: actionLabel + ' Student?',
+            text: 'Are you sure you want to ' + actionLabel.toLowerCase() + ' this student?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: btnColor,
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, ' + actionLabel + '!',
+            cancelButtonText: 'Cancel'
+        }).then(function(result) {
+            if (!result.isConfirmed) return; // toggle stays reverted — no change
+
+            checkbox.prop('checked', isNowOn); // apply the intended new state
+
             $.ajax({
                 type: 'POST',
-                url: "<?= base_url('student/active') ?>",
-                data: "id=" + id + "&status=" + status,
-                dataType: "html",
+                url: '<?= base_url("student/active") ?>',
+                data: { id: studentID, status: newStatus },
+                dataType: 'html',
                 success: function(data) {
-                    if (data == 'Success') {
-                        toastr["success"]("Success")
-                        toastr.options = {
-                            "closeButton": true,
-                            "debug": false,
-                            "newestOnTop": false,
-                            "progressBar": false,
-                            "positionClass": "toast-top-right",
-                            "preventDuplicates": false,
-                            "onclick": null,
-                            "showDuration": "500",
-                            "hideDuration": "500",
-                            "timeOut": "5000",
-                            "extendedTimeOut": "1000",
-                            "showEasing": "swing",
-                            "hideEasing": "linear",
-                            "showMethod": "fadeIn",
-                            "hideMethod": "fadeOut"
-                        }
+                    if (data === 'Success') {
+                        toastr.success('Student ' + actionLabel.toLowerCase() + 'd successfully.');
                     } else {
-                        toastr["error"]("Error")
-                        toastr.options = {
-                            "closeButton": true,
-                            "debug": false,
-                            "newestOnTop": false,
-                            "progressBar": false,
-                            "positionClass": "toast-top-right",
-                            "preventDuplicates": false,
-                            "onclick": null,
-                            "showDuration": "500",
-                            "hideDuration": "500",
-                            "timeOut": "5000",
-                            "extendedTimeOut": "1000",
-                            "showEasing": "swing",
-                            "hideEasing": "linear",
-                            "showMethod": "fadeIn",
-                            "hideMethod": "fadeOut"
-                        }
+                        checkbox.prop('checked', prevState); // server rejected — revert
+                        toastr.error('Failed to update status. Please try again.');
                     }
+                },
+                error: function() {
+                    checkbox.prop('checked', prevState); // network error — revert
+                    toastr.error('Request failed. Please try again.');
                 }
             });
-        }
+        });
     });
 
 $(document).on("focusout","#rollNo",function(){
@@ -1713,10 +1699,10 @@ $('#quickStudentForm').on('submit', function(e) {
 </script>
 
 <script>
-// Bulk select / delete handlers
+// Bulk select / delete / sms / whatsapp handlers
 function updateDeleteBtn() {
     var anyChecked = $('.student-checkbox:checked').length > 0;
-    $('#bulkDeleteBtn').prop('disabled', !anyChecked);
+    $('#bulkDeleteBtn, #bulkLoginDetailsBtn').toggleClass('sbar-disabled', !anyChecked);
 }
 
 $(document).on('change', '#select_all_students', function() {
@@ -1736,17 +1722,211 @@ $(document).on('change', '.student-checkbox', function() {
 });
 
 function confirmMultiDelete() {
-    var ids = [];
-    $('.student-checkbox:checked').each(function() {
-        ids.push($(this).val());
-    });
-    if (!ids.length) {
-        alert('Please select at least one student to delete.');
+    if ($('#bulkDeleteBtn').hasClass('sbar-disabled')) {
+        Swal.fire({ icon: 'warning', title: 'No Student Selected', text: 'Please select at least one checkbox to proceed.', confirmButtonColor: '#e53935' });
         return;
     }
+    var ids = [];
+    $('.student-checkbox:checked').each(function() { ids.push($(this).val()); });
     if (!confirm('Are you sure you want to delete selected student(s)? This action cannot be undone.')) return;
-
     $('#multi_delete_ids').val(ids.join(','));
     $('#multiDeleteForm').submit();
 }
+
+// Per-row: Send Login SMS
+$(document).on('click', '.btn-send-sms', function() {
+    var id  = $(this).data('id');
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $.ajax({
+        type: 'POST',
+        url:  '<?= base_url("student/send_login_sms") ?>',
+        data: { id: id },
+        dataType: 'json',
+        success: function(res) {
+            if (res.status) { toastr.success(res.message); }
+            else            { toastr.error(res.message); }
+            btn.prop('disabled', false);
+        },
+        error: function() { toastr.error('SMS request failed.'); btn.prop('disabled', false); }
+    });
+});
+
+// Per-row: Send Login WhatsApp
+$(document).on('click', '.btn-send-wa', function() {
+    var id  = $(this).data('id');
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $.ajax({
+        type: 'POST',
+        url:  '<?= base_url("student/send_login_whatsapp") ?>',
+        data: { id: id },
+        dataType: 'json',
+        success: function(res) {
+            if (res.status) { toastr.success(res.message); }
+            else            { toastr.error(res.message); }
+            btn.prop('disabled', false);
+        },
+        error: function() { toastr.error('WhatsApp request failed.'); btn.prop('disabled', false); }
+    });
+});
+
+// Toggle the login details dropdown
+function toggleLoginDropdown(e) {
+    e.stopPropagation();
+    if ($('#bulkLoginDetailsBtn').hasClass('sbar-disabled')) {
+        Swal.fire({ icon: 'warning', title: 'No Student Selected', text: 'Please select at least one checkbox to proceed.', confirmButtonColor: '#1a73e8' });
+        return;
+    }
+    var dd = $('#loginDetailsDropdown');
+    if (dd.is(':visible')) {
+        dd.hide();
+        return;
+    }
+    var count = $('.student-checkbox:checked').length;
+    $('#loginDetailsCount').text(count);
+    $('#chkSendSms').prop('checked', false);
+    $('#chkSendWa').prop('checked', false);
+    $('#loginDetailsSendBtn').prop('disabled', true);
+    dd.show();
+}
+
+// Close dropdown when clicking outside
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('#loginDetailsDropdown, #bulkLoginDetailsBtn').length) {
+        $('#loginDetailsDropdown').hide();
+    }
+});
+
+// Enable Send button when at least one channel checked
+$(document).on('change', '#chkSendSms, #chkSendWa', function() {
+    var any = $('#chkSendSms').is(':checked') || $('#chkSendWa').is(':checked');
+    $('#loginDetailsSendBtn').prop('disabled', !any);
+});
+
+// Send button click
+$(document).on('click', '#loginDetailsSendBtn', function() {
+    var ids = [];
+    $('.student-checkbox:checked').each(function() { ids.push($(this).val()); });
+    var sendSms = $('#chkSendSms').is(':checked');
+    var sendWa  = $('#chkSendWa').is(':checked');
+    if (!ids.length || (!sendSms && !sendWa)) return;
+
+    var btn = $(this);
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Sending...');
+    $('#loginDetailsDropdown').hide();
+
+    var requests = [];
+    if (sendSms) {
+        requests.push($.ajax({ type:'POST', url:'<?= base_url("student/send_bulk_login_sms") ?>', data:{ids:ids.join(',')}, dataType:'json' }));
+    }
+    if (sendWa) {
+        requests.push($.ajax({ type:'POST', url:'<?= base_url("student/send_bulk_login_whatsapp") ?>', data:{ids:ids.join(',')}, dataType:'json' }));
+    }
+
+    $.when.apply($, requests).done(function() {
+        var results = requests.length === 1 ? [arguments] : Array.from(arguments);
+        results.forEach(function(r) {
+            var res = r[0];
+            if (res && res.status) { toastr.success(res.message); }
+            else if (res)          { toastr.error(res.message); }
+        });
+        btn.prop('disabled', false).html('<i class="fa fa-paper-plane"></i> Send');
+    }).fail(function() {
+        toastr.error('Request failed. Please try again.');
+        btn.prop('disabled', false).html('<i class="fa fa-paper-plane"></i> Send');
+    });
+});
+
+// Move modal to body to avoid overflow/z-index clipping by parent containers
+$(function() { $('body').append($('#changeLoginModal').detach()); });
+
+// Change Login Details — open modal
+$(document).on('click', '.btn-change-login', function() {
+    var id       = $(this).data('id');
+    var username = $(this).data('username');
+    var name     = $(this).data('name');
+    $('#clStudentID').val(id);
+    $('#clStudentName').text(name);
+    $('#clUsername').val(username);
+    $('#clPassword').val('');
+    $('#clPasswordConfirm').val('');
+    $('#clError').hide().text('');
+    $('#changeLoginModal').modal('show');
+});
+
+// Save login details via AJAX
+$(document).on('click', '#changeLoginSaveBtn', function() {
+    var id   = $('#clStudentID').val();
+    var user = $.trim($('#clUsername').val());
+    var pass = $.trim($('#clPassword').val());
+    var conf = $.trim($('#clPasswordConfirm').val());
+
+    if (!user) { $('#clError').text('Username is required.').show(); return; }
+    if (pass && pass !== conf) { $('#clError').text('Passwords do not match.').show(); return; }
+
+    $('#clError').hide();
+    var btn = $(this);
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+    $.ajax({
+        type: 'POST',
+        url:  '<?= base_url("student/update_login_details") ?>',
+        data: { studentID: id, username: user, password: pass },
+        dataType: 'json',
+        success: function(res) {
+            if (res.status) {
+                toastr.success(res.message);
+                $('#changeLoginModal').modal('hide');
+                $('.btn-change-login[data-id="' + id + '"]').data('username', user);
+            } else {
+                $('#clError').text(res.message).show();
+            }
+            btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save');
+        },
+        error: function() {
+            $('#clError').text('Request failed. Please try again.').show();
+            btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save');
+        }
+    });
+});
 </script>
+
+<!-- Change Login Details Modal -->
+<div class="modal fade" id="changeLoginModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="max-width:380px;margin-top:120px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#17a2b8;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
+                <h4 class="modal-title" style="font-size:15px;font-weight:700;">
+                    <i class="fa fa-key"></i> Change Login Details
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:20px 24px;">
+                <p style="font-size:13px;color:#555;margin-bottom:16px;">
+                    Student: <strong id="clStudentName"></strong>
+                </p>
+                <input type="hidden" id="clStudentID">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Username</label>
+                    <input type="text" id="clUsername" class="form-control" placeholder="Enter username" style="border-radius:6px;">
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">New Password <small style="color:#aaa;font-weight:400;">(leave blank to keep current)</small></label>
+                    <input type="password" id="clPassword" class="form-control" placeholder="New password" style="border-radius:6px;">
+                </div>
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Confirm Password</label>
+                    <input type="password" id="clPasswordConfirm" class="form-control" placeholder="Confirm new password" style="border-radius:6px;">
+                </div>
+                <div id="clError" style="display:none;color:#e53935;font-size:12px;margin-top:8px;"></div>
+            </div>
+            <div class="modal-footer" style="padding:12px 20px;background:#f8f9fa;">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" id="changeLoginSaveBtn" class="btn btn-info btn-sm">
+                    <i class="fa fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

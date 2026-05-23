@@ -51,6 +51,7 @@
 
         <link rel="stylesheet" href="<?php echo base_url('assets/inilabs/combined.css'); ?>" >
         <link rel="stylesheet" href="<?php echo base_url('assets/ajaxloder/ajaxloder.css'); ?>" >
+        <link rel="stylesheet" href="<?php echo base_url(CUSTOM_CSS.'?v=').CSSVERSION; ?>" >
 
         <style>
       

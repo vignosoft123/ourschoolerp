@@ -544,5 +544,25 @@
         "query": "ALTER TABLE `student` ADD `refered_by` INT NULL DEFAULT NULL",
         "type": "alter",
         "check_column": { "table": "student", "column": "refered_by" }
+    },
+    {
+        "query": "INSERT INTO `whatapp_templates` (`template_name`, `usertypeID`, `type`, `template`, `params`, `short_name`) VALUES ('student_registration', 3, 'whats app', 'Dear {{1}}, welcome to {{2}}. Your login details: Username: {{3}}, Password: {{4}}, Login URL: {{5}}. Please keep these credentials safe.', '{{student_name}},{{school_name}},{{username}},{{password}},{{url}}', 'STUDENT_REGISTRATION')",
+        "type": "insert",
+        "check_row": { "table": "whatapp_templates", "where": { "short_name": "STUDENT_REGISTRATION" } }
+    },
+    {
+        "query": "INSERT INTO `mailandsmstemplatetag` (`usertypeID`, `tagname`) VALUES (3, '{{url}}')",
+        "type": "insert",
+        "check_row": { "table": "mailandsmstemplatetag", "where": { "usertypeID": 3, "tagname": "{{url}}" } }
+    },
+    {
+        "query": "INSERT INTO `mailandsmstemplatetag` (`usertypeID`, `tagname`) VALUES (3, '{{username}}')",
+        "type": "insert",
+        "check_row": { "table": "mailandsmstemplatetag", "where": { "usertypeID": 3, "tagname": "{{username}}" } }
+    },
+    {
+        "query": "INSERT INTO `mailandsmstemplatetag` (`usertypeID`, `tagname`) VALUES (3, '{{password}}')",
+        "type": "insert",
+        "check_row": { "table": "mailandsmstemplatetag", "where": { "usertypeID": 3, "tagname": "{{password}}" } }
     }
 ]

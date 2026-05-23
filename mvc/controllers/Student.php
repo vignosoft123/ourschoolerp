@@ -1110,11 +1110,32 @@ class Student extends Admin_Controller
 
 
 					$this->load->model("mailandsmstemplate_m");
-					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
+					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
 					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
 					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
 
-					//code for auto invoice generation 
+					// WhatsApp: send login credentials to student/parent
+					$smsSent = !empty($status['check']);
+					$waSent  = null;
+					$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
+					if ($waTemplate && customCompute($singlestudent)) {
+						$this->load->model('Whatsapp_m');
+						$setting = $this->Setting_m->get_setting();
+						$school_name = !empty($setting->sname) ? $setting->sname : '';
+						$website     = !empty($setting->website) ? $setting->website : '';
+						$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
+						$params = implode(',', [
+							$singlestudent->name,
+							$school_name,
+							$singlestudent->username,
+							$singlestudent->phone,
+							$website,
+						]);
+						$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+						$waSent   = ($waResult !== false);
+					}
+
+					//code for auto invoice generation
 					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
 
 					// echo $is_auto_invoice['value'] ; die;
@@ -1538,7 +1559,11 @@ class Student extends Admin_Controller
 
 				}
 					
-					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+					$flashMsg  = 'Student Registered Successfully.';
+					$flashMsg .= $smsSent         ? ' SMS Sent Successfully.'      : ' SMS Sending Failed.';
+					if ($waSent === true)          { $flashMsg .= ' WhatsApp Sent Successfully.'; }
+					elseif ($waSent === false)     { $flashMsg .= ' WhatsApp Sending Failed.'; }
+					$this->session->set_flashdata('success', $flashMsg);
 					redirect(base_url("student/index"));
 				}
 			}
@@ -1871,11 +1896,32 @@ class Student extends Admin_Controller
 
 
 					$this->load->model("mailandsmstemplate_m");
-					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
+					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
 					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
 					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
 
-					//code for auto invoice generation 
+					// WhatsApp: send login credentials to student/parent
+					$smsSent = !empty($status['check']);
+					$waSent  = null;
+					$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
+					if ($waTemplate && customCompute($singlestudent)) {
+						$this->load->model('Whatsapp_m');
+						$setting = $this->Setting_m->get_setting();
+						$school_name = !empty($setting->sname) ? $setting->sname : '';
+						$website     = !empty($setting->website) ? $setting->website : '';
+						$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
+						$params = implode(',', [
+							$singlestudent->name,
+							$school_name,
+							$singlestudent->username,
+							$singlestudent->phone,
+							$website,
+						]);
+						$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+						$waSent   = ($waResult !== false);
+					}
+
+					//code for auto invoice generation
 					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
 
 					// echo $is_auto_invoice['value'] ; die;
@@ -2299,7 +2345,11 @@ class Student extends Admin_Controller
 
 				}
 					
-					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+					$flashMsg  = 'Student Registered Successfully.';
+					$flashMsg .= $smsSent         ? ' SMS Sent Successfully.'      : ' SMS Sending Failed.';
+					if ($waSent === true)          { $flashMsg .= ' WhatsApp Sent Successfully.'; }
+					elseif ($waSent === false)     { $flashMsg .= ' WhatsApp Sending Failed.'; }
+					$this->session->set_flashdata('success', $flashMsg);
 					redirect(base_url("student/admission_slip/$studentID"));
 				}
 			} else {
@@ -2982,6 +3032,151 @@ class Student extends Admin_Controller
 		}
 	}
 
+	public function update_login_details()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$studentID = (int)$this->input->post('studentID');
+		$username  = trim($this->input->post('username'));
+		$password  = trim($this->input->post('password'));
+
+		if (!$studentID || !$username) {
+			echo json_encode(['status' => false, 'message' => 'Username is required']); return;
+		}
+
+		// Check username not already taken by another student
+		$existing = $this->db->where('username', $username)->where('studentID !=', $studentID)->get('student')->row();
+		if ($existing) {
+			echo json_encode(['status' => false, 'message' => 'Username already in use by another student']); return;
+		}
+
+		$update = ['username' => $username];
+		if (!empty($password)) {
+			$update['password'] = $this->student_m->hash($password);
+		}
+
+		$this->student_m->update_student($update, $studentID);
+		echo json_encode(['status' => true, 'message' => 'Login details updated successfully']);
+	}
+
+	public function send_login_sms()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$id = (int)$this->input->post('id');
+		if (!$id) {
+			echo json_encode(['status' => false, 'message' => 'Invalid student ID']); return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+		if (!customCompute($student)) {
+			echo json_encode(['status' => false, 'message' => 'Student not found']); return;
+		}
+		$this->load->model('mailandsmstemplate_m');
+		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
+		$status = $this->userConfigSMS($template->template, $student, 3, 'msg91');
+		if (!empty($status['check'])) {
+			echo json_encode(['status' => true,  'message' => 'SMS sent to ' . $student->name]);
+		} else {
+			echo json_encode(['status' => false, 'message' => 'SMS failed for ' . $student->name]);
+		}
+	}
+
+	public function send_login_whatsapp()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$id = (int)$this->input->post('id');
+		if (!$id) {
+			echo json_encode(['status' => false, 'message' => 'Invalid student ID']); return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+		if (!customCompute($student)) {
+			echo json_encode(['status' => false, 'message' => 'Student not found']); return;
+		}
+		$waTemplate = $this->db->get_where('whatapp_templates', ['short_name' => 'STUDENT_REGISTRATION'])->row();
+		if (!$waTemplate) {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp template not configured']); return;
+		}
+		$this->load->model('Whatsapp_m');
+		$setting     = $this->Setting_m->get_setting();
+		$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+		$website     = !empty($setting->website) ? $setting->website : '';
+		$waPhone     = !empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone;
+		$params      = implode(',', [$student->name, $school_name, $student->username, $student->phone, $website]);
+		$waResult    = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+		if ($waResult !== false) {
+			echo json_encode(['status' => true,  'message' => 'WhatsApp sent to ' . $student->name]);
+		} else {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp failed for ' . $student->name]);
+		}
+	}
+
+	public function send_bulk_login_sms()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
+		if (!$ids) {
+			echo json_encode(['status' => false, 'message' => 'No students selected']); return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$this->load->model('mailandsmstemplate_m');
+		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
+		$sent = 0; $failed = 0;
+		foreach ($ids as $id) {
+			$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+			if (!customCompute($student)) { $failed++; continue; }
+			$status = $this->userConfigSMS($template->template, $student, 3, 'msg91');
+			!empty($status['check']) ? $sent++ : $failed++;
+		}
+		$msg = 'SMS sent: ' . $sent;
+		if ($failed) $msg .= ', Failed: ' . $failed;
+		echo json_encode(['status' => true, 'message' => $msg]);
+	}
+
+	public function send_bulk_login_whatsapp()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
+		if (!$ids) {
+			echo json_encode(['status' => false, 'message' => 'No students selected']); return;
+		}
+		$waTemplate = $this->db->get_where('whatapp_templates', ['short_name' => 'STUDENT_REGISTRATION'])->row();
+		if (!$waTemplate) {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp template not configured']); return;
+		}
+		$this->load->model('Whatsapp_m');
+		$setting     = $this->Setting_m->get_setting();
+		$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+		$website     = !empty($setting->website) ? $setting->website : '';
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$sent = 0; $failed = 0;
+		foreach ($ids as $id) {
+			$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+			if (!customCompute($student)) { $failed++; continue; }
+			$waPhone = !empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone;
+			$params  = implode(',', [$student->name, $school_name, $student->username, $student->phone, $website]);
+			$result  = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+			$result !== false ? $sent++ : $failed++;
+		}
+		$msg = 'WhatsApp sent: ' . $sent;
+		if ($failed) $msg .= ', Failed: ' . $failed;
+		echo json_encode(['status' => true, 'message' => $msg]);
+	}
+
 	public function unique_roll()
 	{
 		$id = htmlentities(escapeString($this->uri->segment(3)));
@@ -3570,11 +3765,8 @@ class Student extends Admin_Controller
 						$message = str_replace("{{username}}", ' ', $message);
 					}
 				} elseif ($userTag->tagname == '{{password}}') {
-					if ($user->username) {
-						$message = str_replace("{{password}}", "123456", $message);
-					} else {
-						$message = str_replace("{{password}}", ' ', $message);
-					}
+					$pass = !empty($user->phone) ? $user->phone : '';
+					$message = str_replace("{{password}}", $pass, $message);
 				}
 			}
 		}

@@ -89,13 +89,11 @@
                                     </td>
                                     <?php } ?>
                                     <?php if(permissionChecker('teacher_edit') || permissionChecker('teacher_delete') || permissionChecker('teacher_view')) { ?>
-                                    <td data-title="<?=$this->lang->line('action')?>">
-                                        <?php 
-                                            echo btn_view('teacher/view/'.$teacher->teacherID, $this->lang->line('view')); 
-                                            
-                                            echo btn_edit('teacher/edit/'.$teacher->teacherID, $this->lang->line('edit')); 
-                                            echo btn_delete('teacher/delete/'.$teacher->teacherID, $this->lang->line('delete')); 
-                                            
+                                    <td class="action-btns" data-title="<?=$this->lang->line('action')?>">
+                                        <?php
+                                            echo btn_view('teacher/view/'.$teacher->teacherID, $this->lang->line('view'));
+                                            echo btn_edit('teacher/edit/'.$teacher->teacherID, $this->lang->line('edit'));
+                                            echo btn_delete('teacher/delete/'.$teacher->teacherID, $this->lang->line('delete'));
                                         ?>
                                     </td>
                                     <?php } ?>

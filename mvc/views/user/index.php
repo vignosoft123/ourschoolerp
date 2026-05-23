@@ -89,7 +89,7 @@
                                     </td>
                                     <?php } ?>
                                     <?php if(permissionChecker('user_edit') || permissionChecker('user_delete') || permissionChecker('user_view')) { ?>
-                                    <td class="text-center" data-title="<?=$this->lang->line('action')?>">
+                                    <td class="action-btns" data-title="<?=$this->lang->line('action')?>">
                                         <?php echo btn_view('user/view/'.$user->userID, $this->lang->line('view')) ?>
                                         <?php echo btn_edit('user/edit/'.$user->userID, $this->lang->line('edit')) ?>
                                         <?php echo btn_delete('user/delete/'.$user->userID, $this->lang->line('delete')) ?>
