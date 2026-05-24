@@ -23,6 +23,9 @@ class Student extends Admin_Controller
 
 	function __construct()
 	{
+		// PHP 8.x outputs E_DEPRECATED/E_NOTICE/E_WARNING as HTML before redirect() fires.
+		// Suppress soft errors so CI's error handler stays silent; fatal errors still reported.
+		error_reporting(error_reporting() & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
 		parent::__construct();
 		$this->load->model("student_m");
 		$this->load->model("parents_m");
@@ -3517,7 +3520,7 @@ class Student extends Admin_Controller
 		$this->load->model('mailandsmstemplatetag_m');
 		$template_id = 0;
 		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); //login details
-		$template_id = $template->templ_id;
+		$template_id = ($template && isset($template->templ_id)) ? (int)$template->templ_id : 0;
 		if ($user && $usertypeID) {
 			$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => $usertypeID));
 
@@ -3584,9 +3587,9 @@ class Student extends Admin_Controller
 		} elseif ($getway == 'msg91') {
 			if ($to) {
 				 
-				$obj = $this->msg91->send($to, $message, $template_id); 
-				$campid = explode(":",$obj); 
-				 $campid = rtrim($campid[1],'}"');
+				$obj = $this->msg91->send($to, $message, $template_id);
+				$campid = explode(":",(string)$obj);
+				 $campid = rtrim($campid[1] ?? '','}"');
 				 $campid = trim($campid,"'");
 				
 				if ($campid) {
