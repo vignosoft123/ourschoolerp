@@ -12,13 +12,14 @@ class Whatsapp_m extends MY_Model {
         $this->load->model('mailandsmstemplatetag_m');
         $msg91_bind = [];
         $get_msg91s = $this->smssettings_m->get_order_by_whatsapp();
-        foreach ( $get_msg91s as $key => $get_msg91 ) {
-            $msg91_bind[ $get_msg91->field_names ] = $get_msg91->field_values;
+        if ($get_msg91s) {
+            foreach ( $get_msg91s as $key => $get_msg91 ) {
+                $msg91_bind[ $get_msg91->field_names ] = $get_msg91->field_values;
+            }
         }
-        // $this->authKey  = "8c79d04588b945d2083b";//$msg91_bind['msg91_authKey'];
-        $this->senderID = $msg91_bind['whatsapp_sender'];
-        $this->username = $msg91_bind['whatsapp_user'];
-        $this->password = $msg91_bind['whatsapp_password']; 
+        $this->senderID = $msg91_bind['whatsapp_sender'] ?? '';
+        $this->username = $msg91_bind['whatsapp_user'] ?? '';
+        $this->password = $msg91_bind['whatsapp_password'] ?? '';
     }
 
 	  

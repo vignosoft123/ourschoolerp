@@ -1119,30 +1119,35 @@ class Student extends Admin_Controller
 
 
 
-					$this->load->model("mailandsmstemplate_m");
-					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
-					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
-					$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91') : array();
-
-					// WhatsApp: send login credentials to student/parent
-					$smsSent = !empty($status['check']);
+					$smsSent = false;
 					$waSent  = null;
-					$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
-					if ($waTemplate && customCompute($singlestudent)) {
-						$this->load->model('Whatsapp_m');
-						$setting = $this->Setting_m->get_setting();
-						$school_name = !empty($setting->sname) ? $setting->sname : '';
-						$website     = !empty($setting->website) ? $setting->website : '';
-						$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
-						$params = implode(',', [
-							$singlestudent->name,
-							$school_name,
-							$singlestudent->username,
-							$singlestudent->phone,
-							$website,
-						]);
-						$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
-						$waSent   = ($waResult !== false);
+					try {
+						$template      = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
+						$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+						if ($template && !empty($template->template) && customCompute($singlestudent)) {
+							$status  = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+							$smsSent = !empty($status['check']);
+						}
+
+						// WhatsApp: send login credentials to student/parent
+						$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
+						if ($waTemplate && customCompute($singlestudent)) {
+							$setting     = $this->Setting_m->get_setting();
+							$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+							$website     = !empty($setting->website) ? $setting->website : '';
+							$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
+							$params      = implode(',', [
+								$singlestudent->name,
+								$school_name,
+								$singlestudent->username,
+								$singlestudent->phone,
+								$website,
+							]);
+							$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+							$waSent   = ($waResult !== false);
+						}
+					} catch (Throwable $e) {
+						log_message('error', 'Student registration SMS/WA error: ' . $e->getMessage());
 					}
 
 					//code for auto invoice generation
@@ -1908,30 +1913,35 @@ class Student extends Admin_Controller
 
 
 
-					$this->load->model("mailandsmstemplate_m");
-					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
-					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
-					$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91') : array();
-
-					// WhatsApp: send login credentials to student/parent
-					$smsSent = !empty($status['check']);
+					$smsSent = false;
 					$waSent  = null;
-					$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
-					if ($waTemplate && customCompute($singlestudent)) {
-						$this->load->model('Whatsapp_m');
-						$setting = $this->Setting_m->get_setting();
-						$school_name = !empty($setting->sname) ? $setting->sname : '';
-						$website     = !empty($setting->website) ? $setting->website : '';
-						$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
-						$params = implode(',', [
-							$singlestudent->name,
-							$school_name,
-							$singlestudent->username,
-							$singlestudent->phone,
-							$website,
-						]);
-						$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
-						$waSent   = ($waResult !== false);
+					try {
+						$template      = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
+						$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+						if ($template && !empty($template->template) && customCompute($singlestudent)) {
+							$status  = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+							$smsSent = !empty($status['check']);
+						}
+
+						// WhatsApp: send login credentials to student/parent
+						$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
+						if ($waTemplate && customCompute($singlestudent)) {
+							$setting     = $this->Setting_m->get_setting();
+							$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+							$website     = !empty($setting->website) ? $setting->website : '';
+							$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
+							$params      = implode(',', [
+								$singlestudent->name,
+								$school_name,
+								$singlestudent->username,
+								$singlestudent->phone,
+								$website,
+							]);
+							$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+							$waSent   = ($waResult !== false);
+						}
+					} catch (Throwable $e) {
+						log_message('error', 'Student registration SMS/WA error: ' . $e->getMessage());
 					}
 
 					//code for auto invoice generation
