@@ -9,7 +9,7 @@
             $val = mysql_real_escape_string($val);
         } elseif ( $driver == 'mysqli' ) {
             $db  = get_instance()->db->conn_id;
-            $val = mysqli_real_escape_string($db, $val);
+            $val = mysqli_real_escape_string($db, (string)($val ?? ''));
         }
 
         return $val;

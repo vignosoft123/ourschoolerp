@@ -15,6 +15,12 @@ class Student extends Admin_Controller
 | WEBSITE:			http://inilabs.net
 | -----------------------------------------------------
 */
+	public $upload_data = [];
+	public $mailandsmstemplate_m;
+	public $mailandsmstemplatetag_m;
+	public $mailandsms_m;
+	public $Whatsapp_m;
+
 	function __construct()
 	{
 		parent::__construct();
@@ -58,6 +64,10 @@ class Student extends Admin_Controller
         $this->load->model('payment_gateway_m');
         $this->load->model('payment_gateway_option_m');
         $this->load->model('studentsiblings_m');
+        $this->load->model('mailandsmstemplate_m');
+        $this->load->model('mailandsmstemplatetag_m');
+        $this->load->model('mailandsms_m');
+        $this->load->model('Whatsapp_m');
 
 
 		$language = $this->session->userdata('lang');
@@ -1112,7 +1122,7 @@ class Student extends Admin_Controller
 					$this->load->model("mailandsmstemplate_m");
 					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
 					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
-					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+					$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91') : array();
 
 					// WhatsApp: send login credentials to student/parent
 					$smsSent = !empty($status['check']);
@@ -1614,6 +1624,7 @@ class Student extends Admin_Controller
 
 	public function add()
 	{
+
 		// echo "<pre>";print_r($_POST);die;
 		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
 			$this->data['headerassets'] = array(
@@ -1675,6 +1686,8 @@ class Student extends Admin_Controller
 			$this->data['optionalSubjectID'] = 0;
 
 			if ($_POST) {
+					// ini_set('display_errors', 1);
+					// error_reporting(E_ALL);
 				if(!empty($this->input->post("village_name"))){
 					$village_name = $this->db->query('select villageName from villages where villageID='.$this->input->post("village_name"))->row()->villageName;
 				}
@@ -1898,7 +1911,7 @@ class Student extends Admin_Controller
 					$this->load->model("mailandsmstemplate_m");
 					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
 					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
-					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+					$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91') : array();
 
 					// WhatsApp: send login credentials to student/parent
 					$smsSent = !empty($status['check']);
@@ -3078,7 +3091,7 @@ class Student extends Admin_Controller
 		}
 		$this->load->model('mailandsmstemplate_m');
 		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
-		$status = $this->userConfigSMS($template->template, $student, 3, 'msg91');
+		$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $student, 3, 'msg91') : array();
 		if (!empty($status['check'])) {
 			echo json_encode(['status' => true,  'message' => 'SMS sent to ' . $student->name]);
 		} else {
@@ -3136,7 +3149,7 @@ class Student extends Admin_Controller
 		foreach ($ids as $id) {
 			$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
 			if (!customCompute($student)) { $failed++; continue; }
-			$status = $this->userConfigSMS($template->template, $student, 3, 'msg91');
+			$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $student, 3, 'msg91') : array();
 			!empty($status['check']) ? $sent++ : $failed++;
 		}
 		$msg = 'SMS sent: ' . $sent;

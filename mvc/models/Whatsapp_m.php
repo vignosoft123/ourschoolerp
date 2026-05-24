@@ -2,6 +2,9 @@
 
 class Whatsapp_m extends MY_Model {
 
+    public $senderID = '';
+    public $username = '';
+    public $password = '';
 
     public function __construct()
     {  
