@@ -107,12 +107,12 @@
 /* ── Tables ──────────────────────────────────────────────────────────── */
 .gp-table { font-size: 13px; margin-bottom: 0; }
 .gp-table thead th {
-    background: #f1f5f9;
-    color: #374151;
+    /* background: #e2e8f0; */
+    color: #000000 !important;
     font-size: 12px;
     font-weight: 700;
     padding: 9px 10px;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #cbd5e0 !important;
     white-space: nowrap;
 }
 .gp-table tbody tr:hover { background: #fafbff; }

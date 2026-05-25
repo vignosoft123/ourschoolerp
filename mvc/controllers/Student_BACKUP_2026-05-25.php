@@ -1,4 +1,4 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+﻿<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 class Student extends Admin_Controller
 {
@@ -15,8 +15,17 @@ class Student extends Admin_Controller
 | WEBSITE:			http://inilabs.net
 | -----------------------------------------------------
 */
+	public $upload_data = [];
+	public $mailandsmstemplate_m;
+	public $mailandsmstemplatetag_m;
+	public $mailandsms_m;
+	public $Whatsapp_m;
+
 	function __construct()
 	{
+		// PHP 8.x outputs E_DEPRECATED/E_NOTICE/E_WARNING as HTML before redirect() fires.
+		// Suppress soft errors so CI's error handler stays silent; fatal errors still reported.
+		error_reporting(error_reporting() & ~E_DEPRECATED & ~E_NOTICE & ~E_WARNING);
 		parent::__construct();
 		$this->load->model("student_m");
 		$this->load->model("parents_m");
@@ -58,6 +67,10 @@ class Student extends Admin_Controller
         $this->load->model('payment_gateway_m');
         $this->load->model('payment_gateway_option_m');
         $this->load->model('studentsiblings_m');
+        $this->load->model('mailandsmstemplate_m');
+        $this->load->model('mailandsmstemplatetag_m');
+        $this->load->model('mailandsms_m');
+        $this->load->model('Whatsapp_m');
 
 
 		$language = $this->session->userdata('lang');
@@ -1109,12 +1122,38 @@ class Student extends Admin_Controller
 
 
 
-					$this->load->model("mailandsmstemplate_m");
-					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
-					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
-					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+					$smsSent = false;
+					$waSent  = null;
+					try {
+						$template      = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); // login credentials
+						$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+						if ($template && !empty($template->template) && customCompute($singlestudent)) {
+							$status  = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+							$smsSent = !empty($status['check']);
+						}
 
-					//code for auto invoice generation 
+						// WhatsApp: send login credentials to student/parent
+						$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
+						if ($waTemplate && customCompute($singlestudent)) {
+							$setting     = $this->Setting_m->get_setting();
+							$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+							$website     = !empty($setting->website) ? $setting->website : '';
+							$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
+							$params      = implode(',', [
+								$singlestudent->name,
+								$school_name,
+								$singlestudent->username,
+								$singlestudent->phone,
+								$website,
+							]);
+							$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+							$waSent   = ($waResult !== false);
+						}
+					} catch (Throwable $e) {
+						log_message('error', 'Student registration SMS/WA error: ' . $e->getMessage());
+					}
+
+					//code for auto invoice generation
 					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
 
 					// echo $is_auto_invoice['value'] ; die;
@@ -1138,7 +1177,7 @@ class Student extends Admin_Controller
 						$h_amount = $p_res['hbalance'];
 					}
 
-					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' ")->row_array();
+					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' OR `feetypes` LIKE '%COLLEGE FEE%' ")->row_array();
 					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
 					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
 					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
@@ -1538,7 +1577,11 @@ class Student extends Admin_Controller
 
 				}
 					
-					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+					$flashMsg  = 'Student Registered Successfully.';
+					$flashMsg .= $smsSent         ? ' SMS Sent Successfully.'      : ' SMS Sending Failed.';
+					if ($waSent === true)          { $flashMsg .= ' WhatsApp Sent Successfully.'; }
+					elseif ($waSent === false)     { $flashMsg .= ' WhatsApp Sending Failed.'; }
+					$this->session->set_flashdata('success', $flashMsg);
 					redirect(base_url("student/index"));
 				}
 			}
@@ -1870,10 +1913,11 @@ class Student extends Admin_Controller
 
 
 
-					$this->load->model("mailandsmstemplate_m");
-					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
-					$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
-					$status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+					// SMS temporarily disabled — re-enable via add_bkp() when ready
+					// $this->load->model("mailandsmstemplate_m");
+					// $template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
+					// $singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+					// $status = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
 
 					//code for auto invoice generation 
 					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
@@ -2300,6 +2344,754 @@ class Student extends Admin_Controller
 				}
 					
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+					redirect(base_url("student/admission_slip/$studentID"));
+				}
+			} else {
+				$this->data["subview"] = "student/add";
+				$this->load->view('_layout_main', $this->data);
+			}
+		} else {
+			$this->data["subview"] = "error";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
+	public function add_bkp()
+	{
+
+		// echo "<pre>";print_r($_POST);die;
+		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
+			$this->data['headerassets'] = array(
+				'css' => array(
+					'assets/datepicker/datepicker.css',
+					'assets/select2/css/select2.css',
+					'assets/select2/css/select2-bootstrap.css'
+				),
+				'js' => array(
+					'assets/datepicker/datepicker.js',
+					'assets/select2/select2.js'
+				)
+			);
+
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			$this->data['classes'] = $this->classes_m->get_classes();
+			$this->data['sections'] = $this->section_m->general_get_section();
+			$this->data['parents'] = $this->parents_m->get_parents();
+			$this->data['studentgroups'] = $this->studentgroup_m->get_studentgroup();
+			$this->data['villages'] = $this->village_m->get_active_villages();
+			$settings = $this->Setting_m->get_setting();
+			$this->data['randomAdmissionCode'] = $this->getAdmissonNumber($settings);
+			$this->data['transports'] = $this->transport_m->get_transport();
+			$this->data["hostels"] = $this->hostel_m->get_hostel();
+			$teachers = $this->teacher_m->get_teacher();
+			$users = $this->user_m->get_user();
+			$combined_teachers = [];
+			if(customCompute($teachers)) {
+				foreach ($teachers as $teacher) {
+					$combined_teachers['teacher-' . $teacher->teacherID] = $teacher->name . " [Teacher]";
+				}
+			}
+			if(customCompute($users)) {
+				foreach ($users as $user) {
+					$combined_teachers['user-' . $user->userID] = $user->name . " [User]";
+				}
+			}
+			$this->data['teachers'] = $combined_teachers;
+
+			
+
+			if ($this->input->post("hostelID") > 0) {
+				$this->data['categorys'] = $this->category_m->get_order_by_category(array("hostelID" => $this->input->post("hostelID")));
+			} else {
+				$this->data['categorys'] = [];
+			}
+
+			$classesID = $this->input->post("classesID");
+
+			if ($classesID > 0) {
+				$this->data['sections'] = $this->section_m->general_get_order_by_section(array("classesID" => $classesID));
+				$this->data['optionalSubjects'] = $this->subject_m->general_get_order_by_subject(array("classesID" => $classesID, 'type' => 0));
+			} else {
+				$this->data['sections'] = [];
+				$this->data['optionalSubjects'] = [];
+			}
+
+			$this->data['sectionID'] = $this->input->post("sectionID");
+			$this->data['optionalSubjectID'] = 0;
+
+			if ($_POST) {
+					// ini_set('display_errors', 1);
+					// error_reporting(E_ALL);
+				if(!empty($this->input->post("village_name"))){
+					$village_name = $this->db->query('select villageName from villages where villageID='.$this->input->post("village_name"))->row()->villageName;
+				}
+				
+				$rules = $this->rules();
+				$this->form_validation->set_rules($rules);
+				if ($this->input->post('studentType') == 1) {
+					$transportRules = $this->transportRules();
+					$this->form_validation->set_rules($transportRules);
+				}
+
+				if ($this->input->post('studentType') == 2) {
+					$hostelRules = $this->hostelRules();
+					$this->form_validation->set_rules($hostelRules);
+				}
+
+
+				if ($this->form_validation->run() == FALSE) {
+					$this->data["subview"] = "student/add";
+					$this->load->view('_layout_main', $this->data);
+				} else {
+
+					$sectionID = $this->input->post("sectionID");
+					if ($sectionID == 0) {
+						$this->data['sectionID'] = 0;
+					} else {
+						$this->data['sections'] = $this->section_m->general_get_order_by_section(array('classesID' => $classesID));
+						$this->data['sectionID'] = $this->input->post("sectionID");
+					}
+
+					if ($this->input->post('optionalSubjectID')) {
+						$this->data['optionalSubjectID'] = $this->input->post('optionalSubjectID');
+					} else {
+						$this->data['optionalSubjectID'] = 0;
+					}
+
+					$array["remarks"] = $this->input->post("remarks");
+					$array["first_name"] = $this->input->post("first_name");
+					$array["last_name"] = $this->input->post("last_name");
+					$array["name"] = $this->input->post("name");
+					$array["sex"] = $this->input->post("sex");
+					$array["religion"] = $this->input->post("religion");
+					$array["email"] = $this->input->post("email");
+					$array["phone"] = $this->input->post("phone");
+					$array["address"] = $this->input->post("address");
+					$array["classesID"] = $this->input->post("classesID");
+					$array["sectionID"] = $this->input->post("sectionID");
+					$array["roll"] = $this->input->post("roll");
+					$array["bloodgroup"] = $this->input->post("bloodgroup");
+					$array["state"] = $this->input->post("state");
+					$array["country"] = $this->input->post("country");
+					$array["registerNO"] = $this->input->post("registerNO");
+					// $array["username"] = "stud" . rand(100000, 999999); //$this->input->post("username");
+					// $array['password'] = $this->student_m->hash("1234567890"); //$this->input->post("password")
+					$array['username'] = $this->input->post("registerNO");
+					$array['password'] =  $this->student_m->hash($this->input->post("phone"));
+					$array['usertypeID'] = 3;
+					$array['parentID'] = $this->input->post('guargianID');
+					$array['library'] = 0;
+					$array['hostel'] = 0;
+					$array['transport'] = 0;
+					$array['createschoolyearID'] = $schoolyearID;
+					$array['schoolyearID'] = $schoolyearID;
+					$array["create_date"] = date("Y-m-d H:i:s");
+					$array["modify_date"] = date("Y-m-d H:i:s");
+					$array["create_userID"] = $this->session->userdata('loginuserID');
+					$array["create_username"] = $this->session->userdata('username');
+					$array["create_usertype"] = $this->session->userdata('usertype');
+					$array["active"] = 1;
+					$array["villageID"] = $this->input->post('village_name');
+					$array["village_name"] = $village_name;
+					$array["aadharCardNumber"] = $this->input->post('aadharCardNumber');
+
+					$array["ration_card"] = $this->input->post('ration_card');
+					$array["bank_name"] = $this->input->post('bank_name');
+					$array["account_no"] = $this->input->post('account_no');
+					$array["ifsc_code"] = $this->input->post('ifsc_code');
+					$array["branch_name"] = $this->input->post('branch_name');
+					$array["joined_class"] = $this->input->post('joined_class');
+					$array["rf_id"] = $this->input->post('rf_id');
+					$array["alternative_phone1"] = $this->input->post('alternative_phone1');
+					$array["alternative_phone2"] = $this->input->post('alternative_phone2');
+					$array["caste"] = $this->input->post('cast');
+					$array["sub_caste"] = $this->input->post('sub_caste');
+					$array["pen_number"] = $this->input->post('pen_number');
+					$array["child_id"] = $this->input->post('child_id');
+					$array["medium"] = $this->input->post('medium') ?? 'Enlish';
+
+					$array["mole1"] = $this->input->post('mole1');
+					$array["mole2"] = $this->input->post('mole2');
+					$array["studentType"] = $this->input->post('studentType');
+					$refered_by_val = $this->input->post('refered_by');
+					if ($refered_by_val === 'others') {
+						$array["refered_by"] = 'others-' . $this->input->post('refered_by_other');
+					} else {
+						$array["refered_by"] = $refered_by_val;
+					}
+
+					if ($this->input->post('studentType') == 1) {
+						if ($this->input->post("transportID") == 0) {
+							$this->data["subview"] = "error";
+							$this->load->view('_layout_main', $this->data);
+						}
+					}
+
+
+					if ($this->input->post('dob')) {
+						$array["dob"] = date("Y-m-d", strtotime($this->input->post("dob")));
+					}
+					if ($this->input->post('admission_date')) {
+						$array["admission_date"] = date("Y-m-d", strtotime($this->input->post("admission_date")));
+					}
+					$array['photo'] = $this->upload_data['file']['file_name'];
+					// 	@$this->usercreatemail($this->input->post('email'), $this->input->post('username'), $this->input->post('password'));
+					//echo print_r($array);die;
+					$this->student_m->insert_student($array);
+					// echo $this->db->last_query();die;
+					$studentID = $this->db->insert_id();
+
+					if ($studentID && $array["studentType"] == 1) {
+						$transPortArray = array(
+							"studentID" => $studentID,
+							"transportID" => $this->input->post("transportID"),
+							"name" => $this->input->post("name"),
+							"email" => $this->input->post("email"),
+							"phone" => $this->input->post("phone"),
+							"tbalance" => $this->input->post("tbalance"),
+							"tjoindate" => date("Y-m-d")
+						);
+
+						$this->tmember_m->insert_tmember($transPortArray);
+						$this->student_m->update_student(array("transport" => 1), $studentID);
+					} else if ($studentID && $array["studentType"] == 2) {
+						$category_main_id = $this->category_m->get_single_category(array("hostelID" => $this->input->post("hostelID"), "categoryID" =>  $this->input->post("categoryID")));
+						$hostelArray = array(
+							"hostelID" => $this->input->post("hostelID"),
+							"categoryID" => $this->input->post("categoryID"),
+							"studentID" => $studentID,
+							"hbalance" => $category_main_id->hbalance,
+							"hjoindate" => date("Y-m-d")
+						);
+						$this->hmember_m->insert_hmember($hostelArray);
+						$this->student_m->update_student(array("hostel" => 1), $studentID);
+					}
+
+
+					//Edited by Naveen
+					if ($studentID > 0) {
+						$parent_array = array();
+						$parent_array['name'] = $this->input->post("father_name") ?? '';
+						$parent_array['father_name'] = $this->input->post("father_name") ?? '';
+						$parent_array['father_aadhar'] = $this->input->post("father_aadhar") ?? '';
+						$parent_array['mother_aadhar'] = $this->input->post("mother_aadhar") ?? '';
+						$parent_array['mother_name'] =  $this->input->post("mother_name") ? $this->input->post("mother_name") : '-';
+						$parent_array["phone"] = $this->input->post("phone") ?? 0;
+						$parent_array['photo'] = "default.png";
+						$parent_array['usertypeID'] = 4;
+						$parent_array['active'] = 1;
+						$parent_array['create_date'] = date("Y-m-d H:i:s");
+						$parent_array['modify_date'] = date("Y-m-d H:i:s");
+
+						$parent_id = $this->student_m->insert_parent($parent_array);
+						// echo $this->db->last_query
+						if ($parent_id > 0) {
+							$this->student_m->update_student(array("parentID" => $parent_id), $studentID);
+						}
+					}
+
+					$section = $this->section_m->general_get_section($this->input->post("sectionID"));
+					$classes = $this->classes_m->get_classes($this->input->post("classesID"));
+
+					if (customCompute($classes)) {
+						$setClasses = $classes->classes;
+					} else {
+						$setClasses = NULL;
+					}
+
+					if (customCompute($section)) {
+						$setSection = $section->section;
+					} else {
+						$setSection = NULL;
+					}
+
+					$arrayStudentRelation = array(
+						'srstudentID' => $studentID,
+						'srname' => $this->input->post("name") ?? 0,
+						'srclassesID' => $this->input->post("classesID") ?? 0,
+						'srclasses' => $setClasses,
+						'srroll' => $this->input->post("roll") ?? 0,
+						'srregisterNO' => $this->input->post("registerNO") ?? 0,
+						'srsectionID' => $this->input->post("sectionID") ?? 0,
+						'srsection' => $setSection,
+						'srstudentgroupID' => $this->input->post('studentGroupID') ? $this->input->post('studentGroupID') : 0,
+						'sroptionalsubjectID' => $this->input->post('optionalSubjectID') ?? 0,
+						'srschoolyearID' => $schoolyearID,
+					);
+
+					$studentExtendArray = array(
+						'studentID' => $studentID,
+						'studentgroupID' => $this->input->post('studentGroupID') ?? 0,
+						'optionalsubjectID' => $this->input->post('optionalSubjectID') ?? 0,
+						'extracurricularactivities' => $this->input->post('extraCurricularActivities') ?? 0,
+						'remarks' => $this->input->post('remarks') ?? '-'
+					);
+
+					$this->studentextend_m->insert_studentextend($studentExtendArray);
+					$this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
+
+					$sibling_ids = array_filter((array)$this->input->post('sibling_studentID'));
+					foreach ($sibling_ids as $sibID) {
+						$sibID = (int)$sibID;
+						if ($sibID > 0 && $sibID != $studentID) {
+							$this->studentsiblings_m->insert_sibling(array('studentID' => $studentID, 'sibling_studentID' => $sibID));
+							$this->studentsiblings_m->insert_sibling(array('studentID' => $sibID, 'sibling_studentID' => $studentID));
+						}
+					}
+					// echo $this->db->last_query();die;
+
+					$smsSent = false;
+					$waSent  = null;
+					try {
+						$template      = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
+						$singlestudent = $this->studentrelation_m->general_get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID), TRUE);
+						if ($template && !empty($template->template) && customCompute($singlestudent)) {
+							$status  = $this->userConfigSMS($template->template, $singlestudent, $usertypeID=3, $getway='msg91');
+							$smsSent = !empty($status['check']);
+						}
+						$waTemplate = $this->db->get_where('whatapp_templates', array('short_name' => 'STUDENT_REGISTRATION'))->row();
+						if ($waTemplate && customCompute($singlestudent)) {
+							$setting     = $this->Setting_m->get_setting();
+							$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+							$website     = !empty($setting->website) ? $setting->website : '';
+							$waPhone     = !empty($singlestudent->alternative_phone1) ? $singlestudent->alternative_phone1 : $singlestudent->phone;
+							$params      = implode(',', [$singlestudent->name, $school_name, $singlestudent->username, $singlestudent->phone, $website]);
+							$waResult = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+							$waSent   = ($waResult !== false);
+						}
+					} catch (Throwable $e) {
+						log_message('error', 'Student registration SMS/WA error: ' . $e->getMessage());
+					}
+
+					//code for auto invoice generation
+					$is_auto_invoice = $this->Setting_m->get_setting_where('is_student_auto_invoice');
+
+					// echo $is_auto_invoice['value'] ; die;
+				if(!empty($is_auto_invoice) && $is_auto_invoice['value'] == 1 ){ //school fee invoice
+					$class_id = $this->input->post("classesID");
+					$section_id = $this->input->post("sectionID");
+					$year_id = $this->session->userdata('defaultschoolyearID');
+
+
+					if($this->input->post('studentType') == 1){//transport
+						$pickup_id = $this->input->post("pickup_id");
+						$this->db->where('id',$pickup_id);
+						$p_res = $this->db->get('pickup_points')->row_array();
+						$p_amount = $p_res['fare'];
+					}else if($this->input->post('studentType') == 2){ //hostel
+						$hostelID = $this->input->post("hostelID");
+						$categoryID = $this->input->post("categoryID");
+						$this->db->where('categoryID',$categoryID);
+						$this->db->where('hostelID',$hostelID);
+						$p_res = $this->db->get('category')->row_array();
+						$h_amount = $p_res['hbalance'];
+					}
+
+					$fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%SCHOOL FEE%' OR `feetypes` LIKE '%COLLEGE FEE%' ")->row_array();
+					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
+
+					$amount = $this->db->query("SELECT fee_amount FROM `school_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
+
+					$subtotal_amount =$amount;
+
+					// print_r($admission_fee_type);die;
+					//admission fee added to invoice start
+					if( $this->input->post("add_admission_fee_invoice") == 1 && !empty($admission_fee_type)  ){
+						if($this->input->post('studentType') == 3){ //dayscolar
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),array(
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [array(
+								'feetypeID' => $fee_type['feetypesID'],
+								'amount' => $amount['fee_amount'],
+								'discount' => "",
+								'subtotal' => $subtotal_amount,
+								'paidamount' => "",
+							),array(
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+						}
+					}else{ 	//admission fee added to invoice end
+					
+
+					if($this->input->post('studentType') == 3){ //dayscolar
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						)];
+						
+					}else if($this->input->post('studentType') == 1){ //trasport
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						),array(
+							'feetypeID' => $fee_type_trasport['feetypesID'],
+							'amount' => $p_amount,
+							'discount' => "",
+							'subtotal' => $p_amount,
+							'paidamount' => "",
+						)];
+						
+					}if($this->input->post('studentType') == 2){ //hostel
+						$fee_types = [array(
+							'feetypeID' => $fee_type['feetypesID'],
+							'amount' => $amount['fee_amount'],
+							'discount' => "",
+							'subtotal' => $subtotal_amount,
+							'paidamount' => "",
+						),array(
+							'feetypeID' => $fee_type_hostel['feetypesID'],
+							'amount' => $h_amount,
+							'discount' => "",
+							'subtotal' => $h_amount,
+							'paidamount' => "",
+						)];
+					}
+ 					
+					}
+					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
+					
+
+
+					$json_fee_types = json_encode($fee_types);
+					// echo "<pre>";print_r($json_fee_types);die;
+					$invoice_data = array(
+						'classesID' => $this->input->post("classesID"),
+						'sectionID' =>$this->input->post("sectionID"),
+						'studentID' => $studentID,
+						'date' => date('d-m-Y'),
+						'statusID' => 0,
+						'payment_method' => 0,
+						// 'feetypeitems' => '['.$json_fee_types.']',
+						'feetypeitems' => $json_fee_types,
+						'totalsubtotal' => $subtotal_amount,
+						'totalpaidamount' => 0,
+						'editID' => 0,
+					);
+
+					$invoice_error = $this->saveinvoice($invoice_data);
+					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
+
+				}else if(!empty($is_auto_invoice) && $is_auto_invoice['value'] == 2 ){ //term fee invoice
+					$class_id = $this->input->post("classesID");
+					$section_id = $this->input->post("sectionID");
+					$year_id = $this->session->userdata('defaultschoolyearID');
+
+
+					if($this->input->post('studentType') == 1){//transport
+						$pickup_id = $this->input->post("pickup_id");
+						$this->db->where('id',$pickup_id);
+						$p_res = $this->db->get('pickup_points')->row_array();
+						$p_amount = $p_res['fare'];
+					}else if($this->input->post('studentType') == 2){ //hostel
+						$hostelID = $this->input->post("hostelID");
+						$categoryID = $this->input->post("categoryID");
+						$this->db->where('categoryID',$categoryID);
+						$this->db->where('hostelID',$hostelID);
+						$p_res = $this->db->get('category')->row_array();
+						$h_amount = $p_res['hbalance'];
+					}
+
+					$term1_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term1 Fee' ")->row_array();
+					$term2_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term2 Fee' ")->row_array();
+					$term3_fee_type = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE 'Term3 Fee' ")->row_array();
+
+					$fee_type_trasport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+					$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+
+					$term_res = $this->db->query("SELECT * FROM `term_fees` WHERE `class_id` = '".$class_id."' AND `section_id` = '".$section_id."' AND `year_id` = '".$year_id."' ")->row_array();
+					
+
+					$admission_fee_type = $this->db->query("SELECT feetypesID,fee_amount FROM `feetypes` WHERE `feetypes` LIKE '%Admission%' ")->row_array();
+
+					$term1 = $term_res['term1_fee'];
+					$term2 = $term_res['term2_fee'];
+					$term3 = $term_res['term3_fee'];
+
+					$subtotal_amount =$term1+$term2+$term3;
+
+					if( $this->input->post("add_admission_fee_invoice") == 1 && !empty($admission_fee_type)  ){
+
+						if($this->input->post('studentType') == 3){ //dayscolar
+						
+
+							$fee_types = [
+								array(	//term1
+								'feetypeID' => $term1_fee_type['feetypesID'],
+								'amount' => $term1,
+								'discount' => "",
+								'subtotal' => $term1,
+								'paidamount' => "",
+							),array(	//term2
+								'feetypeID' => $term2_fee_type['feetypesID'],
+								'amount' => $term2,
+								'discount' => "",
+								'subtotal' => $term2,
+								'paidamount' => "",
+							),array(	//term3
+								'feetypeID' => $term3_fee_type['feetypesID'],
+								'amount' => $term3,
+								'discount' => "",
+								'subtotal' => $term3,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//transport
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//hostel
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							),
+							array(
+								'feetypeID' => $admission_fee_type['feetypesID'],
+								'amount' => $admission_fee_type['fee_amount'],
+								'discount' => "",
+								'subtotal' => $admission_fee_type['fee_amount'],
+								'paidamount' => "",
+							)
+						];
+						}
+
+					}else{
+
+						if($this->input->post('studentType') == 3){ //dayscolar
+							
+
+							$fee_types = [
+								array(	//term1
+								'feetypeID' => $term1_fee_type['feetypesID'],
+								'amount' => $term1,
+								'discount' => "",
+								'subtotal' => $term1,
+								'paidamount' => "",
+							),array(	//term2
+								'feetypeID' => $term2_fee_type['feetypesID'],
+								'amount' => $term2,
+								'discount' => "",
+								'subtotal' => $term2,
+								'paidamount' => "",
+							),array(	//term3
+								'feetypeID' => $term3_fee_type['feetypesID'],
+								'amount' => $term3,
+								'discount' => "",
+								'subtotal' => $term3,
+								'paidamount' => "",
+							)
+						];
+							
+						}else if($this->input->post('studentType') == 1){ //trasport
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//transport
+								'feetypeID' => $fee_type_trasport['feetypesID'],
+								'amount' => $p_amount,
+								'discount' => "",
+								'subtotal' => $p_amount,
+								'paidamount' => "",
+							)
+						];
+							
+						}if($this->input->post('studentType') == 2){ //hostel
+							$fee_types = [
+								array(	//term1
+									'feetypeID' => $term1_fee_type['feetypesID'],
+									'amount' => $term1,
+									'discount' => "",
+									'subtotal' => $term1,
+									'paidamount' => "",
+								),array(	//term2
+									'feetypeID' => $term2_fee_type['feetypesID'],
+									'amount' => $term2,
+									'discount' => "",
+									'subtotal' => $term2,
+									'paidamount' => "",
+								),array(	//term3
+									'feetypeID' => $term3_fee_type['feetypesID'],
+									'amount' => $term3,
+									'discount' => "",
+									'subtotal' => $term3,
+									'paidamount' => "",
+								),array(	//hostel
+								'feetypeID' => $fee_type_hostel['feetypesID'],
+								'amount' => $h_amount,
+								'discount' => "",
+								'subtotal' => $h_amount,
+								'paidamount' => "",
+							)
+						];
+						}
+					}
+ 					
+					//[feetypeitems] => [{"feetypeID":"3","amount":"1","discount":"","subtotal":"1","paidamount":""},{"feetypeID":"52","amount":"2","discount":"","subtotal":"2","paidamount":""}]
+					
+
+
+					$json_fee_types = json_encode($fee_types);
+					// echo "<pre>";print_r($json_fee_types);die;
+					$invoice_data = array(
+						'classesID' => $this->input->post("classesID"),
+						'sectionID' =>$this->input->post("sectionID"),
+						'studentID' => $studentID,
+						'date' => date('d-m-Y'),
+						'statusID' => 0,
+						'payment_method' => 0,
+						// 'feetypeitems' => '['.$json_fee_types.']',
+						'feetypeitems' => $json_fee_types,
+						'totalsubtotal' => $subtotal_amount,
+						'totalpaidamount' => 0,
+						'editID' => 0,
+					);
+					// echo "<pre>";print_r($invoice_data);die;
+
+					$invoice_error = $this->saveinvoice($invoice_data);
+					$this->db->update('student',array('invoice_error'=>$invoice_error),array('studentID'=>$studentID));
+
+				}
+					
+					$flashMsg  = 'Student Registered Successfully.';
+					$flashMsg .= $smsSent         ? ' SMS Sent Successfully.'      : ' SMS Sending Failed.';
+					if ($waSent === true)          { $flashMsg .= ' WhatsApp Sent Successfully.'; }
+					elseif ($waSent === false)     { $flashMsg .= ' WhatsApp Sending Failed.'; }
+					$this->session->set_flashdata('success', $flashMsg);
 					redirect(base_url("student/admission_slip/$studentID"));
 				}
 			} else {
@@ -2982,6 +3774,151 @@ class Student extends Admin_Controller
 		}
 	}
 
+	public function update_login_details()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$studentID = (int)$this->input->post('studentID');
+		$username  = trim($this->input->post('username'));
+		$password  = trim($this->input->post('password'));
+
+		if (!$studentID || !$username) {
+			echo json_encode(['status' => false, 'message' => 'Username is required']); return;
+		}
+
+		// Check username not already taken by another student
+		$existing = $this->db->where('username', $username)->where('studentID !=', $studentID)->get('student')->row();
+		if ($existing) {
+			echo json_encode(['status' => false, 'message' => 'Username already in use by another student']); return;
+		}
+
+		$update = ['username' => $username];
+		if (!empty($password)) {
+			$update['password'] = $this->student_m->hash($password);
+		}
+
+		$this->student_m->update_student($update, $studentID);
+		echo json_encode(['status' => true, 'message' => 'Login details updated successfully']);
+	}
+
+	public function send_login_sms()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$id = (int)$this->input->post('id');
+		if (!$id) {
+			echo json_encode(['status' => false, 'message' => 'Invalid student ID']); return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+		if (!customCompute($student)) {
+			echo json_encode(['status' => false, 'message' => 'Student not found']); return;
+		}
+		$this->load->model('mailandsmstemplate_m');
+		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
+		$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $student, 3, 'msg91') : array();
+		if (!empty($status['check'])) {
+			echo json_encode(['status' => true,  'message' => 'SMS sent to ' . $student->name]);
+		} else {
+			echo json_encode(['status' => false, 'message' => 'SMS failed for ' . $student->name]);
+		}
+	}
+
+	public function send_login_whatsapp()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$id = (int)$this->input->post('id');
+		if (!$id) {
+			echo json_encode(['status' => false, 'message' => 'Invalid student ID']); return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+		if (!customCompute($student)) {
+			echo json_encode(['status' => false, 'message' => 'Student not found']); return;
+		}
+		$waTemplate = $this->db->get_where('whatapp_templates', ['short_name' => 'STUDENT_REGISTRATION'])->row();
+		if (!$waTemplate) {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp template not configured']); return;
+		}
+		$this->load->model('Whatsapp_m');
+		$setting     = $this->Setting_m->get_setting();
+		$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+		$website     = !empty($setting->website) ? $setting->website : '';
+		$waPhone     = !empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone;
+		$params      = implode(',', [$student->name, $school_name, $student->username, $student->phone, $website]);
+		$waResult    = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+		if ($waResult !== false) {
+			echo json_encode(['status' => true,  'message' => 'WhatsApp sent to ' . $student->name]);
+		} else {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp failed for ' . $student->name]);
+		}
+	}
+
+	public function send_bulk_login_sms()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
+		if (!$ids) {
+			echo json_encode(['status' => false, 'message' => 'No students selected']); return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$this->load->model('mailandsmstemplate_m');
+		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
+		$sent = 0; $failed = 0;
+		foreach ($ids as $id) {
+			$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+			if (!customCompute($student)) { $failed++; continue; }
+			$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $student, 3, 'msg91') : array();
+			!empty($status['check']) ? $sent++ : $failed++;
+		}
+		$msg = 'SMS sent: ' . $sent;
+		if ($failed) $msg .= ', Failed: ' . $failed;
+		echo json_encode(['status' => true, 'message' => $msg]);
+	}
+
+	public function send_bulk_login_whatsapp()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
+		if (!$ids) {
+			echo json_encode(['status' => false, 'message' => 'No students selected']); return;
+		}
+		$waTemplate = $this->db->get_where('whatapp_templates', ['short_name' => 'STUDENT_REGISTRATION'])->row();
+		if (!$waTemplate) {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp template not configured']); return;
+		}
+		$this->load->model('Whatsapp_m');
+		$setting     = $this->Setting_m->get_setting();
+		$school_name = !empty($setting->sname)   ? $setting->sname   : '';
+		$website     = !empty($setting->website) ? $setting->website : '';
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$sent = 0; $failed = 0;
+		foreach ($ids as $id) {
+			$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
+			if (!customCompute($student)) { $failed++; continue; }
+			$waPhone = !empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone;
+			$params  = implode(',', [$student->name, $school_name, $student->username, $student->phone, $website]);
+			$result  = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
+			$result !== false ? $sent++ : $failed++;
+		}
+		$msg = 'WhatsApp sent: ' . $sent;
+		if ($failed) $msg .= ', Failed: ' . $failed;
+		echo json_encode(['status' => true, 'message' => $msg]);
+	}
+
 	public function unique_roll()
 	{
 		$id = htmlentities(escapeString($this->uri->segment(3)));
@@ -3299,7 +4236,7 @@ class Student extends Admin_Controller
 		$this->load->model('mailandsmstemplatetag_m');
 		$template_id = 0;
 		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3); //login details
-		$template_id = $template->templ_id;
+		$template_id = ($template && isset($template->templ_id)) ? (int)$template->templ_id : 0;
 		if ($user && $usertypeID) {
 			$userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => $usertypeID));
 
@@ -3366,9 +4303,9 @@ class Student extends Admin_Controller
 		} elseif ($getway == 'msg91') {
 			if ($to) {
 				 
-				$obj = $this->msg91->send($to, $message, $template_id); 
-				$campid = explode(":",$obj); 
-				 $campid = rtrim($campid[1],'}"');
+				$obj = $this->msg91->send($to, $message, $template_id);
+				$campid = explode(":",(string)$obj);
+				 $campid = rtrim($campid[1] ?? '','}"');
 				 $campid = trim($campid,"'");
 				
 				if ($campid) {
@@ -3570,11 +4507,8 @@ class Student extends Admin_Controller
 						$message = str_replace("{{username}}", ' ', $message);
 					}
 				} elseif ($userTag->tagname == '{{password}}') {
-					if ($user->username) {
-						$message = str_replace("{{password}}", "123456", $message);
-					} else {
-						$message = str_replace("{{password}}", ' ', $message);
-					}
+					$pass = !empty($user->phone) ? $user->phone : '';
+					$message = str_replace("{{password}}", $pass, $message);
 				}
 			}
 		}
@@ -4383,121 +5317,5 @@ private function getComprehensiveStudentDataBySection($classesID, $sectionID, $s
 	$query = $this->db->get();
 	return $query->result();
 }
-
-	public function send_login_sms()
-	{
-		header('Content-Type: application/json');
-		if (!permissionChecker('student_edit')) {
-			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
-		}
-		$id = (int)$this->input->post('id');
-		if (!$id) {
-			echo json_encode(['status' => false, 'message' => 'Invalid student ID']); return;
-		}
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
-		$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
-		if (!customCompute($student)) {
-			echo json_encode(['status' => false, 'message' => 'Student not found']); return;
-		}
-		$this->load->model('mailandsmstemplate_m');
-		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
-		$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $student, 3, 'msg91') : array();
-		if (!empty($status['check'])) {
-			echo json_encode(['status' => true,  'message' => 'SMS sent to ' . $student->name]);
-		} else {
-			echo json_encode(['status' => false, 'message' => 'SMS failed for ' . $student->name]);
-		}
-	}
-
-	public function send_login_whatsapp()
-	{
-		header('Content-Type: application/json');
-		if (!permissionChecker('student_edit')) {
-			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
-		}
-		$id = (int)$this->input->post('id');
-		if (!$id) {
-			echo json_encode(['status' => false, 'message' => 'Invalid student ID']); return;
-		}
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
-		$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
-		if (!customCompute($student)) {
-			echo json_encode(['status' => false, 'message' => 'Student not found']); return;
-		}
-		$waTemplate = $this->db->get_where('whatapp_templates', ['short_name' => 'STUDENT_REGISTRATION'])->row();
-		if (!$waTemplate) {
-			echo json_encode(['status' => false, 'message' => 'WhatsApp template not configured']); return;
-		}
-		$this->load->model('Whatsapp_m');
-		$setting     = $this->Setting_m->get_setting();
-		$school_name = !empty($setting->sname)     ? $setting->sname     : '';
-		$app_link    = !empty($setting->app_link)  ? $setting->app_link  : '';
-		$waPhone     = !empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone;
-		$params      = implode(',', [$student->name, $school_name, $student->username . ' / password: ' . $student->phone, $app_link]);
-		$waResult    = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
-		if ($waResult !== false) {
-			echo json_encode(['status' => true,  'message' => 'WhatsApp sent to ' . $student->name]);
-		} else {
-			echo json_encode(['status' => false, 'message' => 'WhatsApp failed for ' . $student->name]);
-		}
-	}
-
-	public function send_bulk_login_sms()
-	{
-		header('Content-Type: application/json');
-		if (!permissionChecker('student_edit')) {
-			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
-		}
-		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
-		if (!$ids) {
-			echo json_encode(['status' => false, 'message' => 'No students selected']); return;
-		}
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
-		$this->load->model('mailandsmstemplate_m');
-		$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(3);
-		$sent = 0; $failed = 0;
-		foreach ($ids as $id) {
-			$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
-			if (!customCompute($student)) { $failed++; continue; }
-			$status = ($template && !empty($template->template)) ? $this->userConfigSMS($template->template, $student, 3, 'msg91') : array();
-			!empty($status['check']) ? $sent++ : $failed++;
-		}
-		$msg = 'SMS sent: ' . $sent;
-		if ($failed) $msg .= ', Failed: ' . $failed;
-		echo json_encode(['status' => true, 'message' => $msg]);
-	}
-
-	public function send_bulk_login_whatsapp()
-	{
-		header('Content-Type: application/json');
-		if (!permissionChecker('student_edit')) {
-			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
-		}
-		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
-		if (!$ids) {
-			echo json_encode(['status' => false, 'message' => 'No students selected']); return;
-		}
-		$waTemplate = $this->db->get_where('whatapp_templates', ['short_name' => 'STUDENT_REGISTRATION'])->row();
-		if (!$waTemplate) {
-			echo json_encode(['status' => false, 'message' => 'WhatsApp template not configured']); return;
-		}
-		$this->load->model('Whatsapp_m');
-		$setting     = $this->Setting_m->get_setting();
-		$school_name = !empty($setting->sname)    ? $setting->sname    : '';
-		$app_link    = !empty($setting->app_link) ? $setting->app_link : '';
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
-		$sent = 0; $failed = 0;
-		foreach ($ids as $id) {
-			$student = $this->studentrelation_m->general_get_single_student(['srstudentID' => $id, 'srschoolyearID' => $schoolyearID], TRUE);
-			if (!customCompute($student)) { $failed++; continue; }
-			$waPhone = !empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone;
-			$params  = implode(',', [$student->name, $school_name, $student->username, $app_link]);
-			$result  = $this->Whatsapp_m->sendWhatsapp($waPhone, $params, $waTemplate->template_name);
-			$result !== false ? $sent++ : $failed++;
-		}
-		$msg = 'WhatsApp sent: ' . $sent;
-		if ($failed) $msg .= ', Failed: ' . $failed;
-		echo json_encode(['status' => true, 'message' => $msg]);
-	}
 
 }

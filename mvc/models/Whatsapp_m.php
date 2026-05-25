@@ -1,6 +1,7 @@
 ﻿<?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
 
 class Whatsapp_m extends MY_Model {
+    
 
     public $senderID = '';
     public $username = '';

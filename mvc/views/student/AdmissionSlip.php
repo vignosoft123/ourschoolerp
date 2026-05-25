@@ -119,7 +119,11 @@ $routeName   = ($studentType == 1 && customCompute($transport_route)) ? $transpo
     </div>
     <div class="sch-info">
         <div class="sch-name"><?= htmlspecialchars($siteinfos->sname) ?></div>
-        <div class="sch-addr"><?= htmlspecialchars($siteinfos->address) ?></div>
+        <div class="sch-addr"><?php
+            $addr    = rtrim(trim($siteinfos->address ?? ''), ', ');
+            $village = trim($siteinfos->village_name ?? '');
+            echo htmlspecialchars($addr . ($village ? ', ' . $village : ''));
+        ?></div>
         <div class="sch-divider"><span class="ln"></span><span class="dm">&#9670;</span><span class="ln"></span></div>
         <div class="sch-year">Academic Year : <strong><?= htmlspecialchars($schoolyearsessionobj->schoolyear) ?></strong></div>
     </div>
@@ -440,29 +444,6 @@ $routeName   = ($studentType == 1 && customCompute($transport_route)) ? $transpo
         </td>
         <td style="width:30%; border:1px solid #555; border-top:none; border-left:none; padding:5px 8px; font-size:10px;">
             Date: <span class="sig-underline" style="min-width:100px;"><?= date('d-m-Y') ?></span>
-        </td>
-    </tr>
-</table>
-
-<!-- ═══════════════ SECTION 9: OFFICE VERIFICATION ═══════════════ -->
-<div class="sec-hdr" style="margin-top:8px;"><span class="sec-num">9</span> Office Verification</div>
-<table>
-    <tr>
-        <td class="lbl" style="width:28%">Verified by Admission In-charge</td>
-        <td style="width:36%; padding:5px 8px; font-size:10px;">
-            Signature: <span class="sig-underline" style="min-width:150px;">&nbsp;</span>
-        </td>
-        <td style="width:36%; padding:5px 8px; font-size:10px;">
-            Date: <span class="sig-underline" style="min-width:120px;">&nbsp;</span>
-        </td>
-    </tr>
-    <tr>
-        <td class="lbl">Principal / Head of the Institution</td>
-        <td style="padding:5px 8px; font-size:10px;">
-            Signature with Seal: <span class="sig-underline" style="min-width:120px;">&nbsp;</span>
-        </td>
-        <td style="padding:5px 8px; font-size:10px;">
-            Date: <span class="sig-underline" style="min-width:120px;">&nbsp;</span>
         </td>
     </tr>
 </table>
