@@ -65,7 +65,7 @@ class Invoice extends Admin_Controller
             [
                 'field' => 'studentID',
                 'label' => $this->lang->line("invoice_studentID"),
-                'rules' => 'trim|required|xss_clean|max_length[11]|numeric|callback_unique_studentID'
+                'rules' => 'trim|xss_clean|callback_unique_studentID'
             ],
             [
                 'field' => 'feetypeitems',
@@ -1631,11 +1631,13 @@ class Invoice extends Admin_Controller
     {
         $id = $this->input->post('editID');
         if((int)$id && $id > 0) {
+            // edit mode: single studentID required
             if($this->input->post('studentID') == 0) {
                 $this->form_validation->set_message("unique_studentID", "%s field is required.");
                 return FALSE;
             }
         }
+        // add mode: 0 means all students — always valid
         return TRUE;
     }
 
@@ -1761,25 +1763,45 @@ class Invoice extends Admin_Controller
                         $feetypeitems         = json_decode($this->input->post('feetypeitems'));
                         $schoolyearID         = $this->session->userdata('defaultschoolyearID');
 
-                        $studentID = $this->input->post('studentID');
                         $classesID = $this->input->post('classesID');
                         $sectionID = $this->input->post('sectionID');
-                        if(((int)$studentID || $studentID == 0) && (int)($classesID)) {
-                            if($studentID == 0) {
+
+                        // Support both multi-select (studentID[]) and legacy single studentID
+                        $studentIDPost = $this->input->post('studentID[]');
+                        if(empty($studentIDPost)) {
+                            $studentIDPost = $this->input->post('studentID');
+                        }
+
+                        // Normalise to array
+                        if(!is_array($studentIDPost)) {
+                            $studentIDPost = [$studentIDPost];
+                        }
+
+                        // Remove "0" (all-students sentinel) — if only "0" present, treat as all
+                        $specificIDs = array_filter($studentIDPost, function($v){ return (int)$v > 0; });
+
+                        if((int)$classesID) {
+                            if(empty($specificIDs)) {
+                                // All students in section
                                 $getstudents = $this->studentrelation_m->get_order_by_student([
                                     "srclassesID"    => $classesID,
                                     'srschoolyearID' => $schoolyearID,
-                                    "srsectionID" => $sectionID,
+                                    "srsectionID"    => $sectionID,
                                 ]);
-                              
                             } else {
-                                $getstudents = $this->studentrelation_m->get_order_by_student([
-                                    "srclassesID"    => $classesID,
-                                    'srstudentID'    => $studentID,
-                                    'srschoolyearID' => $schoolyearID,
-                                    "srsectionID" => $sectionID,
-                                ]);
-                               
+                                // Fetch each selected student and merge
+                                $getstudents = [];
+                                foreach(array_values($specificIDs) as $sid) {
+                                    $found = $this->studentrelation_m->get_order_by_student([
+                                        "srclassesID"    => $classesID,
+                                        'srstudentID'    => (int)$sid,
+                                        'srschoolyearID' => $schoolyearID,
+                                        "srsectionID"    => $sectionID,
+                                    ]);
+                                    if(customCompute($found)) {
+                                        $getstudents = array_merge($getstudents, $found);
+                                    }
+                                }
                             }
 
                             if(customCompute($getstudents)) {
@@ -1842,8 +1864,8 @@ class Invoice extends Admin_Controller
                                 if(customCompute($invoiceMainArray)) {
                                     $count   = customCompute($invoiceMainArray);
                                     $firstID = $this->maininvoice_m->insert_batch_maininvoice($invoiceMainArray);
-
-                                    $lastID = $firstID + ($count - 1);
+                                    // MySQL LAST_INSERT_ID() after multi-row INSERT returns the FIRST inserted ID
+                                    $lastID  = $firstID + ($count - 1);
 
                                     if($lastID >= $firstID) {
                                         $j = 0;
@@ -2273,9 +2295,9 @@ class Invoice extends Admin_Controller
 {
     $retArray = [];
 
-    // All invoice rows for this schoolyear, grouped by maininvoiceID -> invoiceID
+    // All active invoice rows for this schoolyear, grouped by maininvoiceID -> invoiceID
     $invoiceitems = pluck_multi_array_key(
-        $this->invoice_m->get_order_by_invoice(['schoolyearID' => $schoolyearID]),
+        $this->invoice_m->get_order_by_invoice(['schoolyearID' => $schoolyearID, 'deleted_at' => 1]),
         'obj',
         'maininvoiceID',
         'invoiceID'
@@ -2299,18 +2321,12 @@ class Invoice extends Admin_Controller
     if (customCompute($maininvoices)) {
         foreach ($maininvoices as $maininvoice) {
             $mid = $maininvoice->maininvoiceID;
-            $studentID = $maininvoice->maininvoicestudentID;
 
             if (!isset($invoiceitems[$mid]) || !customCompute($invoiceitems[$mid])) {
                 continue;
             }
 
             foreach ($invoiceitems[$mid] as $invoiceID => $invoiceitem) {
-
-                // ✅ Crucial guard: only total invoices that belong to THIS student
-                if ((int)$invoiceitem->studentID !== (int)$studentID) {
-                    continue;
-                }
 
                 // Amount after discount (your system uses absolute discount)
                 $lineAmount = (float)$invoiceitem->amount - (float)$invoiceitem->discount;

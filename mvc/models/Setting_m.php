@@ -55,9 +55,18 @@
 
         public function insertorupdate( $arrays )
         {
-            // echo "<pre>";print_r($arrays);die;
-            foreach ( $arrays as $key => $array ) {
-                $this->db->query("INSERT INTO setting (fieldoption, value) VALUES ('" . $key . "', '" . $array . "') ON DUPLICATE KEY UPDATE fieldoption='" . $key . "' , value='" . $array . "'");
+            foreach ( $arrays as $key => $value ) {
+                $data = [
+                    'fieldoption' => $key,
+                    'value'       => $value,
+                ];
+
+                if ( $this->get_setting_where_return_cnt($key) ) {
+                    $this->db->where('fieldoption', $key);
+                    $this->db->update($this->_table_name, [ 'value' => $value ]);
+                } else {
+                    $this->db->insert($this->_table_name, $data);
+                }
             }
             return true;
         }

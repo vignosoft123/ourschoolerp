@@ -233,18 +233,13 @@
                                                 }*/
                                             ?>
 
-                                        <?php  
-                                      
-                                       foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType){
-                                            
-                                            ?>
-
-                                           
-                                        <?=isset($feetypes[$feeType]) ? $feetypes[$feeType] : ''?>
-                                        <?php if(count($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID])>1){ echo "<br>";}?>
-
-                                        <?php //}
-                                    }?>
+                                        <?php
+                                        if (!empty($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID])) {
+                                            foreach($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID] as $key => $feeType) { ?>
+                                        <?= isset($feetypes[$feeType]) ? $feetypes[$feeType] : '' ?>
+                                        <?php if(count($grandtotalandpayment['fee_types'][$maininvoice->maininvoiceID]) > 1){ echo "<br>"; } ?>
+                                        <?php }
+                                        } ?>
                                     </td>
 
                                     <td data-title="<?=$this->lang->line('invoice_total')?>">

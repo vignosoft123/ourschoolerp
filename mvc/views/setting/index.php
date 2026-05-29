@@ -117,6 +117,12 @@
                     <span class="control-label"><?= form_error('app_link') ?></span>
                 </div>
 
+                <div class="st-field <?= form_error('address') ? 'has-error' : '' ?>">
+                    <label><?= $this->lang->line("setting_school_address") ?> <i class="fa fa-question-circle st-info-icon" data-toggle="tooltip" title="Set organization address here"></i></label>
+                    <textarea class="form-control" id="address" name="address"><?= set_value('address', $setting->address) ?></textarea>
+                    <span class="control-label"><?= form_error('address') ?></span>
+                </div>
+
                 <div class="st-field <?= form_error('currency_code') ? 'has-error' : '' ?>">
                     <label><?= $this->lang->line("setting_school_currency_code") ?> <i class="fa fa-question-circle st-info-icon" data-toggle="tooltip" title="Currency code like USD or GBP"></i></label>
                     <input type="text" class="form-control" id="currency_code" name="currency_code" value="<?= set_value('currency_code', $setting->currency_code) ?>">
@@ -164,7 +170,7 @@
                         "spanish"    => $this->lang->line("setting_spanish"),
                         "thai"       => $this->lang->line("setting_thai"),
                         "turkish"    => $this->lang->line("setting_turkish"),
-                    ), set_value("lang", $setting->language), "id='lang' class='form-control select2'");
+                    ), set_value("language", $setting->language), "id='language' class='form-control select2'");
                     ?>
                     <span class="control-label"><?= form_error('lang') ?></span>
                 </div>
@@ -457,7 +463,7 @@
                     <label><?= $this->lang->line("setting_attendance_voice_notification") ?> <i class="fa fa-question-circle st-info-icon" data-toggle="tooltip" title="Select voice call notification"></i></label>
                     <?php
                     $array = array("none" => $this->lang->line("setting_none"), "voicecall" => "Voice Call");
-                    echo form_dropdown("attendance_voice_notification", $array, set_value("attendance_notification", isset($setting->attendance_voice_notification) ? $setting->attendance_voice_notification : ''), "id='attendance_voice_notification' class='form-control select2'");
+                    echo form_dropdown("attendance_voice_notification", $array, set_value("attendance_voice_notification", isset($setting->attendance_voice_notification) ? $setting->attendance_voice_notification : ''), "id='attendance_voice_notification' class='form-control select2'");
                     ?>
                     <span class="control-label"><?= form_error('attendance_voice_notification') ?></span>
                 </div>

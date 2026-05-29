@@ -43,22 +43,14 @@
                         </span>
                     </div>
 
-                    <div class="studentDiv form-group <?= form_error('studentID') ? 'has-error' : '' ?>">
+                    <div class="studentDiv form-group">
                         <label for="studentID">
                             <?= $this->lang->line("invoice_studentID") ?> <span class="text-red">*</span>
                         </label>
-                        <?php
-                        $studentArray = array('0' => $this->lang->line("invoice_all_student"));
-                        if (customCompute($students)) {
-                            foreach ($students as $student) {
-                                $studentArray[$student->studentID] = $student->name;
-                            }
-                        }
-                        echo form_dropdown("studentID", $studentArray, set_value("studentID"), "id='studentID' class='form-control select2'");
-                        ?>
-                        <span class="text-red">
-                            <?php echo form_error('studentID'); ?>
-                        </span>
+                        <select name="studentID[]" id="studentID" class="form-control" multiple="multiple" style="width:100%">
+                            <option value="0"><?= $this->lang->line("invoice_all_student") ?></option>
+                        </select>
+                        <small class="text-muted">Leave blank / select "All Students" to apply to entire section.</small>
                     </div>
 
                     <div class="dateDiv form-group <?= form_error('date') ? 'has-error' : '' ?>">
@@ -185,6 +177,14 @@
     }
 
     $('.select2').select2();
+
+    // Multi-select for students
+    $('#studentID').select2({
+        placeholder: '<?= $this->lang->line("invoice_all_student") ?>',
+        allowClear: true,
+        width: '100%'
+    });
+
     $('#date').datepicker({
         autoclose: true,
         format: 'dd-mm-yyyy',
@@ -194,17 +194,15 @@
 
     $('#classesID').change(function(event) {
         var classesID = $(this).val();
-        $('#sectionID').val('0').change();
-        $('#studentID').val('0').change();
+        $('#sectionID').val('0').trigger('change');
+        $('#studentID').val(null).trigger('change');
         if (classesID === '0') {
-            $('#sectionID').html('<option value="0">Selet Section</option>');
+            $('#sectionID').html('<option value="0">Select Section</option>');
         } else {
             $.ajax({
                 type: 'POST',
                 url: "<?= base_url('student/sectioncall') ?>",
-                data: {
-                    'id': classesID
-                },
+                data: { 'id': classesID },
                 dataType: "html",
                 success: function(data) {
                     $('#sectionID').html(data);
@@ -597,20 +595,19 @@
     $(document).on('change', '#sectionID', function() {
         var sectionID = $(this).val();
         var classesID = $("#classesID").val();
-        $('#studentID').val('0').change();
+        $('#studentID').val(null).trigger('change');
         if (sectionID === '0') {
-            $('#studentID').html('<option value="0"><?= $this->lang->line('invoice_all_student') ?></option>');
+            $('#studentID').empty().append('<option value="0"><?= $this->lang->line('invoice_all_student') ?></option>');
+            $('#studentID').trigger('change');
         } else {
             $.ajax({
                 type: 'POST',
                 url: "<?= base_url('invoice/getstudent') ?>",
-                data: {
-                    'classesID': classesID,
-                    'sectionID': sectionID
-                },
+                data: { 'classesID': classesID, 'sectionID': sectionID },
                 dataType: "html",
                 success: function(data) {
-                    $('#studentID').html(data);
+                    $('#studentID').empty().append(data);
+                    $('#studentID').trigger('change');
                 }
             });
         }
@@ -636,38 +633,36 @@
     });
 
     $(document).on('click', '#addInvoiceButton', function() {
-        var error = 0;;
-        var field = {
-            'classesID': $('#classesID').val(),
-            'studentID': $('#studentID').val(),
-            'date': $('#date').val(),
-            'statusID': $('#statusID').val(),
-            'payment_method': $('#payment_method').val(),
-        };
+        var error = 0;
+        var classesID = $('#classesID').val();
+        var selectedStudents = $('#studentID').val(); // array or null
+        var date = $('#date').val();
+        var statusID = $('#statusID').val();
+        var payment_method = $('#payment_method').val();
 
-        if (field['classesID'] === '0') {
+        if (classesID === '0') {
             $('.classesDiv').addClass('has-error');
             error++;
         } else {
             $('.classesDiv').removeClass('has-error');
         }
 
-        if (field['date'] === '') {
+        if (date === '') {
             $('.dateDiv').addClass('has-error');
             error++;
         } else {
             $('.dateDiv').removeClass('has-error');
         }
 
-        if (field['statusID'] === '5') {
+        if (statusID === '5') {
             $('.statusDiv').addClass('has-error');
             error++;
         } else {
             $('.statusDiv').removeClass('has-error');
         }
 
-        if (field['statusID'] != 0 && field['statusID'] != 5) {
-            if (field['payment_method'] === '0') {
+        if (statusID != 0 && statusID != 5) {
+            if (payment_method === '0') {
                 $('.paymentmethodDiv').addClass('has-error');
                 error++;
             } else {
@@ -681,11 +676,9 @@
             if ($(this).children().eq(4).text() != '' && $(this).children().eq(4).text() != null) {
                 totalsubtotal += parseFloat($(this).children().eq(4).text());
             }
-
             if ($(this).children().eq(5).children().val() != '' && $(this).children().eq(5).children().val() != null) {
                 totalpaidamount += parseFloat($(this).children().eq(5).children().val());
             }
-
             return {
                 feetypeID: $(this).attr('invoicefeetypeid'),
                 amount: $(this).children().eq(2).children().val(),
@@ -697,35 +690,40 @@
 
         if (typeof feetypeitems == 'undefined' || feetypeitems.length <= 0) {
             error++;
-            toastr["error"]('The fee type item is required.')
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": false,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "500",
-                "hideDuration": "500",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
+            toastr["error"]('The fee type item is required.');
         }
-
-        feetypeitems = JSON.stringify(feetypeitems);
 
         if (error === 0) {
             $(this).attr('disabled', 'disabled');
-            var formData = new FormData($('#invoiceDataForm')[0]);
-            formData.append("feetypeitems", feetypeitems);
-            formData.append("totalsubtotal", totalsubtotal);
-            formData.append("totalpaidamount", totalpaidamount);
-            formData.append("editID", 0);
+
+            // Determine effective studentID:
+            // null/empty selection = all students (send 0)
+            // "0" in selection = all students (send 0)
+            // otherwise send as array
+            var studentIDVal;
+            if (!selectedStudents || selectedStudents.length === 0 || (selectedStudents.length === 1 && selectedStudents[0] == '0')) {
+                studentIDVal = '0';
+            } else {
+                // filter out the "0/all" option if mixed with specific students
+                studentIDVal = selectedStudents.filter(function(v) { return v != '0'; });
+            }
+
+            var formData = new FormData();
+            formData.append('classesID', classesID);
+            formData.append('sectionID', $('#sectionID').val());
+            // Always send as studentID[] array; controller handles both 0 and specific IDs
+            if (Array.isArray(studentIDVal)) {
+                $.each(studentIDVal, function(i, v) { formData.append('studentID[]', v); });
+            } else {
+                formData.append('studentID[]', studentIDVal);
+            }
+            formData.append('date', date);
+            formData.append('statusID', statusID);
+            formData.append('payment_method', payment_method);
+            formData.append('feetypeitems', JSON.stringify(feetypeitems));
+            formData.append('totalsubtotal', totalsubtotal);
+            formData.append('totalpaidamount', totalpaidamount);
+            formData.append('editID', 0);
             makingPostDataPreviousofAjaxCall(formData);
         }
     });
@@ -781,30 +779,6 @@
     }
 
 
-    $('#studentID').change(function(event) {
-        var studentID = $(this).val();
-        $('#feetypeList tr').remove()
-        $.ajax({
-            type: 'POST',
-            url: "<?= base_url('student/studentTransportAndHostelDetail') ?>",
-            data: "studentID=" + studentID,
-            dataType: "json",
-            success: function(data) {
+    // Multi-select: no auto hostel fee per student (hostel applies per individual invoice after save)
 
-               // if (data.studntTransportDetails != null) {
-                 //   var appendData = productItemDesign(2, "Bus Fees", data.studntTransportDetails.tbalance);
-                  //  $('#feetypeList').append(appendData);
-              //  }
-
-                if (data.studntHostelDetails != null) {
-                    var appendData = productItemDesign(3, "Hostel Fee", data.studntHostelDetails.hbalance);
-                    $('#feetypeList').append(appendData);
-                }
-
-                totalInfo();
-
-            }
-        });
-
-    });
 </script>
