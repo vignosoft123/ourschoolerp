@@ -130,6 +130,7 @@ This is a JSON array of migration entries. The system reads each entry and runs 
 - **2026-05-24**: Documented **Bootstrap Modal AdminLTE Gotcha** (Section 8.4) — two-bug root cause: direct selector timing + `position:fixed` clipping by parent containers. Fix: `$('body').append($('#modal').detach())` on DOM ready + delegated `$(document).on('click', '#saveBtn', ...)` for all modal inner buttons. Reference: `mvc/views/student/index.php` Change Login Details modal.
 - **2026-05-24**: **Student Login Credentials feature** — on student creation, sends SMS (template ID=3) and WhatsApp (`STUDENT_REGISTRATION` template) with username/password/URL. Per-row SMS, WhatsApp, and Change Login buttons added to student list. Bulk "Send Login Details" dropdown button (checkbox-gated, sends SMS and/or WhatsApp in parallel). `tagConvertor()` `{{password}}` fixed to use `$user->phone` (was hardcoded `"123456"`). New controller methods: `send_login_sms`, `send_login_whatsapp`, `send_bulk_login_sms`, `send_bulk_login_whatsapp`, `update_login_details`. 4 migration rows added to `schema_updates.json`.
 - **2026-05-09**: Documented **Client-Side Excel Export via SheetJS** (Section 8.3) — clone table → strip tooltip attrs → replace em-dashes → `table_to_sheet` → `writeFile`. Reference: Invoice Report (`mvc/views/report/invoicereport/InvoicereportReport.php`). colspan/rowspan merged headers preserved automatically.
+- **2026-05-14**: Implemented and documented **Firebase Push Notification System** (Section 10) — full admin UI (compose, history, setup, verify), Kreait SDK individual sends (Google removed `/batch`), cascading Role→Year→Class→Section→Users filter, only app-installed students shown in dropdown, image URL support, custom sound (`school_1`), `studentrelation` column name fix (`sr` prefix), select2 must be loaded via `headerassets`, foreground vs background notification behaviour documented.
 
 ## 8. Reusable UI Patterns
 
@@ -507,3 +508,253 @@ Both SMS and WhatsApp use a `tagConvertor($userTags, $user, $message)` method. I
 | WhatsApp — fee reminder | `mvc/controllers/Progresscardreport.php` | `send_balance_whatsapp()` |
 | WhatsApp model (all sends) | `mvc/models/Whatsapp_m.php` | `sendWhatsapp()`, `sendWhatsapp_bulk_batch*()` |
 | SMS gateway library | `mvc/libraries/Msg91.php` | `send()` |
+
+---
+
+## 10. Firebase Push Notification System
+
+Implemented 2026-05-14. Sends FCM push notifications from the admin ERP to the school's Ionic mobile app.
+
+---
+
+### 10.1 Overview and Key Files
+
+| File | Purpose |
+|---|---|
+| `mvc/controllers/Push_notification.php` | Admin controller — compose, send, AJAX loaders, history, setup, verify |
+| `mvc/models/Push_notification_m.php` | Model — student filtering, token lookup, history logging |
+| `mvc/helpers/fcm_helper.php` | `send_fcm_push_bulk()` — the only function that talks to Firebase |
+| `mvc/views/push_notification/index.php` | Compose & send UI |
+| `mvc/views/push_notification/history.php` | Notification log (last 100) |
+| `mvc/views/push_notification/setup.php` | Service account management + verification |
+| `mvc/third_party/firebase-service-account.json` | Firebase service account credentials — **not in git**, upload via Setup page |
+| `mvc/controllers/api/v10/Token.php` | Mobile API — `store_token_post()` saves device token on app login |
+
+**Admin URLs**:
+- `/Push_notification` — compose & send
+- `/Push_notification/history` — log of all sent notifications
+- `/Push_notification/setup` — upload / verify service account JSON
+- `/Push_notification/verify` — 5-step verification check
+
+**Menu**: Administrator → Push Notification (`fa-bell`, priority 200)
+**Permission name**: `push_notification`
+
+---
+
+### 10.2 Firebase Configuration
+
+| Item | Value |
+|---|---|
+| Firebase Project ID | `our-school-erp-cbf37` |
+| Mobile App Package | `io.ionic.ourschoolerp` |
+| SDK (PHP) | Kreait Firebase PHP `^5.26` via Composer (`vendor/`) |
+| Service Account File | `mvc/third_party/firebase-service-account.json` |
+
+**How to update the service account**:
+1. Go to Firebase Console → Project `our-school-erp-cbf37` → Settings → Service Accounts
+2. Generate new private key → download JSON
+3. Go to `/Push_notification/setup` in the ERP → paste full JSON → click Update
+4. Click **Verify** — all 5 checks must go green
+
+**Critical**: The `project_id` inside the service account JSON **must match** `our-school-erp-cbf37`. A mismatch causes silent auth failures.
+
+---
+
+### 10.3 FCM Helper — `send_fcm_push_bulk()`
+
+**File**: `mvc/helpers/fcm_helper.php`
+
+```php
+send_fcm_push_bulk(
+    array  $deviceTokens,       // array of FCM token strings
+    string $title,              // notification title
+    string $body,               // notification message body
+    array  $data       = [],    // extra key-value data payload (e.g. ['type' => 'exam_alert'])
+    string $imageUrl   = null,  // optional public HTTPS image URL (shows as banner on Android)
+    string $sound      = 'school_1' // custom sound name bundled in the mobile app
+): array   // ['status' => bool, 'successCount' => int, 'failureCount' => int, ...]
+```
+
+**What it sends (FCM HTTP v1 payload)**:
+```json
+{
+  "notification": { "title": "...", "body": "...", "image": "https://..." },
+  "android": {
+    "priority": "high",
+    "notification": { "sound": "school_1" }
+  },
+  "apns": {
+    "payload": { "aps": { "sound": "school_1" } }
+  },
+  "data": { "type": "general" }
+}
+```
+
+**Key design decision — individual sends, not multicast**:
+Google **removed the `/batch` FCM endpoint** in 2024. Kreait's `sendMulticast()` used that endpoint and returns HTTP 404. The helper now loops each token and calls `$messaging->send()` individually. This is reliable and correct.
+
+**Sound file requirement (mobile app)**:
+- Android: place `school_1.mp3` in `android/app/src/main/res/raw/`
+- iOS: place `school_1.caf` (or `.mp3`) in the Xcode project main bundle
+- If not found in app bundle → falls back to default system sound automatically
+
+**Image requirement**:
+- Must be a **publicly accessible HTTPS URL**
+- Recommended: JPEG/PNG, 1024×512 px, under 1MB
+- Android shows it as an expanded banner notification automatically
+- iOS requires a **Notification Service Extension** in the Ionic app to display images
+
+---
+
+### 10.4 Notification `type` Data Field
+
+The `type` key in the data payload is metadata for the **mobile app to act on** — it is not visible to the end user in the notification itself.
+
+| Type value | Intended app action |
+|---|---|
+| `general` | Open home/dashboard |
+| `exam_alert` | Navigate to Exam Timetable screen |
+| `fee_reminder` | Navigate to Fee / Pending Dues screen |
+| `holiday` | Navigate to Holiday calendar |
+| `custom` | App developer defines the behaviour |
+
+The app reads `data.type` in its FCM handler and navigates accordingly. Without app-side handling, all types show identically.
+
+---
+
+### 10.5 Device Token Flow (Mobile App → Server)
+
+```
+Student opens mobile app → logs in
+    ↓ App calls: POST /api/v10/token/store_token
+    { studentID, device_token, platform }
+    ↓
+Token.php::store_token_post()
+    ↓ Updates student table:
+    student.device_token = <FCM token>
+    student.platform     = 'android' | 'ios'
+```
+
+**Important**:
+- Token is refreshed **only on login** — stale tokens remain in DB if user doesn't log in again after reinstalling the app
+- FCM may return "success" for stale tokens; the device won't actually receive it
+- Failed sends do NOT automatically remove old tokens from DB
+
+**Columns on `student` table**:
+- `device_token` VARCHAR(255) — the FCM registration token
+- `platform` — `'android'` or `'ios'`
+
+---
+
+### 10.6 Recipient Filtering Logic
+
+The compose form has a cascading filter: **Role → School Year → Class → Section → Users multi-select**.
+
+**AJAX endpoints** (GET, return JSON):
+- `load_students` — returns students with device tokens matching the filter
+- `load_sections` — returns sections for a class
+
+**Model method for dropdown**: `load_students_for_filter($schoolyearID, $classesID, $sectionID)`
+- Joins `student s` ↔ `studentrelation sr` (INNER JOIN)
+- Filters only students where `s.device_token IS NOT NULL AND s.device_token != ''`
+- Only app-installed students appear in the Users dropdown
+
+**`studentrelation` column name gotcha** — all columns have `sr` prefix:
+```
+srstudentID, srschoolyearID, srclassesID, srsectionID
+```
+Do NOT use plain names (`studentID`, `classesID`, etc.) — the query will fail with `result() on bool`.
+
+**Model method for actual send**: `get_students_with_tokens($classesID, $sectionID, $studentIDs)`
+- When `$studentIDs` is provided (explicit user selection from dropdown), class/section filter is **skipped** — the students were already filtered at load time via `studentrelation`. Applying `student.classesID` again causes exclusions because the student table's direct column may differ from the studentrelation enrollment record.
+
+---
+
+### 10.7 Database Tables
+
+**`push_notification_log`** — history of all sent notifications:
+
+| Column | Description |
+|---|---|
+| `id` | Auto-increment PK |
+| `title` | Notification title |
+| `message` | Notification body |
+| `notification_type` | `general`, `exam_alert`, `fee_reminder`, `holiday`, `custom` |
+| `recipient_type` | `all`, `class`, or `section` |
+| `classesID` | FK to classes |
+| `sectionID` | FK to section |
+| `class_name` | Denormalized name at time of send |
+| `section_name` | Denormalized name at time of send |
+| `total_recipients` | Count of tokens attempted |
+| `success_count` | FCM-reported successes |
+| `failure_count` | FCM-reported failures |
+| `sent_by_userID` | Admin who sent it |
+| `sent_by_name` | Admin name at time of send |
+| `sent_at` | Datetime |
+
+---
+
+### 10.8 Multi-Tenant Consideration
+
+**Current setup (single-app model)**:
+- One Firebase project (`our-school-erp-cbf37`) shared across all tenants
+- One service account JSON (`mvc/third_party/firebase-service-account.json`) on the server
+- All schools use the **same mobile app** (same APK — `io.ionic.ourschoolerp`)
+- `google-services.json` in the app is the same for all schools
+- This is correct — the service account is server-side only; the app package is shared
+
+**If you ever add per-school branded apps** (different APK per school with their own `google-services.json`):
+- Each school would need their own Firebase project and service account
+- The service account file path would need to be per-tenant (e.g., stored in the tenant DB or at a subdomain-specific path)
+- The current single-file setup would break for those schools
+
+---
+
+### 10.9 select2 Loading (Critical)
+
+select2 is **NOT loaded globally** in this ERP — each controller must explicitly load it via `headerassets`. The layout footer (`page_footer.php`) loads it only if the controller sets this data:
+
+```php
+// In Push_notification::index() — required for select2 to work
+$this->data['headerassets'] = [
+    'css' => [
+        'assets/select2/css/select2.css',
+        'assets/select2/css/select2-bootstrap.css',
+    ],
+    'js' => ['assets/select2/select2.js'],
+];
+```
+
+**Version**: select2 **v3.4.2** (old API — not v4). Initialize in the view with:
+```javascript
+$('.select2').select2();
+```
+
+Do NOT call `.select2()` from an AJAX callback timing issue context — initialize it once on DOM ready. The `#pn_users` multi-select gets initialized by the global `$('.select2').select2()` call since it has `class="form-control select2"`.
+
+---
+
+### 10.10 Foreground vs Background Notification Behaviour
+
+| App State | Android | iOS |
+|---|---|---|
+| **Background / Closed** | System notification shown automatically | System notification shown automatically |
+| **Foreground (app open)** | Delivered silently to app's JS handler — **no visible notification** unless app code creates a local notification | Same — no visible notification |
+
+**Implication for testing**: Always close the app completely before testing push notifications. If the app is open, the notification arrives at the app's `onMessageReceived` / FCM plugin handler but does NOT appear in the notification tray.
+
+---
+
+### 10.11 Troubleshooting Reference
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `result() on bool` in `Push_notification_m` | Wrong `studentrelation` column names (missing `sr` prefix) | Use `srstudentID`, `srschoolyearID`, `srclassesID`, `srsectionID` |
+| `$(...).select2 is not a function` | select2 JS not loaded | Add `headerassets` in controller with select2 CSS+JS |
+| `/batch` 404 from FCM | Google removed the batch endpoint; `sendMulticast()` broken | Use individual `$messaging->send()` loop — already fixed in `fcm_helper.php` |
+| FCM says Delivered=1 but phone doesn't vibrate | App is open (foreground) | Close app fully and test again |
+| FCM says Delivered=1 but notification never arrives | Stale device token in DB | Student must log into app again to refresh token |
+| `Firebase Not Configured` banner on compose page | Service account missing or wrong project | Go to `/Push_notification/setup` and upload correct JSON for `our-school-erp-cbf37` |
+| Users dropdown shows 0 students | No students have logged into the app (no device tokens) | Students must log in via mobile app to register their token |
+| Sent to fewer than selected users | `get_students_with_tokens` was applying class filter on top of explicit IDs | Fixed: class/section filter is skipped when `userIDs[]` are posted |
+| Image not showing in notification (iOS) | iOS requires Notification Service Extension in Ionic app | Mobile app team must add the extension |

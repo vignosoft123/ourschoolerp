@@ -512,7 +512,7 @@
         "check_table": "push_notification_log"
     },
     {
-        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('push_notification', 'Push_notification', 'fa-bell', '1', '20', '200')",
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('push_notification', 'push_notification', 'fa-bell', '1', '17', '200')",
         "type": "insert",
         "check_row": {
             "table": "menu",
@@ -564,5 +564,41 @@
         "query": "INSERT INTO `mailandsmstemplatetag` (`usertypeID`, `tagname`) VALUES (3, '{{password}}')",
         "type": "insert",
         "check_row": { "table": "mailandsmstemplatetag", "where": { "usertypeID": 3, "tagname": "{{password}}" } }
+    },
+    {
+        "query": "UPDATE `menu` SET `parentID` = 17 WHERE `menuName` = 'push_notification' AND `parentID` != 17",
+        "type": "raw"
+    },
+    {
+        "query": "UPDATE `menu` SET `link` = 'push_notification' WHERE `menuName` = 'push_notification' AND `link` = 'Push_notification'",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('youtube', 'youtube')",
+        "type": "insert",
+        "check_row": { "table": "permissions", "where": { "name": "youtube" } }
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube'))",
+        "type": "raw"
+    },
+    {
+        "query": "CREATE TABLE `voice_messages` (`id` int(11) NOT NULL AUTO_INCREMENT, `voice_name` varchar(255) NOT NULL DEFAULT '', `file_name` varchar(255) NOT NULL DEFAULT '', `file_original_name` varchar(255) NOT NULL DEFAULT '', `file_size` int(11) NOT NULL DEFAULT 0, `school_year_id` int(11) NOT NULL DEFAULT 0, `created_by` int(11) NOT NULL DEFAULT 0, `created_by_usertype` int(11) NOT NULL DEFAULT 0, `status` tinyint(1) NOT NULL DEFAULT 1, `created_at` datetime DEFAULT NULL, `updated_at` datetime DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        "type": "create",
+        "check_table": "voice_messages"
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('voice_messages', 'voice_messages', 'fa-microphone', '1', '17', '210')",
+        "type": "insert",
+        "check_row": { "table": "menu", "where": { "menuName": "voice_messages" } }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('voice_messages', 'voice_messages')",
+        "type": "insert",
+        "check_row": { "table": "permissions", "where": { "name": "voice_messages" } }
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages'))",
+        "type": "raw"
     }
 ]

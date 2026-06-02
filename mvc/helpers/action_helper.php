@@ -852,13 +852,15 @@
                 // }  
 
 
-                if ( base_url($node['link']) == $current_url ) {
+                if ( base_url($node['link']) == $current_url || $node['link'] == $CI->uri->segment(1) ) {
                     $active = 'active';
                 }
 
+                $link_target = ($node['menuName'] === 'youtube_links') ? 'target="_blank"' : '';
                 $menu .= '<li class="' . ( $f ? $treeView : '' ) . $active . '">';
                 $menu .= anchor($node['link'],
-                    '<i class="fa ' . ( $node['icon'] != null ? $node['icon'] : 'fa-home' ) . '"></i><span>' . ( $CI->lang->line('menu_' . $node['menuName']) != null ? $CI->lang->line('menu_' . $node['menuName']) : $node['menuName'] ) . '</span> ' . ( $f ? $leftIcon : '' ));
+                    '<i class="fa ' . ( $node['icon'] != null ? $node['icon'] : 'fa-home' ) . '"></i><span>' . ( $CI->lang->line('menu_' . $node['menuName']) != null ? $CI->lang->line('menu_' . $node['menuName']) : $node['menuName'] ) . '</span> ' . ( $f ? $leftIcon : '' ),
+                    $link_target);
                 if ( $f ) {
                     $menu .= '<ul class="treeview-menu">';
                     display_menu($node['child'], $menu);

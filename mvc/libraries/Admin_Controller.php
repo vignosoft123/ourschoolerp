@@ -163,7 +163,7 @@ class Admin_Controller extends MY_Controller {
         $userdata        = $this->session->userdata;
 
         if ( $this->session->userdata('usertypeID') == 1 && $this->session->userdata('loginuserID') == 1 ) {
-            if ( isset($userdata['loginuserID']) && (!isset($userdata['get_permission']) || !isset($userdata['master_permission_set']['college_group'])) ) {
+            if ( isset($userdata['loginuserID']) && (!isset($userdata['get_permission']) || !isset($userdata['master_permission_set']['college_group']) || !isset($userdata['master_permission_set']['push_notification']) || !isset($userdata['master_permission_set']['youtube']) || !isset($userdata['master_permission_set']['voice_messages'])) ) {
                 $features = $this->permission_m->get_permission();
                 if ( customCompute($features) ) {
                     foreach ( $features as $featureKey => $feature ) {
@@ -176,7 +176,7 @@ class Admin_Controller extends MY_Controller {
                 }
             }
         } else {
-            if ( isset($userdata['loginuserID']) && (!isset($userdata['get_permission']) || !isset($userdata['master_permission_set']['college_group'])) ) {
+            if ( isset($userdata['loginuserID']) && (!isset($userdata['get_permission']) || !isset($userdata['master_permission_set']['college_group']) || !isset($userdata['master_permission_set']['push_notification']) || !isset($userdata['master_permission_set']['youtube']) || !isset($userdata['master_permission_set']['voice_messages'])) ) {
                 if ( !$this->session->userdata($permission) ) {
                     $user_permission = $this->permission_m->get_modules_with_permission($userdata['usertypeID']);
 

@@ -251,4 +251,5 @@ $lang['menu_youtube_links']       = 'YouTube Links';
 
 
 
+$lang['menu_voice_messages'] = 'Voice Messages';
 $lang['menu_exam_type'] = 'Exam Type';
