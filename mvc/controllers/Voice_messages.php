@@ -3,13 +3,20 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class Voice_messages extends Admin_Controller {
 
-    public $upload_data = [];
+    public $upload_data  = [];
+    public $upload_path  = '';
+    public $temp_path    = '';
 
     public function __construct() {
         parent::__construct();
         $this->load->model('voice_messages_m');
         $language = $this->session->userdata('lang');
         $this->lang->load('voice_messages', $language);
+
+        $this->upload_path = FCPATH . 'uploads/voice_messages/';
+        $this->temp_path   = FCPATH . 'uploads/voice_messages/temp/';
+        if (!is_dir($this->upload_path)) { @mkdir($this->upload_path, 0755, true); }
+        if (!is_dir($this->temp_path))   { @mkdir($this->temp_path,   0755, true); }
     }
 
     public function index() {
@@ -109,10 +116,8 @@ class Voice_messages extends Admin_Controller {
             echo json_encode(['success' => false, 'error' => 'Invalid file type']);
             return;
         }
-        $tempPath = './uploads/voice_messages/temp/';
-        if (!is_dir($tempPath)) { mkdir($tempPath, 0755, true); }
         $newName  = md5(uniqid('vm_tmp_', true)) . '.' . $ext;
-        $fullPath = $tempPath . $newName;
+        $fullPath = $this->temp_path . $newName;
         if (!move_uploaded_file($_FILES['audio_file']['tmp_name'], $fullPath)) {
             echo json_encode(['success' => false, 'error' => 'Failed to save temporary file']);
             return;
@@ -120,7 +125,7 @@ class Voice_messages extends Admin_Controller {
         // Convert WebM/OGG to MP3 for iOS compatibility — silently skip if FFmpeg unavailable
         if (in_array($ext, ['webm', 'ogg']) && function_exists('exec')) {
             $mp3Name = md5(uniqid('vm_tmp_', true)) . '.mp3';
-            $mp3Path = $tempPath . $mp3Name;
+            $mp3Path = $this->temp_path . $mp3Name;
             @exec('ffmpeg -y -i ' . escapeshellarg($fullPath) . ' -acodec libmp3lame -ab 128k ' . escapeshellarg($mp3Path) . ' 2>/dev/null', $out, $code);
             if ($code === 0 && file_exists($mp3Path) && filesize($mp3Path) > 0) {
                 @unlink($fullPath);
@@ -134,7 +139,7 @@ class Voice_messages extends Admin_Controller {
         $id    = (int)$this->uri->segment(3);
         $voice = $this->voice_messages_m->get_one(['id' => $id]);
         if ($voice) {
-            $filePath = './uploads/voice_messages/' . $voice->file_name;
+            $filePath = $this->upload_path . $voice->file_name;
             if ($voice->file_name && file_exists($filePath)) {
                 @unlink($filePath);
             }
@@ -156,11 +161,9 @@ class Voice_messages extends Admin_Controller {
             if (!in_array($ext, $allowed)) {
                 return ['success' => false, 'error' => 'Invalid file type. Allowed: MP3, WAV, OGG, M4A, AAC.'];
             }
-            $uploadPath = './uploads/voice_messages/';
-            if (!is_dir($uploadPath)) { mkdir($uploadPath, 0755, true); }
             $newName = md5(uniqid('vm_', true)) . '.' . $ext;
             $config  = [
-                'upload_path'   => $uploadPath,
+                'upload_path'   => $this->upload_path,
                 'allowed_types' => 'mp3|wav|ogg|m4a|aac|mpeg',
                 'file_name'     => $newName,
                 'max_size'      => 10240,
@@ -171,7 +174,7 @@ class Voice_messages extends Admin_Controller {
                 return ['success' => false, 'error' => strip_tags($this->upload->display_errors())];
             }
             if ($existingVoice && $existingVoice->file_name) {
-                @unlink($uploadPath . $existingVoice->file_name);
+                @unlink($this->upload_path . $existingVoice->file_name);
             }
             $d = $this->upload->data();
             return ['success' => true, 'file_name' => $d['file_name'], 'original_name' => $d['orig_name'], 'file_size' => $d['file_size']];
@@ -181,21 +184,19 @@ class Voice_messages extends Admin_Controller {
             if (empty($tempFile)) {
                 return ['success' => false, 'error' => 'No recording found. Please record your voice.'];
             }
-            $tempPath   = './uploads/voice_messages/temp/' . $tempFile;
+            $tempPath = $this->temp_path . $tempFile;
             if (!file_exists($tempPath)) {
                 return ['success' => false, 'error' => 'Temporary recording not found. Please re-record.'];
             }
-            $uploadPath = './uploads/voice_messages/';
-            if (!is_dir($uploadPath)) { mkdir($uploadPath, 0755, true); }
             $ext     = strtolower(pathinfo($tempFile, PATHINFO_EXTENSION));
             $newName = md5(uniqid('vm_rec_', true)) . '.' . $ext;
-            if (!rename($tempPath, $uploadPath . $newName)) {
+            if (!rename($tempPath, $this->upload_path . $newName)) {
                 return ['success' => false, 'error' => 'Failed to save recording.'];
             }
             if ($existingVoice && $existingVoice->file_name) {
-                @unlink($uploadPath . $existingVoice->file_name);
+                @unlink($this->upload_path . $existingVoice->file_name);
             }
-            return ['success' => true, 'file_name' => $newName, 'original_name' => 'voice_recording.' . $ext, 'file_size' => filesize($uploadPath . $newName)];
+            return ['success' => true, 'file_name' => $newName, 'original_name' => 'voice_recording.' . $ext, 'file_size' => filesize($this->upload_path . $newName)];
 
         } else {
             return ['success' => false, 'error' => 'Please upload an audio file or record your voice.'];
