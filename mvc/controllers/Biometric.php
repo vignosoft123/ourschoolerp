@@ -92,87 +92,142 @@ class Biometric extends CI_Controller {
            
            if($insert)
            {
-
-            // $sql1 = "select teacherID from teacher where rfid=".$RFID;
-            // $num_rows = $this->db->query($sql1)->num_rows();
-            // if($num_rows > 0){
-            //     $teacherID = $this->db->query($sql1)->row()->teacherID;
-            // }
-
-            $query = $this->db->query("SELECT teacherID FROM teacher WHERE rfid = ?", [$RFID]);
-            if ($query->num_rows() > 0) {
-                $teacherID = $query->row()->teacherID;
-            }
-
-
-
             $day_num = $day;
+            $prefix  = strtolower(substr($RFID, 0, 1));
 
-           
-            
-           
-        if(!empty($teacherID)){
-            //checking attendance exists or not start
-                $this->db->where('teacherID',$teacherID);
-                $this->db->where('monthyear',$month.'-'.$year);
-                $this->db->where('schoolyearID',$schoolyearID);
-                $this->db->where('usertypeID',2);
+            if ($prefix === 's') {
+                // ── STUDENT ──────────────────────────────────────────────────
+                $sq = $this->db->query("SELECT studentID FROM student WHERE rf_id = ?", [$RFID])->row();
+                if ($sq) {
+                    $studentID = $sq->studentID;
+                    $s_row = $this->db->query("SELECT value FROM setting WHERE fieldoption='student_present_time' LIMIT 1")->row();
+                    $student_present_ts = strtotime($s_row ? $s_row->value : $present_timings);
+                    $student_status = ($student_present_ts >= $punchin_time) ? "P" : "L";
 
-                $res = $this->db->get('tattendance')->result_array();
+                    $sr = $this->db->query(
+                        "SELECT srclassesID, srsectionID FROM studentrelation WHERE srstudentID=? AND srschoolyearID=? LIMIT 1",
+                        [$studentID, $schoolyearID]
+                    )->row();
 
-                //$cnt = $this->db->get('tattendance')->num_rows();
-                
-                if(empty($res[0]['a'.$day_num]) ){  //if new date comes then update is_attendance as 0
+                    if ($sr) {
+                        $day_col = 'a' . $day_num;
+                        $att = $this->db->get_where('attendance', [
+                            'studentID'    => $studentID,
+                            'monthyear'    => $month.'-'.$year,
+                            'schoolyearID' => $schoolyearID,
+                        ])->row();
+                        if ($att) {
+                            if (empty($att->$day_col)) {
+                                $this->db->where('attendanceID', $att->attendanceID);
+                                $this->db->update('attendance', [$day_col => $student_status]);
+                            }
+                        } else {
+                            $this->db->insert('attendance', [
+                                'schoolyearID' => $schoolyearID,
+                                'studentID'    => $studentID,
+                                'classesID'    => $sr->srclassesID,
+                                'sectionID'    => $sr->srsectionID,
+                                'userID'       => 0,
+                                'usertype'     => 'Biometric',
+                                'monthyear'    => $month.'-'.$year,
+                                $day_col       => $student_status,
+                            ]);
+                        }
+                    }
+                }
+
+            } elseif ($prefix === 'u') {
+                // ── USER / NON-TEACHING STAFF ─────────────────────────────────
+                $urow = $this->db->query("SELECT userID, usertypeID FROM user WHERE rf_id = ?", [$RFID])->row();
+                if ($urow) {
+                    $s_row = $this->db->query("SELECT value FROM setting WHERE fieldoption='student_present_time' LIMIT 1")->row();
+                    $user_present_ts = strtotime($s_row ? $s_row->value : $present_timings);
+                    $user_status = ($user_present_ts >= $punchin_time) ? "P" : "L";
+
+                    $day_col = 'a' . $day_num;
+                    $uatt = $this->db->get_where('uattendance', [
+                        'userID'       => $urow->userID,
+                        'monthyear'    => $month.'-'.$year,
+                        'schoolyearID' => $schoolyearID,
+                    ])->row();
+                    if ($uatt) {
+                        if (empty($uatt->$day_col)) {
+                            $this->db->where('uattendanceID', $uatt->uattendanceID);
+                            $this->db->update('uattendance', [$day_col => $user_status]);
+                        }
+                    } else {
+                        $this->db->insert('uattendance', [
+                            'schoolyearID' => $schoolyearID,
+                            'userID'       => $urow->userID,
+                            'usertypeID'   => $urow->usertypeID,
+                            'monthyear'    => $month.'-'.$year,
+                            $day_col       => $user_status,
+                        ]);
+                    }
+                }
+
+            } else {
+                // ── TEACHER (existing logic — unchanged) ──────────────────────
+                $teacherID = null;
+                $query = $this->db->query("SELECT teacherID FROM teacher WHERE rfid = ?", [$RFID]);
+                if ($query->num_rows() > 0) {
+                    $teacherID = $query->row()->teacherID;
+                }
+
+                if (!empty($teacherID)) {
+                    //checking attendance exists or not start
+                    $this->db->where('teacherID',$teacherID);
+                    $this->db->where('monthyear',$month.'-'.$year);
+                    $this->db->where('schoolyearID',$schoolyearID);
+                    $this->db->where('usertypeID',2);
+
+                    $res = $this->db->get('tattendance')->result_array();
+
+                    if(empty($res[0]['a'.$day_num]) ){  //if new date comes then update is_attendance as 0
+
+                        $this->db->where('teacherID',$teacherID);
+                        $this->db->where('monthyear',$month.'-'.$year);
+                        $this->db->where('schoolyearID',$schoolyearID);
+                        $this->db->where('usertypeID',2);
+                        $this->db->update("tattendance",array('is_attendance'=>0) );
+                    }
 
                     $this->db->where('teacherID',$teacherID);
                     $this->db->where('monthyear',$month.'-'.$year);
                     $this->db->where('schoolyearID',$schoolyearID);
                     $this->db->where('usertypeID',2);
-                    $this->db->update("tattendance",array('is_attendance'=>0) );
+
+                    $res = $this->db->get('tattendance')->result_array();
+                    $cnt = $this->db->get('tattendance')->num_rows();
+                    //checking attendance exists or not end
+
+                    if($res[0]['is_attendance'] == 0){
+                        if($cnt > 0){
+                            $attendance_update = array(
+                                'schoolyearID' => $schoolyearID,
+                                'teacherID'    => $teacherID,
+                                'usertypeID'   => 2,
+                                'monthyear'    => $month.'-'.$year,
+                                'a'.$day_num   => $present_or_latepresent,
+                                'is_attendance'=> 1,
+                            );
+                            $this->db->where('teacherID',$teacherID);
+                            $this->db->update('tattendance',$attendance_update);
+                        } else {
+                            $attendance_insert = array(
+                                'schoolyearID' => $schoolyearID,
+                                'teacherID'    => $teacherID,
+                                'usertypeID'   => 2,
+                                'monthyear'    => $month.'-'.$year,
+                                'a'.$day_num   => $present_or_latepresent,
+                                'is_attendance'=> 1,
+                            );
+                            $this->db->insert('tattendance',$attendance_insert);
+                        }
+                    }
                 }
+            }
 
-                $this->db->where('teacherID',$teacherID);
-                $this->db->where('monthyear',$month.'-'.$year);
-                $this->db->where('schoolyearID',$schoolyearID);
-                $this->db->where('usertypeID',2);
-
-                $res = $this->db->get('tattendance')->result_array();
-
-                $cnt = $this->db->get('tattendance')->num_rows();
-
-            //checking attendance exists or not end
-
-            if($res[0]['is_attendance'] == 0){  
-
-
-                if($cnt > 0){
-                    $attendance_update = array(
-                        'schoolyearID' => $schoolyearID,
-                        'teacherID' => $teacherID,
-                        'usertypeID' => 2,
-                        'monthyear' => $month.'-'.$year,
-                        'a'.$day_num => $present_or_latepresent,
-                        'is_attendance' => 1,
-                    );
-                    $this->db->where('teacherID',$teacherID);
-                    $this->db->update('tattendance',$attendance_update);
-                }else{
-                    $attendance_insert = array(
-                        'schoolyearID' => $schoolyearID,
-                        'teacherID' => $teacherID,
-                        'usertypeID' => 2,
-                        'monthyear' => $month.'-'.$year,
-                        'a'.$day_num => $present_or_latepresent,
-                        'is_attendance' => 1,
-                    );
-                    $this->db->insert('tattendance',$attendance_insert);
-                }  
-            }          
-
-        }
-            // echo $this->db->last_query();die;
-           
-            // echo '$RFID=0#';
            }
            else
            {

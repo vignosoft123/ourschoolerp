@@ -233,6 +233,7 @@ class Subdomains extends Admin_Controller {
 			$actions  = '';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-success btn-sm" title="Create Tables" onclick="event.stopPropagation();createTables(this,' . $subdomain->id . ')"><i class="fa fa-database"></i></a> ';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-statistics" title="Statistics" onclick="event.stopPropagation();showStatistics(' . $subdomain->id . ',\'' . addslashes(htmlspecialchars($subdomain->site_name ?: $subdomain->subdomain)) . '\')"><i class="fa fa-bar-chart"></i></a> ';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-warning btn-sm" title="Sync All CSS to live server" onclick="event.stopPropagation();updateCss(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-cloud-upload"></i></a> ';
 			$actions .= '<a href="' . base_url('subdomains/edit/' . $subdomain->id) . '" class="btn btn-primary btn-sm" title="Edit" onclick="event.stopPropagation()"><i class="fa fa-edit"></i></a> ';
 			$actions .= '<a href="' . base_url('subdomains/delete/' . $subdomain->id) . '" class="btn btn-danger btn-sm" title="Delete" onclick="event.stopPropagation();return confirm(\'Are you sure you want to delete this subdomain?\')"><i class="fa fa-trash"></i></a>';
 

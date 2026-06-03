@@ -1,4 +1,6 @@
 import os
+import json
+import requests
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -12,7 +14,20 @@ load_dotenv()
 APP_ENV = os.getenv("APP_ENV", "local")
 APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
 APP_PORT = int(os.getenv("APP_PORT", 8000))
-SQL_FILE_PATH = os.getenv("SQL_FILE_PATH", "../new domains/new db tables/tables.sql")
+SQL_FILE_PATH      = os.getenv("SQL_FILE_PATH", "../new domains/new db tables/tables.sql")
+CSS_FOLDER_PATH    = os.getenv("CSS_FOLDER_PATH", "C:/xampp/htdocs/ourschoolerp/assets/inilabs")
+CSS_UPDATE_API_KEY = os.getenv("CSS_UPDATE_API_KEY", "")
+SERVER_DOMAINS     = json.loads(os.getenv("SERVER_DOMAINS", "{}"))
+
+# CSS files to sync (all custom inilabs files except install.css)
+CSS_FILES_TO_SYNC  = [
+    "inilabs.css",
+    "responsive.css",
+    "combined.css",
+    "hidetable.css",
+    "mailandmedia.css",
+    "custom-overrides.css",
+]
 ALLOWED_ORIGINS = os.getenv(
     "ALLOWED_ORIGINS",
     "http://staging.ourschoolerp.localhost,http://localhost"
@@ -650,6 +665,174 @@ async def get_statistics(subdomain_id: int):
         if tenant_conn.is_connected():
             cur.close()
             tenant_conn.close()
+
+
+# ─── Update CSS (Bulk) ─────────────────────────────────────────────────────────
+
+@app.post("/update-css-bulk")
+async def update_css_bulk(request: Request):
+    """
+    Push CSS files to multiple live subdomains at once.
+    Body: { "subdomain_ids": [1,2,3] }  OR  { "server": "godaddy" }
+    """
+    body = await request.json()
+    subdomain_ids = body.get("subdomain_ids", [])
+    server        = body.get("server", "")
+
+    if not subdomain_ids and not server:
+        raise HTTPException(status_code=422, detail="Provide either 'subdomain_ids' or 'server'")
+
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        if subdomain_ids:
+            placeholders = ",".join(["%s"] * len(subdomain_ids))
+            cur.execute(
+                f"SELECT * FROM subdomain_settings WHERE id IN ({placeholders}) AND status='active'",
+                subdomain_ids,
+            )
+        else:
+            cur.execute(
+                "SELECT * FROM subdomain_settings WHERE server=%s AND status='active'",
+                (server,),
+            )
+        subdomains = cur.fetchall()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomains:
+        raise HTTPException(status_code=404, detail="No active subdomains found for the given criteria")
+
+    # Read all CSS files once
+    files_payload = {}
+    for filename in CSS_FILES_TO_SYNC:
+        filepath = os.path.join(CSS_FOLDER_PATH, filename)
+        if os.path.exists(filepath):
+            with open(filepath, "r", encoding="utf-8") as f:
+                files_payload[filename] = f.read()
+
+    if not files_payload:
+        raise HTTPException(status_code=500, detail=f"No CSS files found in: {CSS_FOLDER_PATH}")
+
+    results      = []
+    success_count = 0
+
+    for sub in subdomains:
+        srv = sub.get("server", "")
+        if srv not in SERVER_DOMAINS:
+            results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": False, "message": f"No domain mapping for server: {srv}"})
+            continue
+
+        base_domain = SERVER_DOMAINS[srv]
+        target_url  = f"https://{sub['subdomain']}.{base_domain}/cssupdate/receive"
+
+        try:
+            resp = requests.post(
+                target_url,
+                json={"api_key": CSS_UPDATE_API_KEY, "files": files_payload},
+                timeout=60,
+                verify=False,
+            )
+            try:
+                result = resp.json()
+                results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": result.get("success", False), "message": result.get("message", "")})
+                if result.get("success"):
+                    success_count += 1
+            except ValueError:
+                results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": False, "message": f"HTTP {resp.status_code}: Cssupdate.php not deployed on live server"})
+        except requests.exceptions.RequestException as e:
+            results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": False, "message": str(e)})
+
+    return {
+        "success":       success_count > 0,
+        "total":         len(subdomains),
+        "success_count": success_count,
+        "message":       f"CSS synced to {success_count}/{len(subdomains)} subdomains",
+        "details":       results,
+    }
+
+
+# ─── Update CSS (Single) ───────────────────────────────────────────────────────
+
+@app.post("/update-css/{subdomain_id}")
+async def update_css(subdomain_id: int):
+    """
+    Reads the local inilabs.css and pushes it to the live subdomain server
+    via HTTP POST to the cssupdate/receive endpoint on the live site.
+    """
+    # 1. Fetch subdomain info from central DB
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        cur.execute("SELECT * FROM subdomain_settings WHERE id = %s", (subdomain_id,))
+        subdomain = cur.fetchone()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomain:
+        raise HTTPException(status_code=404, detail=f"Subdomain ID {subdomain_id} not found")
+
+    # 2. Read all CSS files from local folder
+    files_payload = {}
+    missing = []
+    for filename in CSS_FILES_TO_SYNC:
+        filepath = os.path.join(CSS_FOLDER_PATH, filename)
+        if os.path.exists(filepath):
+            with open(filepath, "r", encoding="utf-8") as f:
+                files_payload[filename] = f.read()
+        else:
+            missing.append(filename)
+
+    if not files_payload:
+        raise HTTPException(status_code=500, detail=f"No CSS files found in: {CSS_FOLDER_PATH}")
+
+    # 3. Build target URL from server → domain mapping
+    server = subdomain.get("server", "")
+    if server not in SERVER_DOMAINS:
+        raise HTTPException(status_code=500, detail=f"No domain mapping for server: {server}")
+
+    base_domain = SERVER_DOMAINS[server]
+    target_url  = f"https://{subdomain['subdomain']}.{base_domain}/cssupdate/receive"
+
+    # 4. POST all CSS files to live server receiver as JSON
+    try:
+        resp = requests.post(
+            target_url,
+            json={"api_key": CSS_UPDATE_API_KEY, "files": files_payload},
+            timeout=60,
+            verify=False,
+        )
+    except requests.exceptions.ConnectionError:
+        raise HTTPException(status_code=500, detail=f"Cannot connect to live server: {target_url}. Check if the domain is reachable.")
+    except requests.exceptions.Timeout:
+        raise HTTPException(status_code=500, detail=f"Live server timed out: {target_url}")
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"Request to live server failed: {e}")
+
+    try:
+        result = resp.json()
+        if missing:
+            result["skipped"] = missing
+        return result
+    except ValueError:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Live server ({target_url}) returned HTTP {resp.status_code} with non-JSON response. "
+                   f"Cssupdate.php is not deployed on the live server yet. "
+                   f"Please upload mvc/controllers/Cssupdate.php and mvc/config/css_update_config.php via cPanel."
+        )
 
 
 if __name__ == "__main__":

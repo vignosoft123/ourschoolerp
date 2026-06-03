@@ -78,7 +78,12 @@
                             Database Password <span class="text-red">*</span>
                         </label>
                         <div class="col-sm-6">
-                            <?php echo form_password(array('id' => 'db_pass', 'name' => 'db_pass', 'value' => set_value('db_pass'), 'class' => 'form-control', 'placeholder' => 'Enter database password')); ?>
+                            <div class="input-group">
+                                <?php echo form_password(array('id' => 'db_pass', 'name' => 'db_pass', 'value' => set_value('db_pass'), 'class' => 'form-control', 'placeholder' => 'Enter database password')); ?>
+                                <span class="input-group-addon" id="toggle-db-pass" style="cursor:pointer;">
+                                    <i class="fa fa-eye" id="toggle-db-pass-icon"></i>
+                                </span>
+                            </div>
                             <?php echo form_error('db_pass', '<div class="error-message">', '</div>'); ?>
                         </div>
                     </div>
@@ -156,6 +161,19 @@
 $(document).ready(function() {
     $('.select2').select2();
     
+    // Toggle password visibility
+    $('#toggle-db-pass').on('click', function() {
+        var input = $('#db_pass');
+        var icon = $('#toggle-db-pass-icon');
+        if (input.attr('type') === 'password') {
+            input.attr('type', 'text');
+            icon.removeClass('fa-eye').addClass('fa-eye-slash');
+        } else {
+            input.attr('type', 'password');
+            icon.removeClass('fa-eye-slash').addClass('fa-eye');
+        }
+    });
+
     // Handle server dropdown change
     $('#server').on('change', function() {
         var selectedServer = $(this).val();

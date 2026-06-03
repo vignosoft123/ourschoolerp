@@ -600,5 +600,15 @@
     {
         "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages'))",
         "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `setting` (`fieldoption`, `value`) VALUES ('student_present_time', '9-00')",
+        "type": "insert",
+        "check_row": { "table": "setting", "where": { "fieldoption": "student_present_time" } }
+    },
+    {
+        "query": "ALTER TABLE `user` ADD `rf_id` varchar(255) DEFAULT NULL",
+        "type": "alter",
+        "check_column": { "table": "user", "column": "rf_id" }
     }
 ]

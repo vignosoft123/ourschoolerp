@@ -47,6 +47,10 @@
                         <button id="refresh_age_btn" class="btn btn-refresh-age" onclick="refreshSchoolsAge()" disabled>
                             <i class="fa fa-refresh"></i> Refresh Schools Age
                         </button>
+                        &nbsp;
+                        <button id="bulk_css_btn" class="btn btn-info" onclick="bulkUpdateCss()" disabled>
+                            <i class="fa fa-cloud-upload"></i> Bulk CSS Update
+                        </button>
                     </div>
                 </div>
                 
@@ -54,6 +58,7 @@
                     <table id="subdomains-table" class="table table-striped table-bordered table-hover" style="cursor:pointer;">
                         <thead>
                             <tr>
+                                <th width="3%" class="text-center"><input type="checkbox" id="select-all-checkbox" title="Select all visible rows"></th>
                                 <th width="4%">#</th>
                                 <th width="10%">Server</th>
                                 <th width="13%">SubDomain</th>
@@ -214,6 +219,25 @@
 </div>
 
 <script type="text/javascript">
+
+// Global — accessible by bulkUpdateCss() and other functions outside $(document).ready()
+var selectedIds = new Set();
+
+function updateBulkCssBtn() {
+    var count  = selectedIds.size;
+    var server = $('#server_filter').val();
+    if (count > 0) {
+        $('#bulk_css_btn').prop('disabled', false)
+            .html('<i class="fa fa-cloud-upload"></i> Sync CSS to ' + count + ' Selected');
+    } else if (server) {
+        $('#bulk_css_btn').prop('disabled', false)
+            .html('<i class="fa fa-cloud-upload"></i> Sync CSS to All ' + server);
+    } else {
+        $('#bulk_css_btn').prop('disabled', true)
+            .html('<i class="fa fa-cloud-upload"></i> Bulk CSS Update');
+    }
+}
+
 $(document).ready(function() {
     var table = $('#subdomains-table').DataTable({
         "processing": true,
@@ -226,6 +250,12 @@ $(document).ready(function() {
             }
         },
         "columns": [
+            {
+                "data": null, "orderable": false, "className": "text-center",
+                "render": function(data, type, row) {
+                    return '<input type="checkbox" class="row-checkbox" data-id="' + row._id + '">';
+                }
+            },
             { "data": "serial",          "orderable": false },
             { "data": "server" },
             { "data": "subdomain" },
@@ -235,7 +265,7 @@ $(document).ready(function() {
             { "data": "total_app_users", "orderable": false, "className": "text-center" },
             { "data": "actions",         "orderable": false }
         ],
-        "order": [[ 1, "asc" ]],
+        "order": [[ 2, "asc" ]],
         "pageLength": 25,
         "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]],
         "language": {
@@ -245,6 +275,46 @@ $(document).ready(function() {
         "createdRow": function(row, data) {
             $(row).addClass('row-clickable');
         }
+    });
+
+    // ── Checkbox selection tracking ──────────────────────────────────────────
+
+    // Restore checkbox state after every DataTable redraw
+    table.on('draw', function() {
+        $('#subdomains-table tbody .row-checkbox').each(function() {
+            var id = parseInt($(this).data('id'));
+            $(this).prop('checked', selectedIds.has(id));
+        });
+        var total   = $('#subdomains-table tbody .row-checkbox').length;
+        var checked = $('#subdomains-table tbody .row-checkbox:checked').length;
+        $('#select-all-checkbox').prop('checked', total > 0 && checked === total);
+        updateBulkCssBtn();
+    });
+
+    // Individual checkbox change
+    $('#subdomains-table tbody').on('change', '.row-checkbox', function() {
+        var id = parseInt($(this).data('id'));
+        if ($(this).is(':checked')) { selectedIds.add(id); } else { selectedIds.delete(id); }
+        var total   = $('#subdomains-table tbody .row-checkbox').length;
+        var checked = $('#subdomains-table tbody .row-checkbox:checked').length;
+        $('#select-all-checkbox').prop('checked', total > 0 && checked === total);
+        updateBulkCssBtn();
+    });
+
+    // Prevent row-click popup when clicking checkbox
+    $('#subdomains-table tbody').on('click', '.row-checkbox', function(e) {
+        e.stopPropagation();
+    });
+
+    // Select-all checkbox
+    $('#select-all-checkbox').on('change', function() {
+        var checked = $(this).is(':checked');
+        $('#subdomains-table tbody .row-checkbox').each(function() {
+            $(this).prop('checked', checked);
+            var id = parseInt($(this).data('id'));
+            if (checked) { selectedIds.add(id); } else { selectedIds.delete(id); }
+        });
+        updateBulkCssBtn();
     });
 
     // Load pivot table on page ready
@@ -272,6 +342,7 @@ $(document).ready(function() {
 
     $('#server_filter').change(function() {
         table.draw();
+        selectedIds.clear();
         var selectedServer = $(this).val();
         if (selectedServer) {
             $('#bulk_migration_btn').prop('disabled', false);
@@ -284,6 +355,7 @@ $(document).ready(function() {
             $('#refresh_age_btn').prop('disabled', true);
             $('#refresh_age_btn').html('<i class="fa fa-refresh"></i> Refresh Schools Age');
         }
+        updateBulkCssBtn();
     });
 });
 
@@ -362,12 +434,16 @@ function togglePythonServer() {
         return;
     }
 
-    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Starting...';
-    btn.disabled  = true;
+    var icon  = document.getElementById('python_server_icon');
+    var label = document.getElementById('python_server_label');
+    icon.className    = 'fa fa-spinner fa-spin';
+    label.textContent = 'Starting...';
+    btn.disabled      = true;
 
     $.ajax({
         url: '<?php echo base_url("subdomains/start_python_server"); ?>',
         type: 'POST',
+        dataType: 'json',
         success: function(res) {
             btn.disabled = false;
             if (res.success) {
@@ -423,6 +499,86 @@ function createTables(btn, subdomainId) {
         });
     }
 }
+
+// ── Bulk CSS Update ───────────────────────────────────────────────────────────
+
+function bulkUpdateCss() {
+    var ids    = Array.from(selectedIds);
+    var server = $('#server_filter').val();
+
+    if (ids.length === 0 && !server) {
+        alert('Please check subdomains or select a server first.');
+        return;
+    }
+
+    var label = ids.length > 0
+        ? ids.length + ' selected subdomain(s)'
+        : 'ALL active subdomains on ' + server + ' server';
+
+    if (!confirm('Sync all CSS files to ' + label + '?\nThis will overwrite CSS files on the live server(s).')) return;
+
+    var btn = $('#bulk_css_btn');
+    var originalHtml = btn.html();
+    btn.html('<i class="fa fa-spinner fa-spin"></i> Syncing...').prop('disabled', true);
+
+    var payload = ids.length > 0 ? { subdomain_ids: ids } : { server: server };
+
+    $.ajax({
+        url: 'http://localhost:8000/update-css-bulk',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        dataType: 'json',
+        success: function(response) {
+            btn.html(originalHtml).prop('disabled', false);
+            var msg = 'CSS Sync Complete\n';
+            msg += 'Success: ' + response.success_count + ' / ' + response.total + '\n\n';
+            if (response.details && response.details.length) {
+                response.details.forEach(function(d) {
+                    msg += (d.success ? '✓ ' : '✗ ') + d.subdomain + ': ' + d.message + '\n';
+                });
+            }
+            alert(msg);
+        },
+        error: function(xhr) {
+            btn.html(originalHtml).prop('disabled', false);
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Bulk CSS Update failed:\n' + detail);
+        }
+    });
+}
+
+// ── Update CSS (Single) ───────────────────────────────────────────────────────
+
+function updateCss(btn, subdomainId, subdomainName) {
+    if (!confirm('Push local inilabs.css to live server for "' + subdomainName + '"?\nThis will overwrite the remote CSS file.')) return;
+
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+    $(btn).addClass('disabled');
+
+    $.ajax({
+        url: 'http://localhost:8000/update-css/' + subdomainId,
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert('Success: ' + response.message);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr) {
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Request failed. Make sure Python server is running.\n' + detail);
+        },
+        complete: function() {
+            btn.innerHTML = originalHtml;
+            $(btn).removeClass('disabled');
+        }
+    });
+}
+
 </script>
 
 <style>

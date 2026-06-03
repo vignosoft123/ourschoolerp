@@ -12,9 +12,11 @@
         <div class="row">
 
         <div class="col-sm-12">
-            <button class="btn btn-primary" id="at_rpt"> Attendance Report</button>              
-            <button class="btn btn-primary" id="bio_rpt">Biomatric Report</button> 
-            <button class="btn btn-primary" id="late_comers_rpt">Late Comers Report</button> 
+            <button class="btn btn-primary" id="at_rpt"> Attendance Report</button>
+            <button class="btn btn-primary" id="bio_rpt">Biomatric Report</button>
+            <button class="btn btn-primary" id="late_comers_rpt">Late Comers Report</button>
+            <button class="btn btn-success" id="sbio_rpt"><i class="fa fa-id-card"></i> Student Biometric Report</button>
+            <button class="btn btn-warning" id="ubio_rpt"><i class="fa fa-users"></i> User Biometric Report</button>
         </div>
             <div class="col-sm-12" id="attendance_report">
                 <div class="form-group col-sm-4" id="usertypeDiv">
@@ -141,6 +143,88 @@
 
             </div>
 
+            <!-- Student Biometric Report Section -->
+            <div class="col-sm-12" id="student_biomatric_report">
+                <h3 class="text-green"><i class="fa fa-id-card"></i> Student Biometric Report</h3>
+
+                <div class="form-group col-sm-4">
+                    <label>Class</label>
+                    <?php
+                        $cls_array = array("" => "All Classes");
+                        if (customCompute($classes)) {
+                            foreach ($classes as $classa) {
+                                $cls_array[$classa->classesID] = $classa->classes;
+                            }
+                        }
+                        echo form_dropdown("sbio_classesID", $cls_array, '', "id='sbio_classesID' class='form-control select2'");
+                    ?>
+                </div>
+
+                <div class="form-group col-sm-4">
+                    <label>Section</label>
+                    <select name="sbio_sectionID" id="sbio_sectionID" class="form-control select2">
+                        <option value="">All Sections</option>
+                    </select>
+                </div>
+
+                <div class="form-group col-sm-4">
+                    <label>Student (optional)</label>
+                    <select name="sbio_student_id" id="sbio_student_id" class="form-control select2">
+                        <option value="">All Students</option>
+                    </select>
+                </div>
+
+                <div class="form-group col-sm-4">
+                    <label>From</label>
+                    <input type="text" name="sbio_fromdate" class="form-control" id="sbio_fromdate">
+                </div>
+
+                <div class="form-group col-sm-4">
+                    <label>To</label>
+                    <input type="text" name="sbio_todate" class="form-control" id="sbio_todate">
+                </div>
+
+                <div class="col-sm-4">
+                    <button id="get_student_biomatric" class="btn btn-success" style="margin-top:23px;">
+                        <i class="fa fa-search"></i> Get Student Biometric Report
+                    </button>
+                </div>
+            </div>
+
+            <!-- User Biometric Report Section -->
+            <div class="col-sm-12" id="user_biomatric_report">
+                <h3 class="text-yellow"><i class="fa fa-users"></i> User Biometric Report</h3>
+
+                <div class="form-group col-sm-4">
+                    <label>User (optional)</label>
+                    <?php
+                        $all_users = $this->db->query("SELECT userID, name FROM user WHERE active=1 ORDER BY name")->result_array();
+                    ?>
+                    <select name="ubio_user_id" id="ubio_user_id" class="form-control select2">
+                        <option value="">All Users</option>
+                        <?php foreach ($all_users as $u) { ?>
+                            <option value="<?= $u['userID'] ?>"><?= $u['name'] ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+
+                <div class="form-group col-sm-4">
+                    <label>From</label>
+                    <input type="text" name="ubio_fromdate" class="form-control" id="ubio_fromdate">
+                </div>
+
+                <div class="form-group col-sm-4">
+                    <label>To</label>
+                    <input type="text" name="ubio_todate" class="form-control" id="ubio_todate">
+                </div>
+
+                <div class="col-sm-4">
+                    <button id="get_user_biomatric" class="btn btn-warning" style="margin-top:23px;">
+                        <i class="fa fa-search"></i> Get User Biometric Report
+                    </button>
+                </div>
+            </div>
+
         </div><!-- row -->
     </div><!-- Body -->
 </div><!-- /.box -->
@@ -197,30 +281,41 @@
         $("#biomatric_report").hide();
         $("#attendance_report").hide();
         $("#late_comers_report").hide();
+        $("#student_biomatric_report").hide();
+        $("#user_biomatric_report").hide();
 
-        
-    $("#at_rpt").click(function(){
-         
+    function hideAllPanels() {
+        $("#attendance_report").hide();
         $("#biomatric_report").hide();
         $("#late_comers_report").hide();
+        $("#student_biomatric_report").hide();
+        $("#user_biomatric_report").hide();
+    }
+
+    $("#at_rpt").click(function(){
+        hideAllPanels();
         $("#attendance_report").show();
-    })
+    });
 
     $("#bio_rpt").click(function(){
-         
+        hideAllPanels();
         $("#biomatric_report").show();
-        $("#attendance_report").hide();
-        $("#late_comers_report").hide();
-
-    })
+    });
 
     $("#late_comers_rpt").click(function(){
-         
-        $("#biomatric_report").hide();
-        $("#attendance_report").hide();
+        hideAllPanels();
         $("#late_comers_report").show();
+    });
 
-    })
+    $("#sbio_rpt").click(function(){
+        hideAllPanels();
+        $("#student_biomatric_report").show();
+    });
+
+    $("#ubio_rpt").click(function(){
+        hideAllPanels();
+        $("#user_biomatric_report").show();
+    });
 
     });
 
@@ -506,11 +601,11 @@
     });
 
 
- $(document).on("click","#get_late_comers",function(){
+    $(document).on("click","#get_late_comers",function(){
         var field = {
             'teacher_id'  : $('#teacher_id_late').val(),
             'fromdate' : $('#fromdate_late').val(),
-            'todate' : $('#todate_late').val(), 
+            'todate' : $('#todate_late').val(),
         };
 
         $.ajax({
@@ -519,13 +614,118 @@
             data: field,
             dataType: "html",
             success: function(data) {
-
                 $("#load_attendanceoverview_report").html(data);
-                // var response = JSON.parse(data);
-                // renderLoder(response, passData);
             }
         });
     });
 
+    // ---- Student Biometric Report ----
+
+    // Date pickers for student biometric
+    $(document).on('click', '#sbio_fromdate, #sbio_todate', function() {
+        $('#sbio_fromdate').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+        $('#sbio_todate').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+    });
+
+    // Class → Section cascade for student biometric
+    $(document).on('change', '#sbio_classesID', function() {
+        var classesID = $(this).val();
+        $('#sbio_sectionID').html('<option value="">All Sections</option>');
+        $('#sbio_student_id').html('<option value="">All Students</option>');
+        if (classesID) {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('attendanceoverviewreport/getSection')?>",
+                data: {"classesID": classesID},
+                dataType: "html",
+                success: function(data) {
+                    $('#sbio_sectionID').html('<option value="">All Sections</option>' + data);
+                }
+            });
+        }
+    });
+
+    // Section → Student cascade for student biometric
+    $(document).on('change', '#sbio_sectionID', function() {
+        var classesID = $('#sbio_classesID').val();
+        var sectionID = $(this).val();
+        $('#sbio_student_id').html('<option value="">All Students</option>');
+        if (classesID && sectionID) {
+            $.ajax({
+                type: 'POST',
+                url: "<?=base_url('attendanceoverviewreport/getStudent')?>",
+                data: {"usertype": 1, "classesID": classesID, "sectionID": sectionID},
+                dataType: "html",
+                success: function(data) {
+                    $('#sbio_student_id').html('<option value="">All Students</option>' + data);
+                }
+            });
+        }
+    });
+
+    // ---- User Biometric Report ----
+
+    $(document).on('click', '#ubio_fromdate, #ubio_todate', function() {
+        $('#ubio_fromdate').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+        $('#ubio_todate').datepicker({
+            autoclose: true,
+            format: 'dd-mm-yyyy',
+            startDate:'<?=$schoolyearsessionobj->startingdate?>',
+            endDate:'<?=$schoolyearsessionobj->endingdate?>',
+        });
+    });
+
+    $(document).on("click", "#get_user_biomatric", function() {
+        var field = {
+            'user_id'  : $('#ubio_user_id').val(),
+            'fromdate' : $('#ubio_fromdate').val(),
+            'todate'   : $('#ubio_todate').val(),
+        };
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('attendanceoverviewreport/get_user_biomatric_report')?>",
+            data: field,
+            dataType: "html",
+            success: function(data) {
+                $("#load_attendanceoverview_report").html(data);
+            }
+        });
+    });
+
+    // Fetch and render student biometric report
+    $(document).on("click", "#get_student_biomatric", function() {
+        var field = {
+            'classesID'  : $('#sbio_classesID').val(),
+            'sectionID'  : $('#sbio_sectionID').val(),
+            'student_id' : $('#sbio_student_id').val(),
+            'fromdate'   : $('#sbio_fromdate').val(),
+            'todate'     : $('#sbio_todate').val(),
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('attendanceoverviewreport/get_student_biomatric_report')?>",
+            data: field,
+            dataType: "html",
+            success: function(data) {
+                $("#load_attendanceoverview_report").html(data);
+            }
+        });
+    });
 
 </script>

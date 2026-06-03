@@ -1199,6 +1199,88 @@ public function get_late_absent_report() {
     echo $html;
 }
 
+public function get_student_biomatric_report() {
+    $schoolyearID = $this->db->query(
+        "SELECT schoolyearID FROM schoolyear ORDER BY schoolyearID DESC LIMIT 1"
+    )->row()->schoolyearID;
 
+    $sql = "SELECT s.studentID, sr.srname AS student_name,
+                   sr.srclasses, sr.srsection, b.rfid, b.`date`,
+                   MIN(b.`time`) AS `min`, NULLIF(MAX(b.`time`), MIN(b.`time`)) AS `max`
+            FROM biometric b
+            LEFT JOIN student s ON s.rf_id = b.rfid
+            LEFT JOIN studentrelation sr ON sr.srstudentID = s.studentID
+                                         AND sr.srschoolyearID = $schoolyearID
+            WHERE s.studentID IS NOT NULL";
+
+    if (!empty($_POST['classesID'])) {
+        $sql .= " AND sr.srclassesID = ".(int)$_POST['classesID'];
+    }
+    if (!empty($_POST['sectionID'])) {
+        $sql .= " AND sr.srsectionID = ".(int)$_POST['sectionID'];
+    }
+    if (!empty($_POST['student_id'])) {
+        $sql .= " AND s.studentID = ".(int)$_POST['student_id'];
+    }
+    if (!empty($_POST['fromdate']) && !empty($_POST['todate'])) {
+        $fdate = date("Y-m-d", strtotime($_POST['fromdate']));
+        $tdate = date("Y-m-d", strtotime($_POST['todate']));
+        $sql .= " AND b.`date` >= '$fdate' AND b.`date` <= '$tdate'";
+    } elseif (!empty($_POST['fromdate'])) {
+        $fdate = date("Y-m-d", strtotime($_POST['fromdate']));
+        $sql .= " AND b.`date` = '$fdate'";
+    } elseif (!empty($_POST['todate'])) {
+        $tdate = date("Y-m-d", strtotime($_POST['todate']));
+        $sql .= " AND b.`date` = '$tdate'";
+    }
+    $sql .= " GROUP BY b.rfid, b.`date` ORDER BY b.`date` ASC";
+
+    $query = $this->db->query($sql);
+    if ($query === false) {
+        $err = $this->db->error();
+        echo '<div class="alert alert-danger"><strong>DB Error:</strong> '
+            . htmlspecialchars($err['message'])
+            . '<br><small>' . htmlspecialchars($sql) . '</small></div>';
+        return;
+    }
+    $data['result'] = $query->result_array();
+    $html = $this->load->view('report/student_biomatric_report', $data, true);
+    echo $html;
+}
+
+public function get_user_biomatric_report() {
+    $sql = "SELECT u.userID, u.name, ut.name AS role, u.phone, b.rfid, b.`date`,
+                   MIN(b.`time`) AS `min`, NULLIF(MAX(b.`time`), MIN(b.`time`)) AS `max`
+            FROM biometric b
+            LEFT JOIN user u ON u.rf_id = b.rfid
+            LEFT JOIN usertype ut ON ut.usertypeID = u.usertypeID
+            WHERE u.userID IS NOT NULL";
+
+    if (!empty($_POST['user_id'])) {
+        $sql .= " AND u.userID = ".(int)$_POST['user_id'];
+    }
+    if (!empty($_POST['fromdate']) && !empty($_POST['todate'])) {
+        $fdate = date("Y-m-d", strtotime($_POST['fromdate']));
+        $tdate = date("Y-m-d", strtotime($_POST['todate']));
+        $sql .= " AND b.`date` >= '$fdate' AND b.`date` <= '$tdate'";
+    } elseif (!empty($_POST['fromdate'])) {
+        $sql .= " AND b.`date` = '".date("Y-m-d", strtotime($_POST['fromdate']))."'";
+    } elseif (!empty($_POST['todate'])) {
+        $sql .= " AND b.`date` = '".date("Y-m-d", strtotime($_POST['todate']))."'";
+    }
+    $sql .= " GROUP BY b.rfid, b.`date` ORDER BY b.`date` ASC";
+
+    $query = $this->db->query($sql);
+    if ($query === false) {
+        $err = $this->db->error();
+        echo '<div class="alert alert-danger"><strong>DB Error:</strong> '
+            . htmlspecialchars($err['message'])
+            . '<br><small>' . htmlspecialchars($sql) . '</small></div>';
+        return;
+    }
+    $data['result'] = $query->result_array();
+    $html = $this->load->view('report/user_biomatric_report', $data, true);
+    echo $html;
+}
 
 }
