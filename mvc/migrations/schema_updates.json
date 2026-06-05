@@ -382,6 +382,11 @@
         "type": "raw"
     },
     {
+        "query": "CREATE TABLE `youtube_links` (`id` int(11) NOT NULL AUTO_INCREMENT, `url` varchar(500) COLLATE utf8_unicode_ci NOT NULL DEFAULT '', `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '', `description` text COLLATE utf8_unicode_ci NULL DEFAULT NULL, `subject_id` int(11) NOT NULL DEFAULT '0', `section_id` int(11) NOT NULL DEFAULT '0', `created_by` int(11) NOT NULL DEFAULT '0', `created_by_usertype` int(11) NOT NULL DEFAULT '0', `view_count` int(11) NOT NULL DEFAULT '0', `sort_order` int(11) NOT NULL DEFAULT '0', `created_at` datetime NULL DEFAULT NULL, `updated_at` datetime NULL DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci",
+        "type": "create",
+        "check_table": "youtube_links"
+    },
+    {
         "query": "ALTER TABLE `youtube_links` ADD `title` VARCHAR(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT ''",
         "type": "alter",
         "check_column": {

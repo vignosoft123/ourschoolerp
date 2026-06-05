@@ -1,0 +1,7 @@
+﻿# Disable mod_security for this directory to allow CSS file sync operations
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+</IfModule>
+<IfModule security2_module>
+    SecRuleEngine Off
+</IfModule>

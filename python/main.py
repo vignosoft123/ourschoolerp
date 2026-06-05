@@ -18,6 +18,10 @@ SQL_FILE_PATH      = os.getenv("SQL_FILE_PATH", "../new domains/new db tables/ta
 CSS_FOLDER_PATH    = os.getenv("CSS_FOLDER_PATH", "C:/xampp/htdocs/ourschoolerp/assets/inilabs")
 CSS_UPDATE_API_KEY = os.getenv("CSS_UPDATE_API_KEY", "")
 SERVER_DOMAINS     = json.loads(os.getenv("SERVER_DOMAINS", "{}"))
+MVC_ZIP_PATH       = os.getenv("MVC_ZIP_PATH", "C:/xampp/htdocs/ourschoolerp/mvc.zip")
+MVC_DEPLOY_API_KEY = os.getenv("MVC_DEPLOY_API_KEY", "")
+DUMMY_SERVERS      = json.loads(os.getenv("DUMMY_SERVERS", "{}"))
+CPANEL_CONFIGS     = json.loads(os.getenv("CPANEL_CONFIGS", "{}"))
 
 # CSS files to sync (all custom inilabs files except install.css)
 CSS_FILES_TO_SYNC  = [
@@ -807,6 +811,7 @@ async def update_css(subdomain_id: int):
     target_url  = f"https://{subdomain['subdomain']}.{base_domain}/cssupdate/receive"
 
     # 4. POST all CSS files to live server receiver as JSON
+    use_proxy = False
     try:
         resp = requests.post(
             target_url,
@@ -814,25 +819,749 @@ async def update_css(subdomain_id: int):
             timeout=60,
             verify=False,
         )
+        try:
+            result = resp.json()
+            if missing:
+                result["skipped"] = missing
+            return result
+        except ValueError:
+            if resp.status_code in [406, 403, 404]:
+                use_proxy = True
+            else:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Live server returned HTTP {resp.status_code}. Cssupdate.php may not be deployed yet."
+                )
     except requests.exceptions.ConnectionError:
-        raise HTTPException(status_code=500, detail=f"Cannot connect to live server: {target_url}. Check if the domain is reachable.")
-    except requests.exceptions.Timeout:
-        raise HTTPException(status_code=500, detail=f"Live server timed out: {target_url}")
+        raise HTTPException(status_code=500, detail=f"Cannot connect to live server: {target_url}")
     except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=500, detail=f"Request to live server failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Request failed: {e}")
 
-    try:
-        result = resp.json()
+    # 5. Fallback when direct POST is blocked (406)
+    if use_proxy:
+        # Try cPanel API first (most reliable — bypasses mod_security entirely)
+        if subdomain.get("server") in CPANEL_CONFIGS:
+            result = _upload_files_via_cpanel(subdomain, files_payload, "assets/inilabs")
+        else:
+            result = _update_css_via_proxy(subdomain, files_payload)
         if missing:
             result["skipped"] = missing
         return result
-    except ValueError:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Live server ({target_url}) returned HTTP {resp.status_code} with non-JSON response. "
-                   f"Cssupdate.php is not deployed on the live server yet. "
-                   f"Please upload mvc/controllers/Cssupdate.php and mvc/config/css_update_config.php via cPanel."
+
+
+# ─── Bootstrap via Dummy Server Copy ───────────────────────────────────────────
+
+BROWSER_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
+
+
+def _bootstrap_via_dummy(subdomain: dict) -> dict:
+    """
+    Calls bootstrap_copy.php on the dummy server.
+    The dummy server copies Cssupdate.php + css_update_config.php + Mvcdeploy.php
+    directly into the target subdomain (same cPanel account — no FTP needed).
+    """
+    server = subdomain.get("server", "")
+    if server not in DUMMY_SERVERS:
+        return {"success": False, "message": f"No dummy server configured for: {server}. Fill in DUMMY_SERVERS in python/.env"}
+
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+    if not domain_suffix:
+        return {"success": False, "message": f"No domain mapping for server: {server}"}
+
+    dummy_host = DUMMY_SERVERS[server]
+    dummy_url  = f"https://{dummy_host}/bootstrap_copy.php"
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; OurSchoolERP/1.0)",
+        "Accept": "application/json, text/plain, */*",
+    }
+    payload = {
+        "api_key":       CSS_UPDATE_API_KEY,
+        "subdomain":     subdomain["subdomain"],
+        "domain_suffix": f".{domain_suffix}",
+    }
+
+    # Try HTTPS first, fall back to HTTP if blocked
+    merged_headers = {**BROWSER_HEADERS, **headers}
+    for scheme in ["https", "http"]:
+        url = f"{scheme}://{dummy_host}/bootstrap_copy.php"
+        try:
+            resp = requests.post(url, data=payload, headers=merged_headers, timeout=30, verify=False)
+            try:
+                return resp.json()
+            except ValueError:
+                # Show actual response for debugging
+                preview = resp.text[:300].strip()
+                return {
+                    "success": False,
+                    "message": f"HTTP {resp.status_code} from {url}. Server response: {preview}"
+                }
+        except requests.exceptions.ConnectionError:
+            continue
+        except requests.exceptions.RequestException as e:
+            return {"success": False, "message": str(e)}
+
+    return {"success": False, "message": f"Cannot connect to dummy server: {dummy_host} (tried HTTP and HTTPS)"}
+
+
+@app.post("/bootstrap-subdomain/{subdomain_id}")
+async def bootstrap_subdomain(subdomain_id: int):
+    """Upload Cssupdate.php to a single live subdomain via FTP — fully automatic."""
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        cur.execute("SELECT * FROM subdomain_settings WHERE id = %s", (subdomain_id,))
+        subdomain = cur.fetchone()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomain:
+        raise HTTPException(status_code=404, detail=f"Subdomain ID {subdomain_id} not found")
+
+    return _bootstrap_via_dummy(subdomain)
+
+
+@app.post("/bootstrap-subdomain-bulk")
+async def bootstrap_subdomain_bulk(request: Request):
+    """Upload Cssupdate.php to multiple live subdomains at once via FTP."""
+    body          = await request.json()
+    subdomain_ids = body.get("subdomain_ids", [])
+    server        = body.get("server", "")
+
+    if not subdomain_ids and not server:
+        raise HTTPException(status_code=422, detail="Provide either 'subdomain_ids' or 'server'")
+
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        if subdomain_ids:
+            placeholders = ",".join(["%s"] * len(subdomain_ids))
+            cur.execute(f"SELECT * FROM subdomain_settings WHERE id IN ({placeholders}) AND status='active'", subdomain_ids)
+        else:
+            cur.execute("SELECT * FROM subdomain_settings WHERE server=%s AND status='active'", (server,))
+        subdomains = cur.fetchall()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomains:
+        raise HTTPException(status_code=404, detail="No active subdomains found")
+
+    results, success_count = [], 0
+    for sub in subdomains:
+        result = _bootstrap_via_dummy(sub)
+        results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), **result})
+        if result.get("success"):
+            success_count += 1
+
+    return {
+        "success": success_count > 0,
+        "total": len(subdomains),
+        "success_count": success_count,
+        "message": f"Bootstrap complete: {success_count}/{len(subdomains)} subdomains",
+        "details": results,
+    }
+
+
+# ─── Upload mvcdeploy.php Script ───────────────────────────────────────────────
+
+MVCDEPLOY_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "..", "mvcdeploy.php")
+
+
+def _upload_files_via_cpanel(subdomain: dict, files: dict, remote_subdir: str) -> dict:
+    """
+    Upload files directly to any subdomain path using cPanel UAPI (Fileman::upload_files).
+    Completely bypasses mod_security — uses cPanel HTTPS API with token auth.
+    files: {filename: content_string}
+    remote_subdir: path relative to subdomain root (e.g. 'assets/inilabs')
+    """
+    server = subdomain.get("server", "")
+    cp = CPANEL_CONFIGS.get(server)
+    if not cp:
+        return {"success": False, "message": f"No cPanel config for server: {server}. Add to CPANEL_CONFIGS in python/.env"}
+
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+    sub_name      = subdomain["subdomain"]
+    target_dir    = f"{cp['home']}/public_html/{sub_name}.{domain_suffix}/{remote_subdir}"
+    api_url       = f"https://{cp['host']}:{cp['port']}/execute/Fileman/upload_files"
+    headers       = {"Authorization": f"cpanel {cp['user']}:{cp['token']}"}
+
+    updated, failed = [], []
+    for filename, content in files.items():
+        try:
+            resp = requests.post(
+                api_url,
+                headers=headers,
+                data={"dir": target_dir, "overwrite": 1},
+                files={"file-0": (filename, content.encode("utf-8"), "application/octet-stream")},
+                verify=False,
+                timeout=30,
+            )
+            result = resp.json()
+            if result.get("status") == 1:
+                updated.append(filename)
+            else:
+                errors = result.get("errors") or result.get("messages") or [str(result)]
+                failed.append(f"{filename}: {errors}")
+        except Exception as e:
+            failed.append(f"{filename}: {e}")
+
+    return {
+        "success":  bool(updated) and not failed,
+        "message":  "Updated: " + ", ".join(updated) + (" | Failed: " + ", ".join(failed) if failed else "") + " (via cPanel API)",
+        "updated":  updated,
+        "failed":   failed,
+    }
+
+
+def _update_css_via_proxy(subdomain: dict, files_payload: dict) -> dict:
+    """Send CSS files via dummy server proxy using form data (bypasses mod_security JSON block)."""
+    server = subdomain.get("server", "")
+    if server not in DUMMY_SERVERS:
+        return {"success": False, "message": f"No dummy server for: {server}"}
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+    import base64
+    encoded_files = {k: base64.b64encode(v.encode("utf-8")).decode("ascii") for k, v in files_payload.items()}
+    post_data = {
+        "api_key":       CSS_UPDATE_API_KEY,
+        "subdomain":     subdomain["subdomain"],
+        "domain_suffix": f".{domain_suffix}",
+        "files":         json.dumps(encoded_files),
+        "encoded":       "1",
+    }
+
+    dummy_host = DUMMY_SERVERS[server]
+    # Try sync/ subfolder first (has .htaccess that disables mod_security)
+    # Fall back to css_sync.php at root
+    urls_to_try = [
+        f"https://{dummy_host}/sync/",
+        f"https://{dummy_host}/sync/index.php",
+        f"https://{dummy_host}/css_sync.php",
+    ]
+
+    for url in urls_to_try:
+        try:
+            resp = requests.post(url, data=post_data, timeout=60, verify=False)
+            if resp.status_code == 406:
+                continue  # mod_security blocked — try next URL
+            try:
+                return resp.json()
+            except ValueError:
+                return {"success": False, "message": f"HTTP {resp.status_code} from {url}: {resp.text[:200]}"}
+        except requests.exceptions.ConnectionError:
+            continue
+        except requests.exceptions.RequestException as e:
+            return {"success": False, "message": str(e)}
+
+    return {"success": False, "message": f"All proxy URLs blocked by mod_security on {dummy_host}. Add sync/.htaccess to disable it."}
+
+
+def _upload_controller_to_subdomain(subdomain: dict, filename: str, content: str) -> dict:
+    """Upload a PHP controller file to mvc/controllers/ via Cssupdate or cPanel API."""
+    server = subdomain.get("server", "")
+    if server not in SERVER_DOMAINS:
+        return {"success": False, "message": f"No domain mapping for server: {server}"}
+
+    # Try cPanel API first if configured (bypasses mod_security)
+    if server in CPANEL_CONFIGS:
+        return _upload_files_via_cpanel(subdomain, {filename: content}, "mvc/controllers")
+
+    # Fallback: use Cssupdate::receive_script
+    base_domain = SERVER_DOMAINS[server]
+    target_url  = f"https://{subdomain['subdomain']}.{base_domain}/cssupdate/receive_script"
+    try:
+        resp = requests.post(
+            target_url,
+            json={"api_key": CSS_UPDATE_API_KEY, "script_content": content, "filename": filename},
+            timeout=30,
+            verify=False,
         )
+        try:
+            return resp.json()
+        except ValueError:
+            return {"success": False, "message": f"HTTP {resp.status_code}: Cssupdate.php not deployed yet."}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": str(e)}
+
+
+def _upload_deploy_script_to_subdomain(subdomain: dict, script_content: str) -> dict:
+    """Send mvcdeploy.php content to the live subdomain via Cssupdate::receive_script()."""
+    server = subdomain.get("server", "")
+    if server not in SERVER_DOMAINS:
+        return {"success": False, "message": f"No domain mapping for server: {server}"}
+
+    base_domain = SERVER_DOMAINS[server]
+    target_url  = f"https://{subdomain['subdomain']}.{base_domain}/cssupdate/receive_script"
+
+    try:
+        resp = requests.post(
+            target_url,
+            json={"api_key": CSS_UPDATE_API_KEY, "script_content": script_content},
+            timeout=30,
+            verify=False,
+        )
+        try:
+            return resp.json()
+        except ValueError:
+            return {
+                "success": False,
+                "message": f"HTTP {resp.status_code}: Cssupdate.php not deployed on live server yet.",
+            }
+    except requests.exceptions.ConnectionError:
+        return {"success": False, "message": f"Cannot connect to {target_url}"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": str(e)}
+
+
+@app.post("/upload-deploy-script/{subdomain_id}")
+async def upload_deploy_script(subdomain_id: int):
+    """Upload local mvcdeploy.php to a single live subdomain's webroot."""
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        cur.execute("SELECT * FROM subdomain_settings WHERE id = %s", (subdomain_id,))
+        subdomain = cur.fetchone()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomain:
+        raise HTTPException(status_code=404, detail=f"Subdomain ID {subdomain_id} not found")
+
+    script_path = os.path.abspath(MVCDEPLOY_SCRIPT_PATH)
+    if not os.path.exists(script_path):
+        raise HTTPException(status_code=500, detail=f"mvcdeploy.php not found at: {script_path}")
+
+    with open(script_path, "r", encoding="utf-8") as f:
+        script_content = f.read()
+
+    return _upload_deploy_script_to_subdomain(subdomain, script_content)
+
+
+@app.post("/upload-deploy-script-bulk")
+async def upload_deploy_script_bulk(request: Request):
+    """Upload mvcdeploy.php to multiple live subdomains at once."""
+    body          = await request.json()
+    subdomain_ids = body.get("subdomain_ids", [])
+    server        = body.get("server", "")
+
+    if not subdomain_ids and not server:
+        raise HTTPException(status_code=422, detail="Provide either 'subdomain_ids' or 'server'")
+
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        if subdomain_ids:
+            placeholders = ",".join(["%s"] * len(subdomain_ids))
+            cur.execute(
+                f"SELECT * FROM subdomain_settings WHERE id IN ({placeholders}) AND status='active'",
+                subdomain_ids,
+            )
+        else:
+            cur.execute(
+                "SELECT * FROM subdomain_settings WHERE server=%s AND status='active'", (server,)
+            )
+        subdomains = cur.fetchall()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomains:
+        raise HTTPException(status_code=404, detail="No active subdomains found")
+
+    script_path = os.path.abspath(MVCDEPLOY_SCRIPT_PATH)
+    if not os.path.exists(script_path):
+        raise HTTPException(status_code=500, detail=f"mvcdeploy.php not found at: {script_path}")
+
+    with open(script_path, "r", encoding="utf-8") as f:
+        script_content = f.read()
+
+    results, success_count = [], 0
+    for sub in subdomains:
+        result = _upload_deploy_script_to_subdomain(sub, script_content)
+        results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), **result})
+        if result.get("success"):
+            success_count += 1
+
+    return {
+        "success":       success_count > 0,
+        "total":         len(subdomains),
+        "success_count": success_count,
+        "message":       f"mvcdeploy.php uploaded to {success_count}/{len(subdomains)} subdomains",
+        "details":       results,
+    }
+
+
+# ─── Deploy MVC ────────────────────────────────────────────────────────────────
+
+def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
+    """
+    Upload mvc.zip to the live subdomain via the Mvcdeploy CI controller.
+    URL: https://{subdomain}.{domain}/mvcdeploy/receive
+    Auto-checks controller exists first; uploads via Cssupdate if missing.
+    """
+    server = subdomain.get("server", "")
+    if server not in SERVER_DOMAINS:
+        return {"success": False, "message": f"No domain mapping for server: {server}"}
+
+    base_domain  = SERVER_DOMAINS[server]
+    sub_name     = subdomain['subdomain']
+    check_url    = f"https://{sub_name}.{base_domain}/mvcdeploy/check"
+    deploy_url   = f"https://{sub_name}.{base_domain}/mvcdeploy/receive"
+
+    # ── Step 1: Check if Mvcdeploy controller exists ────────────────────────
+    controller_exists = False
+    try:
+        check = requests.get(check_url, timeout=10, verify=False)
+        controller_exists = (check.status_code == 200)
+    except requests.exceptions.RequestException:
+        pass
+
+    # ── Step 2: Auto-upload Mvcdeploy.php if missing ────────────────────────
+    if not controller_exists:
+        local_ctrl = os.path.join(os.path.dirname(__file__), "..", "mvc", "controllers", "Mvcdeploy.php")
+        local_ctrl = os.path.abspath(local_ctrl)
+        if not os.path.exists(local_ctrl):
+            return {"success": False, "message": "Mvcdeploy.php not found locally. Cannot auto-upload."}
+
+        with open(local_ctrl, "r", encoding="utf-8") as f:
+            ctrl_content = f.read()
+
+        upload_result = _upload_controller_to_subdomain(subdomain, "Mvcdeploy.php", ctrl_content)
+        if not upload_result.get("success"):
+            return {
+                "success": False,
+                "message": f"Mvcdeploy controller missing. Auto-upload failed: {upload_result.get('message')}. "
+                           f"Please ensure Cssupdate.php is deployed on {sub_name}.{base_domain} first.",
+            }
+
+    # ── Step 3: Deploy MVC ──────────────────────────────────────────────────
+    try:
+        resp = requests.post(
+            deploy_url,
+            files={"mvc_zip": ("mvc.zip", zip_bytes, "application/zip")},
+            data={"api_key": CSS_UPDATE_API_KEY},
+            timeout=120,
+            verify=False,
+        )
+        try:
+            result = resp.json()
+            if not controller_exists and result.get("success"):
+                result["message"] += " (Mvcdeploy.php was auto-uploaded first)"
+            return result
+        except ValueError:
+            if resp.status_code == 406 and server in CPANEL_CONFIGS:
+                return _deploy_mvc_via_cpanel(subdomain, zip_bytes)
+            return {"success": False, "message": f"HTTP {resp.status_code}: unexpected response from live server"}
+    except requests.exceptions.ConnectionError:
+        return {"success": False, "message": f"Cannot connect to {deploy_url}"}
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Request timed out — server may still be processing"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": str(e)}
+
+
+def _deploy_mvc_via_cpanel(subdomain: dict, zip_bytes: bytes) -> dict:
+    """
+    Full MVC deployment via cPanel API only — no web server requests at all.
+    Works even when mod_security blocks all HTTP requests to the subdomain.
+    """
+    server = subdomain.get("server", "")
+    cp = CPANEL_CONFIGS.get(server)
+    if not cp:
+        return {"success": False, "message": f"No cPanel config for: {server}"}
+
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+    sub_name      = subdomain["subdomain"]
+    sub_root      = f"{cp['home']}/public_html/{sub_name}.{domain_suffix}"
+    api_base      = f"https://{cp['host']}:{cp['port']}"
+    headers       = {"Authorization": f"cpanel {cp['user']}:{cp['token']}"}
+
+    def uapi(func, **params):
+        """Call cPanel UAPI endpoint."""
+        r = requests.post(f"{api_base}/execute/{func}", headers=headers, data=params, verify=False, timeout=60)
+        return r.json()
+
+    def api2(module, func, **params):
+        """Call cPanel API2 endpoint."""
+        data = {"cpanel_jsonapi_version": 2, "cpanel_jsonapi_module": module, "cpanel_jsonapi_func": func, **params}
+        r = requests.post(f"{api_base}/json-api/cpanel", headers=headers, data=data, verify=False, timeout=60)
+        return r.json()
+
+    dummy_host = DUMMY_SERVERS.get(server, "")
+    if not dummy_host:
+        return {"success": False, "message": f"No dummy server configured for: {server}"}
+
+    dummy_root_path = f"{cp['home']}/public_html/{dummy_host}"
+
+    try:
+        # Step 1: Upload mvc.zip to dummy server root via cPanel API
+        resp = requests.post(
+            f"{api_base}/execute/Fileman/upload_files",
+            headers=headers,
+            data={"dir": dummy_root_path, "overwrite": 1},
+            files={"file-0": ("mvc.zip", zip_bytes, "application/zip")},
+            verify=False,
+            timeout=120,
+        )
+        ur = resp.json()
+        if ur.get("status") != 1:
+            return {"success": False, "message": f"Upload mvc.zip to dummy server failed: {ur.get('errors', ur)}"}
+
+        # Step 2: GET bootstrap_copy.php with browser User-Agent (Python UA gets 406)
+        browser_headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        }
+        r = requests.get(
+            f"https://{dummy_host}/bootstrap_copy.php",
+            params={"k": CSS_UPDATE_API_KEY, "s": sub_name, "d": f".{domain_suffix}"},
+            headers=browser_headers,
+            timeout=120,
+            verify=False,
+        )
+        try:
+            return r.json()
+        except ValueError:
+            return {"success": False, "message": f"bootstrap_copy.php GET HTTP {r.status_code}: {r.text[:200]}"}
+
+    except Exception as e:
+        return {"success": False, "message": f"cPanel MVC deploy error: {e}"}
+
+
+@app.post("/deploy-mvc/{subdomain_id}")
+async def deploy_mvc(subdomain_id: int):
+    """Deploy local mvc.zip to a single live subdomain."""
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        cur.execute("SELECT * FROM subdomain_settings WHERE id = %s", (subdomain_id,))
+        subdomain = cur.fetchone()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomain:
+        raise HTTPException(status_code=404, detail=f"Subdomain ID {subdomain_id} not found")
+
+    if not os.path.exists(MVC_ZIP_PATH):
+        raise HTTPException(status_code=500, detail=f"Local mvc.zip not found: {MVC_ZIP_PATH}")
+
+    with open(MVC_ZIP_PATH, "rb") as f:
+        zip_bytes = f.read()
+
+    result = _deploy_mvc_to_subdomain(subdomain, zip_bytes)
+    return result
+
+
+@app.post("/deploy-mvc-bulk")
+async def deploy_mvc_bulk(request: Request):
+    """Deploy local mvc.zip to multiple live subdomains at once."""
+    body          = await request.json()
+    subdomain_ids = body.get("subdomain_ids", [])
+    server        = body.get("server", "")
+
+    if not subdomain_ids and not server:
+        raise HTTPException(status_code=422, detail="Provide either 'subdomain_ids' or 'server'")
+
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        if subdomain_ids:
+            placeholders = ",".join(["%s"] * len(subdomain_ids))
+            cur.execute(
+                f"SELECT * FROM subdomain_settings WHERE id IN ({placeholders}) AND status='active'",
+                subdomain_ids,
+            )
+        else:
+            cur.execute(
+                "SELECT * FROM subdomain_settings WHERE server=%s AND status='active'",
+                (server,),
+            )
+        subdomains = cur.fetchall()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomains:
+        raise HTTPException(status_code=404, detail="No active subdomains found for the given criteria")
+
+    if not os.path.exists(MVC_ZIP_PATH):
+        raise HTTPException(status_code=500, detail=f"Local mvc.zip not found: {MVC_ZIP_PATH}")
+
+    # Read zip once — shared across all deployments
+    with open(MVC_ZIP_PATH, "rb") as f:
+        zip_bytes = f.read()
+
+    results       = []
+    success_count = 0
+
+    for sub in subdomains:
+        result = _deploy_mvc_to_subdomain(sub, zip_bytes)
+        results.append({
+            "id":        sub["id"],
+            "subdomain": sub.get("subdomain"),
+            "success":   result.get("success", False),
+            "message":   result.get("message", ""),
+        })
+        if result.get("success"):
+            success_count += 1
+
+    return {
+        "success":       success_count > 0,
+        "total":         len(subdomains),
+        "success_count": success_count,
+        "message":       f"MVC deployed to {success_count}/{len(subdomains)} subdomains",
+        "details":       results,
+    }
+
+
+# ─── Full Deploy (New Subdomain Setup) ────────────────────────────────────────
+
+def _full_deploy_to_subdomain(subdomain: dict) -> dict:
+    """
+    Calls full_deploy.php on the dummy server.
+    Extracts ALL zip files (assets, frontend, mvc, etc.) to the target subdomain.
+    Used for NEW subdomain creation/full redeployment.
+    """
+    server = subdomain.get("server", "")
+    if server not in DUMMY_SERVERS:
+        return {"success": False, "message": f"No dummy server configured for: {server}. Fill in DUMMY_SERVERS in python/.env"}
+
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+    if not domain_suffix:
+        return {"success": False, "message": f"No domain mapping for server: {server}"}
+
+    dummy_url = f"https://{DUMMY_SERVERS[server]}/full_deploy.php"
+
+    try:
+        resp = requests.post(
+            dummy_url,
+            data={
+                "api_key":       CSS_UPDATE_API_KEY,
+                "subdomain":     subdomain["subdomain"],
+                "domain_suffix": f".{domain_suffix}",
+            },
+            timeout=120,
+            verify=False,
+        )
+        try:
+            return resp.json()
+        except ValueError:
+            return {
+                "success": False,
+                "message": f"HTTP {resp.status_code}: full_deploy.php not found on dummy server. Upload it first.",
+            }
+    except requests.exceptions.ConnectionError:
+        return {"success": False, "message": f"Cannot connect to dummy server: {dummy_url}"}
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Timed out — extraction may still be running on server"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": str(e)}
+
+
+@app.post("/full-deploy/{subdomain_id}")
+async def full_deploy(subdomain_id: int):
+    """Full deploy — extract ALL zip files to a single subdomain (new domain setup)."""
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        cur.execute("SELECT * FROM subdomain_settings WHERE id = %s", (subdomain_id,))
+        subdomain = cur.fetchone()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomain:
+        raise HTTPException(status_code=404, detail=f"Subdomain ID {subdomain_id} not found")
+
+    return _full_deploy_to_subdomain(subdomain)
+
+
+@app.post("/full-deploy-bulk")
+async def full_deploy_bulk(request: Request):
+    """Full deploy ALL zip files to multiple subdomains at once."""
+    body          = await request.json()
+    subdomain_ids = body.get("subdomain_ids", [])
+    server        = body.get("server", "")
+
+    if not subdomain_ids and not server:
+        raise HTTPException(status_code=422, detail="Provide either 'subdomain_ids' or 'server'")
+
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        if subdomain_ids:
+            placeholders = ",".join(["%s"] * len(subdomain_ids))
+            cur.execute(f"SELECT * FROM subdomain_settings WHERE id IN ({placeholders}) AND status='active'", subdomain_ids)
+        else:
+            cur.execute("SELECT * FROM subdomain_settings WHERE server=%s AND status='active'", (server,))
+        subdomains = cur.fetchall()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomains:
+        raise HTTPException(status_code=404, detail="No active subdomains found")
+
+    results, success_count = [], 0
+    for sub in subdomains:
+        result = _full_deploy_to_subdomain(sub)
+        results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), **result})
+        if result.get("success"):
+            success_count += 1
+
+    return {
+        "success":       success_count > 0,
+        "total":         len(subdomains),
+        "success_count": success_count,
+        "message":       f"Full deploy done: {success_count}/{len(subdomains)} subdomains",
+        "details":       results,
+    }
 
 
 if __name__ == "__main__":

@@ -37,9 +37,9 @@
         <link href="<?php echo base_url('assets/inilabs/dashboard.css'); ?>" rel="stylesheet">
         
 
-        <link href="<?php echo base_url('assets/inilabs/inilabs.css'); ?>" rel="stylesheet">
+        <link href="<?php echo base_url('assets/inilabs/inilabs.css?v=').CSSVERSION; ?>" rel="stylesheet">
 
-        <link id="headInilabsCSSLink" href="<?php echo base_url($backendThemePath.'/inilabs.css'); ?>" rel="stylesheet">
+        <link id="headInilabsCSSLink" href="<?php echo base_url($backendThemePath.'/inilabs.css?v=').CSSVERSION; ?>" rel="stylesheet">
 
         <link href="<?php echo base_url('assets/inilabs/responsive.css'); ?>" rel="stylesheet">
 

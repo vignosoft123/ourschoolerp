@@ -68,6 +68,16 @@ class Frontend_setting extends Admin_Controller {
                 'field' => 'online_admission_status',
                 'label' => $this->lang->line("frontend_setting_onlineadmission"),
                 'rules' => 'trim|xss_clean|required|max_length[255]'
+            ),
+            array(
+                'field' => 'terms_label',
+                'label' => $this->lang->line("frontend_setting_terms_label"),
+                'rules' => 'trim|xss_clean|max_length[255]'
+            ),
+            array(
+                'field' => 'privacy_label',
+                'label' => $this->lang->line("frontend_setting_privacy_label"),
+                'rules' => 'trim|xss_clean|max_length[255]'
             )
         );
         return $rules;
@@ -105,6 +115,8 @@ class Frontend_setting extends Admin_Controller {
                         'linkedin' => $this->input->post('linkedin'),
                         'youtube' => $this->input->post('youtube'),
                         'google' => $this->input->post('google'),
+                        'terms_label' => $this->input->post('terms_label'),
+                        'privacy_label' => $this->input->post('privacy_label'),
                     );
 
 

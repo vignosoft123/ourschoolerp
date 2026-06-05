@@ -125,6 +125,7 @@ class Hmember extends Admin_Controller
 			$this->view($id, $url);
 		} else {
 			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			$this->data['hostels'] = $this->hostel_m->get_hostel();
 			if ((int)$id) {
 				$this->data['set'] = $id;
 				$this->data['classes'] = $this->classes_m->get_classes();
@@ -298,6 +299,72 @@ class Hmember extends Admin_Controller
 			$this->data["subview"] = "error";
 			$this->load->view('_layout_main', $this->data);
 		}
+	}
+
+	public function bulk_add() {
+		header('Content-Type: application/json');
+		if(!($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']);
+			return;
+		}
+		if(!permissionChecker('hmember_add')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']);
+			return;
+		}
+		$studentIDs = $this->input->post('studentIDs');
+		$hostelID   = (int)$this->input->post('hostelID');
+		$categoryID = (int)$this->input->post('categoryID');
+		if(!$studentIDs || !is_array($studentIDs) || !$hostelID || !$categoryID) {
+			echo json_encode(['status' => false, 'message' => 'Invalid data. Please select hostel and class type.']);
+			return;
+		}
+		$hostel_main   = $this->hostel_m->get_hostel($hostelID);
+		$category_main = $this->category_m->get_single_category(array("hostelID" => $hostelID, "categoryID" => $categoryID));
+		if(!$hostel_main || !$category_main) {
+			echo json_encode(['status' => false, 'message' => 'Invalid hostel or class type selection.']);
+			return;
+		}
+		$h_amount     = $category_main->hbalance;
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+		$successCount = 0;
+		$failCount    = 0;
+		foreach($studentIDs as $rawID) {
+			$studentID = (int)$rawID;
+			if(!$studentID) { $failCount++; continue; }
+			$student = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
+			if(!customCompute($student) || $student->hostel != 0) { $failCount++; continue; }
+			$this->hmember_m->insert_hmember(array(
+				"hostelID"   => $hostelID,
+				"categoryID" => $categoryID,
+				"studentID"  => $studentID,
+				"hbalance"   => $h_amount,
+				"hjoindate"  => date("Y-m-d")
+			));
+			$this->student_m->update_student(array("hostel" => 1, "transport" => 0, 'studentType' => 2), $studentID);
+			$transport = $this->tmember_m->get_single_tmember(array('studentID' => $student->srstudentID), TRUE);
+			if($transport) { $this->tmember_m->delete_tmember_sID($student->srstudentID); }
+			$fee_items = array();
+			if($fee_type_hostel) {
+				$fee_items[] = array('feetypeID' => $fee_type_hostel['feetypesID'], 'amount' => $h_amount, 'discount' => '', 'subtotal' => $h_amount, 'paidamount' => '');
+			}
+			$invoice_data = array(
+				'classesID'       => $student->classesID,
+				'sectionID'       => $student->sectionID,
+				'studentID'       => $studentID,
+				'date'            => date('d-m-Y'),
+				'statusID'        => 0,
+				'payment_method'  => 0,
+				'feetypeitems'    => json_encode($fee_items),
+				'totalsubtotal'   => $h_amount,
+				'totalpaidamount' => 0,
+				'editID'          => 0,
+			);
+			$invoice_error = $this->saveinvoice($invoice_data);
+			$this->db->update('student', array('invoice_error' => $invoice_error), array('studentID' => $studentID));
+			$successCount++;
+		}
+		echo json_encode(['status' => true, 'message' => "$successCount student(s) added to hostel successfully.", 'success' => $successCount, 'fail' => $failCount]);
 	}
 
 	public function edit()
@@ -653,6 +720,31 @@ class Hmember extends Admin_Controller
 		} else {
 			redirect(base_url("hmember/index"));
 		}
+	}
+
+	public function ajax_filter() {
+		header('Content-Type: application/json');
+		$classesID = (int)$this->input->post('classesID');
+		$sectionID = (int)$this->input->post('sectionID');
+		$filter    = $this->input->post('filter'); // '', '0', or '1'
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		if (!$classesID) {
+			echo json_encode(['status' => false, 'html' => '']);
+			return;
+		}
+		$query = ['srclassesID' => $classesID, 'srschoolyearID' => $schoolyearID];
+		if ($sectionID) { $query['srsectionID'] = $sectionID; }
+		$allStudents = $this->studentrelation_m->get_order_by_student($query);
+		$filtered = [];
+		foreach ((array)$allStudents as $s) {
+			if ($filter === '' || $filter === null || (string)$s->hostel === (string)$filter) {
+				$filtered[] = $s;
+			}
+		}
+		$this->data['students'] = $filtered;
+		$this->data['set']      = $classesID;
+		$html = $this->load->view('hmember/ajax_filter_rows', $this->data, TRUE);
+		echo json_encode(['status' => true, 'html' => $html]);
 	}
 
 	public function categorycall()

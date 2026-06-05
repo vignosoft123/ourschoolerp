@@ -119,6 +119,32 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group <?=form_error('terms_label') ? 'has-error' : ''?>">
+                            <div class="col-sm-12">
+                                <label for="terms_label"><?=$this->lang->line("frontend_setting_terms_label")?> <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="right" title="Label text for Terms & Conditions link in footer"></i>
+                                </label>
+                                <input type="text" class="form-control" id="terms_label" name="terms_label" value="<?=set_value('terms_label', isset($frontend_setting->terms_label) ? $frontend_setting->terms_label : 'Terms & Conditions')?>">
+                                <span class="control-label">
+                                    <?=form_error('terms_label'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-sm-4">
+                        <div class="form-group <?=form_error('privacy_label') ? 'has-error' : ''?>">
+                            <div class="col-sm-12">
+                                <label for="privacy_label"><?=$this->lang->line("frontend_setting_privacy_label")?> <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="right" title="Label text for Privacy Policy link in footer"></i>
+                                </label>
+                                <input type="text" class="form-control" id="privacy_label" name="privacy_label" value="<?=set_value('privacy_label', isset($frontend_setting->privacy_label) ? $frontend_setting->privacy_label : 'Privacy Policy')?>">
+                                <span class="control-label">
+                                    <?=form_error('privacy_label'); ?>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </fieldset>
 

@@ -1193,6 +1193,10 @@ if ( !defined('BASEPATH') ) {
         }
 
         private function column_exists($table, $column) {
+            $check = $this->db->query("SHOW TABLES LIKE '$table'");
+            if (!$check || $check->num_rows() == 0) {
+                return false;
+            }
             $fields = $this->db->list_fields($table);
             return in_array($column, $fields);
         }

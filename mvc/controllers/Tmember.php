@@ -119,6 +119,7 @@ class Tmember extends Admin_Controller {
 			$this->view($id, $url);
 		} else {
 			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			$this->data['transports'] = $this->transport_m->get_transport();
 			if((int)$id) {
 				$this->data['set'] = $id;
 				$this->data['classes'] = $this->classes_m->get_classes();
@@ -278,6 +279,67 @@ class Tmember extends Admin_Controller {
 			$this->data["subview"] = "error";
 			$this->load->view('_layout_main', $this->data);
 		}
+	}
+
+	public function bulk_add() {
+		header('Content-Type: application/json');
+		if(!(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1))) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']);
+			return;
+		}
+		if(!permissionChecker('tmember_add')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']);
+			return;
+		}
+		$studentIDs = $this->input->post('studentIDs');
+		$transportID = (int)$this->input->post('transportID');
+		$tbalance    = $this->input->post('tbalance');
+		if(!$studentIDs || !is_array($studentIDs) || !$transportID || $tbalance === false || $tbalance === '') {
+			echo json_encode(['status' => false, 'message' => 'Invalid data. Please fill all fields.']);
+			return;
+		}
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$fee_type_transport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+		$successCount = 0;
+		$failCount    = 0;
+		foreach($studentIDs as $rawID) {
+			$studentID = (int)$rawID;
+			if(!$studentID) { $failCount++; continue; }
+			$student = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
+			if(!customCompute($student) || $student->transport != 0) { $failCount++; continue; }
+			$this->tmember_m->insert_tmember(array(
+				"studentID"   => $student->srstudentID,
+				"transportID" => $transportID,
+				"name"        => $student->srname,
+				"email"       => $student->email,
+				"phone"       => $student->phone,
+				"tbalance"    => $tbalance,
+				"tjoindate"   => date("Y-m-d")
+			));
+			$this->student_m->update_student(array("transport" => 1, "studentType" => 1, 'hostel' => 0), $studentID);
+			$hmember = $this->hmember_m->get_single_hmember(array("studentID" => $student->srstudentID));
+			if($hmember) { $this->hmember_m->delete_hmember($hmember->hmemberID); }
+			$fee_items = array();
+			if($fee_type_transport) {
+				$fee_items[] = array('feetypeID' => $fee_type_transport['feetypesID'], 'amount' => $tbalance, 'discount' => '', 'subtotal' => $tbalance, 'paidamount' => '');
+			}
+			$invoice_data = array(
+				'classesID'       => $student->classesID,
+				'sectionID'       => $student->sectionID,
+				'studentID'       => $studentID,
+				'date'            => date('d-m-Y'),
+				'statusID'        => 0,
+				'payment_method'  => 0,
+				'feetypeitems'    => json_encode($fee_items),
+				'totalsubtotal'   => $tbalance,
+				'totalpaidamount' => 0,
+				'editID'          => 0,
+			);
+			$invoice_error = $this->saveinvoice($invoice_data);
+			$this->db->update('student', array('invoice_error' => $invoice_error), array('studentID' => $studentID));
+			$successCount++;
+		}
+		echo json_encode(['status' => true, 'message' => "$successCount student(s) added to transport successfully.", 'success' => $successCount, 'fail' => $failCount]);
 	}
 
 	public function edit() {
@@ -582,6 +644,31 @@ class Tmember extends Admin_Controller {
 		} else {
 			redirect(base_url("tmember/index"));
 		}
+	}
+
+	public function ajax_filter() {
+		header('Content-Type: application/json');
+		$classesID = (int)$this->input->post('classesID');
+		$sectionID = (int)$this->input->post('sectionID');
+		$filter    = $this->input->post('filter'); // '', '0', or '1'
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		if (!$classesID) {
+			echo json_encode(['status' => false, 'html' => '']);
+			return;
+		}
+		$query = ['srclassesID' => $classesID, 'srschoolyearID' => $schoolyearID];
+		if ($sectionID) { $query['srsectionID'] = $sectionID; }
+		$allStudents = $this->studentrelation_m->get_order_by_student($query);
+		$filtered = [];
+		foreach ((array)$allStudents as $s) {
+			if ($filter === '' || $filter === null || (string)$s->transport === (string)$filter) {
+				$filtered[] = $s;
+			}
+		}
+		$this->data['students'] = $filtered;
+		$this->data['set']      = $classesID;
+		$html = $this->load->view('tmember/ajax_filter_rows', $this->data, TRUE);
+		echo json_encode(['status' => true, 'html' => $html]);
 	}
 
 	public function transport_fare() {

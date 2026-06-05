@@ -51,6 +51,18 @@
                         <button id="bulk_css_btn" class="btn btn-info" onclick="bulkUpdateCss()" disabled>
                             <i class="fa fa-cloud-upload"></i> Bulk CSS Update
                         </button>
+                        &nbsp;
+                        <button id="bulk_bootstrap_btn" class="btn btn-bootstrap" onclick="bulkBootstrap()" disabled>
+                            <i class="fa fa-plug"></i> Bootstrap via FTP
+                        </button>
+                        &nbsp;
+                        <button id="bulk_deploy_btn" class="btn btn-deploy-mvc" onclick="bulkDeployMvc()" disabled>
+                            <i class="fa fa-rocket"></i> Bulk Deploy MVC
+                        </button>
+                        &nbsp;
+                        <button id="bulk_full_deploy_btn" class="btn btn-full-deploy" onclick="bulkFullDeploy()" disabled>
+                            <i class="fa fa-archive"></i> Bulk Full Deploy
+                        </button>
                     </div>
                 </div>
                 
@@ -238,6 +250,24 @@ function updateBulkCssBtn() {
     }
 }
 
+function updateBulkDeployBtn() {
+    var count  = selectedIds.size;
+    var server = $('#server_filter').val();
+    if (count > 0) {
+        $('#bulk_bootstrap_btn').prop('disabled', false).html('<i class="fa fa-plug"></i> Bootstrap ' + count + ' Selected');
+        $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to ' + count + ' Selected');
+        $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy ' + count + ' Selected');
+    } else if (server) {
+        $('#bulk_bootstrap_btn').prop('disabled', false).html('<i class="fa fa-plug"></i> Bootstrap All ' + server);
+        $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to All ' + server);
+        $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy All ' + server);
+    } else {
+        $('#bulk_bootstrap_btn').prop('disabled', true).html('<i class="fa fa-plug"></i> Bootstrap via FTP');
+        $('#bulk_deploy_btn').prop('disabled', true).html('<i class="fa fa-rocket"></i> Bulk Deploy MVC');
+        $('#bulk_full_deploy_btn').prop('disabled', true).html('<i class="fa fa-archive"></i> Bulk Full Deploy');
+    }
+}
+
 $(document).ready(function() {
     var table = $('#subdomains-table').DataTable({
         "processing": true,
@@ -289,6 +319,7 @@ $(document).ready(function() {
         var checked = $('#subdomains-table tbody .row-checkbox:checked').length;
         $('#select-all-checkbox').prop('checked', total > 0 && checked === total);
         updateBulkCssBtn();
+        updateBulkDeployBtn();
     });
 
     // Individual checkbox change
@@ -299,6 +330,7 @@ $(document).ready(function() {
         var checked = $('#subdomains-table tbody .row-checkbox:checked').length;
         $('#select-all-checkbox').prop('checked', total > 0 && checked === total);
         updateBulkCssBtn();
+        updateBulkDeployBtn();
     });
 
     // Prevent row-click popup when clicking checkbox
@@ -315,6 +347,7 @@ $(document).ready(function() {
             if (checked) { selectedIds.add(id); } else { selectedIds.delete(id); }
         });
         updateBulkCssBtn();
+        updateBulkDeployBtn();
     });
 
     // Load pivot table on page ready
@@ -356,6 +389,7 @@ $(document).ready(function() {
             $('#refresh_age_btn').html('<i class="fa fa-refresh"></i> Refresh Schools Age');
         }
         updateBulkCssBtn();
+        updateBulkDeployBtn();
     });
 });
 
@@ -548,6 +582,262 @@ function bulkUpdateCss() {
     });
 }
 
+// ── Bootstrap via FTP (Single) ───────────────────────────────────────────────
+
+function bootstrapSubdomain(btn, subdomainId, subdomainName) {
+    if (!confirm('Bootstrap "' + subdomainName + '" via FTP?\n\nThis uploads Cssupdate.php + css_update_config.php directly to the live server.\n\nMake sure FTP credentials are set in python/.env → FTP_CREDENTIALS')) return;
+
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+    $(btn).addClass('disabled');
+
+    $.ajax({
+        url: 'http://localhost:8000/bootstrap-subdomain/' + subdomainId,
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            alert(response.success ? '✓ ' + response.message : '✗ ' + response.message);
+        },
+        error: function(xhr) {
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Bootstrap failed: ' + detail);
+        },
+        complete: function() {
+            btn.innerHTML = originalHtml;
+            $(btn).removeClass('disabled');
+        }
+    });
+}
+
+// ── Bootstrap via FTP (Bulk) ──────────────────────────────────────────────────
+
+function bulkBootstrap() {
+    var ids    = Array.from(selectedIds);
+    var server = $('#server_filter').val();
+    if (ids.length === 0 && !server) { alert('Please check subdomains or select a server.'); return; }
+
+    var label = ids.length > 0 ? ids.length + ' selected subdomain(s)' : 'ALL active on ' + server;
+    if (!confirm('Bootstrap ' + label + ' via FTP?\n\nUploads Cssupdate.php + css_update_config.php to each live server.\nFTP credentials must be set in python/.env')) return;
+
+    var btn = $('#bulk_bootstrap_btn');
+    var originalHtml = btn.html();
+    btn.html('<i class="fa fa-spinner fa-spin"></i> Bootstrapping...').prop('disabled', true);
+
+    $.ajax({
+        url: 'http://localhost:8000/bootstrap-subdomain-bulk',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(ids.length > 0 ? { subdomain_ids: ids } : { server: server }),
+        dataType: 'json',
+        success: function(response) {
+            var msg = 'Bootstrap Complete: ' + response.success_count + '/' + response.total + '\n\n';
+            response.details.forEach(function(d) { msg += (d.success ? '✓ ' : '✗ ') + d.subdomain + ': ' + d.message + '\n'; });
+            alert(msg);
+        },
+        error: function(xhr) { alert('Failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown')); },
+        complete: function() { btn.html(originalHtml).prop('disabled', false); }
+    });
+}
+
+// ── Upload mvcdeploy.php (Single) ────────────────────────────────────────────
+
+function uploadDeployScript(btn, subdomainId, subdomainName) {
+    if (!confirm('Upload mvcdeploy.php to "' + subdomainName + '" live server?\n(Requires Cssupdate.php to be deployed there first)')) return;
+
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+    $(btn).addClass('disabled');
+
+    $.ajax({
+        url: 'http://localhost:8000/upload-deploy-script/' + subdomainId,
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            alert(response.success ? '✓ ' + response.message : '✗ ' + response.message);
+        },
+        error: function(xhr) {
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Failed: ' + detail);
+        },
+        complete: function() {
+            btn.innerHTML = originalHtml;
+            $(btn).removeClass('disabled');
+        }
+    });
+}
+
+// ── Upload mvcdeploy.php (Bulk) ───────────────────────────────────────────────
+
+function bulkUploadDeployScript() {
+    var ids    = Array.from(selectedIds);
+    var server = $('#server_filter').val();
+    if (ids.length === 0 && !server) { alert('Please check subdomains or select a server.'); return; }
+
+    var label = ids.length > 0 ? ids.length + ' selected subdomain(s)' : 'ALL active on ' + server;
+    if (!confirm('Upload mvcdeploy.php to ' + label + '?')) return;
+
+    var btn = $('#bulk_upload_script_btn');
+    var originalHtml = btn.html();
+    btn.html('<i class="fa fa-spinner fa-spin"></i> Uploading...').prop('disabled', true);
+
+    $.ajax({
+        url: 'http://localhost:8000/upload-deploy-script-bulk',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(ids.length > 0 ? { subdomain_ids: ids } : { server: server }),
+        dataType: 'json',
+        success: function(response) {
+            var msg = 'Upload Complete: ' + response.success_count + '/' + response.total + '\n\n';
+            response.details.forEach(function(d) { msg += (d.success ? '✓ ' : '✗ ') + d.subdomain + ': ' + d.message + '\n'; });
+            alert(msg);
+        },
+        error: function(xhr) { alert('Failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error')); },
+        complete: function() { btn.html(originalHtml).prop('disabled', false); }
+    });
+}
+
+// ── Full Deploy — New Domain Setup (Single) ───────────────────────────────────
+
+function fullDeploy(btn, subdomainId, subdomainName) {
+    if (!confirm('Full Deploy to "' + subdomainName + '"?\n\n⚠ This extracts ALL zip files:\nassets, frontend, main2, mvc, others, uploads, vendor\n\nUse this for NEW domain setup only.')) return;
+
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+    $(btn).addClass('disabled');
+
+    $.ajax({
+        url: 'http://localhost:8000/full-deploy/' + subdomainId,
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            var msg = (response.success ? '✓ ' : '✗ ') + response.message + '\n\n';
+            if (response.details) {
+                response.details.forEach(function(d) {
+                    msg += (d.success ? '✓ ' : '✗ ') + d.file + ': ' + d.message + '\n';
+                });
+            }
+            alert(msg);
+        },
+        error: function(xhr) {
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Full Deploy failed: ' + detail);
+        },
+        complete: function() {
+            btn.innerHTML = originalHtml;
+            $(btn).removeClass('disabled');
+        }
+    });
+}
+
+// ── Full Deploy (Bulk) ────────────────────────────────────────────────────────
+
+function bulkFullDeploy() {
+    var ids    = Array.from(selectedIds);
+    var server = $('#server_filter').val();
+    if (ids.length === 0 && !server) { alert('Please check subdomains or select a server.'); return; }
+
+    var label = ids.length > 0 ? ids.length + ' selected subdomain(s)' : 'ALL active on ' + server;
+    if (!confirm('Full Deploy to ' + label + '?\n\n⚠ Extracts ALL zip files (assets, frontend, mvc, etc.) to each subdomain.\nUse for new domain setup only.')) return;
+
+    var btn = $('#bulk_full_deploy_btn');
+    var originalHtml = btn.html();
+    btn.html('<i class="fa fa-spinner fa-spin"></i> Deploying...').prop('disabled', true);
+
+    $.ajax({
+        url: 'http://localhost:8000/full-deploy-bulk',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(ids.length > 0 ? { subdomain_ids: ids } : { server: server }),
+        dataType: 'json',
+        success: function(response) {
+            var msg = 'Full Deploy: ' + response.success_count + '/' + response.total + '\n\n';
+            response.details.forEach(function(d) { msg += (d.success ? '✓ ' : '✗ ') + d.subdomain + ': ' + d.message + '\n'; });
+            alert(msg);
+        },
+        error: function(xhr) { alert('Failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown')); },
+        complete: function() { btn.html(originalHtml).prop('disabled', false); }
+    });
+}
+
+// ── Deploy MVC (Single) ───────────────────────────────────────────────────────
+
+function deployMvc(btn, subdomainId, subdomainName) {
+    if (!confirm('Deploy MVC to "' + subdomainName + '"?\n\n⚠ This will:\n• Rename mvc → mvc1\n• Upload & unzip new mvc.zip\n• Copy database.php from mvc1\n\nAre you sure?')) return;
+
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
+    $(btn).addClass('disabled');
+
+    $.ajax({
+        url: 'http://localhost:8000/deploy-mvc/' + subdomainId,
+        type: 'POST',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert('✓ Success: ' + response.message);
+            } else {
+                alert('✗ Error: ' + response.message);
+            }
+        },
+        error: function(xhr) {
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Request failed. Make sure Python server is running.\n' + detail);
+        },
+        complete: function() {
+            btn.innerHTML = originalHtml;
+            $(btn).removeClass('disabled');
+        }
+    });
+}
+
+// ── Deploy MVC (Bulk) ─────────────────────────────────────────────────────────
+
+function bulkDeployMvc() {
+    var ids    = Array.from(selectedIds);
+    var server = $('#server_filter').val();
+
+    if (ids.length === 0 && !server) {
+        alert('Please check subdomains or select a server first.');
+        return;
+    }
+
+    var label = ids.length > 0
+        ? ids.length + ' selected subdomain(s)'
+        : 'ALL active subdomains on ' + server + ' server';
+
+    if (!confirm('Deploy MVC to ' + label + '?\n\n⚠ This will rename mvc → mvc1, upload new code, and copy database.php on each selected server.\n\nThis cannot be undone easily. Are you sure?')) return;
+
+    var btn = $('#bulk_deploy_btn');
+    var originalHtml = btn.html();
+    btn.html('<i class="fa fa-spinner fa-spin"></i> Deploying...').prop('disabled', true);
+
+    var payload = ids.length > 0 ? { subdomain_ids: ids } : { server: server };
+
+    $.ajax({
+        url: 'http://localhost:8000/deploy-mvc-bulk',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        dataType: 'json',
+        success: function(response) {
+            btn.html(originalHtml).prop('disabled', false);
+            var msg = 'MVC Deploy Complete\n';
+            msg += 'Success: ' + response.success_count + ' / ' + response.total + '\n\n';
+            if (response.details && response.details.length) {
+                response.details.forEach(function(d) {
+                    msg += (d.success ? '✓ ' : '✗ ') + d.subdomain + ': ' + d.message + '\n';
+                });
+            }
+            alert(msg);
+        },
+        error: function(xhr) {
+            btn.html(originalHtml).prop('disabled', false);
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Bulk Deploy failed:\n' + detail);
+        }
+    });
+}
+
 // ── Update CSS (Single) ───────────────────────────────────────────────────────
 
 function updateCss(btn, subdomainId, subdomainName) {
@@ -724,6 +1014,63 @@ function updateCss(btn, subdomainId, subdomainName) {
     font-weight: 600;
     color: #555;
     white-space: nowrap;
+}
+
+/* ── Bootstrap via FTP button ───────────────────────── */
+.btn-bootstrap {
+    background-color: #546e7a;
+    border-color: #37474f;
+    color: #fff;
+}
+.btn-bootstrap:hover,
+.btn-bootstrap:focus { background-color: #37474f; border-color: #263238; color: #fff; }
+.btn-bootstrap:disabled { background-color: #b0bec5; border-color: #b0bec5; color: #fff; }
+
+/* ── Upload Deploy Script button ───────────────────── */
+.btn-upload-script {
+    background-color: #6f42c1;
+    border-color: #5a32a3;
+    color: #fff;
+}
+.btn-upload-script:hover,
+.btn-upload-script:focus { background-color: #5a32a3; border-color: #4a2790; color: #fff; }
+.btn-upload-script:disabled { background-color: #c3aff0; border-color: #c3aff0; color: #fff; }
+
+/* ── Action button groups ───────────────────────────── */
+.action-group { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
+.btn-group-wrap { display: flex; gap: 2px; }
+.btn-group-sep {
+    display: inline-block;
+    width: 1px;
+    height: 28px;
+    background: #ccc;
+    margin: 0 4px;
+    vertical-align: middle;
+}
+.action-group .btn-sm { margin: 0; }
+
+/* ── Full Deploy button ────────────────────────────── */
+.btn-full-deploy { background-color: #e65100; border-color: #bf360c; color: #fff; }
+.btn-full-deploy:hover,
+.btn-full-deploy:focus { background-color: #bf360c; border-color: #a53000; color: #fff; }
+.btn-full-deploy:disabled { background-color: #ffccbc; border-color: #ffccbc; color: #fff; }
+
+/* ── Deploy MVC button ─────────────────────────────── */
+.btn-deploy-mvc {
+    background-color: #00796b;
+    border-color: #00574b;
+    color: #fff;
+}
+.btn-deploy-mvc:hover,
+.btn-deploy-mvc:focus {
+    background-color: #00574b;
+    border-color: #004d40;
+    color: #fff;
+}
+.btn-deploy-mvc:disabled {
+    background-color: #80cbc4;
+    border-color: #80cbc4;
+    color: #fff;
 }
 
 /* ── Refresh Schools Age button ────────────────────── */

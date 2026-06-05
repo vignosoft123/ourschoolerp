@@ -230,12 +230,35 @@ class Subdomains extends Admin_Controller {
 		$data = array();
 		foreach ($subdomains as $key => $subdomain) {
 
-			$actions  = '';
-			$actions .= '<a href="javascript:void(0)" class="btn btn-success btn-sm" title="Create Tables" onclick="event.stopPropagation();createTables(this,' . $subdomain->id . ')"><i class="fa fa-database"></i></a> ';
-			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-statistics" title="Statistics" onclick="event.stopPropagation();showStatistics(' . $subdomain->id . ',\'' . addslashes(htmlspecialchars($subdomain->site_name ?: $subdomain->subdomain)) . '\')"><i class="fa fa-bar-chart"></i></a> ';
-			$actions .= '<a href="javascript:void(0)" class="btn btn-warning btn-sm" title="Sync All CSS to live server" onclick="event.stopPropagation();updateCss(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-cloud-upload"></i></a> ';
-			$actions .= '<a href="' . base_url('subdomains/edit/' . $subdomain->id) . '" class="btn btn-primary btn-sm" title="Edit" onclick="event.stopPropagation()"><i class="fa fa-edit"></i></a> ';
+			$sep = '<span class="btn-group-sep"></span>';
+
+			$actions  = '<div class="action-group">';
+
+			// Group 1 — Data
+			$actions .= '<span class="btn-group-wrap">';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-success btn-sm" title="Create Tables" onclick="event.stopPropagation();createTables(this,' . $subdomain->id . ')"><i class="fa fa-database"></i></a>';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-statistics" title="Statistics" onclick="event.stopPropagation();showStatistics(' . $subdomain->id . ',\'' . addslashes(htmlspecialchars($subdomain->site_name ?: $subdomain->subdomain)) . '\')"><i class="fa fa-bar-chart"></i></a>';
+			$actions .= '</span>';
+
+			$actions .= $sep;
+
+			// Group 2 — Deploy (order: Plug → CSS → Rocket → Archive)
+			$actions .= '<span class="btn-group-wrap">';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-bootstrap" title="Bootstrap: copy Cssupdate+Mvcdeploy to live server" onclick="event.stopPropagation();bootstrapSubdomain(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-plug"></i></a>';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-warning btn-sm" title="Sync CSS to live server" onclick="event.stopPropagation();updateCss(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-cloud-upload"></i></a>';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-deploy-mvc" title="Deploy MVC from localhost to live server" onclick="event.stopPropagation();deployMvc(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-rocket"></i></a>';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-full-deploy" title="Full Deploy: extract all zip files (new domain)" onclick="event.stopPropagation();fullDeploy(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-archive"></i></a>';
+			$actions .= '</span>';
+
+			$actions .= $sep;
+
+			// Group 3 — Manage
+			$actions .= '<span class="btn-group-wrap">';
+			$actions .= '<a href="' . base_url('subdomains/edit/' . $subdomain->id) . '" class="btn btn-primary btn-sm" title="Edit" onclick="event.stopPropagation()"><i class="fa fa-edit"></i></a>';
 			$actions .= '<a href="' . base_url('subdomains/delete/' . $subdomain->id) . '" class="btn btn-danger btn-sm" title="Delete" onclick="event.stopPropagation();return confirm(\'Are you sure you want to delete this subdomain?\')"><i class="fa fa-trash"></i></a>';
+			$actions .= '</span>';
+
+			$actions .= '</div>';
 
 			$data[] = array(
 				// Visible columns

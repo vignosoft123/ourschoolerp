@@ -19,4 +19,7 @@ $lang['frontend_setting_onlineadmission']  = 'Online Admission';
 $lang['frontend_setting_enable'] = "Enable";
 $lang['frontend_setting_disable'] = "Disable";
 
+$lang['frontend_setting_terms_label']   = "Terms & Conditions Label";
+$lang['frontend_setting_privacy_label'] = "Privacy Policy Label";
+
 $lang['update_frontend_setting'] = 'Update Frontend setting';

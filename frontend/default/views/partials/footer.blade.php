@@ -103,9 +103,11 @@
                     <?php echo ' -v'.VERSION;?>
                     </div>
                     <div class="text-center" style="margin-top:8px; font-size:13px;">
-                        <a href="{{ base_url('frontend/terms') }}" style="color:#8dc63f; margin-right:15px;">Terms &amp; Conditions</a>
+                        <?php $termsLabel = frontendData::get_frontend('terms_label'); ?>
+                        <?php $privacyLabel = frontendData::get_frontend('privacy_label'); ?>
+                        <a href="{{ base_url('frontend/terms') }}" style="color:#8dc63f; margin-right:15px;"><?=($termsLabel ? htmlspecialchars($termsLabel) : 'Terms &amp; Conditions')?></a>
                         <span style="color:#999;">|</span>
-                        <a href="{{ base_url('frontend/privacy') }}" style="color:#8dc63f; margin-left:15px;">Privacy Policy</a>
+                        <a href="{{ base_url('frontend/privacy') }}" style="color:#8dc63f; margin-left:15px;"><?=($privacyLabel ? htmlspecialchars($privacyLabel) : 'Privacy Policy')?></a>
                     </div>
                 </div>
             </div>
