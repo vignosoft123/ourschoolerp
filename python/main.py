@@ -1,5 +1,8 @@
 import os
+import io
 import json
+import ftplib
+import base64
 import requests
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +25,8 @@ MVC_ZIP_PATH       = os.getenv("MVC_ZIP_PATH", "C:/xampp/htdocs/ourschoolerp/mvc
 MVC_DEPLOY_API_KEY = os.getenv("MVC_DEPLOY_API_KEY", "")
 DUMMY_SERVERS      = json.loads(os.getenv("DUMMY_SERVERS", "{}"))
 CPANEL_CONFIGS     = json.loads(os.getenv("CPANEL_CONFIGS", "{}"))
+FTP_CONFIGS        = json.loads(os.getenv("FTP_CONFIGS", "{}"))
+DB_IMPORT_SQL_PATH = os.getenv("DB_IMPORT_SQL_PATH", "")
 
 # CSS files to sync (all custom inilabs files except install.css)
 CSS_FILES_TO_SYNC  = [
@@ -66,6 +71,17 @@ def root(request: Request):
         "message": "OurSchoolERP Python API is running",
         "env": APP_ENV,
         "domain": request.headers.get("host", ""),
+    }
+
+
+@app.get("/config-check")
+def config_check():
+    """Debug endpoint — shows which servers have cPanel/dummy configured."""
+    return {
+        "cpanel_configs": list(CPANEL_CONFIGS.keys()),
+        "ftp_configs":    list(FTP_CONFIGS.keys()),
+        "dummy_servers":  list(DUMMY_SERVERS.keys()),
+        "server_domains": list(SERVER_DOMAINS.keys()),
     }
 
 
@@ -749,7 +765,23 @@ async def update_css_bulk(request: Request):
                 if result.get("success"):
                     success_count += 1
             except ValueError:
-                results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": False, "message": f"HTTP {resp.status_code}: Cssupdate.php not deployed on live server"})
+                # Direct POST blocked — try FTP, then cPanel API, then proxy
+                if resp.status_code in [406, 403, 404]:
+                    if srv in FTP_CONFIGS:
+                        ftp_cfg = FTP_CONFIGS[srv]
+                        webroot = ftp_cfg.get("webroot", "")
+                        remote_dir = f"{webroot}/{sub['subdomain']}.{base_domain}/assets/inilabs" if webroot \
+                                     else f"{sub['subdomain']}.{base_domain}/assets/inilabs"
+                        result = _upload_files_via_ftp(ftp_cfg, remote_dir, files_payload)
+                    elif srv in CPANEL_CONFIGS:
+                        result = _upload_files_via_cpanel(sub, files_payload, "assets/inilabs")
+                    else:
+                        result = _update_css_via_proxy(sub, files_payload)
+                    results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": result.get("success", False), "message": result.get("message", "")})
+                    if result.get("success"):
+                        success_count += 1
+                else:
+                    results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": False, "message": f"HTTP {resp.status_code}: Cssupdate.php not deployed on live server"})
         except requests.exceptions.RequestException as e:
             results.append({"id": sub["id"], "subdomain": sub.get("subdomain"), "success": False, "message": str(e)})
 
@@ -803,7 +835,7 @@ async def update_css(subdomain_id: int):
         raise HTTPException(status_code=500, detail=f"No CSS files found in: {CSS_FOLDER_PATH}")
 
     # 3. Build target URL from server → domain mapping
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     if server not in SERVER_DOMAINS:
         raise HTTPException(status_code=500, detail=f"No domain mapping for server: {server}")
 
@@ -839,8 +871,17 @@ async def update_css(subdomain_id: int):
 
     # 5. Fallback when direct POST is blocked (406)
     if use_proxy:
-        # Try cPanel API first (most reliable — bypasses mod_security entirely)
-        if subdomain.get("server") in CPANEL_CONFIGS:
+        srv = subdomain.get("server", "")
+        if srv in FTP_CONFIGS:
+            # FTP upload — bypasses mod_security, uses correct paths for HostGator/BigRock
+            ftp_cfg = FTP_CONFIGS[srv]
+            domain_suffix = SERVER_DOMAINS.get(srv, "")
+            sub_name = subdomain["subdomain"]
+            webroot = ftp_cfg.get("webroot", "")
+            remote_dir = f"{webroot}/{sub_name}.{domain_suffix}/assets/inilabs" if webroot \
+                         else f"{sub_name}.{domain_suffix}/assets/inilabs"
+            result = _upload_files_via_ftp(ftp_cfg, remote_dir, files_payload)
+        elif srv in CPANEL_CONFIGS:
             result = _upload_files_via_cpanel(subdomain, files_payload, "assets/inilabs")
         else:
             result = _update_css_via_proxy(subdomain, files_payload)
@@ -850,6 +891,12 @@ async def update_css(subdomain_id: int):
 
 
 # ─── Bootstrap via Dummy Server Copy ───────────────────────────────────────────
+# @deploy-doc bootstrap
+# Copies Cssupdate.php + Mvcdeploy.php + css_update_config.php from dummy server
+# to the target subdomain using bootstrap_copy.php on the dummy server.
+# Uses browser User-Agent to bypass HostGator Monarx Security.
+# Dummy server URLs stored in DUMMY_SERVERS (.env).
+# @deploy-doc-end
 
 BROWSER_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -863,7 +910,7 @@ def _bootstrap_via_dummy(subdomain: dict) -> dict:
     The dummy server copies Cssupdate.php + css_update_config.php + Mvcdeploy.php
     directly into the target subdomain (same cPanel account — no FTP needed).
     """
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     if server not in DUMMY_SERVERS:
         return {"success": False, "message": f"No dummy server configured for: {server}. Fill in DUMMY_SERVERS in python/.env"}
 
@@ -874,10 +921,6 @@ def _bootstrap_via_dummy(subdomain: dict) -> dict:
     dummy_host = DUMMY_SERVERS[server]
     dummy_url  = f"https://{dummy_host}/bootstrap_copy.php"
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; OurSchoolERP/1.0)",
-        "Accept": "application/json, text/plain, */*",
-    }
     payload = {
         "api_key":       CSS_UPDATE_API_KEY,
         "subdomain":     subdomain["subdomain"],
@@ -885,7 +928,7 @@ def _bootstrap_via_dummy(subdomain: dict) -> dict:
     }
 
     # Try HTTPS first, fall back to HTTP if blocked
-    merged_headers = {**BROWSER_HEADERS, **headers}
+    merged_headers = BROWSER_HEADERS
     for scheme in ["https", "http"]:
         url = f"{scheme}://{dummy_host}/bootstrap_copy.php"
         try:
@@ -977,7 +1020,323 @@ async def bootstrap_subdomain_bulk(request: Request):
     }
 
 
+# Remote DB host IPs per server (stored in subdomain_settings.db_host)
+REMOTE_DB_HOSTS = {
+    "godaddy":    "118.139.183.79",
+    "hostgator":  "119.18.54.141",
+    "myschools":  "119.18.54.166",
+    "schoolhour": "162.241.123.136",
+    "collegehour": "103.76.231.69",
+}
+
+
+def _build_cpanel_auth_headers(cp: dict) -> list:
+    """Return list of Authorization headers to try (token first, then Basic)."""
+    headers = []
+    if cp.get("token"):
+        headers.append({"Authorization": f"cpanel {cp['user']}:{cp['token']}"})
+    if cp.get("password"):
+        creds = base64.b64encode(f"{cp['user']}:{cp['password']}".encode()).decode()
+        headers.append({"Authorization": f"Basic {creds}"})
+    return headers
+
+
+def _cpanel_call(cp: dict, auth_headers: list, endpoint: str, params: dict):
+    """
+    Call a cPanel UAPI endpoint trying each auth header in order.
+    Returns (response_dict, working_header) or raises ValueError with message.
+    """
+    url = f"https://{cp['host']}:{cp['port']}/execute/{endpoint}"
+    last_error = "no auth methods configured"
+    for h in auth_headers:
+        try:
+            resp = requests.post(url, headers=h, params=params, timeout=30, verify=False)
+        except Exception as e:
+            last_error = f"connection error: {e}"
+            continue
+        if resp.status_code == 401:
+            last_error = f"HTTP 401 with {list(h.values())[0][:25]}..."
+            continue
+        try:
+            data = resp.json()
+            return data, h
+        except ValueError:
+            last_error = f"non-JSON HTTP {resp.status_code}: {resp.text[:200]}"
+            continue
+    raise ValueError(f"cPanel auth failed — {last_error}")
+
+
+def _build_sql_importer_php(db_name: str, db_user: str, db_pass: str) -> str:
+    # NOTE: Only skip '--' comment lines. Do NOT skip '/*!' lines — those are MySQL
+    # conditional comments (e.g. /*!40101 SET NAMES utf8 */) and ARE valid SQL.
+    return (
+        "<?php\n"
+        "set_time_limit(300);\n"
+        "$conn = new mysqli('localhost', '" + db_user + "', '" + db_pass + "', '" + db_name + "');\n"
+        "if ($conn->connect_error) { die(json_encode(['success'=>false,'error'=>'Connect: '.$conn->connect_error])); }\n"
+        "$conn->query(\"SET NAMES utf8mb4\");\n"
+        "$sql_file = __DIR__ . '/import_db.sql';\n"
+        "if (!file_exists($sql_file)) { die(json_encode(['success'=>false,'error'=>'SQL file not found'])); }\n"
+        "$sql = file_get_contents($sql_file);\n"
+        "$lines = explode(\"\\n\", $sql);\n"
+        "$stmt = ''; $count = 0; $errors = [];\n"
+        "foreach ($lines as $line) {\n"
+        "    $line = rtrim($line);\n"
+        "    if ($line==='' || substr($line,0,2)==='--') continue;\n"
+        "    $stmt .= $line . \"\\n\";\n"
+        "    if (substr(rtrim($line),-1)===';') {\n"
+        "        $stmt = trim($stmt);\n"
+        "        if ($stmt && !preg_match('/^(USE |CREATE DATABASE)/i', $stmt)) {\n"
+        "            if (!$conn->query($stmt)) { $errors[] = substr($conn->error,0,120); }\n"
+        "            else { $count++; }\n"
+        "        }\n"
+        "        $stmt = '';\n"
+        "    }\n"
+        "}\n"
+        "$conn->close();\n"
+        "@unlink($sql_file);\n"
+        "@unlink(__FILE__);\n"
+        "echo json_encode(['success'=>true,'imported'=>$count,'errors'=>$errors]);\n"
+    )
+
+
+def _cpanel_fileman_upload_to_dir(cp: dict, auth_header: dict, target_dir: str, files: dict) -> dict:
+    """Upload files to a specific cPanel directory via Fileman API. files: {name: str|bytes}"""
+    api_url = f"https://{cp['host']}:{cp['port']}/execute/Fileman/upload_files"
+    updated, failed = [], []
+    for filename, content in files.items():
+        if isinstance(content, str):
+            content = content.encode("utf-8")
+        try:
+            resp = requests.post(
+                api_url,
+                headers=auth_header,
+                data={"dir": target_dir, "overwrite": 1},
+                files={"file-0": (filename, content, "application/octet-stream")},
+                verify=False,
+                timeout=60,
+            )
+            result = resp.json()
+            if result.get("status") == 1:
+                updated.append(filename)
+            else:
+                errs = result.get("errors") or result.get("messages") or [str(result)]
+                failed.append(f"{filename}: {'; '.join(str(e) for e in errs)}")
+        except Exception as e:
+            failed.append(f"{filename}: {e}")
+    return {"updated": updated, "failed": failed}
+
+
+@app.post("/create-cpanel-subdomain")
+async def create_cpanel_subdomain(request: Request):
+    """
+    Full one-click cPanel setup:
+      1. Create subdomain folder
+      2. Create MySQL database  ({prefix}{subdomain})
+      3. Create MySQL user      ({prefix}{subdomain})
+      4. Grant ALL PRIVILEGES
+      5. Import SQL file (DB_IMPORT_SQL_PATH)
+      6. Full Deploy — unzip all 7 zip files via dummy server
+      7. Insert record in subdomain_settings
+    DB password convention: {subdomain}@123456
+    """
+    body      = await request.json()
+    server    = body.get("server", "").lower().strip()
+    subdomain = body.get("subdomain", "").lower().strip()
+
+    if not server or not subdomain:
+        raise HTTPException(status_code=422, detail="'server' and 'subdomain' are required")
+
+    cp = CPANEL_CONFIGS.get(server)
+    if not cp:
+        return {"success": False, "message": f"No cPanel credentials for '{server}'. Add token to CPANEL_CONFIGS in python/.env"}
+
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+    if not domain_suffix:
+        return {"success": False, "message": f"No domain mapping for server '{server}'"}
+
+    auth_headers = _build_cpanel_auth_headers(cp)
+    results = {}
+
+    # ── Step 1: Create subdomain folder ─────────────────────────────────────
+    ftp_cfg  = FTP_CONFIGS.get(server, {})
+    webroot  = ftp_cfg.get("webroot", "public_html")
+    full_sub = f"{subdomain}.{domain_suffix}"
+    dir_path = f"{webroot}/{full_sub}" if webroot else full_sub
+
+    try:
+        data, working_auth = _cpanel_call(cp, auth_headers, "SubDomain/addsubdomain",
+                                          {"domain": subdomain, "rootdomain": domain_suffix, "dir": dir_path})
+    except ValueError as e:
+        return {"success": False, "message": str(e)}
+
+    if data.get("status") != 1:
+        errors = data.get("errors") or data.get("messages") or [str(data)]
+        # "already exists" is acceptable — continue with DB setup
+        err_str = "; ".join(str(e) for e in errors)
+        if "exist" not in err_str.lower():
+            return {"success": False, "message": f"Subdomain creation failed: {err_str}"}
+        results["subdomain"] = f"already existed — skipped"
+    else:
+        results["subdomain"] = f"{full_sub} created"
+
+    # Use the working auth header for all subsequent calls
+    single_auth = [working_auth]
+
+    # ── Step 2: Get MySQL prefix ─────────────────────────────────────────────
+    try:
+        restr, _ = _cpanel_call(cp, single_auth, "Mysql/get_restrictions", {})
+        db_prefix = (restr.get("data") or {}).get("db_prefix") \
+                 or (restr.get("data") or {}).get("prefix") \
+                 or f"{cp['user']}_"
+    except Exception:
+        db_prefix = f"{cp['user']}_"
+
+    db_name     = f"{db_prefix}{subdomain}"
+    db_user     = f"{db_prefix}{subdomain}"
+    db_password = f"{subdomain}@123456"
+
+    # ── Step 3: Create database ──────────────────────────────────────────────
+    try:
+        db_data, _ = _cpanel_call(cp, single_auth, "Mysql/create_database", {"name": db_name})
+        if db_data.get("status") == 1:
+            results["database"] = f"{db_name} created"
+        else:
+            errs = db_data.get("errors") or [str(db_data)]
+            results["database"] = f"warning: {'; '.join(str(e) for e in errs)}"
+    except Exception as e:
+        results["database"] = f"error: {e}"
+
+    # ── Step 4: Create user ──────────────────────────────────────────────────
+    try:
+        usr_data, _ = _cpanel_call(cp, single_auth, "Mysql/create_user",
+                                   {"name": db_user, "password": db_password})
+        if usr_data.get("status") == 1:
+            results["db_user"] = f"{db_user} created"
+        else:
+            errs = usr_data.get("errors") or [str(usr_data)]
+            results["db_user"] = f"warning: {'; '.join(str(e) for e in errs)}"
+    except Exception as e:
+        results["db_user"] = f"error: {e}"
+
+    # ── Step 5: Grant ALL PRIVILEGES ────────────────────────────────────────
+    try:
+        priv_data, _ = _cpanel_call(cp, single_auth, "Mysql/set_privileges_on_database",
+                                    {"user": db_user, "database": db_name, "privileges": "ALL PRIVILEGES"})
+        if priv_data.get("status") == 1:
+            results["privileges"] = "ALL PRIVILEGES granted"
+        else:
+            errs = priv_data.get("errors") or [str(priv_data)]
+            results["privileges"] = f"warning: {'; '.join(str(e) for e in errs)}"
+    except Exception as e:
+        results["privileges"] = f"error: {e}"
+
+    # ── Step 6: Import SQL file into new database ────────────────────────────
+    # Files are uploaded to the DUMMY server (not the new subdomain) because:
+    # 1. Dummy server is always live — no DNS propagation delay for new subdomains
+    # 2. Dummy server is on the same physical host, so 'localhost' MySQL = same DB server
+    if DB_IMPORT_SQL_PATH and os.path.exists(DB_IMPORT_SQL_PATH):
+        dummy_host = DUMMY_SERVERS.get(server, "")
+        if not dummy_host:
+            results["sql_import"] = f"skipped — no dummy server configured for '{server}'"
+        else:
+            try:
+                with open(DB_IMPORT_SQL_PATH, "rb") as f:
+                    sql_bytes = f.read()
+                php_script = _build_sql_importer_php(db_name, db_user, db_password)
+                ftp_webroot = ftp_cfg.get("webroot", "public_html")
+                dummy_dir = f"{cp['home']}/{ftp_webroot}/{dummy_host}" if ftp_webroot else f"{cp['home']}/{dummy_host}"
+                upload_result = _cpanel_fileman_upload_to_dir(cp, working_auth, dummy_dir, {
+                    "import_db.sql": sql_bytes,
+                    "import_db_run.php": php_script.encode("utf-8"),
+                })
+                if upload_result["failed"]:
+                    results["sql_import"] = f"upload failed: {'; '.join(upload_result['failed'])}"
+                else:
+                    importer_url = f"https://{dummy_host}/import_db_run.php"
+                    try:
+                        imp_resp = requests.get(importer_url, timeout=120, verify=False)
+                        imp_data = imp_resp.json()
+                        if imp_data.get("success"):
+                            err_note = f" ({len(imp_data['errors'])} warnings)" if imp_data.get("errors") else ""
+                            results["sql_import"] = f"imported {imp_data.get('imported', 0)} statements{err_note}"
+                        else:
+                            results["sql_import"] = f"importer error: {imp_data.get('error', 'unknown')}"
+                    except requests.exceptions.Timeout:
+                        results["sql_import"] = "importer timed out (may still be running in background)"
+                    except Exception as e:
+                        results["sql_import"] = f"importer HTTP error: {e}"
+            except Exception as e:
+                results["sql_import"] = f"sql import setup error: {e}"
+    else:
+        results["sql_import"] = "skipped (DB_IMPORT_SQL_PATH not set)"
+
+    # ── Step 7: Full Deploy — unzip all zip files via dummy server ───────────
+    # Always push the latest full_deploy.php first so the dummy server definitely has
+    # the version that writes database.php (older manually-uploaded versions did not).
+    full_deploy_local = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "full_deploy.php"))
+    if os.path.exists(full_deploy_local) and dummy_host:
+        try:
+            with open(full_deploy_local, "rb") as f:
+                fd_bytes = f.read()
+            ftp_webroot2 = ftp_cfg.get("webroot", "public_html")
+            dummy_dir2 = f"{cp['home']}/{ftp_webroot2}/{dummy_host}" if ftp_webroot2 else f"{cp['home']}/{dummy_host}"
+            _cpanel_fileman_upload_to_dir(cp, working_auth, dummy_dir2, {"full_deploy.php": fd_bytes})
+        except Exception:
+            pass  # non-fatal — proceed with whatever is already on dummy server
+
+    full_deploy_result = _full_deploy_to_subdomain({
+        "server":    server,
+        "subdomain": subdomain,
+        "db_name":   db_name,
+        "db_user":   db_user,
+        "db_pass":   db_password,
+    })
+    results["full_deploy"] = full_deploy_result.get("message", str(full_deploy_result))
+
+    # ── Step 8: Insert into subdomain_settings ───────────────────────────────
+    db_host = REMOTE_DB_HOSTS.get(server, "localhost")
+    try:
+        main_conn = get_db_connection()
+        if main_conn:
+            cur = main_conn.cursor(dictionary=True)
+            cur.execute("SELECT id FROM subdomain_settings WHERE subdomain=%s AND server=%s",
+                        (subdomain, server))
+            existing = cur.fetchone()
+            if existing:
+                results["record"] = f"record already exists (id {existing['id']}) — not duplicated"
+            else:
+                cur.execute("""
+                    INSERT INTO subdomain_settings
+                        (server, subdomain, db_host, db_name, db_user, db_pass,
+                         site_name, logo_url, theme_color, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, '', '#ffffff', 'active')
+                """, (server, subdomain, db_host, db_name, db_user, db_password,
+                      subdomain.capitalize()))
+                main_conn.commit()
+                results["record"] = "inserted into subdomain_settings"
+            cur.close()
+            main_conn.close()
+    except Exception as e:
+        results["record"] = f"DB insert error: {e}"
+
+    return {
+        "success": True,
+        "message": f"Setup complete for '{full_sub}'",
+        "full_domain": full_sub,
+        "db_name":     db_name,
+        "db_user":     db_user,
+        "db_password": db_password,
+        "db_host":     db_host,
+        "steps":       results,
+    }
+
+
 # ─── Upload mvcdeploy.php Script ───────────────────────────────────────────────
+# @deploy-doc upload-deploy-script
+# Sends Mvcdeploy.php content to live subdomain via Cssupdate::receive_script().
+# For HostGator: uses cPanel API instead (mod_security blocks direct POST).
+# @deploy-doc-end
 
 MVCDEPLOY_SCRIPT_PATH = os.path.join(os.path.dirname(__file__), "..", "mvcdeploy.php")
 
@@ -989,7 +1348,7 @@ def _upload_files_via_cpanel(subdomain: dict, files: dict, remote_subdir: str) -
     files: {filename: content_string}
     remote_subdir: path relative to subdomain root (e.g. 'assets/inilabs')
     """
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     cp = CPANEL_CONFIGS.get(server)
     if not cp:
         return {"success": False, "message": f"No cPanel config for server: {server}. Add to CPANEL_CONFIGS in python/.env"}
@@ -1030,7 +1389,7 @@ def _upload_files_via_cpanel(subdomain: dict, files: dict, remote_subdir: str) -
 
 def _update_css_via_proxy(subdomain: dict, files_payload: dict) -> dict:
     """Send CSS files via dummy server proxy using form data (bypasses mod_security JSON block)."""
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     if server not in DUMMY_SERVERS:
         return {"success": False, "message": f"No dummy server for: {server}"}
     domain_suffix = SERVER_DOMAINS.get(server, "")
@@ -1072,7 +1431,7 @@ def _update_css_via_proxy(subdomain: dict, files_payload: dict) -> dict:
 
 def _upload_controller_to_subdomain(subdomain: dict, filename: str, content: str) -> dict:
     """Upload a PHP controller file to mvc/controllers/ via Cssupdate or cPanel API."""
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     if server not in SERVER_DOMAINS:
         return {"success": False, "message": f"No domain mapping for server: {server}"}
 
@@ -1100,7 +1459,7 @@ def _upload_controller_to_subdomain(subdomain: dict, filename: str, content: str
 
 def _upload_deploy_script_to_subdomain(subdomain: dict, script_content: str) -> dict:
     """Send mvcdeploy.php content to the live subdomain via Cssupdate::receive_script()."""
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     if server not in SERVER_DOMAINS:
         return {"success": False, "message": f"No domain mapping for server: {server}"}
 
@@ -1217,6 +1576,124 @@ async def upload_deploy_script_bulk(request: Request):
 
 
 # ─── Deploy MVC ────────────────────────────────────────────────────────────────
+# @deploy-doc mvc-deploy
+# Deploys local mvc.zip to a live subdomain.
+# GoDaddy flow: checks Mvcdeploy/check → auto-uploads controller if missing →
+#   POSTs mvc.zip to Mvcdeploy/receive → server renames mvc→mvc1, unzips, restores configs.
+# HostGator flow (mod_security blocks direct POST):
+#   1. Uploads mvc.zip to dummy server via cPanel API (port 2083)
+#   2. GET bootstrap_copy.php on dummy server with browser User-Agent
+#   3. Dummy PHP extracts zip, restores database.php + css_update_config.php
+# Config files preserved: mvc/config/development/database.php, mvc/config/css_update_config.php
+# MVC_ZIP_PATH and MVC_DEPLOY_API_KEY set in python/.env
+# @deploy-doc-end
+
+
+def _upload_files_via_ftp(ftp_config: dict, remote_dir: str, files: dict) -> dict:
+    """
+    Upload files to remote_dir (relative to FTP home) via a single FTP connection.
+    files: {filename: bytes_or_str}
+    Returns dict with success/message/updated/failed.
+    If FTP password is wrong, error message instructs user to update python/.env.
+    """
+    try:
+        ftp = ftplib.FTP()
+        ftp.connect(ftp_config["host"], int(ftp_config.get("port", 21)), timeout=60)
+        ftp.login(ftp_config["user"], ftp_config["pass"])
+        try:
+            ftp.cwd(remote_dir)
+        except ftplib.error_perm as e:
+            ftp.quit()
+            return {"success": False, "message": f"FTP directory not found: {remote_dir} — {e}"}
+        updated, failed = [], []
+        for filename, content in files.items():
+            try:
+                if isinstance(content, str):
+                    content = content.encode("utf-8")
+                ftp.storbinary(f"STOR {filename}", io.BytesIO(content))
+                updated.append(filename)
+            except Exception as e:
+                failed.append(f"{filename}: {e}")
+        ftp.quit()
+        return {
+            "success": bool(updated) and not failed,
+            "message": "Uploaded: " + ", ".join(updated) + (" | Failed: " + ", ".join(failed) if failed else "") + " (via FTP)",
+            "updated": updated,
+            "failed": failed,
+        }
+    except ftplib.error_perm as e:
+        return {"success": False, "message": f"FTP login failed — update 'pass' in FTP_CONFIGS in python/.env then restart Python server: {e}"}
+    except Exception as e:
+        return {"success": False, "message": f"FTP connection error: {e}"}
+
+
+def _upload_mvc_zip_to_dummy(server: str, zip_bytes: bytes) -> dict:
+    """
+    Upload mvc.zip to the dummy server for the given server (hostgator / myschools).
+    Called once before deploying to multiple subdomains — Rocket button then just
+    calls bootstrap_copy.php / trigger() without re-uploading the zip each time.
+    """
+    if server not in FTP_CONFIGS:
+        return {"success": False, "message": f"No FTP config for server: {server}"}
+    dummy_host = DUMMY_SERVERS.get(server, "")
+    if not dummy_host:
+        return {"success": False, "message": f"No dummy server configured for: {server}"}
+
+    ftp_cfg = FTP_CONFIGS[server]
+
+    if server == "hostgator":
+        # FTP chrooted to home — dummy1 is directly in home (no public_html)
+        dummy_dir = dummy_host  # "dummy1.ourschoolerp.com"
+    else:
+        # BigRock: FTP home is account root, dummy1 is directly there too
+        dummy_dir = dummy_host  # "dummy1.myschoolserp.com"
+
+    return _upload_files_via_ftp(ftp_cfg, dummy_dir, {"mvc.zip": zip_bytes})
+
+
+def _deploy_mvc_via_ftp(subdomain: dict, zip_bytes: bytes) -> dict:
+    """
+    FTP-based MVC deploy. Two strategies depending on server:
+
+    HostGator: mvc.zip expected already on dummy server (uploaded via /upload-mvc-zip).
+      Just calls bootstrap_copy.php — no FTP per subdomain. Fast.
+
+    BigRock (myschools): mvc.zip expected already on dummy server.
+      Calls bootstrap_copy.php on dummy — no per-subdomain FTP. Fast.
+
+    If mvc.zip is NOT on dummy (first run or stale), returns a clear error message
+    telling the user to click "Upload MVC to Dummy" first.
+    """
+    server = subdomain.get("server", "").lower()
+    ftp_cfg = FTP_CONFIGS[server]
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+    sub_name = subdomain["subdomain"]
+
+    dummy_host = DUMMY_SERVERS.get(server, "")
+    if not dummy_host:
+        return {"success": False, "message": f"No dummy server configured for: {server}"}
+
+    try:
+        r = requests.get(
+            f"https://{dummy_host}/bootstrap_copy.php",
+            params={"k": CSS_UPDATE_API_KEY, "s": sub_name, "d": f".{domain_suffix}"},
+            headers=BROWSER_HEADERS,
+            timeout=120,
+            verify=False,
+        )
+        try:
+            result = r.json()
+            # bootstrap_copy returns success:false with "mvc.zip not found" when zip missing
+            if not result.get("success") and "mvc.zip" in result.get("message", "").lower():
+                result["message"] = (
+                    "mvc.zip not on dummy server — click 'Upload MVC to Dummy' button first, then retry Rocket."
+                )
+            return result
+        except ValueError:
+            return {"success": False, "message": f"bootstrap_copy GET HTTP {r.status_code}: {r.text[:200]}"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": f"bootstrap_copy GET failed: {e}"}
+
 
 def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
     """
@@ -1224,7 +1701,7 @@ def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
     URL: https://{subdomain}.{domain}/mvcdeploy/receive
     Auto-checks controller exists first; uploads via Cssupdate if missing.
     """
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     if server not in SERVER_DOMAINS:
         return {"success": False, "message": f"No domain mapping for server: {server}"}
 
@@ -1234,10 +1711,13 @@ def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
     deploy_url   = f"https://{sub_name}.{base_domain}/mvcdeploy/receive"
 
     # ── Step 1: Check if Mvcdeploy controller exists ────────────────────────
+    # Use browser User-Agent — python-requests UA is blocked by mod_security on some hosts.
+    # Treat 406 as "exists": server responded but blocked the request, meaning the
+    # controller IS there and mod_security is the issue (not a missing file).
     controller_exists = False
     try:
-        check = requests.get(check_url, timeout=10, verify=False)
-        controller_exists = (check.status_code == 200)
+        check = requests.get(check_url, timeout=10, verify=False, headers=BROWSER_HEADERS)
+        controller_exists = check.status_code in [200, 406]
     except requests.exceptions.RequestException:
         pass
 
@@ -1260,6 +1740,15 @@ def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
             }
 
     # ── Step 3: Deploy MVC ──────────────────────────────────────────────────
+    # FTP-configured servers (HostGator/BigRock): upload via FTP then trigger extraction.
+    # This bypasses mod_security entirely and uses correct subdomain paths.
+    if server in FTP_CONFIGS:
+        result = _deploy_mvc_via_ftp(subdomain, zip_bytes)
+        if not controller_exists and result.get("success"):
+            result["message"] += " (Mvcdeploy.php was auto-uploaded first)"
+        return result
+
+    # Other servers (e.g. GoDaddy): direct HTTP POST to receive()
     try:
         resp = requests.post(
             deploy_url,
@@ -1274,8 +1763,6 @@ def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
                 result["message"] += " (Mvcdeploy.php was auto-uploaded first)"
             return result
         except ValueError:
-            if resp.status_code == 406 and server in CPANEL_CONFIGS:
-                return _deploy_mvc_via_cpanel(subdomain, zip_bytes)
             return {"success": False, "message": f"HTTP {resp.status_code}: unexpected response from live server"}
     except requests.exceptions.ConnectionError:
         return {"success": False, "message": f"Cannot connect to {deploy_url}"}
@@ -1290,7 +1777,7 @@ def _deploy_mvc_via_cpanel(subdomain: dict, zip_bytes: bytes) -> dict:
     Full MVC deployment via cPanel API only — no web server requests at all.
     Works even when mod_security blocks all HTTP requests to the subdomain.
     """
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     cp = CPANEL_CONFIGS.get(server)
     if not cp:
         return {"success": False, "message": f"No cPanel config for: {server}"}
@@ -1351,6 +1838,28 @@ def _deploy_mvc_via_cpanel(subdomain: dict, zip_bytes: bytes) -> dict:
 
     except Exception as e:
         return {"success": False, "message": f"cPanel MVC deploy error: {e}"}
+
+
+@app.post("/upload-mvc-zip/{server}")
+async def upload_mvc_zip(server: str):
+    """
+    Upload local mvc.zip to the dummy server for HostGator or BigRock (myschools).
+    Call this ONCE before clicking Rocket on multiple subdomains — Rocket will then
+    just call bootstrap_copy.php without re-uploading the zip each time.
+    GoDaddy does not use this endpoint (direct HTTP POST per subdomain).
+    """
+    if server not in FTP_CONFIGS:
+        raise HTTPException(status_code=400, detail=f"No FTP config for server '{server}'. Valid: {list(FTP_CONFIGS.keys())}")
+    if server not in DUMMY_SERVERS:
+        raise HTTPException(status_code=400, detail=f"No dummy server configured for '{server}'")
+    if not os.path.exists(MVC_ZIP_PATH):
+        raise HTTPException(status_code=500, detail=f"Local mvc.zip not found: {MVC_ZIP_PATH}")
+
+    with open(MVC_ZIP_PATH, "rb") as f:
+        zip_bytes = f.read()
+
+    result = _upload_mvc_zip_to_dummy(server, zip_bytes)
+    return result
 
 
 @app.post("/deploy-mvc/{subdomain_id}")
@@ -1458,7 +1967,7 @@ def _full_deploy_to_subdomain(subdomain: dict) -> dict:
     Extracts ALL zip files (assets, frontend, mvc, etc.) to the target subdomain.
     Used for NEW subdomain creation/full redeployment.
     """
-    server = subdomain.get("server", "")
+    server = subdomain.get("server", "").lower()
     if server not in DUMMY_SERVERS:
         return {"success": False, "message": f"No dummy server configured for: {server}. Fill in DUMMY_SERVERS in python/.env"}
 
@@ -1475,6 +1984,9 @@ def _full_deploy_to_subdomain(subdomain: dict) -> dict:
                 "api_key":       CSS_UPDATE_API_KEY,
                 "subdomain":     subdomain["subdomain"],
                 "domain_suffix": f".{domain_suffix}",
+                "db_user":       subdomain.get("db_user", ""),
+                "db_name":       subdomain.get("db_name", ""),
+                "db_pass":       subdomain.get("db_pass", ""),
             },
             timeout=120,
             verify=False,

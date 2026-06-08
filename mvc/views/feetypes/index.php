@@ -48,6 +48,9 @@
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
+        <?php if ($this->session->flashdata('error')): ?>
+            <div class="alert alert-danger"><?= $this->session->flashdata('error') ?></div>
+        <?php endif; ?>
         <div class="row">
             <div class="col-sm-12">
 
@@ -167,7 +170,13 @@
                                     </td>
                                     <?php if(permissionChecker('feetypes_edit')) { ?>
                                         <td data-title="<?=$this->lang->line('action')?>">
-                                            <?php echo btn_edit('feetypes/edit/'.$feetype->feetypesID, $this->lang->line('edit')) ?>
+                                            <?php if (!empty($feetype->is_system)): ?>
+                                                <button type="button" class="btn btn-warning btn-xs system-feetype-edit-btn" title="System generated fee type">
+                                                    <i class="fa fa-edit"></i>
+                                                </button>
+                                            <?php else: ?>
+                                                <?php echo btn_edit('feetypes/edit/'.$feetype->feetypesID, $this->lang->line('edit')) ?>
+                                            <?php endif; ?>
                                         </td>
                                     <?php } ?>
                                 </tr>
@@ -182,6 +191,10 @@
 </div>
 
 <script>
+$(document).on('click', '.system-feetype-edit-btn', function () {
+    alert('System generated fee types cannot be edited.');
+});
+
 $(document).on('click', '.ft-toggle-switch', function () {
     var $toggle = $(this);
     var id = $toggle.data('id');

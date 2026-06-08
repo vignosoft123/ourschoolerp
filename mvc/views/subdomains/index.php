@@ -2,9 +2,11 @@
     <div class="box-header">
         <h3 class="box-title"><i class="fa fa-sitemap"></i> SubDomain Management</h3>
         <div class="box-tools pull-right" style="margin-top:5px;">
-            <button id="python_server_btn" class="btn btn-sm btn-default" onclick="togglePythonServer()" title="Start/Stop Python API Server">
-                <i id="python_server_icon" class="fa fa-circle" style="color:#aaa;"></i>
-                <span id="python_server_label">Python Server</span>
+            <button id="btn_start_python" class="btn btn-sm btn-danger" onclick="startPythonServer()" title="Start Python API server" style="display:none;">
+                <i class="fa fa-play"></i> Start Python Server
+            </button>
+            <button id="btn_stop_python" class="btn btn-sm btn-success" onclick="stopPythonServer()" title="Stop Python API server" style="display:none;">
+                <i class="fa fa-stop"></i> Python Server Running
             </button>
         </div>
         <ol class="breadcrumb">
@@ -40,32 +42,136 @@
                         </div>
                     </div>
                     <div class="col-sm-8" style="margin-top: 25px;">
-                        <button id="bulk_migration_btn" class="btn btn-warning" onclick="migrationAll()" disabled>
-                            <i class="fa fa-shuttle-van"></i> Bulk Migration
-                        </button>
-                        &nbsp;
-                        <button id="refresh_age_btn" class="btn btn-refresh-age" onclick="refreshSchoolsAge()" disabled>
-                            <i class="fa fa-refresh"></i> Refresh Schools Age
-                        </button>
-                        &nbsp;
-                        <button id="bulk_css_btn" class="btn btn-info" onclick="bulkUpdateCss()" disabled>
-                            <i class="fa fa-cloud-upload"></i> Bulk CSS Update
-                        </button>
-                        &nbsp;
-                        <button id="bulk_bootstrap_btn" class="btn btn-bootstrap" onclick="bulkBootstrap()" disabled>
-                            <i class="fa fa-plug"></i> Bootstrap via FTP
-                        </button>
-                        &nbsp;
-                        <button id="bulk_deploy_btn" class="btn btn-deploy-mvc" onclick="bulkDeployMvc()" disabled>
-                            <i class="fa fa-rocket"></i> Bulk Deploy MVC
-                        </button>
-                        &nbsp;
-                        <button id="bulk_full_deploy_btn" class="btn btn-full-deploy" onclick="bulkFullDeploy()" disabled>
-                            <i class="fa fa-archive"></i> Bulk Full Deploy
-                        </button>
+
+                        <!-- ── GROUP 1: One-Time Setup (per new subdomain) ────────────── -->
+                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:3px;display:block;"><i class="fa fa-wrench"></i> ONE-TIME SETUP</div>
+                        <div style="margin-bottom:8px;">
+                            <button id="cpanel_create_btn" class="btn btn-info btn-sm" onclick="openCpanelCreateModal()" disabled title="Create a new subdomain folder in cPanel directly from localhost — no manual login needed (HostGator / MySchools / GoDaddy)">
+                                <i class="fa fa-server"></i> Create in cPanel
+                            </button>
+                            &nbsp;
+                            <button id="auto_create_btn" class="btn btn-success btn-sm" onclick="openAutoCreateModal()" disabled title="Auto-create subdomain: enter a live URL, system reads DB details from /main1 and inserts record automatically">
+                                <i class="fa fa-magic"></i> Auto insert Subdomain
+                            </button>
+                            &nbsp;
+                            <button id="bulk_migration_btn" class="btn btn-warning btn-sm" onclick="migrationAll()" disabled title="Create DB tables for all subdomains on selected server">
+                                <i class="fa fa-shuttle-van"></i> Create Tables
+                            </button>
+                            &nbsp;
+                            <button id="bulk_bootstrap_btn" class="btn btn-bootstrap btn-sm" onclick="bulkBootstrap()" disabled title="Bootstrap: copy Mvcdeploy.php + Cssupdate.php to each subdomain (first-time setup only)">
+                                <i class="fa fa-plug"></i> Bootstrap All
+                            </button>
+                            &nbsp;
+                            <button id="bulk_full_deploy_btn" class="btn btn-full-deploy btn-sm" onclick="bulkFullDeploy()" disabled title="Full Deploy: extract ALL zip files (assets, frontend, mvc, vendor etc.) — for new subdomain setup only">
+                                <i class="fa fa-archive"></i> Full Deploy All
+                            </button>
+                        </div>
+
+                        <!-- ── GROUP 2: Regular Updates (run each time you make changes) ─ -->
+                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:3px;display:block;"><i class="fa fa-refresh"></i> REGULAR UPDATES</div>
+                        <div style="margin-bottom:8px;">
+                            <button id="bulk_css_btn" class="btn btn-info btn-sm" onclick="bulkUpdateCss()" disabled title="Sync CSS files from localhost to all subdomains on selected server">
+                                <i class="fa fa-cloud-upload"></i> Sync CSS to All
+                            </button>
+                            &nbsp;
+                            <button id="upload_mvc_zip_btn" class="btn btn-warning btn-sm" onclick="uploadMvcZipToServer()" disabled title="HostGator/MySchools: Upload local mvc.zip to dummy server ONCE — then click Rocket on each subdomain (no FTP per subdomain)">
+                                <i class="fa fa-upload"></i> Upload MVC to Dummy
+                            </button>
+                            &nbsp;
+                            <button id="bulk_deploy_btn" class="btn btn-deploy-mvc btn-sm" onclick="bulkDeployMvc()" disabled title="Deploy MVC to all subdomains. For HostGator/MySchools: click 'Upload MVC to Dummy' first">
+                                <i class="fa fa-rocket"></i> Deploy MVC to All
+                            </button>
+                        </div>
+
+                        <!-- ── GROUP 3: Info / Admin ────────────────────────────────────── -->
+                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:3px;display:block;"><i class="fa fa-info-circle"></i> INFO / ADMIN</div>
+                        <div>
+                            <button id="refresh_age_btn" class="btn btn-refresh-age btn-sm" onclick="refreshSchoolsAge()" disabled title="Refresh school age data for all subdomains on selected server">
+                                <i class="fa fa-refresh"></i> Refresh Schools Age
+                            </button>
+                        </div>
+
                     </div>
                 </div>
-                
+
+                <!-- ── Server Capability Matrix ─────────────────────────────── -->
+                <div style="margin-bottom:16px;">
+                    <div style="font-size:11px;color:#888;margin-bottom:4px;"><i class="fa fa-info-circle"></i> SERVER CAPABILITY MATRIX</div>
+                    <table class="table table-bordered table-condensed" style="font-size:12px;margin-bottom:4px;background:#fff;">
+                        <thead>
+                            <tr style="background:#37474f;">
+                                <th style="width:12%;padding:5px 8px;color:#fff;">Server</th>
+                                <th style="width:13%;padding:5px 8px;color:#fff;">Domain</th>
+                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-plug"></i> Bootstrap</th>
+                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-cloud-upload"></i> CSS Sync</th>
+                                <th style="width:13%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-upload"></i> Upload Dummy</th>
+                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-rocket"></i> Rocket</th>
+                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-archive"></i> Full Deploy</th>
+                                <th style="width:10%;padding:5px 8px;color:#fff;">Handler</th>
+                                <th style="width:12%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-play-circle"></i> Python Needed?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding:4px 8px;font-weight:bold;color:#e65100;">Hostgator</td>
+                                <td style="padding:4px 8px;color:#666;">ourschoolerp.com</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                            </tr>
+                            <tr style="background:#fafafa;">
+                                <td style="padding:4px 8px;font-weight:bold;color:#c62828;">Myschools</td>
+                                <td style="padding:4px 8px;color:#666;">myschoolserp.com</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:4px 8px;font-weight:bold;color:#1565c0;">Schoolhour</td>
+                                <td style="padding:4px 8px;color:#666;">schoolhour.in</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                            </tr>
+                            <tr style="background:#fafafa;">
+                                <td style="padding:4px 8px;font-weight:bold;color:#6a1b9a;">Collegehour</td>
+                                <td style="padding:4px 8px;color:#666;">collegeerp.in</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                            </tr>
+                            <tr>
+                                <td style="padding:4px 8px;font-weight:bold;color:#2e7d32;">Godaddy</td>
+                                <td style="padding:4px 8px;color:#666;">ourcollegeerp.com</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#999;">—</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                <td style="padding:4px 8px;color:#555;">Python POST</td>
+                                <td style="padding:4px 8px;text-align:center;"><span style="background:#c62828;color:#fff;padding:2px 6px;border-radius:3px;font-size:11px;font-weight:bold;">YES — All ops</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="font-size:11px;color:#888;"><i class="fa fa-play-circle" style="color:#c62828;"></i> <strong style="color:#c62828;">Python server must be running</strong> when using: Godaddy (all buttons) &nbsp;|&nbsp; Bootstrap Plug on any server &nbsp;|&nbsp; Full Deploy on any server. &nbsp; CSS Sync &amp; Rocket for Hostgator / Myschools / Schoolhour / Collegehour = <strong>no Python needed</strong>.</div>
+                </div>
+
                 <div class="table-responsive">
                     <table id="subdomains-table" class="table table-striped table-bordered table-hover" style="cursor:pointer;">
                         <thead>
@@ -127,6 +233,63 @@
         </div><!-- /#pivot-collapsible-body -->
     </div><!-- /.box -->
 </div><!-- /#school-age-section -->
+
+<!-- ══ Auto Create Subdomain Modal ══════════════════════════════════════════ -->
+<!-- ── Create in cPanel Modal ──────────────────────────────────────────────── -->
+<div class="modal fade" id="cpanelCreateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#1565c0;color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;"><span>&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-server"></i> Create Subdomain in cPanel</h4>
+            </div>
+            <div class="modal-body">
+                <p style="margin:0 0 10px;font-size:13px;">Server: <strong id="cpanel_create_server_label" style="color:#1565c0;">—</strong></p>
+                <input type="text" id="cpanel_create_name" class="form-control" placeholder="e.g. newschool (name only, no domain)" style="margin-bottom:8px;">
+                <p id="cpanel_create_preview" style="color:#888;font-size:12px;margin:0 0 10px;"></p>
+                <div id="cpanel_create_result" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" id="cpanel_create_submit_btn" class="btn btn-primary" onclick="submitCpanelCreate()">
+                    <i class="fa fa-plus"></i> Create Subdomain
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="autoCreateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#27ae60;color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;"><span>&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-magic"></i> Auto Create Subdomain</h4>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;color:#555;margin-bottom:12px;">
+                    Enter the live subdomain URL. The system will fetch DB details from <code>/main1</code> and insert the record automatically.
+                </p>
+                <div class="form-group">
+                    <label style="font-size:13px;">Subdomain URL</label>
+                    <input type="text" id="auto_create_url" class="form-control"
+                        placeholder="https://gowthamcumbum.ourcollegeerp.com/"
+                        style="font-size:13px;">
+                    <span class="help-block" style="font-size:11px;color:#888;">
+                        Server: <strong id="auto_create_server_label">—</strong>
+                    </span>
+                </div>
+                <div id="auto_create_result" style="display:none;margin-top:10px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" id="auto_create_submit_btn" class="btn btn-success" onclick="submitAutoCreate()">
+                    <i class="fa fa-magic"></i> Fetch &amp; Create
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ══ Row Info Modal ════════════════════════════════════════════════════════ -->
 <div class="modal fade" id="rowInfoModal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -253,18 +416,41 @@ function updateBulkCssBtn() {
 function updateBulkDeployBtn() {
     var count  = selectedIds.size;
     var server = $('#server_filter').val();
+    // "Upload MVC to Dummy" only relevant for FTP servers (hostgator, myschools, schoolhour, collegehour)
+    var serverLower   = server.toLowerCase();
+    var ftpServers    = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
+    var cpanelServers = ['hostgator', 'myschools', 'godaddy'];
+    var showUploadBtn  = ftpServers.indexOf(serverLower) !== -1;
+    var showCpanelBtn  = cpanelServers.indexOf(serverLower) !== -1;
     if (count > 0) {
+        $('#cpanel_create_btn').prop('disabled', !showCpanelBtn);
+        $('#auto_create_btn').prop('disabled', false);
         $('#bulk_bootstrap_btn').prop('disabled', false).html('<i class="fa fa-plug"></i> Bootstrap ' + count + ' Selected');
         $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to ' + count + ' Selected');
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy ' + count + ' Selected');
+        if (showUploadBtn) {
+            $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
+        } else {
+            $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
+        }
     } else if (server) {
+        $('#cpanel_create_btn').prop('disabled', !showCpanelBtn);
+        $('#auto_create_btn').prop('disabled', false);
         $('#bulk_bootstrap_btn').prop('disabled', false).html('<i class="fa fa-plug"></i> Bootstrap All ' + server);
         $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to All ' + server);
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy All ' + server);
+        if (showUploadBtn) {
+            $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
+        } else {
+            $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
+        }
     } else {
+        $('#cpanel_create_btn').prop('disabled', true);
+        $('#auto_create_btn').prop('disabled', true);
         $('#bulk_bootstrap_btn').prop('disabled', true).html('<i class="fa fa-plug"></i> Bootstrap via FTP');
         $('#bulk_deploy_btn').prop('disabled', true).html('<i class="fa fa-rocket"></i> Bulk Deploy MVC');
         $('#bulk_full_deploy_btn').prop('disabled', true).html('<i class="fa fa-archive"></i> Bulk Full Deploy');
+        $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
     }
 }
 
@@ -444,53 +630,57 @@ function checkPythonServerStatus() {
 }
 
 function setPythonServerUI(isRunning) {
-    var icon  = document.getElementById('python_server_icon');
-    var label = document.getElementById('python_server_label');
-    var btn   = document.getElementById('python_server_btn');
-    if (isRunning) {
-        icon.style.color  = '#5cb85c';
-        label.textContent = 'Python Server Running';
-        btn.className     = 'btn btn-sm btn-success';
-        btn.title         = 'Server is running on port 8000';
-    } else {
-        icon.style.color  = '#d9534f';
-        label.textContent = 'Start Python Server';
-        btn.className     = 'btn btn-sm btn-danger';
-        btn.title         = 'Click to start Python API server';
-    }
+    document.getElementById('btn_start_python').style.display = isRunning ? 'none' : '';
+    document.getElementById('btn_stop_python').style.display  = isRunning ? '' : 'none';
 }
 
-function togglePythonServer() {
-    var btn = document.getElementById('python_server_btn');
-    var isRunning = btn.className.indexOf('btn-success') !== -1;
-    if (isRunning) {
-        alert('Server is already running on http://localhost:8000\nTo stop it, close the terminal window running uvicorn.');
-        return;
-    }
-
-    var icon  = document.getElementById('python_server_icon');
-    var label = document.getElementById('python_server_label');
-    icon.className    = 'fa fa-spinner fa-spin';
-    label.textContent = 'Starting...';
-    btn.disabled      = true;
-
+function startPythonServer() {
+    var btn = document.getElementById('btn_start_python');
+    btn.disabled   = true;
+    btn.innerHTML  = '<i class="fa fa-spinner fa-spin"></i> Starting...';
     $.ajax({
         url: '<?php echo base_url("subdomains/start_python_server"); ?>',
         type: 'POST',
         dataType: 'json',
         success: function(res) {
-            btn.disabled = false;
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fa fa-play"></i> Start Python Server';
             if (res.success) {
                 setPythonServerUI(true);
             } else {
-                setPythonServerUI(false);
                 alert('Error: ' + res.message);
             }
         },
         error: function() {
-            btn.disabled = false;
-            setPythonServerUI(false);
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fa fa-play"></i> Start Python Server';
             alert('Failed to contact the server starter. Check PHP error log.');
+        }
+    });
+}
+
+function stopPythonServer() {
+    var btn = document.getElementById('btn_stop_python');
+    btn.disabled   = true;
+    btn.innerHTML  = '<i class="fa fa-spinner fa-spin"></i> Stopping...';
+    $.ajax({
+        url: '<?php echo base_url("subdomains/stop_python_server"); ?>',
+        type: 'POST',
+        dataType: 'json',
+        success: function(res) {
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fa fa-stop"></i> Python Server Running';
+            if (res.success) {
+                setPythonServerUI(false);
+            } else {
+                setPythonServerUI(true);
+                alert('Error: ' + res.message);
+            }
+        },
+        error: function() {
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fa fa-stop"></i> Python Server Running';
+            alert('Failed to stop server.');
         }
     });
 }
@@ -761,15 +951,23 @@ function bulkFullDeploy() {
 
 // ── Deploy MVC (Single) ───────────────────────────────────────────────────────
 
-function deployMvc(btn, subdomainId, subdomainName) {
+function deployMvc(btn, subdomainId, subdomainName, server) {
     if (!confirm('Deploy MVC to "' + subdomainName + '"?\n\n⚠ This will:\n• Rename mvc → mvc1\n• Upload & unzip new mvc.zip\n• Copy database.php from mvc1\n\nAre you sure?')) return;
 
     var originalHtml = btn.innerHTML;
     btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
     $(btn).addClass('disabled');
 
+    // HostGator, BigRock, Schoolhour, Collegehour: use PHP endpoint (bootstrap_copy.php on dummy server)
+    // mvc.zip must already be uploaded via "Upload MVC to Dummy" button
+    // GoDaddy: use Python endpoint (direct HTTP POST)
+    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
+    var usePhp = ftpServers.indexOf(server) !== -1;
+
     $.ajax({
-        url: 'http://localhost:8000/deploy-mvc/' + subdomainId,
+        url: usePhp
+            ? '<?=base_url("subdomains/deploy_mvc_php")?>/' + subdomainId
+            : 'http://localhost:8000/deploy-mvc/' + subdomainId,
         type: 'POST',
         dataType: 'json',
         success: function(response) {
@@ -781,11 +979,193 @@ function deployMvc(btn, subdomainId, subdomainName) {
         },
         error: function(xhr) {
             var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
-            alert('Request failed. Make sure Python server is running.\n' + detail);
+            alert('Request failed.\n' + detail);
         },
         complete: function() {
             btn.innerHTML = originalHtml;
             $(btn).removeClass('disabled');
+        }
+    });
+}
+
+// ── Upload MVC Zip to Dummy Server ───────────────────────────────────────────
+function uploadMvcZipToServer() {
+    var server = $('#server_filter').val();
+    if (!server) {
+        alert('Please select a server first.');
+        return;
+    }
+    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
+    if (ftpServers.indexOf(server) === -1) {
+        alert(server + ' does not use a dummy server. Only Hostgator, Myschools, Schoolhour and Collegehour need this step.');
+        return;
+    }
+
+    var btn = $('#upload_mvc_zip_btn');
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading mvc.zip...');
+
+    $.ajax({
+        url: '<?=base_url("subdomains/upload_mvc_zip_php")?>/' + server,
+        type: 'POST',
+        dataType: 'json',
+        success: function(res) {
+            if (res && res.success) {
+                alert('✅ mvc.zip uploaded to dummy server (' + server + ')!\n\n' + res.message);
+            } else {
+                alert('❌ Upload failed: ' + (res ? res.message : 'Unknown error'));
+            }
+        },
+        error: function(xhr) {
+            alert('❌ Request failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : xhr.statusText));
+        },
+        complete: function() {
+            btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
+        }
+    });
+}
+
+// ── Auto Create Subdomain ─────────────────────────────────────────────────────
+
+// ── Create in cPanel ─────────────────────────────────────────────────────────
+
+var cPanelDomains = {
+    hostgator: 'ourschoolerp.com',
+    myschools:  'myschoolserp.com',
+    godaddy:    'ourcollegeerp.com',
+};
+
+function openCpanelCreateModal() {
+    var server = $('#server_filter').val().toLowerCase();
+    if (!cPanelDomains[server]) {
+        alert('cPanel subdomain creation is only available for HostGator, MySchools, and GoDaddy.\nSelect one of those servers first.');
+        return;
+    }
+    $('#cpanel_create_server_label').text(server);
+    $('#cpanel_create_name').val('');
+    $('#cpanel_create_preview').text('Will create: (enter name above)');
+    $('#cpanel_create_result').hide().html('');
+    $('#cpanel_create_submit_btn').prop('disabled', false).html('<i class="fa fa-plus"></i> Create Subdomain');
+    $('#cpanelCreateModal').modal('show');
+    setTimeout(function() { $('#cpanel_create_name').focus(); }, 500);
+}
+
+$(document).on('input', '#cpanel_create_name', function() {
+    var name   = $(this).val().trim().toLowerCase();
+    var server = $('#server_filter').val().toLowerCase();
+    var domain = cPanelDomains[server] || '';
+    $('#cpanel_create_preview').text(name ? 'Will create: ' + name + '.' + domain : 'Enter a subdomain name above');
+});
+
+function submitCpanelCreate() {
+    var name   = $('#cpanel_create_name').val().trim().toLowerCase();
+    var server = $('#server_filter').val().toLowerCase();
+    if (!name) { alert('Please enter a subdomain name.'); return; }
+
+    var $btn = $('#cpanel_create_submit_btn');
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Creating...');
+    $('#cpanel_create_result').hide().html('');
+
+    $.ajax({
+        url: '<?=base_url("subdomains/create_cpanel_subdomain")?>',
+        type: 'POST',
+        dataType: 'json',
+        data: { server: server, subdomain: name },
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="fa fa-plus"></i> Create Subdomain');
+            var cls  = res.success ? 'alert-success' : 'alert-danger';
+            var html = '<div class="alert ' + cls + '" style="font-size:13px;margin:0 0 8px;">' +
+                       '<i class="fa fa-' + (res.success ? 'check-circle' : 'times-circle') + '"></i> ' +
+                       res.message + '</div>';
+            if (res.success) {
+                html += '<table class="table table-condensed table-bordered" style="font-size:12px;margin:0;">' +
+                    '<tr><th style="width:35%">Domain</th><td><strong>' + res.full_domain + '</strong></td></tr>' +
+                    '<tr><th>DB Name</th><td>' + res.db_name + '</td></tr>' +
+                    '<tr><th>DB User</th><td>' + res.db_user + '</td></tr>' +
+                    '<tr><th>DB Password</th><td><code style="background:#f5f5f5;padding:2px 4px;">' + res.db_password + '</code></td></tr>' +
+                    '<tr><th>DB Host</th><td>' + res.db_host + '</td></tr>' +
+                    '</table>';
+                if (res.steps && res.steps.record) {
+                    html += '<p style="font-size:11px;color:#27ae60;margin:6px 0 0;"><i class="fa fa-check"></i> ' + res.steps.record + '</p>';
+                }
+                if (res.steps && res.steps.sql_import) {
+                    var sqlOk = res.steps.sql_import.indexOf('imported') === 0;
+                    var sqlColor = sqlOk ? '#27ae60' : '#e67e22';
+                    var sqlIcon  = sqlOk ? 'database' : 'exclamation-triangle';
+                    html += '<p style="font-size:11px;color:' + sqlColor + ';margin:3px 0 0;"><i class="fa fa-' + sqlIcon + '"></i> SQL: ' + res.steps.sql_import + '</p>';
+                }
+                if (res.steps && res.steps.full_deploy) {
+                    var fdMsg  = res.steps.full_deploy;
+                    var fdOk   = fdMsg.toLowerCase().indexOf('success') !== -1 || fdMsg.toLowerCase().indexOf('extracted') !== -1;
+                    var fdColor = fdOk ? '#27ae60' : '#e67e22';
+                    var fdIcon  = fdOk ? 'archive' : 'exclamation-triangle';
+                    html += '<p style="font-size:11px;color:' + fdColor + ';margin:3px 0 0;"><i class="fa fa-' + fdIcon + '"></i> Deploy: ' + fdMsg + '</p>';
+                }
+                setTimeout(function() {
+                    $('#cpanelCreateModal').modal('hide');
+                    $('#subdomains-table').DataTable().ajax.reload();
+                }, 4000);
+            }
+            $('#cpanel_create_result').html(html).show();
+        },
+        error: function(xhr) {
+            $btn.prop('disabled', false).html('<i class="fa fa-plus"></i> Create Subdomain');
+            $('#cpanel_create_result').html('<div class="alert alert-danger" style="font-size:13px;margin:0;">Request failed: ' + xhr.statusText + '</div>').show();
+        }
+    });
+}
+
+function openAutoCreateModal() {
+    var server = $('#server_filter').val();
+    if (!server) { alert('Please select a server first.'); return; }
+    $('#auto_create_server_label').text(server);
+    $('#auto_create_url').val('');
+    $('#auto_create_result').hide().html('');
+    $('#auto_create_submit_btn').prop('disabled', false).html('<i class="fa fa-magic"></i> Fetch &amp; Create');
+    $('#autoCreateModal').modal('show');
+    setTimeout(function() { $('#auto_create_url').focus(); }, 500);
+}
+
+function submitAutoCreate() {
+    var url    = $.trim($('#auto_create_url').val());
+    var server = $('#server_filter').val();
+
+    if (!url) { alert('Please enter a URL.'); return; }
+    if (!server) { alert('Please select a server.'); return; }
+
+    var $btn = $('#auto_create_submit_btn');
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Fetching...');
+    $('#auto_create_result').hide().html('');
+
+    $.ajax({
+        url: '<?=base_url("subdomains/auto_create_subdomain")?>',
+        type: 'POST',
+        dataType: 'json',
+        data: { url: url, server: server },
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="fa fa-magic"></i> Fetch &amp; Create');
+            var cls  = res.success ? 'alert-success' : 'alert-danger';
+            var icon = res.success ? 'check-circle' : 'times-circle';
+            var html = '<div class="alert ' + cls + '" style="font-size:13px;margin:0;">' +
+                       '<i class="fa fa-' + icon + '"></i> ' + res.message + '</div>';
+            if (res.success && res.data) {
+                html += '<table class="table table-condensed" style="font-size:12px;margin:10px 0 0;">' +
+                    '<tr><th>Subdomain</th><td>' + res.data.subdomain + '</td></tr>' +
+                    '<tr><th>DB Host</th><td>' + res.data.db_host + '</td></tr>' +
+                    '<tr><th>DB Name</th><td>' + res.data.db_name + '</td></tr>' +
+                    '<tr><th>DB User</th><td>' + res.data.db_user + '</td></tr>' +
+                    '</table>';
+            }
+            $('#auto_create_result').html(html).show();
+            if (res.success) {
+                setTimeout(function() {
+                    $('#autoCreateModal').modal('hide');
+                    $('#subdomains-table').DataTable().ajax.reload();
+                }, 2000);
+            }
+        },
+        error: function(xhr) {
+            $btn.prop('disabled', false).html('<i class="fa fa-magic"></i> Fetch &amp; Create');
+            $('#auto_create_result').html('<div class="alert alert-danger" style="font-size:13px;margin:0;">Request failed: ' + xhr.statusText + '</div>').show();
         }
     });
 }

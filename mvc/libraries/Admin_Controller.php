@@ -1370,15 +1370,18 @@ public function encryption_decryption($url=""){
             $fee_types = array(
                 array(
                 'feetypes' => 'Term1 Fee',
-                'note' => 'Term1 Auto created - dont delete'
+                'note' => 'Term1 Auto created - dont delete',
+                'is_system' => 1
                 ),
                 array(
                     'feetypes' => 'Term2 Fee',
-                    'note' => 'Term2 Auto created - dont delete'
+                    'note' => 'Term2 Auto created - dont delete',
+                    'is_system' => 1
                     ),
                 array(
                     'feetypes' => 'Term3 Fee',
-                    'note' => 'Term3 Auto created - dont delete'
+                    'note' => 'Term3 Auto created - dont delete',
+                    'is_system' => 1
                     ),
             );
             $this->db->insert_batch('feetypes', $fee_types); 

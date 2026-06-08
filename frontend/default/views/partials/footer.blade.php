@@ -40,7 +40,7 @@
                         <?php $i = 1; ?>
                         <?php $countFrontendSocialQueryMenus = customCompute($menu['frontendSocialQueryMenus']); ?>
                         @foreach ($menu['frontendSocialQueryMenus'] as $frontendSocialQueryMenu)
-                            <?php 
+                            <?php
                                 $url = '#';
                                 if($frontendSocialQueryMenu->menu_typeID == 1) {
                                     if(isset($fpages[$frontendSocialQueryMenu->menu_pagesID])) {
@@ -77,40 +77,9 @@
                         @endforeach
                     @endif
                 @endif
-                
+
             </div>
         </div>
     </div>
-    <div class="footer-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="copyright text-center">
-                        {{ frontendData::get_backend('footer') }}
-
-                     <?php
-                     
-                     $compress = [];
-                     $query    = $this->db->get('setting');
-                     foreach ( $query->result() as $row ) {
-                         $compress[ $row->fieldoption ] = $row->value;
-                     }
-                     $a =  (object) $compress;
-                        // echo "<pre>";print_r($a);
-		               echo $a->footer ;
-                    ?>
-
-                    <?php echo ' -v'.VERSION;?>
-                    </div>
-                    <div class="text-center" style="margin-top:8px; font-size:13px;">
-                        <?php $termsLabel = frontendData::get_frontend('terms_label'); ?>
-                        <?php $privacyLabel = frontendData::get_frontend('privacy_label'); ?>
-                        <a href="{{ base_url('frontend/terms') }}" style="color:#8dc63f; margin-right:15px;"><?=($termsLabel ? htmlspecialchars($termsLabel) : 'Terms &amp; Conditions')?></a>
-                        <span style="color:#999;">|</span>
-                        <a href="{{ base_url('frontend/privacy') }}" style="color:#8dc63f; margin-left:15px;"><?=($privacyLabel ? htmlspecialchars($privacyLabel) : 'Privacy Policy')?></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <?php include(APPPATH . 'views/frontend_partials/footer_bottom.php'); ?>
 </footer>

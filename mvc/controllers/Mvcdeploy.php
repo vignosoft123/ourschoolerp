@@ -1,4 +1,19 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+/*
+ * @deploy-doc mvc-controller
+ * CI controller for MVC deployment on live subdomains.
+ * URL base: /{subdomain}.domain.com/mvcdeploy/
+ *
+ * Methods:
+ *   check()   GET  /mvcdeploy/check   — returns {exists:true}, used by Python to verify deployment
+ *   receive() POST /mvcdeploy/receive — accepts mvc.zip upload, runs: delete mvc1, rename mvc→mvc1,
+ *                                       save zip, unzip, copy database.php+css_update_config.php from mvc1, delete zip
+ *   trigger() GET  /mvcdeploy/trigger?api_key=X — server-side deploy trigger (attempted for HG, blocked by Monarx)
+ *
+ * API key: read from mvc/config/css_update_config.php → css_update_api_key
+ * Config files preserved: mvc/config/development/database.php, mvc/config/css_update_config.php
+ * @deploy-doc-end
+ */
 
 class Mvcdeploy extends CI_Controller {
 

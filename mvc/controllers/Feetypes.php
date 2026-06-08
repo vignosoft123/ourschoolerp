@@ -24,6 +24,15 @@ class Feetypes extends Admin_Controller {
 
 	public function index() {
 
+		// Auto-add is_system column and mark system fee types on first run
+		if (!$this->db->field_exists('is_system', 'feetypes')) {
+			$this->db->query("ALTER TABLE feetypes ADD COLUMN is_system TINYINT(1) NOT NULL DEFAULT 0");
+			$this->db->query("UPDATE feetypes SET is_system = 1 WHERE note LIKE '%Don\\'t delete it!%' OR note LIKE '%Auto created - dont delete%' OR feetypes = 'SCHOOL FEE'");
+		} else {
+			// Ensure SCHOOL FEE is always marked as system (for existing installs)
+			$this->db->query("UPDATE feetypes SET is_system = 1 WHERE feetypes = 'SCHOOL FEE' AND is_system = 0");
+		}
+
 		$this->auto_generate_term_fee_types();
 
 		$schoolyearID       = $this->session->userdata('defaultschoolyearID');
@@ -100,6 +109,13 @@ class Feetypes extends Admin_Controller {
 		if((int)$id) {
 			$this->data['feetypes'] = $this->feetypes_m->get_feetypes($id);
 			if($this->data['feetypes']) {
+				// Block editing of system-generated fee types
+				$feetype_row = $this->feetypes_m->get_single_feetypes(array('feetypesID' => $id));
+				if ($feetype_row && !empty($feetype_row->is_system)) {
+					$this->session->set_flashdata('error', 'System generated fee types cannot be edited.');
+					redirect(base_url("feetypes/index"));
+					return;
+				}
 				if($_POST) {
 					$rules = $this->rules();
 					$this->form_validation->set_rules($rules);

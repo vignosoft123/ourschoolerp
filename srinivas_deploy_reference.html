@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OurSchoolERP — Deployment Reference</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: #f5f5f5; color: #222; }
+  h1 { background: #1565c0; color: #fff; padding: 18px 28px; font-size: 22px; }
+  h1 span { font-size: 13px; font-weight: normal; opacity: .8; margin-left: 14px; }
+  h2 { font-size: 15px; color: #1565c0; border-left: 4px solid #1565c0; padding: 6px 12px;
+       background: #e3f2fd; margin: 22px 0 10px; }
+  h3 { font-size: 13px; color: #333; margin: 14px 0 6px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; }
+  th { background: #1565c0; color: #fff; padding: 8px 10px; text-align: left; }
+  td { padding: 7px 10px; border-bottom: 1px solid #ddd; vertical-align: top; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  tr:hover td { background: #fffde7; }
+
+  /* Cards */
+  .card { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 16px;
+          margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  /* Server color badges */
+  .godaddy  { background:#e8f5e9; border-left:4px solid #2e7d32; }
+  .hostgator{ background:#fff3e0; border-left:4px solid #e65100; }
+  .myschools{ background:#fce4ec; border-left:4px solid #c62828; }
+  .all      { background:#e8eaf6; border-left:4px solid #3949ab; }
+
+  /* Step boxes */
+  .steps { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .step  { display:flex; align-items:flex-start; gap:8px; flex:1; min-width:200px;
+           background:#f5f5f5; border-radius:5px; padding:10px; border:1px solid #e0e0e0; }
+  .num   { background:#1565c0; color:#fff; border-radius:50%; width:24px; height:24px;
+           display:flex; align-items:center; justify-content:center; font-size:12px;
+           font-weight:bold; flex-shrink:0; }
+  .num.green  { background:#2e7d32; }
+  .num.orange { background:#e65100; }
+  .num.red    { background:#c62828; }
+
+  /* Button pills */
+  .btn-plug  { display:inline-block; padding:3px 10px; border-radius:12px;
+               background:#616161; color:#fff; font-size:12px; font-weight:bold; }
+  .btn-css   { display:inline-block; padding:3px 10px; border-radius:12px;
+               background:#e65100; color:#fff; font-size:12px; font-weight:bold; }
+  .btn-rocket{ display:inline-block; padding:3px 10px; border-radius:12px;
+               background:#00695c; color:#fff; font-size:12px; font-weight:bold; }
+  .btn-full  { display:inline-block; padding:3px 10px; border-radius:12px;
+               background:#bf360c; color:#fff; font-size:12px; font-weight:bold; }
+
+  /* Status badges */
+  .ok  { color:#2e7d32; font-weight:bold; }
+  .err { color:#c62828; font-weight:bold; }
+  .warn{ color:#e65100; font-weight:bold; }
+
+  /* Flow arrows */
+  .flow { display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin: 6px 0; }
+  .fbox { background:#e3f2fd; border:1px solid #90caf9; border-radius:4px;
+          padding:4px 10px; font-size:12px; }
+  .fbox.action { background:#fff9c4; border-color:#f9a825; }
+  .fbox.success{ background:#e8f5e9; border-color:#66bb6a; }
+  .fbox.fail   { background:#ffebee; border-color:#ef9a9a; }
+  .arrow { color:#999; font-size:16px; }
+
+  /* Password warning */
+  .warning { background:#fff8e1; border:1px solid #f9a825; border-radius:5px;
+             padding:10px 14px; margin:10px 0; font-size:13px; }
+  .warning strong { color:#e65100; }
+
+  /* Grid */
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:700px){ .grid2{ grid-template-columns:1fr; } }
+
+  code { background:#f5f5f5; border:1px solid #ddd; border-radius:3px;
+         padding:1px 5px; font-size:12px; font-family:monospace; }
+
+  hr { border:none; border-top:1px solid #ddd; margin:20px 0; }
+  ul { padding-left:18px; }
+  li { margin-bottom:4px; }
+</style>
+</head>
+<body>
+
+<h1>OurSchoolERP — Deployment Reference Guide
+  <span>Python Server: localhost:8000 &nbsp;|&nbsp; Admin: staging.ourschoolerp.localhost//subdomains/index</span>
+</h1>
+
+<div class="wrap">
+
+<!-- ══════════════════════════════════════
+     SECTION 1: SERVER CONFIGURATIONS
+═══════════════════════════════════════ -->
+<h2>1. Hosting Server Configurations</h2>
+<table>
+  <tr>
+    <th>Server Key</th><th>Domain Suffix</th><th>Hosting</th>
+    <th>FTP Host : Port</th><th>FTP User</th><th>FTP Path for Subdomains</th>
+    <th>Dummy Server</th><th>cPanel Host</th>
+  </tr>
+  <tr>
+    <td><strong>godaddy</strong></td>
+    <td>ourcollegeerp.com</td>
+    <td>GoDaddy</td>
+    <td>— (no FTP)</td>
+    <td>—</td>
+    <td>/home/zbtr5uwckzg7/public_html/{sub}/</td>
+    <td>dummy1.ourcollegeerp.com</td>
+    <td>GoDaddy cPanel</td>
+  </tr>
+  <tr>
+    <td><strong>hostgator</strong></td>
+    <td>ourschoolerp.com</td>
+    <td>HostGator</td>
+    <td>cs3005.hostgator.in:21</td>
+    <td>mindw2ft</td>
+    <td><code>public_html/{sub}.ourschoolerp.com/</code><br><span style="font-size:11px;color:#666;">Dummy FTP (relative): <code>dummy1.ourschoolerp.com/</code> — FTP chrooted to home</span></td>
+    <td>dummy1.ourschoolerp.com</td>
+    <td>cs3005.hostgator.in:2083</td>
+  </tr>
+  <tr>
+    <td><strong>myschools</strong></td>
+    <td>myschoolserp.com</td>
+    <td>BigRock</td>
+    <td>sh203.bigrock.com:21</td>
+    <td>myschknc</td>
+    <td><code>{sub}.myschoolserp.com/</code> <span class="warn">(NO public_html)</span></td>
+    <td>dummy1.myschoolserp.com</td>
+    <td>sh203.bigrock.com:2083</td>
+  </tr>
+  <tr>
+    <td><strong>schoolhour</strong></td>
+    <td>schoolhour.in</td>
+    <td>cPanel (schoolhour.in)</td>
+    <td>schoolhour.in:21</td>
+    <td>schoodj8</td>
+    <td><code>{sub}.schoolhour.in/</code> <span class="warn">(NO public_html)</span><br><span style="font-size:11px;color:#666;">Home: /home4/schoodj8/</span></td>
+    <td>dummy1.schoolhour.in</td>
+    <td>schoolhour.in:2083</td>
+  </tr>
+  <tr>
+    <td><strong>collegehour</strong></td>
+    <td>collegeerp.in</td>
+    <td>cPanel (collegehour.in)</td>
+    <td>collegehour.in:21</td>
+    <td>collenv4p</td>
+    <td><code>{sub}.collegehour.in/</code> <span class="warn">(NO public_html)</span><br><span style="font-size:11px;color:#666;">Home: /home4/collenv4p/</span></td>
+    <td>dummy1.collegehour.in</td>
+    <td>collegehour.in:2083</td>
+  </tr>
+</table>
+
+<div class="warning">
+  <strong>⚠ Password Change Warning:</strong> FTP credentials are stored in TWO places:
+  <ol style="margin:6px 0 0 18px;">
+    <li><code>python/.env</code> → <code>FTP_CONFIGS</code> — used by Python endpoints (CSS sync, etc.) → restart Python server after editing</li>
+    <li><code>mvc/controllers/Subdomains.php</code> → <code>$ftp_configs</code> array in <code>upload_mvc_zip_php()</code> — used by PHP "Upload MVC to Dummy" and Rocket buttons</li>
+  </ol>
+  <strong>Both must be kept in sync</strong> if cPanel/FTP password changes.
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 2: BUTTON ORDER
+═══════════════════════════════════════ -->
+<h2>2. Toolbar Button Groups</h2>
+
+<p style="margin-bottom:10px;font-size:13px;">The Subdomains toolbar has 3 logical groups. Select the correct server filter first — some buttons only enable for FTP servers.</p>
+
+<div class="card all" style="margin-bottom:12px;">
+  <h3 style="margin-top:0;color:#3949ab;">GROUP 1 — One-Time Setup (rarely used)</h3>
+  <table>
+    <tr><th>Button</th><th>When to use</th><th>What it does</th></tr>
+    <tr>
+      <td><strong>Create Tables</strong></td>
+      <td>First launch on a new server</td>
+      <td>Runs DB migrations to create required tables</td>
+    </tr>
+    <tr>
+      <td><strong>Bootstrap All</strong> 🔌</td>
+      <td>First time deploying to ALL subdomains</td>
+      <td>Uploads Mvcdeploy.php + Cssupdate.php to all subdomains via dummy server (one per subdomain)</td>
+    </tr>
+    <tr>
+      <td><strong>Full Deploy All</strong> 📦</td>
+      <td>Brand-new subdomain setup only</td>
+      <td>Calls full_deploy.php on dummy — extracts all 7 zips into a new subdomain. <span class="warn">Requires all zips pre-uploaded to dummy server via cPanel.</span></td>
+    </tr>
+  </table>
+</div>
+
+<div class="card hostgator" style="margin-bottom:12px;">
+  <h3 style="margin-top:0;color:#e65100;">GROUP 2 — Regular Updates (used frequently)</h3>
+  <table>
+    <tr><th>Button</th><th>When to use</th><th>What it does</th><th>Server</th></tr>
+    <tr>
+      <td><strong>Sync CSS to All</strong> ☁</td>
+      <td>After any CSS/theme change</td>
+      <td>Pushes CSS files from localhost to all live subdomains (filtered by selected server)</td>
+      <td>All servers</td>
+    </tr>
+    <tr>
+      <td><strong>Upload MVC to Dummy</strong></td>
+      <td>Once per MVC (PHP code) update, BEFORE clicking Rocket</td>
+      <td>PHP <code>ftp_put()</code> uploads mvc.zip from C:/xampp/htdocs/ourschoolerp/mvc.zip to dummy server. Only needs to be done once per batch of subdomain rockets.</td>
+      <td>HostGator / BigRock only</td>
+    </tr>
+    <tr>
+      <td><strong>Deploy MVC to All</strong> 🚀</td>
+      <td>After MVC update — deploy to all subdomains at once</td>
+      <td>Runs Rocket for every subdomain of the selected server. For HostGator/BigRock: calls bootstrap_copy.php (requires mvc.zip already on dummy). For GoDaddy: direct Python POST.</td>
+      <td>All servers</td>
+    </tr>
+  </table>
+  <p style="font-size:12px;color:#e65100;margin-top:6px;">
+    ⚡ Correct flow for HostGator/BigRock: <strong>Upload MVC to Dummy</strong> → then <strong>Deploy MVC to All</strong> (or individual Rocket per row)
+  </p>
+</div>
+
+<div class="card godaddy">
+  <h3 style="margin-top:0;color:#2e7d32;">GROUP 3 — Info / Admin</h3>
+  <table>
+    <tr><th>Button</th><th>When to use</th><th>What it does</th></tr>
+    <tr>
+      <td><strong>Refresh Schools Age</strong></td>
+      <td>Periodically</td>
+      <td>Recalculates and updates school/student age fields in the database</td>
+    </tr>
+  </table>
+</div>
+
+<div class="card all" style="margin-top:12px;">
+  <h3 style="margin-top:0;">Per-Row Buttons (each subdomain row)</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="num">🔌</div>
+      <div>
+        <span class="btn-plug">Plug</span><br>
+        <strong>First time only</strong><br>
+        Bootstrap one subdomain — uploads Mvcdeploy.php + Cssupdate.php via dummy.
+      </div>
+    </div>
+    <div class="step">
+      <div class="num orange">☁</div>
+      <div>
+        <span class="btn-css">Orange Cloud</span><br>
+        <strong>Every CSS change</strong><br>
+        Push CSS files to this one subdomain.
+      </div>
+    </div>
+    <div class="step">
+      <div class="num green">🚀</div>
+      <div>
+        <span class="btn-rocket">Rocket</span><br>
+        <strong>Every MVC update</strong><br>
+        Deploy mvc.zip to this one subdomain. For HostGator/BigRock: calls bootstrap_copy.php (mvc.zip must already be on dummy).
+      </div>
+    </div>
+    <div class="step">
+      <div class="num red">📦</div>
+      <div>
+        <span class="btn-full">Archive</span><br>
+        <strong>New subdomain only</strong><br>
+        Full deploy via full_deploy.php on dummy.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 3: MVC DEPLOY FLOWS
+═══════════════════════════════════════ -->
+<h2>3. 🚀 Rocket — MVC Deploy Flow (per Server)</h2>
+
+<div class="card all" style="margin-bottom:14px;">
+  <strong>⚡ New optimised flow for HostGator &amp; MySchools:</strong>
+  Use <strong>"Upload MVC to Dummy"</strong> button ONCE per MVC update → then Rocket each subdomain instantly (no FTP per subdomain).
+  GoDaddy is unchanged — direct HTTP POST per subdomain.
+</div>
+
+<div class="grid2">
+
+<div class="card godaddy">
+  <h3>GoDaddy (ourcollegeerp.com) — unchanged</h3>
+  <div class="flow">
+    <div class="fbox">Read local mvc.zip</div><div class="arrow">→</div>
+    <div class="fbox action">GET /mvcdeploy/check</div><div class="arrow">→</div>
+    <div class="fbox action">POST mvc.zip → /mvcdeploy/receive</div><div class="arrow">→</div>
+    <div class="fbox success">✅ Deployed</div>
+  </div>
+  <br>
+  <table>
+    <tr><th>Step</th><th>What happens</th></tr>
+    <tr><td>1</td><td>Python checks if <code>Mvcdeploy</code> controller exists</td></tr>
+    <tr><td>2</td><td>If missing → auto-upload via <code>Cssupdate/receive_script</code></td></tr>
+    <tr><td>3</td><td>POST <code>mvc.zip</code> directly to live server (no mod_security issues)</td></tr>
+    <tr><td>4</td><td><code>receive()</code>: rename mvc→mvc1, extract zip, restore database.php</td></tr>
+  </table>
+  <p style="margin-top:8px;font-size:12px;color:#2e7d32;">Handler: Python <code>localhost:8000/deploy-mvc/{id}</code></p>
+</div>
+
+<div class="card hostgator">
+  <h3>HostGator (ourschoolerp.com) — two-step</h3>
+  <p style="font-size:12px;margin-bottom:8px;"><strong>Step A (once per MVC update):</strong> Click "Upload MVC to Dummy" button</p>
+  <div class="flow">
+    <div class="fbox">PHP reads local mvc.zip</div><div class="arrow">→</div>
+    <div class="fbox action">PHP ftp_put() → dummy1.ourschoolerp.com/mvc.zip</div><div class="arrow">→</div>
+    <div class="fbox success">✅ zip on dummy</div>
+  </div>
+  <p style="font-size:12px;margin:8px 0;"><strong>Step B (per subdomain):</strong> Click Rocket</p>
+  <div class="flow">
+    <div class="fbox">PHP calls bootstrap_copy.php</div><div class="arrow">→</div>
+    <div class="fbox action">?k=KEY&amp;s={sub}&amp;d=.ourschoolerp.com</div><div class="arrow">→</div>
+    <div class="fbox success">✅ Deployed</div>
+  </div>
+  <br>
+  <table>
+    <tr><th>Step</th><th>What happens</th></tr>
+    <tr><td>A</td><td>PHP <code>ftp_put()</code> uploads mvc.zip → <code>dummy1.ourschoolerp.com/</code> (relative FTP path, no public_html)</td></tr>
+    <tr><td>B</td><td>PHP GET <code>dummy1.ourschoolerp.com/bootstrap_copy.php?s={sub}</code></td></tr>
+    <tr><td>B</td><td>bootstrap_copy reads mvc.zip from <code>__DIR__</code>, extracts to <code>dirname(__DIR__)/{sub}.ourschoolerp.com/</code></td></tr>
+    <tr><td>B</td><td>Restores database.php + css_update_config.php, deletes mvc1 backup</td></tr>
+  </table>
+  <p style="margin-top:8px;font-size:12px;color:#666;">
+    Monarx Security blocks direct HTTP POST &amp; trigger() on live subdomains — dummy server approach avoids this entirely.<br>
+    FTP chrooted to <code>/home1/mindw2ft/</code> — relative paths used (not absolute).
+  </p>
+  <p style="margin-top:4px;font-size:12px;color:#e65100;">Handler: PHP <code>subdomains/deploy_mvc_php/{id}</code> (no Python needed)</p>
+</div>
+
+<div class="card myschools" style="grid-column:1/-1">
+  <h3>BigRock / MySchools (myschoolserp.com) — same two-step as HostGator</h3>
+  <div class="flow">
+    <div class="fbox">Upload MVC to Dummy button</div><div class="arrow">→</div>
+    <div class="fbox action">PHP ftp_put() → dummy1.myschoolserp.com/mvc.zip</div><div class="arrow">→</div>
+    <div class="fbox success">zip on dummy ✅</div><div class="arrow">→</div>
+    <div class="fbox action">Rocket → bootstrap_copy.php?s={sub}&amp;d=.myschoolserp.com</div><div class="arrow">→</div>
+    <div class="fbox success">✅ Deployed</div>
+  </div>
+  <br>
+  <table>
+    <tr><th></th><th>HostGator</th><th>BigRock (MySchools)</th></tr>
+    <tr><td>FTP host</td><td>cs3005.hostgator.in:21</td><td>sh203.bigrock.com:21</td></tr>
+    <tr><td>FTP user</td><td>mindw2ft</td><td>myschknc</td></tr>
+    <tr><td>Dummy FTP dir</td><td><code>dummy1.ourschoolerp.com</code></td><td><code>dummy1.myschoolserp.com</code></td></tr>
+    <tr><td>bootstrap_copy URL</td><td>dummy1.ourschoolerp.com/bootstrap_copy.php</td><td>dummy1.myschoolserp.com/bootstrap_copy.php</td></tr>
+    <tr><td>Subdomain path</td><td>/home1/mindw2ft/{sub}.ourschoolerp.com/</td><td>/home2/myschknc/{sub}.myschoolserp.com/</td></tr>
+  </table>
+  <p style="margin-top:8px;font-size:12px;color:#c62828;">Handler: PHP <code>subdomains/deploy_mvc_php/{id}</code> (no Python needed)</p>
+</div>
+
+</div><!-- end grid2 -->
+
+<!-- ══════════════════════════════════════
+     SECTION 3B: FULL DEPLOY FLOW
+═══════════════════════════════════════ -->
+<h2>3B. 📦 Archive — Full Deploy Flow (New Subdomain Setup Only)</h2>
+<div class="card all">
+  <p style="margin-bottom:10px;"><strong>Purpose:</strong> Brand-new subdomain creation — extracts ALL files at once (assets, frontend, MVC, vendor, uploads, etc.) and writes <code>database.php</code> automatically.<br>
+  <span class="warn">⚠ Do NOT use for regular MVC updates — use Rocket button instead.</span></p>
+
+  <div class="flow">
+    <div class="fbox">Python POST + db credentials</div><div class="arrow">→</div>
+    <div class="fbox action">dummy1.{domain}/full_deploy.php</div><div class="arrow">→</div>
+    <div class="fbox action">Extract 7 zips</div><div class="arrow">→</div>
+    <div class="fbox action">Write database.php</div><div class="arrow">→</div>
+    <div class="fbox success">✅ Full site deployed</div>
+  </div>
+  <br>
+  <table>
+    <tr><th>Step</th><th>What happens</th></tr>
+    <tr><td>1</td><td>Python reads <code>db_user</code>, <code>db_name</code>, <code>db_pass</code> from <code>subdomain_settings</code> table</td></tr>
+    <tr><td>2</td><td>POSTs to <code>dummy1.{domain}/full_deploy.php</code> with subdomain + db credentials</td></tr>
+    <tr><td>3</td><td>PHP extracts all 7 zip files into <code>{subdomain}.{domain}/</code></td></tr>
+    <tr><td>4</td><td>PHP writes <code>mvc/config/development/database.php</code> with live credentials (hostname always = <code>localhost</code>)</td></tr>
+  </table>
+  <br>
+  <table>
+    <tr><th>Zip file</th><th>What it contains</th></tr>
+    <tr><td>assets.zip</td><td>CSS, JS, images — the frontend assets</td></tr>
+    <tr><td>frontend.zip</td><td>Frontend views/templates</td></tr>
+    <tr><td>main2.zip</td><td>Main application files</td></tr>
+    <tr><td>mvc.zip</td><td>PHP MVC controllers, models, views</td></tr>
+    <tr><td>others.zip</td><td>Misc files</td></tr>
+    <tr><td>uploads.zip</td><td>Upload folder structure</td></tr>
+    <tr><td>vendor.zip</td><td>PHP Composer dependencies</td></tr>
+  </table>
+  <br>
+  <p><strong>Pre-requisite:</strong> All 7 zip files must be on the dummy server. For FTP servers (HostGator/MySchools/Schoolhour/Collegehour), click <strong>"Upload MVC to Dummy"</strong> — this also uploads <code>bootstrap_copy.php</code> and <code>full_deploy.php</code> automatically. For GoDaddy: upload manually via cPanel.</p>
+  <table>
+    <tr><th>Server</th><th>Dummy server</th><th>Zip pre-upload method</th></tr>
+    <tr><td>HostGator</td><td>dummy1.ourschoolerp.com</td><td>Already present · full_deploy.php auto-uploaded via "Upload MVC to Dummy"</td></tr>
+    <tr><td>BigRock</td><td>dummy1.myschoolserp.com</td><td>Already present · full_deploy.php auto-uploaded via "Upload MVC to Dummy"</td></tr>
+    <tr><td>Schoolhour</td><td>dummy1.schoolhour.in</td><td>Already present · full_deploy.php auto-uploaded via "Upload MVC to Dummy"</td></tr>
+    <tr><td>Collegehour</td><td>dummy1.collegehour.in</td><td>Already present · full_deploy.php auto-uploaded via "Upload MVC to Dummy"</td></tr>
+    <tr><td>GoDaddy</td><td>dummy1.ourcollegeerp.com</td><td>Manual upload via GoDaddy cPanel</td></tr>
+  </table>
+  <p style="margin-top:8px;font-size:12px;color:#666;">Handler: Python <code>localhost:8000/full-deploy/{id}</code> (needs Python running)</p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 4: CSS SYNC FLOW
+═══════════════════════════════════════ -->
+<h2>4. ☁ Orange Cloud — CSS Sync Flow</h2>
+
+<p style="margin-bottom:10px;">CSS files synced: <code>inilabs.css</code>, <code>responsive.css</code>, <code>combined.css</code>, <code>hidetable.css</code>, <code>mailandmedia.css</code>, <code>custom-overrides.css</code></p>
+
+<table>
+  <tr>
+    <th>Server</th><th>Method</th><th>Target Path</th><th>Fallback?</th>
+  </tr>
+  <tr>
+    <td><strong>GoDaddy</strong></td>
+    <td>Direct HTTP POST JSON → <code>/cssupdate/receive</code></td>
+    <td>Live server writes to <code>assets/inilabs/</code></td>
+    <td class="ok">No fallback needed</td>
+  </tr>
+  <tr>
+    <td><strong>HostGator</strong></td>
+    <td>Try POST → 406 blocked → <strong>FTP upload</strong></td>
+    <td><code>public_html/{sub}.ourschoolerp.com/assets/inilabs/{file}.css</code></td>
+    <td class="warn">Auto FTP fallback</td>
+  </tr>
+  <tr>
+    <td><strong>BigRock</strong></td>
+    <td>Try POST → 406 blocked → <strong>FTP upload</strong></td>
+    <td><code>{sub}.myschoolserp.com/assets/inilabs/{file}.css</code></td>
+    <td class="warn">Auto FTP fallback (no public_html)</td>
+  </tr>
+</table>
+
+<!-- ══════════════════════════════════════
+     SECTION 5: PLUG BOOTSTRAP FLOW
+═══════════════════════════════════════ -->
+<h2>5. 🔌 Plug — Bootstrap Flow (First-time Setup)</h2>
+
+<div class="card">
+  <div class="flow" style="flex-direction:column;align-items:flex-start;gap:6px;">
+    <div class="flow">
+      <div class="fbox">Python POST</div><div class="arrow">→</div>
+      <div class="fbox action">dummy1.{domain}/bootstrap_copy.php</div><div class="arrow">→</div>
+      <div class="fbox action">PHP copies files on same disk</div><div class="arrow">→</div>
+      <div class="fbox success">✅ Controllers deployed</div>
+    </div>
+  </div>
+  <br>
+  <table>
+    <tr><th>File copied from dummy root</th><th>Destination on live subdomain</th></tr>
+    <tr><td><code>mvcdeploy.php</code></td><td><code>mvc/controllers/Mvcdeploy.php</code></td></tr>
+    <tr><td><code>Cssupdate.php</code></td><td><code>mvc/controllers/Cssupdate.php</code></td></tr>
+    <tr><td><code>css_update_config.php</code></td><td><code>mvc/config/css_update_config.php</code></td></tr>
+  </table>
+  <p style="margin-top:8px;font-size:12px;color:#888;">
+    Uses Chrome User-Agent to bypass Monarx/mod_security on HostGator and BigRock.
+    Rocket button auto-runs this if Mvcdeploy.php is missing.
+  </p>
+</div>
+
+<!-- ══════════════════════════════════════
+     SECTION 6: CONFIG FILES PRESERVED
+═══════════════════════════════════════ -->
+<h2>6. Config Files Preserved During Every MVC Deploy</h2>
+<table>
+  <tr><th>File</th><th>Purpose</th><th>Action during deploy</th></tr>
+  <tr>
+    <td><code>mvc/config/development/database.php</code></td>
+    <td>DB host, name, user, password for this subdomain</td>
+    <td>Backed up from mvc1/ and restored to new mvc/ after extract</td>
+  </tr>
+  <tr>
+    <td><code>mvc/config/css_update_config.php</code></td>
+    <td>CSS API key for this subdomain</td>
+    <td>Backed up from mvc1/ and restored to new mvc/ after extract</td>
+  </tr>
+</table>
+
+<!-- ══════════════════════════════════════
+     SECTION 7: PYTHON API ENDPOINTS
+═══════════════════════════════════════ -->
+<h2>7. Python API Endpoints (localhost:8000)</h2>
+<table>
+  <tr><th>Endpoint</th><th>Button</th><th>Description</th></tr>
+  <tr><td><code>POST /bootstrap-subdomain/{id}</code></td><td><span class="btn-plug">🔌 Plug</span></td><td>Copy controllers to single subdomain via dummy server</td></tr>
+  <tr><td><code>POST /bootstrap-subdomain-bulk</code></td><td>Bootstrap Via FTP (bulk)</td><td>Bootstrap multiple subdomains at once</td></tr>
+  <tr><td><code>POST /update-css/{id}</code></td><td><span class="btn-css">☁ CSS</span></td><td>Sync CSS files to single subdomain</td></tr>
+  <tr><td><code>POST /update-css-bulk</code></td><td>Bulk CSS Update</td><td>Sync CSS to multiple/all subdomains of a server</td></tr>
+  <tr><td><code>POST /deploy-mvc/{id}</code></td><td><span class="btn-rocket">🚀 Rocket</span></td><td>Deploy mvc.zip to single subdomain</td></tr>
+  <tr><td><code>POST /deploy-mvc-bulk</code></td><td>Bulk Deploy MVC</td><td>Deploy mvc.zip to multiple subdomains</td></tr>
+  <tr><td><code>POST /full-deploy/{id}</code></td><td><span class="btn-full">📦 Archive</span></td><td>Extract all zips to single subdomain</td></tr>
+  <tr><td><code>POST /full-deploy-bulk</code></td><td>Bulk Full Deploy</td><td>Full deploy to multiple subdomains</td></tr>
+  <tr><td><code>GET /config-check</code></td><td>—</td><td>Debug: shows loaded server configs (open in browser)</td></tr>
+</table>
+
+<!-- ══════════════════════════════════════
+     SECTION 8: COMMON ERRORS & FIXES
+═══════════════════════════════════════ -->
+<h2>8. Common Errors &amp; Fixes</h2>
+<table>
+  <tr><th>Error Message</th><th>Cause</th><th>Fix</th></tr>
+  <tr>
+    <td><code>FTP login failed — update 'pass'...</code></td>
+    <td>cPanel/FTP password was changed</td>
+    <td>Update <code>"pass"</code> in <code>FTP_CONFIGS</code> in <code>python/.env</code>, restart Python server</td>
+  </tr>
+  <tr>
+    <td><code>FTP directory not found: {path}</code></td>
+    <td>Subdomain folder doesn't exist on server</td>
+    <td>Create subdomain in cPanel first, then retry</td>
+  </tr>
+  <tr>
+    <td><code>trigger() HTTP 404</code></td>
+    <td>Mvcdeploy controller missing (BigRock 406 misleads check)</td>
+    <td>Auto-fixed: Python FTPs Mvcdeploy.php from localhost and retries. If still fails, check mvc/controllers/ folder exists.</td>
+  </tr>
+  <tr>
+    <td><code>All proxy URLs blocked by mod_security</code></td>
+    <td>BigRock/HostGator blocks HTTP POST</td>
+    <td>Auto-fixed: FTP fallback is now used for these servers</td>
+  </tr>
+  <tr>
+    <td><code>Cannot connect to dummy server</code></td>
+    <td>bootstrap_copy.php not uploaded to dummy1</td>
+    <td>Upload bootstrap_copy.php + files to dummy1.{domain}/ via cPanel File Manager</td>
+  </tr>
+  <tr>
+    <td><code>Could not find or stop Python process</code></td>
+    <td>Python server was already stopped</td>
+    <td>Normal — just click Start Python Server</td>
+  </tr>
+  <tr>
+    <td><code>mvc.zip not found in webroot</code></td>
+    <td>mvc.zip wasn't uploaded before trigger() called</td>
+    <td>Click Rocket again — FTP upload and trigger happen together</td>
+  </tr>
+</table>
+
+<!-- ══════════════════════════════════════
+     SECTION 9: .env STRUCTURE
+═══════════════════════════════════════ -->
+<h2>9. python/.env Key Variables</h2>
+<table>
+  <tr><th>Variable</th><th>Example / Description</th></tr>
+  <tr><td><code>CSS_UPDATE_API_KEY</code></td><td>Security key — must match <code>mvc/config/css_update_config.php</code></td></tr>
+  <tr><td><code>MVC_ZIP_PATH</code></td><td><code>C:/xampp/htdocs/ourschoolerp/mvc.zip</code> — local zip to deploy</td></tr>
+  <tr><td><code>CSS_FOLDER_PATH</code></td><td><code>C:/xampp/htdocs/ourschoolerp/assets/inilabs</code> — local CSS source</td></tr>
+  <tr><td><code>SERVER_DOMAINS</code></td><td>JSON: <code>{"hostgator":"ourschoolerp.com","myschools":"myschoolserp.com",...}</code></td></tr>
+  <tr><td><code>DUMMY_SERVERS</code></td><td>JSON: <code>{"hostgator":"dummy1.ourschoolerp.com","myschools":"dummy1.myschoolserp.com",...}</code></td></tr>
+  <tr><td><code>CPANEL_CONFIGS</code></td><td>JSON: host, port, user, token per server (used for cPanel API)</td></tr>
+  <tr><td><code>FTP_CONFIGS</code></td><td>JSON: host, port, user, <strong>pass</strong>, webroot per server<br>
+    <span style="color:#c62828;">Update "pass" here if cPanel password changes!</span></td></tr>
+</table>
+
+<!-- ══════════════════════════════════════
+     SECTION 10: QUICK REFERENCE
+═══════════════════════════════════════ -->
+<h2>10. Quick Reference Card</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>🖥 Python Server</h3>
+    <ul>
+      <li>Start: click <strong>Start Python Server</strong> button in UI</li>
+      <li>Stop: click <strong>Python Server Running</strong> (green button)</li>
+      <li>URL: <a href="http://localhost:8000/config-check">localhost:8000/config-check</a> to verify configs</li>
+      <li>After any <code>python/main.py</code> or <code>.env</code> change → <strong>restart server</strong></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>📋 New Subdomain Checklist</h3>
+    <ul>
+      <li>Create subdomain in cPanel</li>
+      <li>Create database + import tables (DB button)</li>
+      <li>Click <span class="btn-plug">🔌 Plug</span> to bootstrap controllers</li>
+      <li>Click <span class="btn-css">☁ CSS</span> to push CSS</li>
+      <li>Click <span class="btn-rocket">🚀 Rocket</span> to deploy MVC code</li>
+      <li>If brand new: also click <span class="btn-full">📦 Archive</span> for assets</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>🔧 Why FTP? (vs direct HTTP)</h3>
+    <ul>
+      <li>HostGator Monarx Security blocks all HTTP POST with large files</li>
+      <li>BigRock mod_security blocks CSS content + PHP file uploads</li>
+      <li>FTP connects directly to the server — bypasses all web security</li>
+      <li>GoDaddy has no mod_security → direct HTTP works fine</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>📁 Files on Dummy Servers</h3>
+    <p style="margin-bottom:6px;">Upload once to each <code>dummy1.{domain}/</code>:</p>
+    <ul>
+      <li><code>bootstrap_copy.php</code> — copies controllers to subdomains</li>
+      <li><code>mvcdeploy.php</code> — standalone receiver (GoDaddy style)</li>
+      <li><code>Cssupdate.php</code> — CSS controller copy</li>
+      <li><code>css_update_config.php</code> — API key config</li>
+      <li><code>full_deploy.php</code> — extracts all zips</li>
+      <li><code>css_sync.php</code> — CSS proxy (fallback)</li>
+    </ul>
+  </div>
+</div>
+
+<hr>
+<p style="text-align:center;color:#999;font-size:12px;margin-bottom:20px;">
+  OurSchoolERP Deployment Reference &nbsp;|&nbsp; Last updated: 2026-06-08 &nbsp;|&nbsp; Srinivas
+</p>
+
+</div><!-- end wrap -->
+</body>
+</html>

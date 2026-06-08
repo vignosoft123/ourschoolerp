@@ -1,0 +1,85 @@
+---
+title: OurSchoolERP — Deployment Flow Diagram
+---
+flowchart TD
+
+    %% ─────────────────────────────────────────
+    %% SECTION 1: PLUG BUTTON (BOOTSTRAP)
+    %% ─────────────────────────────────────────
+    subgraph PLUG["🔌 STEP 1 — Plug Button  (First-time setup per subdomain)"]
+        direction TB
+        A1([Click Plug icon]) --> A2[Python sends POST\nto dummy1.domain/bootstrap_copy.php\nwith browser User-Agent]
+        A2 --> A3[Dummy server PHP copies files\nto target subdomain folder\non same server disk]
+        A3 --> A4[/Mvcdeploy.php → mvc/controllers/\nCssupdate.php → mvc/controllers/\ncss_update_config.php → mvc/config//]
+        A4 --> A5([✅ Bootstrap complete])
+    end
+
+    %% ─────────────────────────────────────────
+    %% SECTION 2: CSS SYNC (ORANGE CLOUD)
+    %% ─────────────────────────────────────────
+    subgraph CSS["🟠 STEP 2 — Orange Cloud  (CSS Sync)"]
+        direction TB
+        B1([Click CSS icon]) --> B2[Python reads CSS files\nfrom localhost assets/inilabs/]
+        B2 --> B3[Try direct POST JSON\nto live subdomain/cssupdate/receive]
+        B3 --> B4{Response?}
+
+        B4 -->|200 OK\nGoDaddy| B5([✅ CSS saved directly\nto assets/inilabs/])
+
+        B4 -->|406 Blocked\nHostGator / BigRock| B6[FTP fallback\nftplib connects to hosting server]
+        B6 --> B7{Server}
+        B7 -->|HostGator| B8[FTP → public_html/sub.ourschoolerp.com\n/assets/inilabs/filename.css]
+        B7 -->|BigRock myschools| B9[FTP → sub.myschoolserp.com\n/assets/inilabs/filename.css\nNO public_html prefix]
+        B8 --> B10([✅ CSS files uploaded via FTP])
+        B9 --> B10
+    end
+
+    %% ─────────────────────────────────────────
+    %% SECTION 3: MVC DEPLOY (ROCKET)
+    %% ─────────────────────────────────────────
+    subgraph MVC["🚀 STEP 3 — Rocket Button  (MVC Deploy)"]
+        direction TB
+        C1([Click Rocket icon]) --> C2[Python reads local mvc.zip\nfrom C:/xampp/.../mvc.zip]
+        C2 --> C3[GET live subdomain\n/mvcdeploy/check\nwith Chrome User-Agent]
+        C3 --> C4{Controller\nexists?}
+
+        C4 -->|No - Missing| C5[Auto-bootstrap:\nPOST to dummy1 bootstrap_copy.php\ncopies Mvcdeploy.php first]
+        C5 --> C6{Which server?}
+        C4 -->|Yes - Exists| C6
+
+        C6 -->|GoDaddy| C7[POST mvc.zip to live server\n/mvcdeploy/receive]
+        C7 --> C8[receive method:\nrename mvc→mvc1\nextract mvc.zip\nrestore database.php\nrestore css_update_config.php\ndelete mvc.zip]
+        C8 --> C9([✅ MVC deployed])
+
+        C6 -->|HostGator| C10[FTP mvc.zip to DUMMY server\ncs3005.hostgator.in:21\n→ dummy1.ourschoolerp.com/mvc.zip\nRELATIVE path - FTP chrooted to home]
+        C10 --> C10b[GET dummy1.ourschoolerp.com/bootstrap_copy.php\nwith Chrome User-Agent\nPHP extracts on same disk to live subdomain]
+        C10b --> C9
+
+        C6 -->|BigRock myschools| C11[FTP mvc.zip to LIVE subdomain\nsh203.bigrock.com:21\n→ sub.myschoolserp.com/mvc.zip\nNO public_html prefix]
+        C11 --> C12[GET /mvcdeploy/trigger\nwith Chrome User-Agent]
+        C12 --> C12b{trigger\nreturns 404?}
+        C12b -->|Yes: controller missing| C12c[FTP Mvcdeploy.php from\nlocalhost mvc/controllers/\ndirectly to live subdomain\nthen retry trigger]
+        C12b -->|No: OK| C13[trigger method:\nrename mvc→mvc1\nextract mvc.zip\nrestore database.php\nrestore css_update_config.php\ndelete mvc.zip]
+        C12c --> C12
+        C13 --> C9
+    end
+
+    %% ─────────────────────────────────────────
+    %% CORRECT ORDER REMINDER
+    %% ─────────────────────────────────────────
+    subgraph ORDER["📋 Correct Button Order"]
+        direction LR
+        O1([🔌 Plug\nFirst time only]) --> O2([🟠 CSS Sync\nEvery CSS change]) --> O3([🚀 Rocket\nEvery MVC update])
+    end
+
+    %% ─────────────────────────────────────────
+    %% STYLES
+    %% ─────────────────────────────────────────
+    style PLUG fill:#e8f5e9,stroke:#388e3c,color:#000
+    style CSS  fill:#fff3e0,stroke:#f57c00,color:#000
+    style MVC  fill:#e3f2fd,stroke:#1976d2,color:#000
+    style ORDER fill:#f3e5f5,stroke:#7b1fa2,color:#000
+
+    style A5 fill:#388e3c,color:#fff
+    style B5 fill:#388e3c,color:#fff
+    style B10 fill:#388e3c,color:#fff
+    style C9 fill:#388e3c,color:#fff

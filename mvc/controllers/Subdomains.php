@@ -246,7 +246,7 @@ class Subdomains extends Admin_Controller {
 			$actions .= '<span class="btn-group-wrap">';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-bootstrap" title="Bootstrap: copy Cssupdate+Mvcdeploy to live server" onclick="event.stopPropagation();bootstrapSubdomain(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-plug"></i></a>';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-warning btn-sm" title="Sync CSS to live server" onclick="event.stopPropagation();updateCss(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-cloud-upload"></i></a>';
-			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-deploy-mvc" title="Deploy MVC from localhost to live server" onclick="event.stopPropagation();deployMvc(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-rocket"></i></a>';
+			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-deploy-mvc" title="Deploy MVC from localhost to live server" onclick="event.stopPropagation();deployMvc(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\',\'' . addslashes($subdomain->server) . '\')"><i class="fa fa-rocket"></i></a>';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-full-deploy" title="Full Deploy: extract all zip files (new domain)" onclick="event.stopPropagation();fullDeploy(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-archive"></i></a>';
 			$actions .= '</span>';
 
@@ -422,5 +422,358 @@ class Subdomains extends Admin_Controller {
 		} else {
 			echo json_encode(['success' => false, 'message' => 'Server started but not yet responding. Check the terminal window.']);
 		}
+	}
+
+	public function stop_python_server() {
+		header('Content-Type: application/json');
+
+		// Collect all unique PIDs associated with port 8000
+		$output = shell_exec('netstat -ano | findstr ":8000 "');
+		$pids   = [];
+		if ($output) {
+			foreach (explode("\n", $output) as $line) {
+				$line = trim($line);
+				if (!$line) continue;
+				$parts = preg_split('/\s+/', $line);
+				$pid   = intval(end($parts));
+				if ($pid > 4) $pids[$pid] = true; // skip PID 0/4 (system)
+			}
+		}
+
+		$killed = [];
+		foreach (array_keys($pids) as $pid) {
+			exec("taskkill /F /T /PID $pid 2>&1", $out, $ret);
+			if ($ret === 0) $killed[] = $pid;
+		}
+
+		if (!empty($killed)) {
+			echo json_encode(['success' => true, 'message' => 'Python server stopped (PIDs: ' . implode(', ', $killed) . ').']);
+			return;
+		}
+
+		// Fallback: kill all python.exe processes
+		exec('taskkill /F /IM python.exe 2>&1', $out2, $ret2);
+		if ($ret2 === 0) {
+			echo json_encode(['success' => true, 'message' => 'Python server stopped (killed python.exe).']);
+		} else {
+			echo json_encode(['success' => false, 'message' => 'Could not find or stop Python process on port 8000.']);
+		}
+	}
+
+	/**
+	 * Deploy MVC to a HostGator or BigRock subdomain by calling bootstrap_copy.php on the dummy server.
+	 * mvc.zip must already be on the dummy server (uploaded via upload_mvc_zip_php).
+	 * POST /subdomains/deploy_mvc_php/{subdomain_id}
+	 */
+	public function deploy_mvc_php($subdomain_id = 0) {
+		header('Content-Type: application/json');
+
+		$subdomain = $this->subdomains_m->get_single_subdomain(['id' => (int)$subdomain_id]);
+		if (!$subdomain) {
+			echo json_encode(['success' => false, 'message' => "Subdomain ID $subdomain_id not found"]);
+			return;
+		}
+
+		$server_domains = [
+			'hostgator'  => 'ourschoolerp.com',
+			'myschools'  => 'myschoolserp.com',
+			'schoolhour' => 'schoolhour.in',
+			'collegehour'=> 'collegeerp.in',
+		];
+		$dummy_servers = [
+			'hostgator'  => 'dummy1.ourschoolerp.com',
+			'myschools'  => 'dummy1.myschoolserp.com',
+			'schoolhour' => 'dummy1.schoolhour.in',
+			'collegehour'=> 'dummy1.collegehour.in',
+		];
+
+		$server = $subdomain->server;
+		if (!isset($dummy_servers[$server])) {
+			echo json_encode(['success' => false, 'message' => "deploy_mvc_php not supported for server '$server' — use Python endpoint"]);
+			return;
+		}
+
+		$dummy_host   = $dummy_servers[$server];
+		$domain       = $server_domains[$server];
+		$sub_name     = $subdomain->subdomain;
+		$this->config->load('css_update_config');
+		$api_key = $this->config->item('css_update_api_key');
+
+		$url = "https://{$dummy_host}/bootstrap_copy.php?" . http_build_query([
+			'k' => $api_key,
+			's' => $sub_name,
+			'd' => ".{$domain}",
+		]);
+
+		$ctx = stream_context_create(['http' => [
+			'timeout' => 120,
+			'header'  => "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36\r\n",
+		], 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+
+		$body = @file_get_contents($url, false, $ctx);
+		if ($body === false) {
+			echo json_encode(['success' => false, 'message' => "Could not reach {$dummy_host}/bootstrap_copy.php — check if dummy server is up"]);
+			return;
+		}
+
+		$result = json_decode($body, true);
+		if ($result === null) {
+			// bootstrap_copy returned non-JSON (HTML error page)
+			if (stripos($body, 'mvc.zip') !== false && stripos($body, 'not') !== false) {
+				echo json_encode(['success' => false, 'message' => "mvc.zip not on dummy server — click 'Upload MVC to Dummy' first, then retry Rocket."]);
+			} else {
+				echo json_encode(['success' => false, 'message' => "Unexpected response from bootstrap_copy.php: " . substr($body, 0, 200)]);
+			}
+			return;
+		}
+
+		echo json_encode($result);
+	}
+
+	/**
+	 * Upload local mvc.zip to the dummy server via FTP (PHP native ftp_* functions).
+	 * Called ONCE per server before clicking Rocket on multiple subdomains.
+	 * POST /subdomains/upload_mvc_zip_php/{server}
+	 */
+	public function upload_mvc_zip_php($server = '') {
+		header('Content-Type: application/json');
+
+		$mvc_zip_path = 'C:/xampp/htdocs/ourschoolerp/mvc.zip';
+		if (!file_exists($mvc_zip_path)) {
+			echo json_encode(['success' => false, 'message' => "mvc.zip not found at: $mvc_zip_path"]);
+			return;
+		}
+
+		// FTP config per server (mirrors python/.env FTP_CONFIGS)
+		// IMPORTANT: If cPanel/FTP password changes, update 'pass' here AND in python/.env FTP_CONFIGS
+		$ftp_configs = [
+			'hostgator' => [
+				'host'       => 'cs3005.hostgator.in',
+				'port'       => 21,
+				'user'       => 'mindw2ft',
+				'pass'       => 'Mindwhile$1986@',
+				'dummy_dir'  => 'dummy1.ourschoolerp.com',
+			],
+			'myschools' => [
+				'host'       => 'sh203.bigrock.com',
+				'port'       => 21,
+				'user'       => 'myschknc',
+				'pass'       => 'Kiran$1986@',
+				'dummy_dir'  => 'dummy1.myschoolserp.com',
+			],
+			'schoolhour' => [
+				'host'       => 'schoolhour.in',
+				'port'       => 21,
+				'user'       => 'schoodj8',
+				'pass'       => 'School@123456@',
+				'dummy_dir'  => 'dummy1.schoolhour.in',
+			],
+			'collegehour' => [
+				'host'       => 'collegehour.in',
+				'port'       => 21,
+				'user'       => 'collenv4p',
+				'pass'       => 'Satya$1986$',
+				'dummy_dir'  => 'dummy1.collegehour.in',
+			],
+		];
+
+		if (!isset($ftp_configs[$server])) {
+			echo json_encode(['success' => false, 'message' => "No FTP config for server '$server'. Valid: " . implode(', ', array_keys($ftp_configs))]);
+			return;
+		}
+
+		$cfg  = $ftp_configs[$server];
+		$conn = @ftp_connect($cfg['host'], $cfg['port'], 60);
+		if (!$conn) {
+			echo json_encode(['success' => false, 'message' => "FTP connect failed to {$cfg['host']}:{$cfg['port']}"]);
+			return;
+		}
+
+		if (!@ftp_login($conn, $cfg['user'], $cfg['pass'])) {
+			ftp_close($conn);
+			echo json_encode(['success' => false, 'message' => "FTP login failed — check credentials in Subdomains.php upload_mvc_zip_php()"]);
+			return;
+		}
+
+		ftp_pasv($conn, true);
+
+		if (!@ftp_chdir($conn, $cfg['dummy_dir'])) {
+			ftp_close($conn);
+			echo json_encode(['success' => false, 'message' => "FTP directory not found: {$cfg['dummy_dir']} — check dummy server path"]);
+			return;
+		}
+
+		$mvc_ok = @ftp_put($conn, 'mvc.zip', $mvc_zip_path, FTP_BINARY);
+
+		// Also upload bootstrap_copy.php (for Rocket) and full_deploy.php (for Full Deploy)
+		$bootstrap_path    = 'C:/xampp/htdocs/ourschoolerp/bootstrap_copy.php';
+		$full_deploy_path  = 'C:/xampp/htdocs/ourschoolerp/full_deploy.php';
+		$bootstrap_ok      = file_exists($bootstrap_path)   ? @ftp_put($conn, 'bootstrap_copy.php', $bootstrap_path,   FTP_ASCII) : false;
+		$full_deploy_ok    = file_exists($full_deploy_path)  ? @ftp_put($conn, 'full_deploy.php',    $full_deploy_path,  FTP_ASCII) : false;
+
+		ftp_close($conn);
+
+		if ($mvc_ok) {
+			$size_mb = round(filesize($mvc_zip_path) / 1024 / 1024, 2);
+			$extras  = [];
+			if ($bootstrap_ok)   $extras[] = 'bootstrap_copy.php';
+			if ($full_deploy_ok) $extras[]  = 'full_deploy.php';
+			$extra_msg = !empty($extras) ? ' + ' . implode(' + ', $extras) . ' uploaded.' : '';
+			echo json_encode(['success' => true, 'message' => "mvc.zip ({$size_mb} MB) uploaded to {$cfg['dummy_dir']}/.{$extra_msg} Now click Rocket on each subdomain."]);
+		} else {
+			echo json_encode(['success' => false, 'message' => "FTP put failed — could not write mvc.zip to {$cfg['dummy_dir']}/"]);
+		}
+	}
+
+	// ── Auto Create Subdomain — fetch DB details from /main1 and insert record ──
+	public function auto_create_subdomain() {
+		header('Content-Type: application/json');
+
+		$url    = trim($this->input->post('url'));
+		$server = strtolower(trim($this->input->post('server')));
+
+		if (!$url || !$server) {
+			echo json_encode(['success' => false, 'message' => 'URL and server are required']);
+			return;
+		}
+
+		// Normalize URL — ensure https:// prefix and trailing slash
+		if (!preg_match('/^https?:\/\//i', $url)) {
+			$url = 'https://' . $url;
+		}
+		$fetch_url = rtrim($url, '/') . '/main1';
+
+		// Extract subdomain name from URL
+		// e.g. https://gowthamcumbum.ourcollegeerp.com → gowthamcumbum
+		$host     = parse_url($fetch_url, PHP_URL_HOST);
+		$parts    = explode('.', $host);
+		$sub_name = $parts[0];
+
+		if (!$sub_name) {
+			echo json_encode(['success' => false, 'message' => "Could not extract subdomain name from URL: $url"]);
+			return;
+		}
+
+		// db_host per server (remote IP — used by Python to connect)
+		$db_hosts = [
+			'hostgator'  => '119.18.54.141',
+			'godaddy'    => '118.139.183.79',
+			'myschools'  => '119.18.54.166',
+			'schoolhour' => '162.241.123.136',
+			'collegehour'=> '103.76.231.69',
+		];
+		$db_host = isset($db_hosts[$server]) ? $db_hosts[$server] : 'localhost';
+
+		// Fetch /main1 page via POST with password (single request authenticates + returns DB details)
+		$ch = curl_init($fetch_url);
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => 'm1_password=ganishkha',
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
+			CURLOPT_TIMEOUT        => 30,
+			CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+			CURLOPT_FOLLOWLOCATION => true,
+		]);
+		$body    = curl_exec($ch);
+		$http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+		$curl_err  = curl_error($ch);
+		curl_close($ch);
+
+		if ($body === false || $curl_err) {
+			echo json_encode(['success' => false, 'message' => "Could not connect to $fetch_url — $curl_err — check the URL is correct and the subdomain is live"]);
+			return;
+		}
+		if ($http_code >= 400) {
+			echo json_encode(['success' => false, 'message' => "HTTP $http_code from $fetch_url — subdomain may not be live"]);
+			return;
+		}
+
+		// Parse response lines: DATABSE (typo in source), USERNAME, PASSWORD
+		// /main1 uses <br/> instead of real newlines — convert to \n first so .+ stops at the right place
+		$plain = str_ireplace(['<br/>', '<br />', '<br>'], "\n", $body);
+		$plain = strip_tags($plain);
+
+		$db_name = '';
+		$db_user = '';
+		$db_pass = '';
+
+		if (preg_match('/DATABSE[:\s]+([^\n]+)/i', $plain, $m))  $db_name = trim($m[1]);
+		if (!$db_name && preg_match('/DATABASE[:\s]+([^\n]+)/i', $plain, $m)) $db_name = trim($m[1]);
+		if (preg_match('/USERNAME[:\s]+([^\n]+)/i', $plain, $m)) $db_user = trim($m[1]);
+		if (preg_match('/PASSWORD[:\s]+([^\n]+)/i', $plain, $m)) $db_pass = trim($m[1]);
+
+		if (!$db_name || !$db_user) {
+			echo json_encode(['success' => false, 'message' => "Could not parse DB details from $fetch_url — make sure the URL is live and /main1 returns DATABSE/USERNAME/PASSWORD lines"]);
+			return;
+		}
+
+		// Check for duplicate
+		$existing = $this->subdomains_m->get_single_subdomain(['subdomain' => $sub_name, 'server' => $server]);
+		if ($existing) {
+			echo json_encode(['success' => false, 'message' => "Subdomain '$sub_name' already exists for server '$server' (id: {$existing->id})"]);
+			return;
+		}
+
+		// Insert record
+		$data = [
+			'server'      => $server,
+			'subdomain'   => $sub_name,
+			'main_domain' => null,
+			'db_host'     => $db_host,
+			'db_name'     => $db_name,
+			'db_user'     => $db_user,
+			'db_pass'     => $db_pass,
+			'site_name'   => ucfirst($sub_name),
+			'logo_url'    => '',
+			'theme_color' => '#ffffff',
+			'status'      => 'active',
+		];
+
+		$this->subdomains_m->insert_subdomain($data);
+
+		echo json_encode([
+			'success' => true,
+			'message' => "Subdomain '$sub_name' created successfully!",
+			'data'    => [
+				'subdomain' => $sub_name,
+				'db_host'   => $db_host,
+				'db_name'   => $db_name,
+				'db_user'   => $db_user,
+			],
+		]);
+	}
+
+	public function create_cpanel_subdomain() {
+		header('Content-Type: application/json');
+
+		$server    = strtolower(trim($this->input->post('server')));
+		$subdomain = strtolower(trim($this->input->post('subdomain')));
+
+		if (!$server || !$subdomain) {
+			echo json_encode(['success' => false, 'message' => 'Server and subdomain name are required']);
+			return;
+		}
+
+		$ch = curl_init('http://localhost:8000/create-cpanel-subdomain');
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST           => true,
+			CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+			CURLOPT_POSTFIELDS     => json_encode(['server' => $server, 'subdomain' => $subdomain]),
+			CURLOPT_TIMEOUT        => 300,
+		]);
+		$body     = curl_exec($ch);
+		$curl_err = curl_error($ch);
+		curl_close($ch);
+
+		if (!$body || $curl_err) {
+			echo json_encode(['success' => false, 'message' => 'Could not connect to Python server: ' . $curl_err]);
+			return;
+		}
+
+		$res = json_decode($body, true);
+		echo json_encode($res ?: ['success' => false, 'message' => 'Invalid response from Python server']);
 	}
 }

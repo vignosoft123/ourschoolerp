@@ -1,0 +1,112 @@
+/**
+ * OurSchoolERP — Deployment Flow Diagram (Graphviz DOT)
+ * Render at: https://graphviz.online  or  VSCode Graphviz extension
+ * Command:   dot -Tpng srinivas_deploy_flow.dot -o srinivas_deploy_flow.png
+ */
+
+digraph DeployFlow {
+    graph [rankdir=TB fontname="Arial" fontsize=13 splines=ortho bgcolor="#fafafa"]
+    node  [fontname="Arial" fontsize=12 style=filled shape=box]
+    edge  [fontname="Arial" fontsize=11]
+
+    /* ══════════════════════════════════════════════
+       SUBGRAPH 1 — PLUG BUTTON (Bootstrap)
+    ══════════════════════════════════════════════ */
+    subgraph cluster_plug {
+        label="🔌  STEP 1 — Plug Button  (First-time setup per subdomain)"
+        style=filled fillcolor="#e8f5e9" color="#388e3c" penwidth=2
+
+        P1 [label="Click Plug icon" shape=oval fillcolor="#c8e6c9"]
+        P2 [label="Python POST →\ndummy1.{domain}/bootstrap_copy.php\n(Chrome User-Agent)"]
+        P3 [label="dummy server PHP\ncopies files to target\nsubdomain on same disk"]
+        P4 [label="Deployed to subdomain:\n• mvc/controllers/Mvcdeploy.php\n• mvc/controllers/Cssupdate.php\n• mvc/config/css_update_config.php" shape=note]
+        P5 [label="✅ Bootstrap complete" shape=oval fillcolor="#388e3c" fontcolor=white]
+
+        P1 -> P2 -> P3 -> P4 -> P5
+    }
+
+    /* ══════════════════════════════════════════════
+       SUBGRAPH 2 — CSS SYNC (Orange Cloud)
+    ══════════════════════════════════════════════ */
+    subgraph cluster_css {
+        label="🟠  STEP 2 — Orange Cloud Button  (CSS Sync)"
+        style=filled fillcolor="#fff3e0" color="#f57c00" penwidth=2
+
+        C1 [label="Click Orange Cloud icon" shape=oval fillcolor="#ffe0b2"]
+        C2 [label="Python reads CSS files\nfrom localhost\nassets/inilabs/"]
+        C3 [label="Try direct POST JSON\n→ /cssupdate/receive\non live subdomain"]
+        C4 [label="Response?" shape=diamond fillcolor="#fff9c4"]
+
+        C5 [label="✅ GoDaddy\nDirect POST works\n(200 OK)" fillcolor="#388e3c" fontcolor=white]
+
+        C6 [label="HostGator / BigRock\n406 blocked by mod_security\n→ FTP fallback"]
+        C7_hg [label="HostGator FTP\ncs3005.hostgator.in:21\n→ public_html/{sub}.ourschoolerp.com\n   /assets/inilabs/{file}.css"]
+        C7_br [label="BigRock FTP\nsh203.bigrock.com:21\n→ {sub}.myschoolserp.com\n   /assets/inilabs/{file}.css\n(NO public_html prefix)"]
+        C8 [label="✅ CSS files uploaded\nvia FTP" shape=oval fillcolor="#388e3c" fontcolor=white]
+
+        C1 -> C2 -> C3 -> C4
+        C4 -> C5  [label="200 OK\n(GoDaddy)"]
+        C4 -> C6  [label="406\n(HG/BigRock)"]
+        C6 -> C7_hg [label="HostGator"]
+        C6 -> C7_br [label="BigRock"]
+        C7_hg -> C8
+        C7_br -> C8
+    }
+
+    /* ══════════════════════════════════════════════
+       SUBGRAPH 3 — MVC DEPLOY (Rocket)
+    ══════════════════════════════════════════════ */
+    subgraph cluster_mvc {
+        label="🚀  STEP 3 — Rocket Button  (MVC Deploy)"
+        style=filled fillcolor="#e3f2fd" color="#1976d2" penwidth=2
+
+        M1 [label="Click Rocket icon" shape=oval fillcolor="#bbdefb"]
+        M2 [label="Python reads local\nmvc.zip from\nC:/xampp/.../mvc.zip"]
+        M3 [label="GET /mvcdeploy/check\non live subdomain\n(Chrome User-Agent)"]
+        M4 [label="Controller\nexists?" shape=diamond fillcolor="#fff9c4"]
+
+        M4b [label="Auto-bootstrap:\nPOST dummy1 bootstrap_copy.php\ncopies Mvcdeploy.php first"]
+        M5  [label="Which server?" shape=diamond fillcolor="#fff9c4"]
+
+        /* GoDaddy branch */
+        M6_gd [label="GoDaddy:\nPOST mvc.zip →\n/mvcdeploy/receive"]
+        M7_gd [label="receive() on live server:\n• rename mvc → mvc1\n• extract mvc.zip\n• restore database.php\n• restore css_update_config.php\n• delete mvc.zip" shape=note]
+
+        /* FTP branch */
+        M6_hg [label="HostGator FTP:\ncs3005.hostgator.in:21\n→ public_html/{sub}.ourschoolerp.com\n   /mvc.zip"]
+        M6_br [label="BigRock FTP:\nsh203.bigrock.com:21\n→ {sub}.myschoolserp.com/mvc.zip\n(NO public_html)"]
+        M8    [label="GET /mvcdeploy/trigger\n(Chrome User-Agent)\n→ If 404: auto-bootstrap first,\n   then retry trigger"]
+        M9    [label="trigger() on live server:\n• rename mvc → mvc1\n• extract mvc.zip\n• restore database.php\n• restore css_update_config.php\n• delete mvc.zip" shape=note]
+
+        M10 [label="✅ MVC deployed" shape=oval fillcolor="#388e3c" fontcolor=white]
+
+        M1 -> M2 -> M3 -> M4
+        M4 -> M4b [label="No\n(missing)"]
+        M4 -> M5  [label="Yes"]
+        M4b -> M5
+
+        M5 -> M6_gd [label="GoDaddy"]
+        M5 -> M6_hg [label="HostGator"]
+        M5 -> M6_br [label="BigRock"]
+
+        M6_gd -> M7_gd -> M10
+        M6_hg -> M8
+        M6_br -> M8
+        M8 -> M9 -> M10
+    }
+
+    /* ══════════════════════════════════════════════
+       CORRECT ORDER LEGEND
+    ══════════════════════════════════════════════ */
+    subgraph cluster_order {
+        label="📋  Correct Button Order"
+        style=filled fillcolor="#f3e5f5" color="#7b1fa2" penwidth=2
+        rankdir=LR
+
+        O1 [label="🔌 Plug\n(first time only)" shape=oval fillcolor="#ce93d8"]
+        O2 [label="🟠 CSS Sync\n(every CSS change)" shape=oval fillcolor="#ffcc80"]
+        O3 [label="🚀 Rocket\n(every MVC update)" shape=oval fillcolor="#90caf9"]
+
+        O1 -> O2 -> O3
+    }
+}

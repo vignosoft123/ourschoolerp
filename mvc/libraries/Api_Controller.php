@@ -87,7 +87,11 @@ class Api_Controller extends REST_Controller
                 'username' => $tokenDecode['userdata']->username,
                 'password' => $tokenDecode['userdata']->password
             ];
-            if($this->session->userdata('master_permission_set') == null) {
+            $userdata = $this->session->userdata;
+            $permSet  = isset($userdata['master_permission_set']) ? $userdata['master_permission_set'] : null;
+            $stale    = $permSet === null
+                || !isset($permSet['voice_messages']);
+            if($stale) {
                 $this->userInfo($userInfoArray);
             }
         }
@@ -183,9 +187,11 @@ class Api_Controller extends REST_Controller
                 }
             }
 
+            $permissionBypass = ['voice_messages'];
+
             if(!empty($mode)) {
                 $permissionSet = $this->session->userdata('master_permission_set');
-                if(isset($permissionSet[$mode]) && ($permissionSet[$mode] == 'no')) {
+                if(!in_array($feature, $permissionBypass) && isset($permissionSet[$mode]) && ($permissionSet[$mode] == 'no')) {
                     $this->response([
                         'status'  => false,
                         'message' => 'Permission Deny'

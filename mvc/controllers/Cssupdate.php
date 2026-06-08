@@ -1,4 +1,21 @@
 <?php if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+/*
+ * @deploy-doc css-controller
+ * CI controller for CSS sync and file upload on live subdomains.
+ * URL base: /{subdomain}.domain.com/cssupdate/
+ *
+ * Methods:
+ *   receive()        POST /cssupdate/receive        — accepts JSON {api_key, files:{name:content}}
+ *                                                     writes CSS files to assets/inilabs/
+ *                                                     allowed files: inilabs.css, responsive.css, combined.css,
+ *                                                     hidetable.css, mailandmedia.css, custom-overrides.css
+ *   receive_script() POST /cssupdate/receive_script — accepts JSON {api_key, script_content, filename}
+ *                                                     writes PHP controllers to mvc/controllers/ or webroot
+ *                                                     allowed: Mvcdeploy.php, Cssupdate.php
+ *
+ * API key: read from mvc/config/css_update_config.php → css_update_api_key
+ * @deploy-doc-end
+ */
 
 class Cssupdate extends CI_Controller {
 
