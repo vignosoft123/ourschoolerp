@@ -80,6 +80,7 @@ class Frontend_Controller extends MY_Controller {
         $this->_frontendThemeBasePath = FCPATH.'frontend/'. $this->_frontendTheme.'/';
 
         $this->blade->load_view_root($this->_frontendThemeBasePath);
+        $this->blade->add_override_path(APPPATH . 'frontend/');
         $this->bladeView = $this->blade;
         $this->bladeView->set('backend', $this->data['backend_setting']);
         $this->bladeView->set('frontend', $this->data['frontend_setting']);

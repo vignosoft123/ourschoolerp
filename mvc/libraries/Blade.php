@@ -84,10 +84,18 @@ class Blade
 
     protected $_full_path = '';
 
+    protected $_override_paths = array();
+
     public function load_view_root($path = 'views/')
     {
         $this->_full_path =  $path;
         return $path;
+    }
+
+    public function add_override_path($path)
+    {
+        $this->_override_paths[] = $path;
+        return $this;
     }
 
 
@@ -223,6 +231,16 @@ class Blade
      */
     protected function _find_view($view)
     {
+        // Check override paths first (mvc-based paths take priority over frontend folder)
+        foreach ($this->_override_paths as $override_path)
+        {
+            $override_full = $override_path . $view . $this->blade_ext;
+            if (is_file($override_full))
+            {
+                return $override_full;
+            }
+        }
+
         $full_path = $this->_full_path . $view . $this->blade_ext;
 
         // Modular Separation / Modular Extensions has been detected

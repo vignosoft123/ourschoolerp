@@ -81,6 +81,10 @@
                             <button id="bulk_deploy_btn" class="btn btn-deploy-mvc btn-sm" onclick="bulkDeployMvc()" disabled title="Deploy MVC to all subdomains. For HostGator/MySchools: click 'Upload MVC to Dummy' first">
                                 <i class="fa fa-rocket"></i> Deploy MVC to All
                             </button>
+                            &nbsp;
+                            <button id="ftp_upload_btn" class="btn btn-ftp-upload btn-sm" onclick="openFtpUploadModal()" disabled title="Upload any file from localhost to the same path on all active subdomains of the selected server">
+                                <i class="fa fa-file-o"></i> FTP Upload File
+                            </button>
                         </div>
 
                         <!-- ── GROUP 3: Info / Admin ────────────────────────────────────── -->
@@ -177,14 +181,15 @@
                         <thead>
                             <tr>
                                 <th width="3%" class="text-center"><input type="checkbox" id="select-all-checkbox" title="Select all visible rows"></th>
-                                <th width="4%">#</th>
-                                <th width="10%">Server</th>
-                                <th width="13%">SubDomain</th>
-                                <th width="13%">DB Name</th>
-                                <th width="9%">School Age</th>
-                                <th width="10%">Students</th>
-                                <th width="10%">App Users</th>
-                                <th width="21%">Actions</th>
+                                <th width="3%">#</th>
+                                <th width="8%">Server</th>
+                                <th width="10%">SubDomain</th>
+                                <th width="16%">Domain</th>
+                                <th width="11%">DB Name</th>
+                                <th width="8%">School Age</th>
+                                <th width="9%">Students</th>
+                                <th width="9%">App Users</th>
+                                <th width="18%">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -285,6 +290,38 @@
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" id="auto_create_submit_btn" class="btn btn-success" onclick="submitAutoCreate()">
                     <i class="fa fa-magic"></i> Fetch &amp; Create
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ FTP Upload File Modal ══════════════════════════════════════════════════ -->
+<div class="modal fade" id="ftpUploadModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#37474f;color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;"><span>&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-file-o"></i> FTP Upload File to All Subdomains</h4>
+            </div>
+            <div class="modal-body">
+                <p style="margin:0 0 10px;font-size:13px;">Server: <strong id="ftp_upload_server_label" style="color:#37474f;">—</strong></p>
+                <div class="form-group">
+                    <label style="font-size:12px;color:#555;">File path (relative to project root):</label>
+                    <input type="text" id="ftp_upload_path" class="form-control"
+                           placeholder="e.g. frontend/default/views/partials/footer.blade.php"
+                           style="font-size:13px;">
+                    <p style="font-size:11px;color:#888;margin-top:5px;margin-bottom:0;">
+                        Reads from <code>C:\xampp\htdocs\ourschoolerp\{path}</code><br>
+                        and uploads to the same relative path on every active subdomain.
+                    </p>
+                </div>
+                <div id="ftp_upload_result" style="display:none;margin-top:10px;max-height:220px;overflow-y:auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" id="ftp_upload_submit_btn" class="btn btn-primary" onclick="submitFtpUpload()">
+                    <i class="fa fa-upload"></i> Upload to All
                 </button>
             </div>
         </div>
@@ -428,6 +465,7 @@ function updateBulkDeployBtn() {
         $('#bulk_bootstrap_btn').prop('disabled', false).html('<i class="fa fa-plug"></i> Bootstrap ' + count + ' Selected');
         $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to ' + count + ' Selected');
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy ' + count + ' Selected');
+        $('#ftp_upload_btn').prop('disabled', false);
         if (showUploadBtn) {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
         } else {
@@ -439,6 +477,7 @@ function updateBulkDeployBtn() {
         $('#bulk_bootstrap_btn').prop('disabled', false).html('<i class="fa fa-plug"></i> Bootstrap All ' + server);
         $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to All ' + server);
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy All ' + server);
+        $('#ftp_upload_btn').prop('disabled', false);
         if (showUploadBtn) {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
         } else {
@@ -450,6 +489,7 @@ function updateBulkDeployBtn() {
         $('#bulk_bootstrap_btn').prop('disabled', true).html('<i class="fa fa-plug"></i> Bootstrap via FTP');
         $('#bulk_deploy_btn').prop('disabled', true).html('<i class="fa fa-rocket"></i> Bulk Deploy MVC');
         $('#bulk_full_deploy_btn').prop('disabled', true).html('<i class="fa fa-archive"></i> Bulk Full Deploy');
+        $('#ftp_upload_btn').prop('disabled', true);
         $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
     }
 }
@@ -475,6 +515,7 @@ $(document).ready(function() {
             { "data": "serial",          "orderable": false },
             { "data": "server" },
             { "data": "subdomain" },
+            { "data": "domain",          "orderable": false },
             { "data": "db_name" },
             { "data": "school_age",      "orderable": false, "className": "text-center" },
             { "data": "total_students",  "orderable": false, "className": "text-center" },
@@ -1218,6 +1259,61 @@ function bulkDeployMvc() {
     });
 }
 
+// ── FTP Upload File ───────────────────────────────────────────────────────────
+
+function openFtpUploadModal() {
+    var server = $('#server_filter').val();
+    if (!server) { alert('Please select a server first.'); return; }
+    $('#ftp_upload_server_label').text(server);
+    $('#ftp_upload_path').val('');
+    $('#ftp_upload_result').hide().html('');
+    $('#ftp_upload_submit_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload to All');
+    $('#ftpUploadModal').modal('show');
+    setTimeout(function() { $('#ftp_upload_path').focus(); }, 400);
+}
+
+function submitFtpUpload() {
+    var path   = $.trim($('#ftp_upload_path').val());
+    var server = $('#server_filter').val();
+    if (!path) { alert('Please enter a file path.'); return; }
+    var $btn = $('#ftp_upload_submit_btn');
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading...');
+    $('#ftp_upload_result').hide().html('');
+    $.ajax({
+        url: '<?=base_url("subdomains/ftp_upload_file")?>',
+        type: 'POST',
+        dataType: 'json',
+        data: { server: server, file_path: path },
+        timeout: 130000,
+        success: function(res) {
+            $btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Upload to All');
+            var cls  = res.success ? 'alert-success' : 'alert-danger';
+            var msg  = res.message !== undefined ? res.message : (res.detail || 'Unknown error');
+            var html = '<div class="alert ' + cls + '" style="font-size:12px;margin:0 0 6px;">' +
+                       '<i class="fa fa-' + (res.success ? 'check' : 'times') + '-circle"></i> ' +
+                       msg + '</div>';
+            if (res.results) {
+                html += '<table class="table table-condensed table-bordered" style="font-size:11px;margin:0;">';
+                $.each(res.results, function(sub, status) {
+                    var ok  = status === 'uploaded';
+                    var row = ok ? '#e8f5e9' : '#fff3e0';
+                    var ico = ok ? 'check' : 'times';
+                    html += '<tr style="background:' + row + ';">' +
+                            '<td style="padding:3px 6px;">' + sub + '</td>' +
+                            '<td style="padding:3px 6px;"><i class="fa fa-' + ico + '"></i> ' + status + '</td></tr>';
+                });
+                html += '</table>';
+            }
+            $('#ftp_upload_result').html(html).show();
+        },
+        error: function(xhr) {
+            $btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Upload to All');
+            var detail = xhr.responseJSON ? (xhr.responseJSON.detail || xhr.statusText) : xhr.statusText;
+            $('#ftp_upload_result').html('<div class="alert alert-danger" style="font-size:12px;margin:0;">Error: ' + detail + '</div>').show();
+        }
+    });
+}
+
 // ── Update CSS (Single) ───────────────────────────────────────────────────────
 
 function updateCss(btn, subdomainId, subdomainName) {
@@ -1579,6 +1675,12 @@ function updateCss(btn, subdomainId, subdomainName) {
     font-weight: 600;
     margin-top: 4px;
 }
+
+/* ── FTP Upload File button ────────────────────────── */
+.btn-ftp-upload { background-color: #37474f; border-color: #263238; color: #fff; }
+.btn-ftp-upload:hover,
+.btn-ftp-upload:focus { background-color: #263238; border-color: #1a2226; color: #fff; }
+.btn-ftp-upload:disabled { background-color: #b0bec5; border-color: #b0bec5; color: #fff; cursor: not-allowed; }
 </style>
 
 <script type="text/javascript">

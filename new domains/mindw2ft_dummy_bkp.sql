@@ -4022,9 +4022,7 @@ CREATE TABLE `schoolyear` (
 --
 
 INSERT INTO `schoolyear` (`schoolyearID`, `schooltype`, `schoolyear`, `schoolyeartitle`, `startingdate`, `endingdate`, `semestercode`, `create_date`, `modify_date`, `create_userID`, `create_username`, `create_usertype`) VALUES
-(1, 'classbase', '2022-2023', '', '2022-01-01', '2023-05-24', NULL, '2019-01-01 12:35:25', '2022-12-27 12:10:31', 1, 'admin', 'Admin'),
-(2, 'classbase', '2023 - 2024', '', '2023-06-06', '2024-05-08', NULL, '2022-06-19 07:14:47', '2022-06-19 07:15:09', 1, 'superadmin', 'Admin'),
-(3, 'classbase', '2021-2022', '', '2021-06-12', '2022-05-10', NULL, '2022-07-20 05:03:00', '2022-07-20 05:03:00', 1, 'superadmin', 'Admin');
+(1, 'classbase', '2026-2027', '', '2026-06-01', '2027-04-24', NULL, '2026-06-01 12:35:25', '2027-05-31 12:10:31', 1, 'admin', 'Admin'),
 
 -- --------------------------------------------------------
 

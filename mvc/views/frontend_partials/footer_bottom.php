@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="copyright text-center">
-                    <?= !empty($backend->footer) ? htmlspecialchars($backend->footer) : '' ?>
+                    <?= !empty($backend->footer) ? $backend->footer : '' ?>
                     <?php echo ' -v'.VERSION; ?>
                 </div>
                 <div class="text-center" style="margin-top:8px; font-size:13px;">

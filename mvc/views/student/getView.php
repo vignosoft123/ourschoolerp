@@ -1014,6 +1014,7 @@ if (customCompute($profile)) { ?>
 										echo "<th class='text-center' style='background-color:#016bd6;color:#fff; vertical-align:middle;' data-title='" . $this->lang->line("student_subject") . "'>";
 										echo $this->lang->line("student_subject");
 										echo "</th>";
+										echo "<th class='text-center' style='background-color:#016bd6;color:#fff;'>Max Marks</th>";
 
 										foreach ($marksetting as $subjectID => $markpercentageArr) {
 											foreach ($markpercentageArr[(($settingmarktypeID == 4) || ($settingmarktypeID == 6)) ? 'unique' : 'own'] as $markpercentageID) {
@@ -1060,18 +1061,25 @@ if (customCompute($profile)) { ?>
 										$totalFinalMark      = 0;
 										$totalSubject        = 0;
 										$averagePoint        = 0;
+										$zero_mark           = 0;
 										$opmarkpercentageArr = [];
 										foreach ($marksetting as $subjectID => $markpercentageArr) {
 											if ($subjectID == $optionalsubjectID) {
 												$opmarkpercentageArr = $markpercentageArr;
 											}
 											if (!in_array($subjectID, $optionalsubjectArr)) {
+												if (!isset($examScheduleData[$examID][$subjectID])) {
+													continue;
+												}
 												$totalSubject++;
 
 
 												echo "<tr>";
 												echo "<td class='text-black' data-title='" . $this->lang->line('student_subject') . "'>";
 												echo isset($subjects[$subjectID]) ? $subjects[$subjectID]->subject : '';
+												echo "</td>";
+												echo "<td class='text-center' data-title='Max Marks'>";
+												echo isset($examScheduleData[$examID][$subjectID]) ? $examScheduleData[$examID][$subjectID] : 0;
 												echo "</td>";
 
 												$subjectfinalmark = isset($subjects[$subjectID]) ? (int)$subjects[$subjectID]->finalmark : 0;
@@ -1130,6 +1138,7 @@ if (customCompute($profile)) { ?>
 												
 												$totalMark        += $totalSubjectMark;
 												$totalFinalMark   += $finalpercentageMark;
+												if ($totalSubjectMark == 0) $zero_mark = 1;
 												$totalSubjectMark  = markCalculationView($totalSubjectMark, $subjectfinalmark, $percentageMark);
 												echo "</td>";
 
@@ -1249,21 +1258,13 @@ if (customCompute($profile)) { ?>
 										echo "</tbody>";
 										echo "</table>";
 
-										// echo "<pre>";print_r($all_subjects);
-										// echo '&&&&'.$examID;
-										$out_of = array_sum(
-											array_map(function($row) use ($examID) {
-												return ((int)$row->examID === (int)$examID) ? (int)$row->max_mark : 0;
-											}, $all_subjects)
-										);
-
-										// echo '@@@@@@@@@@@@'.$sum_max_mark;
-
-											
+										$out_of = isset($examScheduleData[$examID]) ? array_sum($examScheduleData[$examID]) : 0;
 
 										echo '<div class="box-footer st-attendance-info">';
 										echo '<div class="footer-item">' . $this->lang->line('student_total_marks') . ' : <span class="text-red text-bold">' . ini_round($out_of) . '</span>' . ',' . '</div>';
-										echo '<div class="footer-item">' . $this->lang->line('student_total_obtained_marks') . ' : <span class="text-red text-bold">' . ini_round($totalMark) . '</span>' . ',' . '</div>'; 
+										echo '<div class="footer-item">' . $this->lang->line('student_total_obtained_marks') . ' : <span class="text-red text-bold">' . ini_round($totalMark) . '</span>' . ',' . '</div>';
+										$percentage = $out_of > 0 ? round(($totalMark / $out_of) * 100, 2) : 0;
+										echo '<div class="footer-item">Percentage : <span class="text-red text-bold">' . $percentage . '%</span>' . ',' . '</div>';
 										// $totalAverageMark = $totalMark / $totalSubject;
 										// echo '<div class="footer-item">' . $this->lang->line('student_total_average_marks') . ' : <span class="text-red text-bold">' . ini_round($totalAverageMark) . '</span>' . ',' . '</div>';
 
@@ -1273,37 +1274,48 @@ if (customCompute($profile)) { ?>
 										// $gpaAveragePoint = $averagePoint / $totalSubject;
 										// echo '<div class="footer-item">' . $this->lang->line('student_gpa') . ' : <span class="text-red text-bold">' . ini_round($gpaAveragePoint) . '</span>' . ',' . '</div>';
 
-										 $out_of = $out_of != 0 ? $out_of : 1;
-                                            $percent_cal = ($tot / $out_of) * 100;
+										 $out_of_for_grade = $out_of != 0 ? $out_of : 1;
+                                            $percent_cal = ($totalMark / $out_of_for_grade) * 100;
 
-                                            if ($percent_cal >= 95 && $zero_mark == 0) {
+                                            if ($percent_cal >= 95) {
                                                 $grade = "A+";
-                                                $gradeClass = "grade-a-plus";
-                                            } else if ($percent_cal >= 90 && $percent_cal < 95 && $zero_mark == 0) {
+                                                $gradeBadgeClass = "label-success";
+                                                $remarks = "Excellent";
+                                                $remarksBadgeClass = "label-success";
+                                            } else if ($percent_cal >= 90) {
                                                 $grade = "A";
-                                                $gradeClass = "grade-a";
-                                            } else if ($percent_cal >= 80 && $percent_cal < 90 && $zero_mark == 0) {
+                                                $gradeBadgeClass = "label-success";
+                                                $remarks = "Excellent";
+                                                $remarksBadgeClass = "label-success";
+                                            } else if ($percent_cal >= 80) {
                                                 $grade = "B+";
-                                                $gradeClass = "grade-b-plus";
-                                            } else if ($percent_cal >= 70 && $percent_cal < 80 && $zero_mark == 0) {
+                                                $gradeBadgeClass = "label-primary";
+                                                $remarks = "Very Good";
+                                                $remarksBadgeClass = "label-primary";
+                                            } else if ($percent_cal >= 70) {
                                                 $grade = "B";
-                                                $gradeClass = "grade-b";
-                                            } else if ($percent_cal >= 60 && $percent_cal < 70 && $zero_mark == 0) {
+                                                $gradeBadgeClass = "label-info";
+                                                $remarks = "Good";
+                                                $remarksBadgeClass = "label-info";
+                                            } else if ($percent_cal >= 60) {
                                                 $grade = "C+";
-                                                $gradeClass = "grade-c-plus";
-                                            } else if ($percent_cal >= 50 && $percent_cal < 60 && $zero_mark == 0) {
+                                                $gradeBadgeClass = "label-warning";
+                                                $remarks = "Fair";
+                                                $remarksBadgeClass = "label-warning";
+                                            } else if ($percent_cal >= 50) {
                                                 $grade = "C";
-                                                $gradeClass = "grade-c";
+                                                $gradeBadgeClass = "label-warning";
+                                                $remarks = "Average";
+                                                $remarksBadgeClass = "label-warning";
                                             } else {
                                                 $grade = "D";
-                                                $gradeClass = "grade-d";
-
-											$out_of = 0;
-
+                                                $gradeBadgeClass = "label-danger";
+                                                $remarks = "Need Improvement";
+                                                $remarksBadgeClass = "label-danger";
                                             }
 
-
-										echo '<div class="footer-item"> Grade : <span class="text-red text-bold grade-label {$gradeClass}">' . $grade . '</span>' . ',' . '</div>';
+										echo '<div class="footer-item">Grade : <span class="label ' . $gradeBadgeClass . '" style="font-size:13px;padding:4px 8px;">' . $grade . '</span></div>';
+										echo '<div class="footer-item">Remarks : <span class="label ' . $remarksBadgeClass . '" style="font-size:13px;padding:4px 8px;">' . $remarks . '</span></div>';
 										
 										echo '</div>';
 

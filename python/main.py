@@ -1627,6 +1627,18 @@ def _upload_files_via_ftp(ftp_config: dict, remote_dir: str, files: dict) -> dic
         return {"success": False, "message": f"FTP connection error: {e}"}
 
 
+def _ftp_mkdirs(ftp, path: str):
+    """Create nested directories relative to FTP home. Ignores errors for existing dirs."""
+    parts = [p for p in path.replace('\\', '/').split('/') if p]
+    current = ''
+    for part in parts:
+        current = f"{current}/{part}" if current else part
+        try:
+            ftp.mkd(current)
+        except ftplib.error_perm:
+            pass  # already exists — fine
+
+
 def _upload_mvc_zip_to_dummy(server: str, zip_bytes: bytes) -> dict:
     """
     Upload mvc.zip to the dummy server for the given server (hostgator / myschools).
@@ -1860,6 +1872,103 @@ async def upload_mvc_zip(server: str):
 
     result = _upload_mvc_zip_to_dummy(server, zip_bytes)
     return result
+
+
+@app.post("/ftp-upload-file")
+async def ftp_upload_file(request: Request):
+    """
+    Upload a single file from localhost to the same relative path on ALL active
+    subdomains of the selected server.
+    Body: { "server": "hostgator", "file_path": "frontend/default/views/partials/footer.blade.php" }
+    """
+    body      = await request.json()
+    server    = body.get("server", "").lower().strip()
+    file_path = body.get("file_path", "").strip().replace("\\", "/").lstrip("/")
+
+    if not server or not file_path:
+        raise HTTPException(status_code=422, detail="'server' and 'file_path' are required")
+
+    # Security: block path traversal
+    if ".." in file_path:
+        raise HTTPException(status_code=400, detail="Invalid file path — path traversal not allowed")
+
+    local_base = os.path.normpath("C:/xampp/htdocs/ourschoolerp")
+    local_file = os.path.normpath(os.path.join(local_base, file_path))
+    if not local_file.startswith(local_base):
+        raise HTTPException(status_code=400, detail="Path is outside project root")
+    if not os.path.isfile(local_file):
+        raise HTTPException(status_code=404, detail=f"File not found locally: {file_path}")
+
+    with open(local_file, "rb") as f:
+        content = f.read()
+
+    filename = os.path.basename(file_path)
+    file_dir = os.path.dirname(file_path).replace("\\", "/")  # e.g. "frontend/default/views/partials"
+
+    # Fetch all active subdomains for this server
+    conn = get_db_connection()
+    if not conn:
+        raise HTTPException(status_code=500, detail="DB connection failed")
+    cur = conn.cursor(dictionary=True)
+    cur.execute("SELECT * FROM subdomain_settings WHERE server=%s AND status='active'", (server,))
+    subdomains = cur.fetchall()
+    cur.close(); conn.close()
+
+    if not subdomains:
+        return {"success": False, "message": f"No active subdomains found for server '{server}'"}
+
+    results = {}
+    domain_suffix = SERVER_DOMAINS.get(server, "")
+
+    # ── GoDaddy: cPanel Fileman API ────────────────────────────────────────────
+    if server in CPANEL_CONFIGS:
+        cp = CPANEL_CONFIGS[server]
+        auth_headers = _build_cpanel_auth_headers(cp)
+        ftp_cfg = FTP_CONFIGS.get(server, {})
+        webroot = ftp_cfg.get("webroot", "public_html")
+        for sub in subdomains:
+            sub_name = sub["subdomain"]
+            if file_dir:
+                target_dir = f"{cp['home']}/{webroot}/{sub_name}.{domain_suffix}/{file_dir}" if webroot \
+                             else f"{cp['home']}/{sub_name}.{domain_suffix}/{file_dir}"
+            else:
+                target_dir = f"{cp['home']}/{webroot}/{sub_name}.{domain_suffix}" if webroot \
+                             else f"{cp['home']}/{sub_name}.{domain_suffix}"
+            res = _cpanel_fileman_upload_to_dir(cp, auth_headers[0], target_dir, {filename: content})
+            results[sub_name] = "uploaded" if res["updated"] else f"failed: {'; '.join(res['failed'])}"
+
+    # ── FTP servers ────────────────────────────────────────────────────────────
+    elif server in FTP_CONFIGS:
+        ftp_cfg = FTP_CONFIGS[server]
+        webroot = ftp_cfg.get("webroot", "")
+        for sub in subdomains:
+            sub_name = sub["subdomain"]
+            if file_dir:
+                remote_dir = f"{webroot}/{sub_name}.{domain_suffix}/{file_dir}" if webroot \
+                             else f"{sub_name}.{domain_suffix}/{file_dir}"
+            else:
+                remote_dir = f"{webroot}/{sub_name}.{domain_suffix}" if webroot \
+                             else f"{sub_name}.{domain_suffix}"
+            try:
+                ftp = ftplib.FTP()
+                ftp.connect(ftp_cfg["host"], int(ftp_cfg.get("port", 21)), timeout=60)
+                ftp.login(ftp_cfg["user"], ftp_cfg["pass"])
+                _ftp_mkdirs(ftp, remote_dir)
+                ftp.cwd(remote_dir)
+                ftp.storbinary(f"STOR {filename}", io.BytesIO(content))
+                ftp.quit()
+                results[sub_name] = "uploaded"
+            except Exception as e:
+                results[sub_name] = f"failed: {e}"
+    else:
+        return {"success": False, "message": f"No upload method configured for server '{server}'"}
+
+    success_count = sum(1 for v in results.values() if v == "uploaded")
+    return {
+        "success": success_count > 0,
+        "message": f"Uploaded '{file_path}' to {success_count}/{len(results)} subdomain(s)",
+        "results": results,
+    }
 
 
 @app.post("/deploy-mvc/{subdomain_id}")

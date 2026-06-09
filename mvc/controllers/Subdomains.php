@@ -227,8 +227,23 @@ class Subdomains extends Admin_Controller {
 		$subdomains  = $this->subdomains_m->get_subdomains_with_pagination($length, $start, $search, $server);
 		$total_count = $this->subdomains_m->get_subdomains_count($search, $server);
 
+		$domain_map = [
+			'hostgator'  => 'ourschoolerp.com',
+			'myschools'  => 'myschoolserp.com',
+			'schoolhour' => 'schoolhour.in',
+			'collegehour'=> 'collegeerp.in',
+			'godaddy'    => 'ourcollegeerp.com',
+		];
+
 		$data = array();
 		foreach ($subdomains as $key => $subdomain) {
+
+			$srv         = strtolower($subdomain->server);
+			$base_domain = isset($domain_map[$srv]) ? $domain_map[$srv] : '';
+			$full_domain = $base_domain ? ($subdomain->subdomain . '.' . $base_domain) : '';
+			$domain_html = $full_domain
+				? '<a href="https://' . $full_domain . '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:#1565c0;font-size:12px;white-space:nowrap;">' . $full_domain . ' <i class="fa fa-external-link" style="font-size:10px;"></i></a>'
+				: '<span style="color:#999;">—</span>';
 
 			$sep = '<span class="btn-group-sep"></span>';
 
@@ -265,6 +280,7 @@ class Subdomains extends Admin_Controller {
 				'serial'          => $start + $key + 1,
 				'server'          => htmlspecialchars($subdomain->server),
 				'subdomain'       => htmlspecialchars($subdomain->subdomain),
+				'domain'          => $domain_html,
 				'db_name'         => htmlspecialchars($subdomain->db_name),
 				'school_age'      => isset($subdomain->school_age)      ? intval($subdomain->school_age)      : '—',
 				'total_students'  => isset($subdomain->total_students)  ? intval($subdomain->total_students)  : '—',
@@ -743,6 +759,40 @@ class Subdomains extends Admin_Controller {
 				'db_user'   => $db_user,
 			],
 		]);
+	}
+
+	public function ftp_upload_file() {
+		header('Content-Type: application/json');
+		$server    = strtolower(trim($this->input->post('server')));
+		$file_path = trim($this->input->post('file_path'));
+		if (!$server || !$file_path) {
+			echo json_encode(['success' => false, 'message' => 'Server and file path are required']);
+			return;
+		}
+		$ch = curl_init('http://localhost:8000/ftp-upload-file');
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_POST           => true,
+			CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
+			CURLOPT_POSTFIELDS     => json_encode(['server' => $server, 'file_path' => $file_path]),
+			CURLOPT_TIMEOUT        => 120,
+		]);
+		$body = curl_exec($ch); $err = curl_error($ch); curl_close($ch);
+		if (!$body || $err) {
+			echo json_encode(['success' => false, 'message' => 'Python server error: ' . $err]);
+			return;
+		}
+		$res = json_decode($body, true);
+		if (!$res) {
+			echo json_encode(['success' => false, 'message' => 'Invalid response from Python server: ' . substr($body, 0, 200)]);
+			return;
+		}
+		// FastAPI HTTPException returns {"detail":"..."} — normalize to {"success":false,"message":"..."}
+		if (isset($res['detail']) && !isset($res['message'])) {
+			echo json_encode(['success' => false, 'message' => $res['detail']]);
+			return;
+		}
+		echo json_encode($res);
 	}
 
 	public function create_cpanel_subdomain() {

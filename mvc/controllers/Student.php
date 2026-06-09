@@ -253,6 +253,15 @@ class Student extends Admin_Controller
 				}
 				$marksettings  = $this->marksetting_m->get_marksetting_markpercentages();
 
+				$sectionID = $student->srsectionID;
+				$examScheduleRows = $this->db->query(
+					"SELECT examID, subjectID, max_mark FROM examschedule WHERE classesID = $classesID AND sectionID = $sectionID"
+				)->result();
+				$examScheduleData = [];
+				foreach ($examScheduleRows as $esRow) {
+					$examScheduleData[(int)$esRow->examID][(int)$esRow->subjectID] = (int)$esRow->max_mark;
+				}
+
 				$this->data['settingmarktypeID'] = $this->data['siteinfos']->marktypeID;
 				$this->data['subjects']          = $subjectArr;
 				$this->data['all_subjects']          = $subjects;
@@ -263,6 +272,7 @@ class Student extends Admin_Controller
 				$this->data['marks']             = $retMark;
 				$this->data['highestmarks']      = $highestMarks;
 				$this->data['marksettings']      = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
+				$this->data['examScheduleData']  = $examScheduleData;
 			} else {
 				$this->data['settingmarktypeID'] = 0;
 				$this->data['subjects']          = [];
@@ -273,6 +283,7 @@ class Student extends Admin_Controller
 				$this->data['marks']             = [];
 				$this->data['highestmarks']      = [];
 				$this->data['marksettings']      = [];
+				$this->data['examScheduleData']  = [];
 			}
 		} else {
 			$this->data['settingmarktypeID'] = 0;
@@ -284,6 +295,7 @@ class Student extends Admin_Controller
 			$this->data['marks']             = [];
 			$this->data['highestmarks']      = [];
 			$this->data['marksettings']      = [];
+			$this->data['examScheduleData']  = [];
 		}
 	}
 
@@ -4383,6 +4395,28 @@ private function getComprehensiveStudentDataBySection($classesID, $sectionID, $s
 	$query = $this->db->get();
 	return $query->result();
 }
+
+	public function update_login_details()
+	{
+		header('Content-Type: application/json');
+		if (!permissionChecker('student_edit')) {
+			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		$studentID = (int)$this->input->post('studentID');
+		$password  = trim($this->input->post('password'));
+
+		if (!$studentID) {
+			echo json_encode(['status' => false, 'message' => 'Invalid student']); return;
+		}
+		if (empty($password)) {
+			echo json_encode(['status' => false, 'message' => 'Password is required']); return;
+		}
+
+		if (!empty($password)) {
+			$this->db->update('student', ['password' => $this->student_m->hash($password)], 'studentID = ' . $studentID);
+		}
+		echo json_encode(['status' => true, 'message' => 'Login details updated successfully']);
+	}
 
 	public function send_login_sms()
 	{

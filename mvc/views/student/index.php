@@ -1858,12 +1858,11 @@ $(document).on('click', '.btn-change-login', function() {
 // Save login details via AJAX
 $(document).on('click', '#changeLoginSaveBtn', function() {
     var id   = $('#clStudentID').val();
-    var user = $.trim($('#clUsername').val());
     var pass = $.trim($('#clPassword').val());
     var conf = $.trim($('#clPasswordConfirm').val());
 
-    if (!user) { $('#clError').text('Username is required.').show(); return; }
-    if (pass && pass !== conf) { $('#clError').text('Passwords do not match.').show(); return; }
+    if (!pass) { $('#clError').text('Password is required.').show(); return; }
+    if (pass !== conf) { $('#clError').text('Passwords do not match.').show(); return; }
 
     $('#clError').hide();
     var btn = $(this);
@@ -1872,13 +1871,12 @@ $(document).on('click', '#changeLoginSaveBtn', function() {
     $.ajax({
         type: 'POST',
         url:  '<?= base_url("student/update_login_details") ?>',
-        data: { studentID: id, username: user, password: pass },
+        data: { studentID: id, password: pass },
         dataType: 'json',
         success: function(res) {
             if (res.status) {
                 toastr.success(res.message);
                 $('#changeLoginModal').modal('hide');
-                $('.btn-change-login[data-id="' + id + '"]').data('username', user);
             } else {
                 $('#clError').text(res.message).show();
             }
@@ -1889,6 +1887,20 @@ $(document).on('click', '#changeLoginSaveBtn', function() {
             btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save');
         }
     });
+});
+
+// Toggle password visibility
+$(document).on('click', '.cl-toggle-pw', function() {
+    var targetID = $(this).data('target');
+    var input    = $('#' + targetID);
+    var icon     = $(this).find('i');
+    if (input.attr('type') === 'password') {
+        input.attr('type', 'text');
+        icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    } else {
+        input.attr('type', 'password');
+        icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    }
 });
 </script>
 
@@ -1909,15 +1921,25 @@ $(document).on('click', '#changeLoginSaveBtn', function() {
                 <input type="hidden" id="clStudentID">
                 <div class="form-group" style="margin-bottom:14px;">
                     <label style="font-size:13px;font-weight:600;color:#333;">Username</label>
-                    <input type="text" id="clUsername" class="form-control" placeholder="Enter username" style="border-radius:6px;">
+                    <input type="text" id="clUsername" class="form-control" placeholder="Enter username" style="border-radius:6px;background:#f0f0f0;" disabled>
                 </div>
                 <div class="form-group" style="margin-bottom:14px;">
                     <label style="font-size:13px;font-weight:600;color:#333;">New Password <small style="color:#aaa;font-weight:400;">(leave blank to keep current)</small></label>
-                    <input type="password" id="clPassword" class="form-control" placeholder="New password" style="border-radius:6px;">
+                    <div class="input-group">
+                        <input type="password" id="clPassword" class="form-control" placeholder="New password" style="border-radius:6px 0 0 6px;">
+                        <span class="input-group-addon cl-toggle-pw" data-target="clPassword" style="cursor:pointer;border-radius:0 6px 6px 0;background:#fff;border:1px solid #ccd0d5;border-left:0;padding:6px 10px;">
+                            <i class="fa fa-eye" style="color:#888;"></i>
+                        </span>
+                    </div>
                 </div>
                 <div class="form-group" style="margin-bottom:6px;">
                     <label style="font-size:13px;font-weight:600;color:#333;">Confirm Password</label>
-                    <input type="password" id="clPasswordConfirm" class="form-control" placeholder="Confirm new password" style="border-radius:6px;">
+                    <div class="input-group">
+                        <input type="password" id="clPasswordConfirm" class="form-control" placeholder="Confirm new password" style="border-radius:6px 0 0 6px;">
+                        <span class="input-group-addon cl-toggle-pw" data-target="clPasswordConfirm" style="cursor:pointer;border-radius:0 6px 6px 0;background:#fff;border:1px solid #ccd0d5;border-left:0;padding:6px 10px;">
+                            <i class="fa fa-eye" style="color:#888;"></i>
+                        </span>
+                    </div>
                 </div>
                 <div id="clError" style="display:none;color:#e53935;font-size:12px;margin-top:8px;"></div>
             </div>
