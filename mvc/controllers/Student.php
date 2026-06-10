@@ -1366,7 +1366,7 @@ class Student extends Admin_Controller
 							
 						}else if($this->input->post('studentType') == 1){ //trasport
 							$fee_types = [
-								array(	//term1
+								array(	//term1 
 									'feetypeID' => $term1_fee_type['feetypesID'],
 									'amount' => $term1,
 									'discount' => "",

@@ -536,7 +536,7 @@ class Bulkimport extends Admin_Controller
                                     // $this->db->where('schoolyearID',$this->session->userdata('defaultschoolyearID'));
                                     $this->db->where('classesID',$classID);
                                     $this->db->where('sectionID',$sections->sectionID);
-                                    // echo $this->db->last_query();die;
+                                    // echo $this->db->last_query();die;;
                                      $cnt = $this->db->get('student')->num_rows();
                                      $auto_roll = $cnt+1;
 
