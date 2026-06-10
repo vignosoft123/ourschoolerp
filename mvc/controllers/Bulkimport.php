@@ -541,8 +541,10 @@ class Bulkimport extends Admin_Controller
                                      $auto_roll = $cnt+1;
 
                                      $settings = $this->Setting_m->get_setting();
-                                    // echo "<pre>"; print_r($settings);
-                                    $randomAdmissionCode = $this->getAdmissonNumber($settings);
+                                    $excelAdmissionNo = trim($row['admission_no']);
+                                    $randomAdmissionCode = !empty($excelAdmissionNo)
+                                        ? $excelAdmissionNo
+                                        : $this->getAdmissonNumber($settings);
                                     
                                     $insert_data = [
                                         'name'               => $row['Name'],
@@ -562,8 +564,8 @@ class Bulkimport extends Admin_Controller
                                         'sectionID'          => $sections->sectionID,
                                         // 'roll'               => $row['Roll'],
                                         'roll'               => $auto_roll,
-                                        'username'           => "student".rand(100000,999999),
-                                        'password'           => $this->student_m->hash(1234567890),
+                                        'username'           => $randomAdmissionCode,
+                                        'password'           => $this->student_m->hash($row['Phone']),
                                         'usertypeID'         => 3,
                                         'parentID'           => $parent_id,
                                         'library'            => 0,
@@ -583,7 +585,7 @@ class Bulkimport extends Admin_Controller
                                         'ifsc_code'               => $row['ifsc_code'],
                                         'branch_name'               => $row['branch_name'],                                        
                                         'villageID'              => $row['village'],
-                                        'registerNO'              => $row['admission_no'],
+                                        'registerNO'              => $randomAdmissionCode,
                                         'pen_number'            => $row['pen_number'],
                                         'child_id'              => $row['child_id'],
                                         'caste'                 => $row['caste'],
@@ -1908,12 +1910,10 @@ class Bulkimport extends Admin_Controller
 
     private function getAdmissonNumber($objSettings)
 	{
-		// if ($objSettings->isRandomAdmissionNumber == 1) {
-			$result = $this->student_m->get_max_student();
-			$num = $result->studentID + 1;
-			return $objSettings->schoolCode . sprintf("%04d", $num);
-		// }
-		return null;
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$count = $this->db->where('srschoolyearID', $schoolyearID)->count_all_results('studentrelation');
+		$num = $count + 1;
+		return $objSettings->schoolCode . sprintf("%04d", $num);
 	}
 
 

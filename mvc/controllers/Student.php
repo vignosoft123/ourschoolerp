@@ -3596,8 +3596,9 @@ class Student extends Admin_Controller
 	private function getAdmissonNumber($objSettings)
 	{
 		if ($objSettings->isRandomAdmissionNumber == 1) {
-			$result = $this->student_m->get_max_student();
-			$num = $result->studentID + 1;
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+			$count = $this->db->where('srschoolyearID', $schoolyearID)->count_all_results('studentrelation');
+			$num = $count + 1;
 			return $objSettings->schoolCode . sprintf("%04d", $num);
 		}
 		return null;
