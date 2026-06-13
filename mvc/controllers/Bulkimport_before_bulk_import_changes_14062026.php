@@ -461,10 +461,13 @@ class Bulkimport extends Admin_Controller
                     "Phone",
                     "Address",
                     "Village",
+                    // "villageID",
                     "Class",
                     "Section",
+                    //"Roll",
                     "BloodGroup",
                     "State",
+                    // "RegistrationNO",
                     "Group",
                     "OptionalSubject",
                     "ration_card",
@@ -479,46 +482,11 @@ class Bulkimport extends Admin_Controller
                     "mother_aadhar",
                     "caste",
                     "sub_caste",
-                    "mother_toungue",
-                    "Religion",
-                    "First Name",
-                    "Last Name",
-                    "Mother Name",
-                    "Admission Date",
-                    "Medium",
-                    "RF ID",
-                    "WhatsApp Number",
-                    "Alternative Phone 2",
-                    "Country",
-                    "Aadhar Card Number",
-                    "Identifying Mark 1",
-                    "Identifying Mark 2",
-                    "Remarks",
-                    "Student Type",
-                    "Joined Class"
+                    "mother_toungue"
+
                 ];
-                $file_ext = strtolower(pathinfo($file_data['file_name'], PATHINFO_EXTENSION));
-                if ($file_ext === 'xlsx' || $file_ext === 'xls') {
-                    $this->load->library('phpspreadsheet');
-                    $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReaderForFile($file_path);
-                    $reader->setReadDataOnly(true);
-                    $xl = $reader->load($file_path);
-                    $sheetRows = $xl->getActiveSheet()->toArray(null, true, true, false);
-                    $xlHeaders = array_shift($sheetRows);
-                    $csv_array = [];
-                    foreach ($sheetRows as $rowData) {
-                        $rowAssoc = [];
-                        foreach ($xlHeaders as $j => $hdr) {
-                            $rowAssoc[trim((string)$hdr)] = isset($rowData[$j]) ? (string)$rowData[$j] : '';
-                        }
-                        if (array_filter($rowAssoc)) {
-                            $csv_array[] = $rowAssoc;
-                        }
-                    }
-                } else {
-                    $csv_array = @$this->csvimport->get_array($file_path, $column_headers);
-                }
-                if($csv_array) {//echo 'if';die;
+                    //    echo "<pre>";print_r($this->csvimport->get_array($file_path, $column_headers));
+                if($csv_array = @$this->csvimport->get_array($file_path, $column_headers)) {//echo 'if';die;
                     if(customCompute($csv_array)) {
                         $msg     = "";
                         $i       = 1;
@@ -540,16 +508,11 @@ class Bulkimport extends Admin_Controller
                                     $group           = $this->get_student_group($row['Group']);
                                     $optionalSubject = $this->get_student_optional_subject($classID, $row['OptionalSubject']);
                                     $dob             = $this->trim_required_convertdate($row['Dob']);
-                                    $admission_date  = !empty($row['Admission Date']) ? $this->trim_required_convertdate($row['Admission Date']) : date('Y-m-d');
-                                    $joinedClassID   = !empty($row['Joined Class']) ? $this->get_student_class($row['Joined Class']) : 0;
-                                    $studentTypeMap  = ['transport' => 1, 'hostel' => 2];
-                                    $studentTypeText = strtolower(trim($row['Student Type']));
-                                    $studentTypeVal  = isset($studentTypeMap[$studentTypeText]) ? $studentTypeMap[$studentTypeText] : 3;
 
+                                    
                                     $insert_data = [
                                         'name'              => $row['Name'],
                                         'father_name'       => $row['Father Name'],
-                                        'mother_name'       => $row['Mother Name'],
                                         'email'             => $row['Email'],
                                         'phone'             => $row['Phone'],
                                         'photo'             => 'default.png',
@@ -557,14 +520,15 @@ class Bulkimport extends Admin_Controller
                                         'username'          => "parent".rand(100000,999999),
                                         'password'          => $this->parents_m->hash(1234567890),
                                         'usertypeID'        => 2,
+                                        'photo'             => 'default.png',
                                         "create_date"       => date("Y-m-d h:i:s"),
                                         "modify_date"       => date("Y-m-d h:i:s"),
                                         "create_userID"     => $this->session->userdata('loginuserID'),
                                         "create_username"   => $this->session->userdata('username'),
                                         "create_usertype"   => $this->session->userdata('usertype'),
                                         "active"            => 1,
-                                        "father_aadhar"     => $row['father_aadhar'],
-                                        "mother_aadhar"     => $row['mother_aadhar'],
+                                        "father_aadhar"            => $row['father_aadhar'],
+                                        "mother_aadhar"            =>$row['mother_aadhar'],
                                     ];
                                     // $parent_id = $this->parents_m->insert_parents($insert_data);
                                     $parent_id = $this->parents_m->insert_parents_with_id($insert_data);
@@ -584,8 +548,6 @@ class Bulkimport extends Admin_Controller
                                     
                                     $insert_data = [
                                         'name'               => $row['Name'],
-                                        'first_name'         => $row['First Name'],
-                                        'last_name'          => $row['Last Name'],
                                         'dob'                => $dob,
                                         'sex'                => $row['Gender'],
                                         'religion'           => $row['Religion'],
@@ -595,17 +557,20 @@ class Bulkimport extends Admin_Controller
                                         'address'            => $row['Address'],
                                         "bloodgroup"         => $row['BloodGroup'],
                                         "state"              => $row['State'],
-                                        "country"            => !empty($row['Country']) ? $row['Country'] : 'India',
+                                        "country"            => 'India',
+                                        // "registerNO"         => $row['RegistrationNO'],
+                                        // "registerNO"         => $randomAdmissionCode,
                                         'classesID'          => $classID,
                                         'sectionID'          => $sections->sectionID,
+                                        // 'roll'               => $row['Roll'],
                                         'roll'               => $auto_roll,
                                         'username'           => $randomAdmissionCode,
                                         'password'           => $this->student_m->hash($row['Phone']),
                                         'usertypeID'         => 3,
                                         'parentID'           => $parent_id,
                                         'library'            => 0,
-                                        'hostel'             => $studentTypeVal == 2 ? 1 : 0,
-                                        'transport'          => $studentTypeVal == 1 ? 1 : 0,
+                                        'hostel'             => 0,
+                                        'transport'          => 0,
                                         'createschoolyearID' => $this->session->userdata('defaultschoolyearID'),
                                         'schoolyearID'       => $this->session->userdata('defaultschoolyearID'),
                                         "create_date"        => date("Y-m-d h:i:s"),
@@ -614,28 +579,18 @@ class Bulkimport extends Admin_Controller
                                         "create_username"    => $this->session->userdata('username'),
                                         "create_usertype"    => $this->session->userdata('usertype'),
                                         "active"             => 1,
-                                        'admission_date'     => $admission_date,
-                                        'medium'             => !empty($row['Medium']) ? $row['Medium'] : 'English',
-                                        'rf_id'              => $row['RF ID'],
-                                        'alternative_phone1' => $row['WhatsApp Number'],
-                                        'alternative_phone2' => $row['Alternative Phone 2'],
-                                        'aadharCardNumber'   => $row['Aadhar Card Number'],
-                                        'mole1'              => $row['Identifying Mark 1'],
-                                        'mole2'              => $row['Identifying Mark 2'],
-                                        'studentType'        => $studentTypeVal,
-                                        'joined_class'       => $joinedClassID,
-                                        'ration_card'        => $row['ration_card'],
-                                        'bank_name'          => $row['bank_name'],
-                                        'account_no'         => $row['account_no'],
-                                        'ifsc_code'          => $row['ifsc_code'],
-                                        'branch_name'        => $row['branch_name'],
-                                        'villageID'          => $row['Village'],
-                                        'registerNO'         => $randomAdmissionCode,
-                                        'pen_number'         => $row['pen_number'],
-                                        'child_id'           => $row['child_id'],
-                                        'caste'              => $row['caste'],
-                                        'sub_caste'          => $row['sub_caste'],
-                                        'mother_toungue'     => $row['mother_toungue'],
+                                        'ration_card'               => $row['ration_card'],
+                                        'bank_name'               => $row['bank_name'],
+                                        'account_no'               => $row['account_no'],
+                                        'ifsc_code'               => $row['ifsc_code'],
+                                        'branch_name'               => $row['branch_name'],                                        
+                                        'villageID'              => $row['village'],
+                                        'registerNO'              => $randomAdmissionCode,
+                                        'pen_number'            => $row['pen_number'],
+                                        'child_id'              => $row['child_id'],
+                                        'caste'                 => $row['caste'],
+                                        'sub_caste'             => $row['sub_caste'],
+                                        'mother_toungue'        => $row['mother_toungue'],
                                     ];
 
                                     $this->usercreatemail($this->input->post('email'), $this->input->post('username'), $this->input->post('password'));
@@ -708,7 +663,7 @@ class Bulkimport extends Admin_Controller
                                             'studentgroupID'            => @$group->studentgroupID,
                                             'optionalsubjectID'         => $optionalSubject->subjectID,
                                             'extracurricularactivities' => NULL,
-                                            'remarks'                   => $row['Remarks'],
+                                            'remarks'                   => NULL
                                         ];
                                         $this->studentextend_m->insert_studentextend($studentExtendArray);
                                     } else {
@@ -717,7 +672,7 @@ class Bulkimport extends Admin_Controller
                                             'studentgroupID'            => @$group->studentgroupID,
                                             'optionalsubjectID'         => $optionalSubject->subjectID,
                                             'extracurricularactivities' => NULL,
-                                            'remarks'                   => $row['Remarks'],
+                                            'remarks'                   => NULL
                                         ];
                                         $this->studentextend_m->update_studentextend($studentExtendArray, $studentExtend->studentextendID);
                                     }
@@ -1951,109 +1906,6 @@ class Bulkimport extends Admin_Controller
 
     public function get_village_id(){
 
-    }
-
-    public function download_sample_student()
-    {
-        $this->load->library('phpspreadsheet');
-
-        $spreadsheet = $this->phpspreadsheet->spreadsheet;
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('Students');
-
-        $columns = [
-            'A'  => 'Name',                'B'  => 'Dob',                 'C'  => 'Gender',
-            'D'  => 'Father Name',         'E'  => 'Email',               'F'  => 'Phone',
-            'G'  => 'Address',             'H'  => 'Village',             'I'  => 'Class',
-            'J'  => 'Section',             'K'  => 'BloodGroup',          'L'  => 'State',
-            'M'  => 'Group',               'N'  => 'OptionalSubject',     'O'  => 'ration_card',
-            'P'  => 'bank_name',           'Q'  => 'account_no',          'R'  => 'ifsc_code',
-            'S'  => 'branch_name',         'T'  => 'admission_no',        'U'  => 'pen_number',
-            'V'  => 'child_id',            'W'  => 'father_aadhar',       'X'  => 'mother_aadhar',
-            'Y'  => 'caste',               'Z'  => 'sub_caste',           'AA' => 'mother_toungue',
-            'AB' => 'Religion',            'AC' => 'First Name',          'AD' => 'Last Name',
-            'AE' => 'Mother Name',         'AF' => 'Admission Date',      'AG' => 'Medium',
-            'AH' => 'RF ID',               'AI' => 'WhatsApp Number',     'AJ' => 'Alternative Phone 2',
-            'AK' => 'Country',             'AL' => 'Aadhar Card Number',  'AM' => 'Identifying Mark 1',
-            'AN' => 'Identifying Mark 2',  'AO' => 'Remarks',             'AP' => 'Student Type',
-            'AQ' => 'Joined Class',
-        ];
-
-        $headerStyle = [
-            'font'    => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
-            'fill'    => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['rgb' => '2E7D32']],
-        ];
-
-        foreach ($columns as $col => $header) {
-            $sheet->setCellValue($col . '1', $header);
-            $sheet->getStyle($col . '1')->applyFromArray($headerStyle);
-            $sheet->getColumnDimension($col)->setWidth(20);
-        }
-
-        $sampleValues = [
-            'A'  => 'Madhukanth',          'B'  => '20/12/1990',          'C'  => 'Male',
-            'D'  => 'John',                'E'  => 'madhu@email.com',     'F'  => '8801676667',
-            'G'  => 'Dhaka Road',          'H'  => 'Madhapur',            'I'  => '1ST CLASS',
-            'J'  => 'A',                   'K'  => 'A+',                  'L'  => 'Telangana',
-            'M'  => 'Arts',                'N'  => 'Bangla',              'O'  => '111222333',
-            'P'  => 'SBI',                 'Q'  => '123456789',           'R'  => 'SBIN0001234',
-            'S'  => 'Hyderabad Branch',    'T'  => 'abc100',              'U'  => '1234567890',
-            'V'  => 'CHILD001',            'W'  => '123456789012',        'X'  => '987654321098',
-            'Y'  => 'OC',                  'Z'  => 'BC-B',                'AA' => 'Telugu',
-            'AB' => 'Hindu',               'AC' => 'Madhu',               'AD' => 'Kanth',
-            'AE' => 'Lakshmi',             'AF' => '13/06/2026',          'AG' => 'Telugu',
-            'AH' => 'RF001',               'AI' => '9999999999',          'AJ' => '8888888888',
-            'AK' => 'India',               'AL' => '111122223333',        'AM' => 'Mole on left hand',
-            'AN' => 'Scar on right knee',  'AO' => 'Good student',        'AP' => 'Day Scholar',
-            'AQ' => '1ST CLASS',
-        ];
-
-        // Columns that must stay as text (long numbers, IDs, codes)
-        $textColumns = ['F', 'Q', 'U', 'V', 'W', 'X', 'AI', 'AJ', 'AL'];
-        $textFormat   = \PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT;
-        foreach ($textColumns as $col) {
-            $sheet->getStyle($col . '2:' . $col . '1000')
-                  ->getNumberFormat()->setFormatCode($textFormat);
-        }
-
-        foreach ($sampleValues as $col => $val) {
-            if (in_array($col, $textColumns)) {
-                $sheet->setCellValueExplicit($col . '2', $val,
-                    \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            } else {
-                $sheet->setCellValue($col . '2', $val);
-            }
-        }
-
-        // Static dropdowns applied cell-by-cell (rows 2–201) — most reliable for PhpSpreadsheet 1.21
-        $dropdowns = [
-            'C'  => '"Male,Female"',
-            'K'  => '"A+,A-,B+,B-,O+,O-,AB+,AB-"',
-            'Y'  => '"OC,BC-A,BC-B,BC-C,BC-D,SC,ST,Minority"',
-            'AA' => '"Telugu,English,Hindi,Kannada,Malayalam,Urdu"',
-            'AG' => '"English,Telugu,Hindi,Kannada,Malayalam,Urdu"',
-            'AP' => '"Day Scholar,Transport,Hostel"',
-        ];
-
-        foreach ($dropdowns as $col => $formula) {
-            for ($row = 2; $row <= 201; $row++) {
-                $dv = $sheet->getCell($col . $row)->getDataValidation();
-                $dv->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-                $dv->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
-                $dv->setAllowBlank(true);
-                $dv->setShowDropDown(false);
-                $dv->setFormula1($formula);
-            }
-        }
-
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment; filename="sample_student.xlsx"');
-        header('Cache-Control: max-age=0');
-        header('Pragma: public');
-
-        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save('php://output');
-        exit;
     }
 
     private function getAdmissonNumber($objSettings)

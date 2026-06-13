@@ -1,6 +1,7 @@
 import os
 import io
 import json
+import socket
 import ftplib
 import base64
 import requests
@@ -26,7 +27,9 @@ MVC_DEPLOY_API_KEY = os.getenv("MVC_DEPLOY_API_KEY", "")
 DUMMY_SERVERS      = json.loads(os.getenv("DUMMY_SERVERS", "{}"))
 CPANEL_CONFIGS     = json.loads(os.getenv("CPANEL_CONFIGS", "{}"))
 FTP_CONFIGS        = json.loads(os.getenv("FTP_CONFIGS", "{}"))
-DB_IMPORT_SQL_PATH = os.getenv("DB_IMPORT_SQL_PATH", "")
+DB_IMPORT_SQL_PATH   = os.getenv("DB_IMPORT_SQL_PATH", "")
+GODADDY_API_KEY      = os.getenv("GODADDY_API_KEY", "")
+GODADDY_API_SECRET   = os.getenv("GODADDY_API_SECRET", "")
 
 # CSS files to sync (all custom inilabs files except install.css)
 CSS_FILES_TO_SYNC  = [
@@ -1180,6 +1183,14 @@ async def create_cpanel_subdomain(request: Request):
     else:
         results["subdomain"] = f"{full_sub} created"
 
+    # ── Step 1b: Add DNS A record in GoDaddy cloud DNS ──────────────────────
+    # cPanel's SubDomain/addsubdomain only updates the local BIND zone file.
+    # GoDaddy's nameservers (domaincontrol.com) are a separate DNS system and
+    # must be updated via GoDaddy's Domains API for the subdomain to resolve publicly.
+    if server == "godaddy":
+        dns_result = _godaddy_add_dns_record(domain_suffix, subdomain)
+        results["godaddy_dns"] = dns_result["message"]
+
     # Use the working auth header for all subsequent calls
     single_auth = [working_auth]
 
@@ -1319,6 +1330,19 @@ async def create_cpanel_subdomain(request: Request):
             main_conn.close()
     except Exception as e:
         results["record"] = f"DB insert error: {e}"
+
+    # ── Step 9: Trigger AutoSSL to issue HTTPS certificate ───────────────────
+    # cPanel UI triggers AutoSSL automatically on subdomain creation.
+    # Our API call does not — so we trigger it manually here.
+    try:
+        ssl_data, _ = _cpanel_call(cp, single_auth, "SSL/start_autossl_check", {})
+        if ssl_data.get("status") == 1:
+            results["ssl"] = "AutoSSL triggered — certificate will be ready in a few minutes"
+        else:
+            errs = ssl_data.get("errors") or [str(ssl_data)]
+            results["ssl"] = f"AutoSSL trigger warning: {'; '.join(str(e) for e in errs)}"
+    except Exception as e:
+        results["ssl"] = f"AutoSSL trigger failed: {e}"
 
     return {
         "success": True,
@@ -1625,6 +1649,30 @@ def _upload_files_via_ftp(ftp_config: dict, remote_dir: str, files: dict) -> dic
         return {"success": False, "message": f"FTP login failed — update 'pass' in FTP_CONFIGS in python/.env then restart Python server: {e}"}
     except Exception as e:
         return {"success": False, "message": f"FTP connection error: {e}"}
+
+
+def _godaddy_add_dns_record(domain: str, name: str) -> dict:
+    """Add/update an A record in GoDaddy's cloud DNS (domaincontrol.com nameservers).
+    IP is resolved dynamically from the root domain so it stays correct if the server moves."""
+    if not GODADDY_API_KEY or not GODADDY_API_SECRET:
+        return {"success": False, "message": "GODADDY_API_KEY/SECRET not set in .env"}
+    try:
+        ip = socket.gethostbyname(domain)
+    except Exception:
+        ip = "118.139.183.79"  # fallback — GoDaddy server IP
+    url = f"https://api.godaddy.com/v1/domains/{domain}/records/A/{name}"
+    headers = {
+        "Authorization": f"sso-key {GODADDY_API_KEY}:{GODADDY_API_SECRET}",
+        "Content-Type": "application/json",
+    }
+    try:
+        resp = requests.put(url, headers=headers, json=[{"data": ip, "ttl": 3600}], timeout=30)
+        if resp.status_code == 200:
+            return {"success": True, "message": f"{name}.{domain} → {ip} added to GoDaddy DNS"}
+        else:
+            return {"success": False, "message": f"GoDaddy DNS API error {resp.status_code}: {resp.text[:300]}"}
+    except Exception as e:
+        return {"success": False, "message": f"GoDaddy DNS request failed: {e}"}
 
 
 def _ftp_mkdirs(ftp, path: str):

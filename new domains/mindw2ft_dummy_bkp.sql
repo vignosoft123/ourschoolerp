@@ -1,4 +1,4 @@
--- phpMyAdmin SQL Dump
+﻿-- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS `admission_enquiry` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE `activities` (
+CREATE TABLE IF NOT EXISTS `activities` (
   `activitiesID` int(11) NOT NULL,
   `activitiescategoryID` int(11) NOT NULL,
   `description` text NOT NULL,
@@ -92,7 +92,7 @@ INSERT INTO `activities` (`activitiesID`, `activitiescategoryID`, `description`,
 -- Table structure for table `activitiescategory`
 --
 
-CREATE TABLE `activitiescategory` (
+CREATE TABLE IF NOT EXISTS `activitiescategory` (
   `activitiescategoryID` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `fa_icon` varchar(40) DEFAULT NULL,
@@ -124,7 +124,7 @@ INSERT INTO `activitiescategory` (`activitiescategoryID`, `title`, `fa_icon`, `s
 -- Table structure for table `activitiescomment`
 --
 
-CREATE TABLE `activitiescomment` (
+CREATE TABLE IF NOT EXISTS `activitiescomment` (
   `activitiescommentID` int(11) NOT NULL,
   `activitiesID` int(11) NOT NULL,
   `comment` text NOT NULL,
@@ -140,7 +140,7 @@ CREATE TABLE `activitiescomment` (
 -- Table structure for table `activitiesmedia`
 --
 
-CREATE TABLE `activitiesmedia` (
+CREATE TABLE IF NOT EXISTS `activitiesmedia` (
   `activitiesmediaID` int(11) NOT NULL,
   `activitiesID` int(11) NOT NULL,
   `attachment` text NOT NULL,
@@ -153,7 +153,7 @@ CREATE TABLE `activitiesmedia` (
 -- Table structure for table `activitiesstudent`
 --
 
-CREATE TABLE `activitiesstudent` (
+CREATE TABLE IF NOT EXISTS `activitiesstudent` (
   `activitiesstudentID` int(11) NOT NULL,
   `activitiesID` int(11) NOT NULL,
   `studentID` int(11) NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE `activitiesstudent` (
 -- Table structure for table `addons`
 --
 
-CREATE TABLE `addons` (
+CREATE TABLE IF NOT EXISTS `addons` (
   `addonsID` int(11) UNSIGNED NOT NULL,
   `package_name` varchar(180) DEFAULT NULL,
   `slug` varchar(180) DEFAULT NULL,
@@ -188,7 +188,7 @@ CREATE TABLE `addons` (
 -- Table structure for table `alert`
 --
 
-CREATE TABLE `alert` (
+CREATE TABLE IF NOT EXISTS `alert` (
   `alertID` int(11) UNSIGNED NOT NULL,
   `itemID` int(128) NOT NULL,
   `userID` int(11) NOT NULL,
@@ -209,7 +209,7 @@ INSERT INTO `alert` (`alertID`, `itemID`, `userID`, `usertypeID`, `itemname`) VA
 -- Table structure for table `asset`
 --
 
-CREATE TABLE `asset` (
+CREATE TABLE IF NOT EXISTS `asset` (
   `assetID` int(11) NOT NULL,
   `serial` varchar(255) DEFAULT NULL,
   `description` text COMMENT 'Title',
@@ -241,7 +241,7 @@ INSERT INTO `asset` (`assetID`, `serial`, `description`, `manufacturer`, `brand`
 -- Table structure for table `asset_assignment`
 --
 
-CREATE TABLE `asset_assignment` (
+CREATE TABLE IF NOT EXISTS `asset_assignment` (
   `asset_assignmentID` int(11) NOT NULL,
   `assetID` int(11) NOT NULL COMMENT 'Description and title',
   `usertypeID` int(11) DEFAULT NULL,
@@ -272,7 +272,7 @@ INSERT INTO `asset_assignment` (`asset_assignmentID`, `assetID`, `usertypeID`, `
 -- Table structure for table `asset_category`
 --
 
-CREATE TABLE `asset_category` (
+CREATE TABLE IF NOT EXISTS `asset_category` (
   `asset_categoryID` int(11) NOT NULL,
   `category` varchar(255) NOT NULL,
   `create_date` date NOT NULL,
@@ -295,7 +295,7 @@ INSERT INTO `asset_category` (`asset_categoryID`, `category`, `create_date`, `mo
 -- Table structure for table `assignment`
 --
 
-CREATE TABLE `assignment` (
+CREATE TABLE IF NOT EXISTS `assignment` (
   `assignmentID` int(11) NOT NULL,
   `title` varchar(128) NOT NULL,
   `description` text NOT NULL,
@@ -318,7 +318,7 @@ CREATE TABLE `assignment` (
 -- Table structure for table `assignmentanswer`
 --
 
-CREATE TABLE `assignmentanswer` (
+CREATE TABLE IF NOT EXISTS `assignmentanswer` (
   `assignmentanswerID` int(11) NOT NULL,
   `assignmentID` int(11) NOT NULL,
   `schoolyearID` int(11) NOT NULL,
@@ -335,7 +335,7 @@ CREATE TABLE `assignmentanswer` (
 -- Table structure for table `attendance`
 --
 
-CREATE TABLE `attendance` (
+CREATE TABLE IF NOT EXISTS `attendance` (
   `attendanceID` int(200) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `studentID` int(11) NOT NULL,
@@ -383,7 +383,7 @@ CREATE TABLE `attendance` (
 -- Table structure for table `automation_rec`
 --
 
-CREATE TABLE `automation_rec` (
+CREATE TABLE IF NOT EXISTS `automation_rec` (
   `automation_recID` int(11) UNSIGNED NOT NULL,
   `studentID` int(11) NOT NULL,
   `date` date NOT NULL,
@@ -399,7 +399,7 @@ CREATE TABLE `automation_rec` (
 -- Table structure for table `automation_shudulu`
 --
 
-CREATE TABLE `automation_shudulu` (
+CREATE TABLE IF NOT EXISTS `automation_shudulu` (
   `automation_shuduluID` int(11) UNSIGNED NOT NULL,
   `date` date NOT NULL,
   `day` varchar(3) NOT NULL,
@@ -420,7 +420,7 @@ INSERT INTO `automation_shudulu` (`automation_shuduluID`, `date`, `day`, `month`
 -- Table structure for table `biometric`
 --
 
-CREATE TABLE `biometric` (
+CREATE TABLE IF NOT EXISTS `biometric` (
   `id` int(11) NOT NULL,
   `sid` varchar(255) DEFAULT NULL,
   `mid` varchar(255) DEFAULT NULL,
@@ -437,7 +437,7 @@ CREATE TABLE `biometric` (
 -- Table structure for table `book`
 --
 
-CREATE TABLE `book` (
+CREATE TABLE IF NOT EXISTS `book` (
   `bookID` int(11) UNSIGNED NOT NULL,
   `book` varchar(60) NOT NULL,
   `subject_code` tinytext NOT NULL,
@@ -454,7 +454,7 @@ CREATE TABLE `book` (
 -- Table structure for table `candidate`
 --
 
-CREATE TABLE `candidate` (
+CREATE TABLE IF NOT EXISTS `candidate` (
   `candidateID` int(11) NOT NULL,
   `studentID` int(11) NOT NULL,
   `verified_by` varchar(100) NOT NULL,
@@ -472,7 +472,7 @@ CREATE TABLE `candidate` (
 -- Table structure for table `category`
 --
 
-CREATE TABLE `category` (
+CREATE TABLE IF NOT EXISTS `category` (
   `categoryID` int(11) UNSIGNED NOT NULL,
   `hostelID` int(11) NOT NULL,
   `class_type` varchar(60) NOT NULL,
@@ -486,7 +486,7 @@ CREATE TABLE `category` (
 -- Table structure for table `certificate_template`
 --
 
-CREATE TABLE `certificate_template` (
+CREATE TABLE IF NOT EXISTS `certificate_template` (
   `certificate_templateID` int(11) NOT NULL,
   `usertypeID` int(11) NOT NULL,
   `name` varchar(60) NOT NULL,
@@ -509,7 +509,7 @@ CREATE TABLE `certificate_template` (
 -- Table structure for table `childcare`
 --
 
-CREATE TABLE `childcare` (
+CREATE TABLE IF NOT EXISTS `childcare` (
   `childcareID` int(11) NOT NULL,
   `dropped_at` datetime DEFAULT NULL,
   `received_at` datetime DEFAULT NULL,
@@ -531,7 +531,7 @@ CREATE TABLE `childcare` (
 -- Table structure for table `classes`
 --
 
-CREATE TABLE `classes` (
+CREATE TABLE IF NOT EXISTS `classes` (
   `classesID` int(11) UNSIGNED NOT NULL,
   `classes` varchar(60) NOT NULL,
   `classes_numeric` int(11) NOT NULL,
@@ -551,7 +551,7 @@ CREATE TABLE `classes` (
 -- Table structure for table `complain`
 --
 
-CREATE TABLE `complain` (
+CREATE TABLE IF NOT EXISTS `complain` (
   `complainID` int(11) NOT NULL,
   `title` varchar(255) NOT NULL,
   `usertypeID` int(11) NOT NULL,
@@ -572,7 +572,7 @@ CREATE TABLE `complain` (
 -- Table structure for table `conversation_message_info`
 --
 
-CREATE TABLE `conversation_message_info` (
+CREATE TABLE IF NOT EXISTS `conversation_message_info` (
   `id` int(11) NOT NULL,
   `status` int(11) DEFAULT '0',
   `draft` int(11) DEFAULT '0',
@@ -587,7 +587,7 @@ CREATE TABLE `conversation_message_info` (
 -- Table structure for table `conversation_msg`
 --
 
-CREATE TABLE `conversation_msg` (
+CREATE TABLE IF NOT EXISTS `conversation_msg` (
   `msg_id` int(11) NOT NULL,
   `conversation_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
@@ -607,7 +607,7 @@ CREATE TABLE `conversation_msg` (
 -- Table structure for table `conversation_user`
 --
 
-CREATE TABLE `conversation_user` (
+CREATE TABLE IF NOT EXISTS `conversation_user` (
   `conversation_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `usertypeID` int(11) NOT NULL,
@@ -621,7 +621,7 @@ CREATE TABLE `conversation_user` (
 -- Table structure for table `document`
 --
 
-CREATE TABLE `document` (
+CREATE TABLE IF NOT EXISTS `document` (
   `documentID` int(11) NOT NULL,
   `title` varchar(128) CHARACTER SET utf8 NOT NULL,
   `file` varchar(200) CHARACTER SET utf8 NOT NULL,
@@ -638,7 +638,7 @@ CREATE TABLE `document` (
 -- Table structure for table `eattendance`
 --
 
-CREATE TABLE `eattendance` (
+CREATE TABLE IF NOT EXISTS `eattendance` (
   `eattendanceID` int(200) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `examID` int(11) NOT NULL,
@@ -659,7 +659,7 @@ CREATE TABLE `eattendance` (
 -- Table structure for table `ebooks`
 --
 
-CREATE TABLE `ebooks` (
+CREATE TABLE IF NOT EXISTS `ebooks` (
   `ebooksID` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `author` varchar(255) NOT NULL,
@@ -675,7 +675,7 @@ CREATE TABLE `ebooks` (
 -- Table structure for table `emailsetting`
 --
 
-CREATE TABLE `emailsetting` (
+CREATE TABLE IF NOT EXISTS `emailsetting` (
   `fieldoption` varchar(100) NOT NULL,
   `value` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -698,7 +698,7 @@ INSERT INTO `emailsetting` (`fieldoption`, `value`) VALUES
 -- Table structure for table `event`
 --
 
-CREATE TABLE `event` (
+CREATE TABLE IF NOT EXISTS `event` (
   `eventID` int(11) UNSIGNED NOT NULL,
   `fdate` date NOT NULL,
   `ftime` time NOT NULL,
@@ -719,7 +719,7 @@ CREATE TABLE `event` (
 -- Table structure for table `eventcounter`
 --
 
-CREATE TABLE `eventcounter` (
+CREATE TABLE IF NOT EXISTS `eventcounter` (
   `eventcounterID` int(11) UNSIGNED NOT NULL,
   `eventID` int(11) NOT NULL,
   `username` varchar(40) NOT NULL,
@@ -736,7 +736,7 @@ CREATE TABLE `eventcounter` (
 -- Table structure for table `exam`
 --
 
-CREATE TABLE `exam` (
+CREATE TABLE IF NOT EXISTS `exam` (
   `examID` int(11) UNSIGNED NOT NULL,
   `exam` varchar(60) NOT NULL,
   `date` date NOT NULL,
@@ -750,7 +750,7 @@ CREATE TABLE `exam` (
 -- Table structure for table `examschedule`
 --
 
-CREATE TABLE `examschedule` (
+CREATE TABLE IF NOT EXISTS `examschedule` (
   `examscheduleID` int(11) UNSIGNED NOT NULL,
   `examID` int(11) NOT NULL,
   `classesID` int(11) NOT NULL,
@@ -771,7 +771,7 @@ CREATE TABLE `examschedule` (
 -- Table structure for table `expense`
 --
 
-CREATE TABLE `expense` (
+CREATE TABLE IF NOT EXISTS `expense` (
   `expenseID` int(11) UNSIGNED NOT NULL,
   `create_date` date NOT NULL,
   `date` date NOT NULL,
@@ -796,7 +796,7 @@ CREATE TABLE `expense` (
 -- Table structure for table `expensetypes`
 --
 
-CREATE TABLE `expensetypes` (
+CREATE TABLE IF NOT EXISTS `expensetypes` (
   `expensetypesID` int(11) UNSIGNED NOT NULL,
   `expensetypes` varchar(60) NOT NULL,
   `note` text,
@@ -810,7 +810,7 @@ CREATE TABLE `expensetypes` (
 -- Table structure for table `feetypes`
 --
 
-CREATE TABLE `feetypes` (
+CREATE TABLE IF NOT EXISTS `feetypes` (
   `feetypesID` int(11) UNSIGNED NOT NULL,
   `feetypes` varchar(60) NOT NULL,
   `note` text,
@@ -835,7 +835,7 @@ INSERT INTO `feetypes` (`feetypesID`, `feetypes`, `note`, `fee_amount`, `school_
 -- Table structure for table `fmenu`
 --
 
-CREATE TABLE `fmenu` (
+CREATE TABLE IF NOT EXISTS `fmenu` (
   `fmenuID` int(11) NOT NULL,
   `menu_name` varchar(128) NOT NULL,
   `status` int(11) NOT NULL COMMENT 'Only for active',
@@ -857,7 +857,7 @@ INSERT INTO `fmenu` (`fmenuID`, `menu_name`, `status`, `topbar`, `social`) VALUE
 -- Table structure for table `fmenu_relation`
 --
 
-CREATE TABLE `fmenu_relation` (
+CREATE TABLE IF NOT EXISTS `fmenu_relation` (
   `fmenu_relationID` int(11) NOT NULL,
   `fmenuID` int(11) DEFAULT NULL,
   `menu_typeID` int(11) DEFAULT NULL COMMENT '1 => Pages, 2 => Post, 3 => Links',
@@ -890,7 +890,7 @@ INSERT INTO `fmenu_relation` (`fmenu_relationID`, `fmenuID`, `menu_typeID`, `men
 -- Table structure for table `frontend_setting`
 --
 
-CREATE TABLE `frontend_setting` (
+CREATE TABLE IF NOT EXISTS `frontend_setting` (
   `fieldoption` varchar(100) NOT NULL,
   `value` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -917,7 +917,7 @@ INSERT INTO `frontend_setting` (`fieldoption`, `value`) VALUES
 -- Table structure for table `frontend_template`
 --
 
-CREATE TABLE `frontend_template` (
+CREATE TABLE IF NOT EXISTS `frontend_template` (
   `frontend_templateID` int(11) NOT NULL,
   `template_name` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -943,7 +943,7 @@ INSERT INTO `frontend_template` (`frontend_templateID`, `template_name`) VALUES
 -- Table structure for table `globalpayment`
 --
 
-CREATE TABLE `globalpayment` (
+CREATE TABLE IF NOT EXISTS `globalpayment` (
   `globalpaymentID` int(11) NOT NULL,
   `classesID` int(11) DEFAULT NULL,
   `sectionID` int(11) NOT NULL,
@@ -961,7 +961,7 @@ CREATE TABLE `globalpayment` (
 -- Table structure for table `grade`
 --
 
-CREATE TABLE `grade` (
+CREATE TABLE IF NOT EXISTS `grade` (
   `gradeID` int(11) UNSIGNED NOT NULL,
   `grade` varchar(60) NOT NULL,
   `point` varchar(11) NOT NULL,
@@ -976,7 +976,7 @@ CREATE TABLE `grade` (
 -- Table structure for table `hmember`
 --
 
-CREATE TABLE `hmember` (
+CREATE TABLE IF NOT EXISTS `hmember` (
   `hmemberID` int(11) UNSIGNED NOT NULL,
   `hostelID` int(11) NOT NULL,
   `categoryID` int(11) NOT NULL,
@@ -991,7 +991,7 @@ CREATE TABLE `hmember` (
 -- Table structure for table `holiday`
 --
 
-CREATE TABLE `holiday` (
+CREATE TABLE IF NOT EXISTS `holiday` (
   `holidayID` int(11) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `fdate` date NOT NULL,
@@ -1010,7 +1010,7 @@ CREATE TABLE `holiday` (
 -- Table structure for table `homework`
 --
 
-CREATE TABLE `homework` (
+CREATE TABLE IF NOT EXISTS `homework` (
   `id` int(200) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `examID` int(11) DEFAULT NULL,
@@ -1031,7 +1031,7 @@ CREATE TABLE `homework` (
 -- Table structure for table `hostel`
 --
 
-CREATE TABLE `hostel` (
+CREATE TABLE IF NOT EXISTS `hostel` (
   `hostelID` int(11) UNSIGNED NOT NULL,
   `name` varchar(128) NOT NULL,
   `htype` varchar(11) NOT NULL,
@@ -1045,7 +1045,7 @@ CREATE TABLE `hostel` (
 -- Table structure for table `hourly_template`
 --
 
-CREATE TABLE `hourly_template` (
+CREATE TABLE IF NOT EXISTS `hourly_template` (
   `hourly_templateID` int(11) NOT NULL,
   `hourly_grades` varchar(128) NOT NULL,
   `hourly_rate` int(11) NOT NULL
@@ -1065,7 +1065,7 @@ INSERT INTO `hourly_template` (`hourly_templateID`, `hourly_grades`, `hourly_rat
 -- Table structure for table `income`
 --
 
-CREATE TABLE `income` (
+CREATE TABLE IF NOT EXISTS `income` (
   `incomeID` int(11) NOT NULL,
   `name` varchar(128) NOT NULL,
   `date` date NOT NULL,
@@ -1087,7 +1087,7 @@ CREATE TABLE `income` (
 -- Table structure for table `ini_config`
 --
 
-CREATE TABLE `ini_config` (
+CREATE TABLE IF NOT EXISTS `ini_config` (
   `configID` int(11) UNSIGNED NOT NULL,
   `type` varchar(255) NOT NULL,
   `config_key` varchar(255) NOT NULL,
@@ -1125,7 +1125,7 @@ INSERT INTO `ini_config` (`configID`, `type`, `config_key`, `value`) VALUES
 -- Table structure for table `instruction`
 --
 
-CREATE TABLE `instruction` (
+CREATE TABLE IF NOT EXISTS `instruction` (
   `instructionID` int(11) NOT NULL,
   `title` varchar(512) NOT NULL,
   `content` text NOT NULL
@@ -1137,7 +1137,7 @@ CREATE TABLE `instruction` (
 -- Table structure for table `invoice`
 --
 
-CREATE TABLE `invoice` (
+CREATE TABLE IF NOT EXISTS `invoice` (
   `invoiceID` int(11) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `classesID` int(11) NOT NULL,
@@ -1165,7 +1165,7 @@ CREATE TABLE `invoice` (
 -- Table structure for table `issue`
 --
 
-CREATE TABLE `issue` (
+CREATE TABLE IF NOT EXISTS `issue` (
   `issueID` int(11) UNSIGNED NOT NULL,
   `lID` varchar(128) NOT NULL,
   `bookID` int(11) NOT NULL,
@@ -1182,7 +1182,7 @@ CREATE TABLE `issue` (
 -- Table structure for table `leaveapplications`
 --
 
-CREATE TABLE `leaveapplications` (
+CREATE TABLE IF NOT EXISTS `leaveapplications` (
   `leaveapplicationID` int(10) UNSIGNED NOT NULL,
   `leavecategoryID` int(10) UNSIGNED NOT NULL,
   `apply_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1213,7 +1213,7 @@ CREATE TABLE `leaveapplications` (
 -- Table structure for table `leaveassign`
 --
 
-CREATE TABLE `leaveassign` (
+CREATE TABLE IF NOT EXISTS `leaveassign` (
   `leaveassignID` int(10) UNSIGNED NOT NULL,
   `leavecategoryID` int(10) UNSIGNED NOT NULL,
   `usertypeID` int(11) UNSIGNED NOT NULL,
@@ -1231,7 +1231,7 @@ CREATE TABLE `leaveassign` (
 -- Table structure for table `leavecategory`
 --
 
-CREATE TABLE `leavecategory` (
+CREATE TABLE IF NOT EXISTS `leavecategory` (
   `leavecategoryID` int(10) UNSIGNED NOT NULL,
   `leavecategory` varchar(255) NOT NULL,
   `leavegender` int(11) DEFAULT '0' COMMENT '1 = General, 2 = Male, 3 = Femele',
@@ -1255,7 +1255,7 @@ INSERT INTO `leavecategory` (`leavecategoryID`, `leavecategory`, `leavegender`, 
 -- Table structure for table `lmember`
 --
 
-CREATE TABLE `lmember` (
+CREATE TABLE IF NOT EXISTS `lmember` (
   `lmemberID` int(11) UNSIGNED NOT NULL,
   `lID` varchar(40) NOT NULL,
   `studentID` int(11) NOT NULL,
@@ -1272,7 +1272,7 @@ CREATE TABLE `lmember` (
 -- Table structure for table `location`
 --
 
-CREATE TABLE `location` (
+CREATE TABLE IF NOT EXISTS `location` (
   `locationID` int(11) UNSIGNED NOT NULL,
   `location` varchar(128) NOT NULL,
   `description` text,
@@ -1296,7 +1296,7 @@ INSERT INTO `location` (`locationID`, `location`, `description`, `create_date`, 
 -- Table structure for table `loginlog`
 --
 
-CREATE TABLE `loginlog` (
+CREATE TABLE IF NOT EXISTS `loginlog` (
   `loginlogID` int(11) NOT NULL,
   `ip` varchar(45) DEFAULT NULL,
   `browser` varchar(128) DEFAULT NULL,
@@ -1313,7 +1313,7 @@ CREATE TABLE `loginlog` (
 -- Table structure for table `mailandsms`
 --
 
-CREATE TABLE `mailandsms` (
+CREATE TABLE IF NOT EXISTS `mailandsms` (
   `mailandsmsID` int(11) UNSIGNED NOT NULL,
   `usertypeID` int(11) NOT NULL,
   `users` text NOT NULL,
@@ -1332,7 +1332,7 @@ CREATE TABLE `mailandsms` (
 -- Table structure for table `mailandsmstemplate`
 --
 
-CREATE TABLE `mailandsmstemplate` (
+CREATE TABLE IF NOT EXISTS `mailandsmstemplate` (
   `mailandsmstemplateID` int(11) UNSIGNED NOT NULL,
   `name` varchar(128) NOT NULL,
   `usertypeID` int(11) NOT NULL,
@@ -1360,9 +1360,9 @@ INSERT INTO `mailandsmstemplate` (`mailandsmstemplateID`, `name`, `usertypeID`, 
 (12, 'PONGEL HOLYDAYS', 3, 'sms', 'Dear Parents, GOWTHAMI GRAMMER SCHOOL informing Pongal holidays from 12-01-2023 to 18-01-2023. and the School re-opened at 19-01-2023. Thanking you. VGNSSP .', '2023-01-09 11:07:49', 1007487773079740669),
 (13, 'PONGEL WISHES', 3, 'sms', 'Dear Parents, Students, Well-wishers, we wish you a \"HAPPY PONGAL\" May the blessings of god be showered on you & your family on this Auspicious Occasion. VGNSSPGOWTHAMI GRAMMER SCHOOL', '2023-01-10 05:46:25', 1007748887439467440),
 (14, 'Teacher attendence', 3, 'sms', 'Dear Teacher, you got absent on this day for school, it will considered as CL. Thanking You. Regords Principal -GGS Darsi. VGNSSP', '2023-02-14 08:24:39', 1007291594726159754),
-(16, 'ABSENT', 3, 'voice', 'ప్రియమైన తల్లిదండ్రులకు తెలియజేయునది ఏమనగా {{absent_date}}{{student_name}}  స్కూల్ కి రాలేదు ఇట్లు{{school_name}}', '2023-07-13 20:47:39', 0),
+(16, 'ABSENT', 3, 'voice', 'à°ªà±à°°à°¿à°¯à°®à±ˆà°¨ à°¤à°²à±à°²à°¿à°¦à°‚à°¡à±à°°à±à°²à°•à± à°¤à±†à°²à°¿à°¯à°œà±‡à°¯à±à°¨à°¦à°¿ à°à°®à°¨à°—à°¾ {{absent_date}}{{student_name}}  à°¸à±à°•à±‚à°²à± à°•à°¿Â à°°à°¾à°²à±‡à°¦à±Â à°‡à°Ÿà±à°²à±{{school_name}}', '2023-07-13 20:47:39', 0),
 (17, 'ABCENT VOICE CALL', 3, 'voice', 'Dear parent your children to day abcent in school', '2023-07-23 09:57:52', 0),
-(18, 'ATTTENDENCE -- 3', 4, 'voice', 'ప్రియమైన తల్లిదండ్రులకు[father\'s_name] తెలియజేయునది ఏమనగా {{absent_date}}{{student_name}} స్కూల్ కి రాలేదు ఇట్లు{{school_name}}', '2023-07-29 11:30:11', 0);
+(18, 'ATTTENDENCE -- 3', 4, 'voice', 'à°ªà±à°°à°¿à°¯à°®à±ˆà°¨ à°¤à°²à±à°²à°¿à°¦à°‚à°¡à±à°°à±à°²à°•à±[father\'s_name] à°¤à±†à°²à°¿à°¯à°œà±‡à°¯à±à°¨à°¦à°¿ à°à°®à°¨à°—à°¾ {{absent_date}}{{student_name}} à°¸à±à°•à±‚à°²à± à°•à°¿ à°°à°¾à°²à±‡à°¦à± à°‡à°Ÿà±à°²à±{{school_name}}', '2023-07-29 11:30:11', 0);
 
 -- --------------------------------------------------------
 
@@ -1370,7 +1370,7 @@ INSERT INTO `mailandsmstemplate` (`mailandsmstemplateID`, `name`, `usertypeID`, 
 -- Table structure for table `mailandsmstemplatetag`
 --
 
-CREATE TABLE `mailandsmstemplatetag` (
+CREATE TABLE IF NOT EXISTS `mailandsmstemplatetag` (
   `mailandsmstemplatetagID` int(11) UNSIGNED NOT NULL,
   `usertypeID` int(11) NOT NULL,
   `tagname` varchar(128) NOT NULL,
@@ -1450,7 +1450,7 @@ INSERT INTO `mailandsmstemplatetag` (`mailandsmstemplatetagID`, `usertypeID`, `t
 -- Table structure for table `maininvoice`
 --
 
-CREATE TABLE `maininvoice` (
+CREATE TABLE IF NOT EXISTS `maininvoice` (
   `maininvoiceID` int(11) UNSIGNED NOT NULL,
   `maininvoiceschoolyearID` int(11) NOT NULL,
   `maininvoiceclassesID` int(11) NOT NULL,
@@ -1474,7 +1474,7 @@ CREATE TABLE `maininvoice` (
 -- Table structure for table `make_payment`
 --
 
-CREATE TABLE `make_payment` (
+CREATE TABLE IF NOT EXISTS `make_payment` (
   `make_paymentID` int(11) NOT NULL,
   `month` text NOT NULL,
   `gross_salary` text NOT NULL,
@@ -1502,7 +1502,7 @@ CREATE TABLE `make_payment` (
 -- Table structure for table `manage_salary`
 --
 
-CREATE TABLE `manage_salary` (
+CREATE TABLE IF NOT EXISTS `manage_salary` (
   `manage_salaryID` int(11) NOT NULL,
   `userID` int(11) NOT NULL,
   `usertypeID` int(11) NOT NULL,
@@ -1521,7 +1521,7 @@ CREATE TABLE `manage_salary` (
 -- Table structure for table `mark`
 --
 
-CREATE TABLE `mark` (
+CREATE TABLE IF NOT EXISTS `mark` (
   `markID` int(200) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `examID` int(11) NOT NULL,
@@ -1543,7 +1543,7 @@ CREATE TABLE `mark` (
 -- Table structure for table `markpercentage`
 --
 
-CREATE TABLE `markpercentage` (
+CREATE TABLE IF NOT EXISTS `markpercentage` (
   `markpercentageID` int(11) NOT NULL,
   `markpercentagetype` varchar(100) NOT NULL,
   `percentage` double NOT NULL,
@@ -1570,7 +1570,7 @@ INSERT INTO `markpercentage` (`markpercentageID`, `markpercentagetype`, `percent
 -- Table structure for table `markrelation`
 --
 
-CREATE TABLE `markrelation` (
+CREATE TABLE IF NOT EXISTS `markrelation` (
   `markrelationID` int(11) UNSIGNED NOT NULL,
   `markID` int(11) NOT NULL,
   `markpercentageID` int(11) NOT NULL,
@@ -1583,7 +1583,7 @@ CREATE TABLE `markrelation` (
 -- Table structure for table `marksetting`
 --
 
-CREATE TABLE `marksetting` (
+CREATE TABLE IF NOT EXISTS `marksetting` (
   `marksettingID` int(11) NOT NULL,
   `examID` int(11) NOT NULL DEFAULT '0',
   `classesID` int(11) NOT NULL DEFAULT '0',
@@ -1597,7 +1597,7 @@ CREATE TABLE `marksetting` (
 -- Table structure for table `marksettingrelation`
 --
 
-CREATE TABLE `marksettingrelation` (
+CREATE TABLE IF NOT EXISTS `marksettingrelation` (
   `marksettingrelationID` int(11) NOT NULL,
   `marktypeID` int(11) NOT NULL DEFAULT '0',
   `marksettingID` int(11) NOT NULL DEFAULT '0',
@@ -1610,7 +1610,7 @@ CREATE TABLE `marksettingrelation` (
 -- Table structure for table `media`
 --
 
-CREATE TABLE `media` (
+CREATE TABLE IF NOT EXISTS `media` (
   `mediaID` int(11) UNSIGNED NOT NULL,
   `userID` int(11) NOT NULL,
   `usertypeID` int(11) NOT NULL,
@@ -1625,7 +1625,7 @@ CREATE TABLE `media` (
 -- Table structure for table `media_category`
 --
 
-CREATE TABLE `media_category` (
+CREATE TABLE IF NOT EXISTS `media_category` (
   `mcategoryID` int(11) UNSIGNED NOT NULL,
   `userID` int(11) NOT NULL,
   `usertypeID` int(11) NOT NULL,
@@ -1639,7 +1639,7 @@ CREATE TABLE `media_category` (
 -- Table structure for table `media_gallery`
 --
 
-CREATE TABLE `media_gallery` (
+CREATE TABLE IF NOT EXISTS `media_gallery` (
   `media_galleryID` int(11) NOT NULL,
   `media_gallery_type` int(11) NOT NULL,
   `file_type` varchar(40) DEFAULT NULL,
@@ -1672,7 +1672,7 @@ INSERT INTO `media_gallery` (`media_galleryID`, `media_gallery_type`, `file_type
 -- Table structure for table `media_share`
 --
 
-CREATE TABLE `media_share` (
+CREATE TABLE IF NOT EXISTS `media_share` (
   `shareID` int(11) UNSIGNED NOT NULL,
   `classesID` int(11) NOT NULL DEFAULT '0',
   `public` int(11) NOT NULL,
@@ -1687,7 +1687,7 @@ CREATE TABLE `media_share` (
 -- Table structure for table `menu`
 --
 
-CREATE TABLE `menu` (
+CREATE TABLE IF NOT EXISTS `menu` (
   `menuID` int(11) NOT NULL,
   `menuName` varchar(128) NOT NULL,
   `link` varchar(512) NOT NULL,
@@ -1871,7 +1871,7 @@ INSERT INTO `menu` (`menuID`, `menuName`, `link`, `icon`, `pullRight`, `status`,
 -- Table structure for table `migrations`
 --
 
-CREATE TABLE `migrations` (
+CREATE TABLE IF NOT EXISTS `migrations` (
   `version` int(3) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -1888,7 +1888,7 @@ INSERT INTO `migrations` (`version`) VALUES
 -- Table structure for table `notice`
 --
 
-CREATE TABLE `notice` (
+CREATE TABLE IF NOT EXISTS `notice` (
   `noticeID` int(11) UNSIGNED NOT NULL,
   `title` varchar(128) NOT NULL,
   `notice` text NOT NULL,
@@ -1905,7 +1905,7 @@ CREATE TABLE `notice` (
 -- Table structure for table `onlineadmission`
 --
 
-CREATE TABLE `onlineadmission` (
+CREATE TABLE IF NOT EXISTS `onlineadmission` (
   `onlineadmissionID` int(11) NOT NULL,
   `name` varchar(60) DEFAULT NULL,
   `dob` date DEFAULT NULL,
@@ -1940,7 +1940,7 @@ INSERT INTO `onlineadmission` (`onlineadmissionID`, `name`, `dob`, `admission_da
 -- Table structure for table `online_exam`
 --
 
-CREATE TABLE `online_exam` (
+CREATE TABLE IF NOT EXISTS `online_exam` (
   `onlineExamID` int(11) NOT NULL,
   `name` varchar(512) NOT NULL,
   `description` text,
@@ -1983,7 +1983,7 @@ CREATE TABLE `online_exam` (
 -- Table structure for table `online_exam_question`
 --
 
-CREATE TABLE `online_exam_question` (
+CREATE TABLE IF NOT EXISTS `online_exam_question` (
   `onlineExamQuestionID` int(11) NOT NULL,
   `onlineExamID` int(11) NOT NULL,
   `questionID` int(11) DEFAULT NULL
@@ -1995,7 +1995,7 @@ CREATE TABLE `online_exam_question` (
 -- Table structure for table `online_exam_type`
 --
 
-CREATE TABLE `online_exam_type` (
+CREATE TABLE IF NOT EXISTS `online_exam_type` (
   `onlineExamTypeID` int(11) NOT NULL,
   `title` varchar(512) DEFAULT NULL,
   `examTypeNumber` int(11) DEFAULT NULL,
@@ -2008,7 +2008,7 @@ CREATE TABLE `online_exam_type` (
 -- Table structure for table `online_exam_user_answer`
 --
 
-CREATE TABLE `online_exam_user_answer` (
+CREATE TABLE IF NOT EXISTS `online_exam_user_answer` (
   `onlineExamUserAnswerID` int(11) NOT NULL,
   `onlineExamQuestionID` int(11) NOT NULL,
   `onlineExamRegisteredUserID` int(11) DEFAULT NULL,
@@ -2023,7 +2023,7 @@ CREATE TABLE `online_exam_user_answer` (
 -- Table structure for table `online_exam_user_answer_option`
 --
 
-CREATE TABLE `online_exam_user_answer_option` (
+CREATE TABLE IF NOT EXISTS `online_exam_user_answer_option` (
   `onlineExamUserAnswerOptionID` int(11) NOT NULL,
   `questionID` int(11) NOT NULL,
   `optionID` int(11) DEFAULT NULL,
@@ -2041,7 +2041,7 @@ CREATE TABLE `online_exam_user_answer_option` (
 -- Table structure for table `online_exam_user_status`
 --
 
-CREATE TABLE `online_exam_user_status` (
+CREATE TABLE IF NOT EXISTS `online_exam_user_status` (
   `onlineExamUserStatus` int(11) NOT NULL,
   `onlineExamID` int(11) NOT NULL,
   `duration` int(11) NOT NULL,
@@ -2067,7 +2067,7 @@ CREATE TABLE `online_exam_user_status` (
 -- Table structure for table `overtime`
 --
 
-CREATE TABLE `overtime` (
+CREATE TABLE IF NOT EXISTS `overtime` (
   `id` int(11) NOT NULL,
   `date` datetime NOT NULL,
   `hours` int(11) NOT NULL,
@@ -2088,7 +2088,7 @@ CREATE TABLE `overtime` (
 -- Table structure for table `pages`
 --
 
-CREATE TABLE `pages` (
+CREATE TABLE IF NOT EXISTS `pages` (
   `pagesID` int(11) NOT NULL,
   `title` varchar(128) DEFAULT NULL,
   `url` varchar(250) DEFAULT NULL,
@@ -2127,7 +2127,7 @@ INSERT INTO `pages` (`pagesID`, `title`, `url`, `content`, `status`, `visibility
 -- Table structure for table `parents`
 --
 
-CREATE TABLE `parents` (
+CREATE TABLE IF NOT EXISTS `parents` (
   `parentsID` int(11) UNSIGNED NOT NULL,
   `name` varchar(60) NOT NULL,
   `father_name` varchar(60) NOT NULL,
@@ -2157,7 +2157,7 @@ CREATE TABLE `parents` (
 -- Table structure for table `payment`
 --
 
-CREATE TABLE `payment` (
+CREATE TABLE IF NOT EXISTS `payment` (
   `paymentID` int(11) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `invoiceID` int(11) NOT NULL,
@@ -2182,7 +2182,7 @@ CREATE TABLE `payment` (
 -- Table structure for table `payment_gateways`
 --
 
-CREATE TABLE `payment_gateways` (
+CREATE TABLE IF NOT EXISTS `payment_gateways` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `slug` varchar(100) NOT NULL,
@@ -2204,7 +2204,7 @@ INSERT INTO `payment_gateways` (`id`, `name`, `slug`, `misc`, `status`) VALUES
 -- Table structure for table `payment_gateway_option`
 --
 
-CREATE TABLE `payment_gateway_option` (
+CREATE TABLE IF NOT EXISTS `payment_gateway_option` (
   `id` int(11) UNSIGNED NOT NULL,
   `payment_gateway_id` int(11) NOT NULL,
   `payment_option` varchar(255) NOT NULL,
@@ -2237,7 +2237,7 @@ INSERT INTO `payment_gateway_option` (`id`, `payment_gateway_id`, `payment_optio
 -- Table structure for table `permissions`
 --
 
-CREATE TABLE `permissions` (
+CREATE TABLE IF NOT EXISTS `permissions` (
   `permissionID` int(10) UNSIGNED NOT NULL,
   `description` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL DEFAULT '' COMMENT 'In most cases, this should be the name of the module (e.g. news)',
@@ -2649,7 +2649,7 @@ INSERT INTO `permissions` (`permissionID`, `description`, `name`, `active`) VALU
 -- Table structure for table `permission_relationships`
 --
 
-CREATE TABLE `permission_relationships` (
+CREATE TABLE IF NOT EXISTS `permission_relationships` (
   `permission_id` int(11) NOT NULL,
   `usertype_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -3415,7 +3415,7 @@ INSERT INTO `permission_relationships` (`permission_id`, `usertype_id`) VALUES
 -- Table structure for table `pickup_points`
 --
 
-CREATE TABLE `pickup_points` (
+CREATE TABLE IF NOT EXISTS `pickup_points` (
   `id` int(11) NOT NULL,
   `route_id` int(11) DEFAULT NULL,
   `pickupPoint` varchar(255) DEFAULT NULL,
@@ -3432,7 +3432,7 @@ CREATE TABLE `pickup_points` (
 -- Table structure for table `posts`
 --
 
-CREATE TABLE `posts` (
+CREATE TABLE IF NOT EXISTS `posts` (
   `postsID` int(11) NOT NULL,
   `title` varchar(128) DEFAULT NULL,
   `url` varchar(250) DEFAULT NULL,
@@ -3457,7 +3457,7 @@ CREATE TABLE `posts` (
 -- Table structure for table `posts_categories`
 --
 
-CREATE TABLE `posts_categories` (
+CREATE TABLE IF NOT EXISTS `posts_categories` (
   `posts_categoriesID` int(11) NOT NULL,
   `posts_categories` varchar(40) DEFAULT NULL,
   `posts_slug` varchar(250) DEFAULT NULL,
@@ -3481,7 +3481,7 @@ INSERT INTO `posts_categories` (`posts_categoriesID`, `posts_categories`, `posts
 -- Table structure for table `posts_category`
 --
 
-CREATE TABLE `posts_category` (
+CREATE TABLE IF NOT EXISTS `posts_category` (
   `posts_categoryID` int(11) NOT NULL,
   `postsID` int(11) NOT NULL,
   `posts_categoriesID` int(11) NOT NULL
@@ -3493,7 +3493,7 @@ CREATE TABLE `posts_category` (
 -- Table structure for table `product`
 --
 
-CREATE TABLE `product` (
+CREATE TABLE IF NOT EXISTS `product` (
   `productID` int(11) NOT NULL,
   `productcategoryID` int(11) NOT NULL,
   `productname` varchar(128) NOT NULL,
@@ -3519,7 +3519,7 @@ INSERT INTO `product` (`productID`, `productcategoryID`, `productname`, `product
 -- Table structure for table `productcategory`
 --
 
-CREATE TABLE `productcategory` (
+CREATE TABLE IF NOT EXISTS `productcategory` (
   `productcategoryID` int(11) NOT NULL,
   `productcategoryname` varchar(128) NOT NULL,
   `productcategorydesc` text NOT NULL,
@@ -3542,7 +3542,7 @@ INSERT INTO `productcategory` (`productcategoryID`, `productcategoryname`, `prod
 -- Table structure for table `productpurchase`
 --
 
-CREATE TABLE `productpurchase` (
+CREATE TABLE IF NOT EXISTS `productpurchase` (
   `productpurchaseID` int(11) NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `productsupplierID` int(11) NOT NULL,
@@ -3571,7 +3571,7 @@ CREATE TABLE `productpurchase` (
 -- Table structure for table `productpurchaseitem`
 --
 
-CREATE TABLE `productpurchaseitem` (
+CREATE TABLE IF NOT EXISTS `productpurchaseitem` (
   `productpurchaseitemID` int(11) NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `productpurchaseID` int(11) NOT NULL,
@@ -3586,7 +3586,7 @@ CREATE TABLE `productpurchaseitem` (
 -- Table structure for table `productpurchasepaid`
 --
 
-CREATE TABLE `productpurchasepaid` (
+CREATE TABLE IF NOT EXISTS `productpurchasepaid` (
   `productpurchasepaidID` int(11) NOT NULL,
   `productpurchasepaidschoolyearID` int(11) NOT NULL,
   `schoolyearID` int(11) NOT NULL,
@@ -3610,7 +3610,7 @@ CREATE TABLE `productpurchasepaid` (
 -- Table structure for table `productsale`
 --
 
-CREATE TABLE `productsale` (
+CREATE TABLE IF NOT EXISTS `productsale` (
   `productsaleID` int(11) NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `productsalecustomertypeID` int(11) NOT NULL,
@@ -3639,7 +3639,7 @@ CREATE TABLE `productsale` (
 -- Table structure for table `productsaleitem`
 --
 
-CREATE TABLE `productsaleitem` (
+CREATE TABLE IF NOT EXISTS `productsaleitem` (
   `productsaleitemID` int(11) NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `productsaleID` int(11) NOT NULL,
@@ -3655,7 +3655,7 @@ CREATE TABLE `productsaleitem` (
 -- Table structure for table `productsalepaid`
 --
 
-CREATE TABLE `productsalepaid` (
+CREATE TABLE IF NOT EXISTS `productsalepaid` (
   `productsalepaidID` int(11) NOT NULL,
   `productsalepaidschoolyearID` int(11) NOT NULL,
   `schoolyearID` int(11) NOT NULL,
@@ -3679,7 +3679,7 @@ CREATE TABLE `productsalepaid` (
 -- Table structure for table `productsupplier`
 --
 
-CREATE TABLE `productsupplier` (
+CREATE TABLE IF NOT EXISTS `productsupplier` (
   `productsupplierID` int(11) NOT NULL,
   `productsuppliercompanyname` varchar(128) NOT NULL,
   `productsuppliername` varchar(40) NOT NULL,
@@ -3705,7 +3705,7 @@ INSERT INTO `productsupplier` (`productsupplierID`, `productsuppliercompanyname`
 -- Table structure for table `productwarehouse`
 --
 
-CREATE TABLE `productwarehouse` (
+CREATE TABLE IF NOT EXISTS `productwarehouse` (
   `productwarehouseID` int(11) NOT NULL,
   `productwarehousename` varchar(128) NOT NULL,
   `productwarehousecode` varchar(128) NOT NULL,
@@ -3731,7 +3731,7 @@ INSERT INTO `productwarehouse` (`productwarehouseID`, `productwarehousename`, `p
 -- Table structure for table `promotionlog`
 --
 
-CREATE TABLE `promotionlog` (
+CREATE TABLE IF NOT EXISTS `promotionlog` (
   `promotionLogID` int(11) UNSIGNED NOT NULL,
   `promotionType` varchar(50) DEFAULT NULL,
   `classesID` int(11) NOT NULL,
@@ -3753,7 +3753,7 @@ CREATE TABLE `promotionlog` (
 -- Table structure for table `purchase`
 --
 
-CREATE TABLE `purchase` (
+CREATE TABLE IF NOT EXISTS `purchase` (
   `purchaseID` int(11) NOT NULL,
   `assetID` int(11) NOT NULL,
   `vendorID` int(11) NOT NULL,
@@ -3785,7 +3785,7 @@ INSERT INTO `purchase` (`purchaseID`, `assetID`, `vendorID`, `quantity`, `unit`,
 -- Table structure for table `question_answer`
 --
 
-CREATE TABLE `question_answer` (
+CREATE TABLE IF NOT EXISTS `question_answer` (
   `answerID` int(11) NOT NULL,
   `questionID` int(11) NOT NULL,
   `optionID` int(11) DEFAULT NULL,
@@ -3799,7 +3799,7 @@ CREATE TABLE `question_answer` (
 -- Table structure for table `question_bank`
 --
 
-CREATE TABLE `question_bank` (
+CREATE TABLE IF NOT EXISTS `question_bank` (
   `questionBankID` int(11) NOT NULL,
   `question` text NOT NULL,
   `explanation` text,
@@ -3826,7 +3826,7 @@ CREATE TABLE `question_bank` (
 -- Table structure for table `question_group`
 --
 
-CREATE TABLE `question_group` (
+CREATE TABLE IF NOT EXISTS `question_group` (
   `questionGroupID` int(11) NOT NULL,
   `title` varchar(250) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -3849,7 +3849,7 @@ INSERT INTO `question_group` (`questionGroupID`, `title`) VALUES
 -- Table structure for table `question_level`
 --
 
-CREATE TABLE `question_level` (
+CREATE TABLE IF NOT EXISTS `question_level` (
   `questionLevelID` int(11) NOT NULL,
   `name` varchar(250) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -3869,7 +3869,7 @@ INSERT INTO `question_level` (`questionLevelID`, `name`) VALUES
 -- Table structure for table `question_option`
 --
 
-CREATE TABLE `question_option` (
+CREATE TABLE IF NOT EXISTS `question_option` (
   `optionID` int(11) NOT NULL,
   `questionID` int(11) NOT NULL,
   `name` varchar(512) NOT NULL,
@@ -3882,7 +3882,7 @@ CREATE TABLE `question_option` (
 -- Table structure for table `question_type`
 --
 
-CREATE TABLE `question_type` (
+CREATE TABLE IF NOT EXISTS `question_type` (
   `questionTypeID` int(11) NOT NULL,
   `typeNumber` int(11) NOT NULL,
   `name` varchar(512) NOT NULL
@@ -3894,7 +3894,7 @@ CREATE TABLE `question_type` (
 -- Table structure for table `reset`
 --
 
-CREATE TABLE `reset` (
+CREATE TABLE IF NOT EXISTS `reset` (
   `resetID` int(11) UNSIGNED NOT NULL,
   `keyID` varchar(128) NOT NULL,
   `email` varchar(60) NOT NULL
@@ -3913,7 +3913,7 @@ INSERT INTO `reset` (`resetID`, `keyID`, `email`) VALUES
 -- Table structure for table `routine`
 --
 
-CREATE TABLE `routine` (
+CREATE TABLE IF NOT EXISTS `routine` (
   `routineID` int(11) UNSIGNED NOT NULL,
   `classesID` int(11) NOT NULL,
   `sectionID` int(11) NOT NULL,
@@ -3932,7 +3932,7 @@ CREATE TABLE `routine` (
 -- Table structure for table `salary_option`
 --
 
-CREATE TABLE `salary_option` (
+CREATE TABLE IF NOT EXISTS `salary_option` (
   `salary_optionID` int(11) NOT NULL,
   `salary_templateID` int(11) NOT NULL,
   `option_type` int(11) NOT NULL COMMENT 'Allowances =1, Dllowances = 2, Increment = 3',
@@ -3946,7 +3946,7 @@ CREATE TABLE `salary_option` (
 -- Table structure for table `salary_template`
 --
 
-CREATE TABLE `salary_template` (
+CREATE TABLE IF NOT EXISTS `salary_template` (
   `salary_templateID` int(11) NOT NULL,
   `salary_grades` varchar(128) NOT NULL,
   `basic_salary` text NOT NULL,
@@ -3966,7 +3966,7 @@ INSERT INTO `salary_template` (`salary_templateID`, `salary_grades`, `basic_sala
 -- Table structure for table `school`
 --
 
-CREATE TABLE `school` (
+CREATE TABLE IF NOT EXISTS `school` (
   `id` int(11) NOT NULL,
   `url` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -4002,7 +4002,7 @@ INSERT INTO `school` (`id`, `url`, `date`, `update_url`) VALUES
 -- Table structure for table `schoolyear`
 --
 
-CREATE TABLE `schoolyear` (
+CREATE TABLE IF NOT EXISTS `schoolyear` (
   `schoolyearID` int(11) NOT NULL,
   `schooltype` varchar(40) DEFAULT NULL,
   `schoolyear` varchar(128) NOT NULL,
@@ -4022,7 +4022,7 @@ CREATE TABLE `schoolyear` (
 --
 
 INSERT INTO `schoolyear` (`schoolyearID`, `schooltype`, `schoolyear`, `schoolyeartitle`, `startingdate`, `endingdate`, `semestercode`, `create_date`, `modify_date`, `create_userID`, `create_username`, `create_usertype`) VALUES
-(1, 'classbase', '2026-2027', '', '2026-06-01', '2027-04-24', NULL, '2026-06-01 12:35:25', '2027-05-31 12:10:31', 1, 'admin', 'Admin'),
+(1, 'classbase', '2026-2027', '', '2026-06-01', '2027-04-24', NULL, '2026-06-01 12:35:25', '2027-05-31 12:10:31', 1, 'admin', 'Admin');
 
 -- --------------------------------------------------------
 
@@ -4030,7 +4030,7 @@ INSERT INTO `schoolyear` (`schoolyearID`, `schooltype`, `schoolyear`, `schoolyea
 -- Table structure for table `school_fees`
 --
 
-CREATE TABLE `school_fees` (
+CREATE TABLE IF NOT EXISTS `school_fees` (
   `id` int(11) NOT NULL,
   `class_id` int(11) DEFAULT NULL,
   `section_id` int(11) DEFAULT NULL,
@@ -4046,7 +4046,7 @@ CREATE TABLE `school_fees` (
 -- Table structure for table `school_sessions`
 --
 
-CREATE TABLE `school_sessions` (
+CREATE TABLE IF NOT EXISTS `school_sessions` (
   `id` varchar(128) NOT NULL,
   `ip_address` varchar(45) NOT NULL,
   `timestamp` int(10) UNSIGNED NOT NULL DEFAULT '0',
@@ -4068,7 +4068,7 @@ INSERT INTO `school_sessions` (`id`, `ip_address`, `timestamp`, `data`) VALUES
 -- Table structure for table `section`
 --
 
-CREATE TABLE `section` (
+CREATE TABLE IF NOT EXISTS `section` (
   `sectionID` int(11) UNSIGNED NOT NULL,
   `section` varchar(60) NOT NULL,
   `category` varchar(128) NOT NULL,
@@ -4089,7 +4089,7 @@ CREATE TABLE `section` (
 -- Table structure for table `setting`
 --
 
-CREATE TABLE `setting` (
+CREATE TABLE IF NOT EXISTS `setting` (
   `fieldoption` varchar(100) NOT NULL,
   `value` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -4156,7 +4156,7 @@ INSERT INTO `setting` (`fieldoption`, `value`) VALUES
 -- Table structure for table `setting1`
 --
 
-CREATE TABLE `setting1` (
+CREATE TABLE IF NOT EXISTS `setting1` (
   `fieldoption` varchar(100) NOT NULL,
   `value` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -4218,7 +4218,7 @@ INSERT INTO `setting1` (`fieldoption`, `value`) VALUES
 -- Table structure for table `slider`
 --
 
-CREATE TABLE `slider` (
+CREATE TABLE IF NOT EXISTS `slider` (
   `sliderID` int(11) NOT NULL,
   `pagesID` int(11) NOT NULL,
   `slider` int(11) NOT NULL
@@ -4230,7 +4230,7 @@ CREATE TABLE `slider` (
 -- Table structure for table `smssettings`
 --
 
-CREATE TABLE `smssettings` (
+CREATE TABLE IF NOT EXISTS `smssettings` (
   `smssettingsID` int(11) UNSIGNED NOT NULL,
   `types` varchar(255) DEFAULT NULL,
   `field_names` varchar(255) DEFAULT NULL,
@@ -4264,7 +4264,7 @@ INSERT INTO `smssettings` (`smssettingsID`, `types`, `field_names`, `field_value
 -- Table structure for table `sms_error_logs`
 --
 
-CREATE TABLE `sms_error_logs` (
+CREATE TABLE IF NOT EXISTS `sms_error_logs` (
   `id` int(11) NOT NULL,
   `type` varchar(255) DEFAULT NULL,
   `request_url` text,
@@ -4278,7 +4278,7 @@ CREATE TABLE `sms_error_logs` (
 -- Table structure for table `sociallink`
 --
 
-CREATE TABLE `sociallink` (
+CREATE TABLE IF NOT EXISTS `sociallink` (
   `sociallinkID` int(11) NOT NULL,
   `usertypeID` int(11) NOT NULL,
   `userID` int(11) NOT NULL,
@@ -4294,7 +4294,7 @@ CREATE TABLE `sociallink` (
 -- Table structure for table `sponsor`
 --
 
-CREATE TABLE `sponsor` (
+CREATE TABLE IF NOT EXISTS `sponsor` (
   `sponsorID` int(10) UNSIGNED NOT NULL,
   `type` varchar(255) DEFAULT NULL,
   `name` varchar(100) NOT NULL,
@@ -4318,7 +4318,7 @@ CREATE TABLE `sponsor` (
 -- Table structure for table `sponsorship`
 --
 
-CREATE TABLE `sponsorship` (
+CREATE TABLE IF NOT EXISTS `sponsorship` (
   `sponsorshipID` int(11) NOT NULL,
   `sponsorID` int(11) NOT NULL,
   `candidateID` int(11) NOT NULL,
@@ -4340,7 +4340,7 @@ CREATE TABLE `sponsorship` (
 -- Table structure for table `student`
 --
 
-CREATE TABLE `student` (
+CREATE TABLE IF NOT EXISTS `student` (
   `studentID` int(11) UNSIGNED NOT NULL,
   `name` varchar(60) NOT NULL,
   `dob` date DEFAULT NULL,
@@ -4406,7 +4406,7 @@ CREATE TABLE `student` (
 -- Table structure for table `student1`
 --
 
-CREATE TABLE `student1` (
+CREATE TABLE IF NOT EXISTS `student1` (
   `studentID` int(11) UNSIGNED NOT NULL,
   `name` varchar(60) NOT NULL,
   `dob` date DEFAULT NULL,
@@ -4460,7 +4460,7 @@ CREATE TABLE `student1` (
 -- Table structure for table `studentextend`
 --
 
-CREATE TABLE `studentextend` (
+CREATE TABLE IF NOT EXISTS `studentextend` (
   `studentextendID` int(11) NOT NULL,
   `studentID` int(11) NOT NULL,
   `studentgroupID` int(11) NOT NULL,
@@ -4475,7 +4475,7 @@ CREATE TABLE `studentextend` (
 -- Table structure for table `studentgroup`
 --
 
-CREATE TABLE `studentgroup` (
+CREATE TABLE IF NOT EXISTS `studentgroup` (
   `studentgroupID` int(11) NOT NULL,
   `group` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -4495,7 +4495,7 @@ INSERT INTO `studentgroup` (`studentgroupID`, `group`) VALUES
 -- Table structure for table `studentrelation`
 --
 
-CREATE TABLE `studentrelation` (
+CREATE TABLE IF NOT EXISTS `studentrelation` (
   `studentrelationID` int(11) NOT NULL,
   `srstudentID` int(11) DEFAULT NULL,
   `srname` varchar(40) NOT NULL,
@@ -4516,7 +4516,7 @@ CREATE TABLE `studentrelation` (
 -- Table structure for table `subject`
 --
 
-CREATE TABLE `subject` (
+CREATE TABLE IF NOT EXISTS `subject` (
   `subjectID` int(11) UNSIGNED NOT NULL,
   `classesID` int(11) NOT NULL,
   `type` int(100) NOT NULL,
@@ -4539,7 +4539,7 @@ CREATE TABLE `subject` (
 -- Table structure for table `subjectteacher`
 --
 
-CREATE TABLE `subjectteacher` (
+CREATE TABLE IF NOT EXISTS `subjectteacher` (
   `subjectteacherID` int(11) NOT NULL,
   `subjectID` int(11) NOT NULL,
   `classesID` int(11) NOT NULL,
@@ -4552,7 +4552,7 @@ CREATE TABLE `subjectteacher` (
 -- Table structure for table `sub_attendance`
 --
 
-CREATE TABLE `sub_attendance` (
+CREATE TABLE IF NOT EXISTS `sub_attendance` (
   `attendanceID` int(200) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `studentID` int(11) NOT NULL,
@@ -4601,7 +4601,7 @@ CREATE TABLE `sub_attendance` (
 -- Table structure for table `syllabus`
 --
 
-CREATE TABLE `syllabus` (
+CREATE TABLE IF NOT EXISTS `syllabus` (
   `syllabusID` int(11) NOT NULL,
   `title` varchar(128) NOT NULL,
   `description` text,
@@ -4620,7 +4620,7 @@ CREATE TABLE `syllabus` (
 -- Table structure for table `systemadmin`
 --
 
-CREATE TABLE `systemadmin` (
+CREATE TABLE IF NOT EXISTS `systemadmin` (
   `systemadminID` int(11) UNSIGNED NOT NULL,
   `name` varchar(60) NOT NULL,
   `dob` date NOT NULL,
@@ -4658,7 +4658,7 @@ INSERT INTO `systemadmin` (`systemadminID`, `name`, `dob`, `sex`, `religion`, `e
 -- Table structure for table `tattendance`
 --
 
-CREATE TABLE `tattendance` (
+CREATE TABLE IF NOT EXISTS `tattendance` (
   `tattendanceID` int(200) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `teacherID` int(11) NOT NULL,
@@ -4704,7 +4704,7 @@ CREATE TABLE `tattendance` (
 -- Table structure for table `teacher`
 --
 
-CREATE TABLE `teacher` (
+CREATE TABLE IF NOT EXISTS `teacher` (
   `teacherID` int(11) UNSIGNED NOT NULL,
   `name` varchar(60) NOT NULL,
   `designation` varchar(128) NOT NULL,
@@ -4736,7 +4736,7 @@ CREATE TABLE `teacher` (
 -- Table structure for table `term_fees`
 --
 
-CREATE TABLE `term_fees` (
+CREATE TABLE IF NOT EXISTS `term_fees` (
   `id` int(11) NOT NULL,
   `term1_fee` decimal(10,2) DEFAULT NULL,
   `term2_fee` decimal(10,2) DEFAULT NULL,
@@ -4757,7 +4757,7 @@ CREATE TABLE `term_fees` (
 -- Table structure for table `themes`
 --
 
-CREATE TABLE `themes` (
+CREATE TABLE IF NOT EXISTS `themes` (
   `themesID` int(11) NOT NULL,
   `sortID` int(11) NOT NULL DEFAULT '1',
   `themename` varchar(128) NOT NULL,
@@ -4793,7 +4793,7 @@ INSERT INTO `themes` (`themesID`, `sortID`, `themename`, `backend`, `frontend`, 
 -- Table structure for table `tmember`
 --
 
-CREATE TABLE `tmember` (
+CREATE TABLE IF NOT EXISTS `tmember` (
   `tmemberID` int(11) UNSIGNED NOT NULL,
   `studentID` int(11) NOT NULL,
   `transportID` int(11) NOT NULL,
@@ -4818,7 +4818,7 @@ INSERT INTO `tmember` (`tmemberID`, `studentID`, `transportID`, `name`, `email`,
 -- Table structure for table `transaction`
 --
 
-CREATE TABLE `transaction` (
+CREATE TABLE IF NOT EXISTS `transaction` (
   `transactionID` int(11) NOT NULL,
   `login_id` int(11) NOT NULL,
   `trans_name` varchar(100) DEFAULT NULL,
@@ -4840,7 +4840,7 @@ CREATE TABLE `transaction` (
 -- Table structure for table `transport`
 --
 
-CREATE TABLE `transport` (
+CREATE TABLE IF NOT EXISTS `transport` (
   `transportID` int(11) UNSIGNED NOT NULL,
   `route` text NOT NULL,
   `vehicle` varchar(255) NOT NULL,
@@ -4861,7 +4861,7 @@ CREATE TABLE `transport` (
 -- Table structure for table `uattendance`
 --
 
-CREATE TABLE `uattendance` (
+CREATE TABLE IF NOT EXISTS `uattendance` (
   `uattendanceID` int(200) UNSIGNED NOT NULL,
   `schoolyearID` int(11) NOT NULL,
   `userID` int(11) NOT NULL,
@@ -4906,7 +4906,7 @@ CREATE TABLE `uattendance` (
 -- Table structure for table `update`
 --
 
-CREATE TABLE `update` (
+CREATE TABLE IF NOT EXISTS `update` (
   `updateID` int(11) NOT NULL,
   `version` varchar(100) NOT NULL,
   `date` datetime NOT NULL,
@@ -4930,7 +4930,7 @@ INSERT INTO `update` (`updateID`, `version`, `date`, `userID`, `usertypeID`, `lo
 -- Table structure for table `user`
 --
 
-CREATE TABLE `user` (
+CREATE TABLE IF NOT EXISTS `user` (
   `userID` int(11) UNSIGNED NOT NULL,
   `name` varchar(60) NOT NULL,
   `dob` date NOT NULL,
@@ -4958,7 +4958,7 @@ CREATE TABLE `user` (
 -- Table structure for table `usertype`
 --
 
-CREATE TABLE `usertype` (
+CREATE TABLE IF NOT EXISTS `usertype` (
   `usertypeID` int(11) UNSIGNED NOT NULL,
   `usertype` varchar(60) NOT NULL,
   `create_date` datetime NOT NULL,
@@ -4991,7 +4991,7 @@ INSERT INTO `usertype` (`usertypeID`, `usertype`, `create_date`, `modify_date`, 
 -- Table structure for table `vendor`
 --
 
-CREATE TABLE `vendor` (
+CREATE TABLE IF NOT EXISTS `vendor` (
   `vendorID` int(11) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
@@ -5013,7 +5013,7 @@ INSERT INTO `vendor` (`vendorID`, `name`, `email`, `phone`, `contact_name`, `dat
 -- Table structure for table `villages`
 --
 
-CREATE TABLE `villages` (
+CREATE TABLE IF NOT EXISTS `villages` (
   `villageID` int(11) UNSIGNED NOT NULL,
   `villageName` varchar(250) NOT NULL,
   `status` tinyint(1) NOT NULL DEFAULT '0'
@@ -5025,7 +5025,7 @@ CREATE TABLE `villages` (
 -- Table structure for table `visitorinfo`
 --
 
-CREATE TABLE `visitorinfo` (
+CREATE TABLE IF NOT EXISTS `visitorinfo` (
   `visitorID` bigint(12) UNSIGNED NOT NULL,
   `name` varchar(60) DEFAULT NULL,
   `email_id` varchar(128) DEFAULT NULL,
@@ -5048,7 +5048,7 @@ CREATE TABLE `visitorinfo` (
 -- Table structure for table `weaverandfine`
 --
 
-CREATE TABLE `weaverandfine` (
+CREATE TABLE IF NOT EXISTS `weaverandfine` (
   `weaverandfineID` int(11) NOT NULL,
   `globalpaymentID` int(11) NOT NULL,
   `invoiceID` int(11) NOT NULL,
@@ -5065,7 +5065,7 @@ CREATE TABLE `weaverandfine` (
 -- Table structure for table `whatapp_templates`
 --
 
-CREATE TABLE `whatapp_templates` (
+CREATE TABLE IF NOT EXISTS `whatapp_templates` (
   `mailandsmstemplateID` int(11) UNSIGNED NOT NULL,
   `template_name` varchar(128) NOT NULL,
   `usertypeID` int(11) NOT NULL,
@@ -5092,7 +5092,7 @@ INSERT INTO `whatapp_templates` (`mailandsmstemplateID`, `template_name`, `usert
 -- Table structure for table `whatsapp_logs`
 --
 
-CREATE TABLE `whatsapp_logs` (
+CREATE TABLE IF NOT EXISTS `whatsapp_logs` (
   `id` int(11) NOT NULL,
   `type` varchar(255) DEFAULT NULL,
   `request_url` text,
@@ -6966,3 +6966,90 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table student_siblings
+--
+
+CREATE TABLE IF NOT EXISTS `student_siblings` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `studentID` INT UNSIGNED NOT NULL,
+  `sibling_studentID` INT UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_sibling_pair` (`studentID`, `sibling_studentID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table youtube_links
+--
+
+CREATE TABLE IF NOT EXISTS `youtube_links` (
+  `id` int(11) NOT NULL,
+  `link` text COLLATE utf8_unicode_ci NOT NULL,
+  `school_year_id` int(11) NOT NULL,
+  `class_id` int(11) NOT NULL,
+  `status` tinyint(1) DEFAULT '1',
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `title` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `description` text COLLATE utf8_unicode_ci,
+  `subject_id` int(11) NOT NULL DEFAULT '0',
+  `section_id` int(11) NOT NULL DEFAULT '0',
+  `created_by` int(11) NOT NULL DEFAULT '0',
+  `created_by_usertype` int(11) NOT NULL DEFAULT '0',
+  `view_count` int(11) NOT NULL DEFAULT '0',
+  `sort_order` int(11) NOT NULL DEFAULT '0',
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `banks`
+--
+
+CREATE TABLE IF NOT EXISTS `banks` ( `banksID` int(11) NOT NULL AUTO_INCREMENT, `bank_name` varchar(255) NOT NULL, `status` int(11) DEFAULT '1', PRIMARY KEY (`banksID`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `college_groups`
+--
+
+CREATE TABLE IF NOT EXISTS `college_groups` ( `collegegroupID` int(11) NOT NULL AUTO_INCREMENT, `college_name` varchar(255) NOT NULL, `college_url` varchar(255) NOT NULL, `status` int(11) DEFAULT '1', PRIMARY KEY (`collegegroupID`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `youtube_likes`
+--
+
+CREATE TABLE IF NOT EXISTS `youtube_likes` ( `id` int(11) NOT NULL AUTO_INCREMENT, `youtube_id` int(11) NOT NULL, `user_id` int(11) NOT NULL, `usertype_id` int(11) NOT NULL, `created_at` datetime DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `unique_like` (`youtube_id`, `user_id`, `usertype_id`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `student_carry_forward`
+--
+
+CREATE TABLE IF NOT EXISTS `student_carry_forward` (`id` int(11) NOT NULL AUTO_INCREMENT, `studentID` int(11) NOT NULL, `from_schoolyearID` int(11) NOT NULL, `to_schoolyearID` int(11) NOT NULL, `from_year_name` varchar(128) NOT NULL DEFAULT '', `total_fee` double NOT NULL DEFAULT 0, `total_discount` double NOT NULL DEFAULT 0, `total_paid_in_year` double NOT NULL DEFAULT 0, `total_waiver` double NOT NULL DEFAULT 0, `carry_forward_due` double NOT NULL DEFAULT 0, `status` varchar(20) NOT NULL DEFAULT 'pending', `created_at` datetime NOT NULL, `updated_at` datetime NOT NULL, PRIMARY KEY (`id`), UNIQUE KEY `uniq_cf` (`studentID`,`from_schoolyearID`,`to_schoolyearID`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `push_notification_log`
+--
+
+CREATE TABLE IF NOT EXISTS `push_notification_log` (`id` int(11) NOT NULL AUTO_INCREMENT, `title` varchar(255) NOT NULL, `message` text NOT NULL, `notification_type` varchar(50) DEFAULT 'general', `recipient_type` enum('class','section','all') NOT NULL, `classesID` int(11) DEFAULT NULL, `sectionID` int(11) DEFAULT NULL, `class_name` varchar(100) DEFAULT NULL, `section_name` varchar(100) DEFAULT NULL, `total_recipients` int(11) DEFAULT 0, `success_count` int(11) DEFAULT 0, `failure_count` int(11) DEFAULT 0, `sent_by_userID` int(11) DEFAULT NULL, `sent_by_name` varchar(100) DEFAULT NULL, `sent_at` datetime DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `voice_messages`
+--
+
+CREATE TABLE IF NOT EXISTS `voice_messages` (`id` int(11) NOT NULL AUTO_INCREMENT, `voice_name` varchar(255) NOT NULL DEFAULT '', `file_name` varchar(255) NOT NULL DEFAULT '', `file_original_name` varchar(255) NOT NULL DEFAULT '', `file_size` int(11) NOT NULL DEFAULT 0, `school_year_id` int(11) NOT NULL DEFAULT 0, `created_by` int(11) NOT NULL DEFAULT 0, `created_by_usertype` int(11) NOT NULL DEFAULT 0, `status` tinyint(1) NOT NULL DEFAULT 1, `created_at` datetime DEFAULT NULL, `updated_at` datetime DEFAULT NULL, PRIMARY KEY (`id`)) ENGINE=InnoDB DEFAULT CHARSET=utf8;

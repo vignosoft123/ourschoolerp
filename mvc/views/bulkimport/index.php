@@ -142,7 +142,9 @@
                             <input type="submit" class="btn btn-success" value="<?=$this->lang->line("bulkimport_import")?>" >
                         </div>
                         <div class="col-md-1 rep-mar">
-                            <a class="btn btn-info" href="<?=base_url('assets/csv/sample_student.csv')?>"><i class="fa fa-download"></i> <?=$this->lang->line("bulkimport_download_sample")?></a>
+                            <a class="btn btn-info" href="<?=base_url('bulkimport/download_sample_student')?>"><i class="fa fa-download"></i> <?=$this->lang->line("bulkimport_download_sample")?></a>
+                       
+                            <!-- <a class="btn btn-info" href="<?=base_url('assets/csv/sample_student.csv')?>"><i class="fa fa-download"></i> <?=$this->lang->line("bulkimport_download_sample")?></a> -->
                         </div>
                     </div>
                 </form>

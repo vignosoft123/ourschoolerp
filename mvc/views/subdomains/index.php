@@ -1,14 +1,7 @@
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa fa-sitemap"></i> SubDomain Management</h3>
-        <div class="box-tools pull-right" style="margin-top:5px;">
-            <button id="btn_start_python" class="btn btn-sm btn-danger" onclick="startPythonServer()" title="Start Python API server" style="display:none;">
-                <i class="fa fa-play"></i> Start Python Server
-            </button>
-            <button id="btn_stop_python" class="btn btn-sm btn-success" onclick="stopPythonServer()" title="Stop Python API server" style="display:none;">
-                <i class="fa fa-stop"></i> Python Server Running
-            </button>
-        </div>
+        <div class="box-tools pull-right" style="margin-top:5px;"></div>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> Dashboard</a></li>
             <li class="active">SubDomains</li>
@@ -39,6 +32,16 @@
                                     }
                                 } ?>
                             </select>
+                        </div>
+                        <!-- ── Python Server Status ──────────────────────────── -->
+                        <div class="form-group" style="margin-top:2px;">
+                            <div style="font-size:11px;color:#888;margin-bottom:4px;"><i class="fa fa-play-circle" style="color:#c62828;"></i> PYTHON SERVER</div>
+                            <button id="btn_start_python" class="btn btn-sm btn-danger" onclick="startPythonServer()" title="Start Python API server (required for GoDaddy &amp; Bootstrap/Full Deploy)" style="display:none;">
+                                <i class="fa fa-play"></i> Start Python Server
+                            </button>
+                            <button id="btn_stop_python" class="btn btn-sm btn-success" onclick="stopPythonServer()" title="Stop Python API server" style="display:none;">
+                                <i class="fa fa-stop"></i> Python Server Running
+                            </button>
                         </div>
                     </div>
                     <div class="col-sm-8" style="margin-top: 25px;">
@@ -98,82 +101,87 @@
                     </div>
                 </div>
 
-                <!-- ── Server Capability Matrix ─────────────────────────────── -->
+                <!-- ── Server Capability Matrix (collapsed by default) ──────── -->
                 <div style="margin-bottom:16px;">
-                    <div style="font-size:11px;color:#888;margin-bottom:4px;"><i class="fa fa-info-circle"></i> SERVER CAPABILITY MATRIX</div>
-                    <table class="table table-bordered table-condensed" style="font-size:12px;margin-bottom:4px;background:#fff;">
-                        <thead>
-                            <tr style="background:#37474f;">
-                                <th style="width:12%;padding:5px 8px;color:#fff;">Server</th>
-                                <th style="width:13%;padding:5px 8px;color:#fff;">Domain</th>
-                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-plug"></i> Bootstrap</th>
-                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-cloud-upload"></i> CSS Sync</th>
-                                <th style="width:13%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-upload"></i> Upload Dummy</th>
-                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-rocket"></i> Rocket</th>
-                                <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-archive"></i> Full Deploy</th>
-                                <th style="width:10%;padding:5px 8px;color:#fff;">Handler</th>
-                                <th style="width:12%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-play-circle"></i> Python Needed?</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding:4px 8px;font-weight:bold;color:#e65100;">Hostgator</td>
-                                <td style="padding:4px 8px;color:#666;">ourschoolerp.com</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
-                            </tr>
-                            <tr style="background:#fafafa;">
-                                <td style="padding:4px 8px;font-weight:bold;color:#c62828;">Myschools</td>
-                                <td style="padding:4px 8px;color:#666;">myschoolserp.com</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding:4px 8px;font-weight:bold;color:#1565c0;">Schoolhour</td>
-                                <td style="padding:4px 8px;color:#666;">schoolhour.in</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
-                            </tr>
-                            <tr style="background:#fafafa;">
-                                <td style="padding:4px 8px;font-weight:bold;color:#6a1b9a;">Collegehour</td>
-                                <td style="padding:4px 8px;color:#666;">collegeerp.in</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;color:#555;">PHP FTP</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
-                            </tr>
-                            <tr>
-                                <td style="padding:4px 8px;font-weight:bold;color:#2e7d32;">Godaddy</td>
-                                <td style="padding:4px 8px;color:#666;">ourcollegeerp.com</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#999;">—</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
-                                <td style="padding:4px 8px;color:#555;">Python POST</td>
-                                <td style="padding:4px 8px;text-align:center;"><span style="background:#c62828;color:#fff;padding:2px 6px;border-radius:3px;font-size:11px;font-weight:bold;">YES — All ops</span></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div style="font-size:11px;color:#888;"><i class="fa fa-play-circle" style="color:#c62828;"></i> <strong style="color:#c62828;">Python server must be running</strong> when using: Godaddy (all buttons) &nbsp;|&nbsp; Bootstrap Plug on any server &nbsp;|&nbsp; Full Deploy on any server. &nbsp; CSS Sync &amp; Rocket for Hostgator / Myschools / Schoolhour / Collegehour = <strong>no Python needed</strong>.</div>
+                    <div id="capability-matrix-header" onclick="toggleCapabilityMatrix()" style="font-size:12px;color:#555;padding:7px 12px;background:#f5f5f5;border:1px solid #ddd;border-radius:4px;cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;">
+                        <span><i class="fa fa-info-circle" style="color:#3c8dbc;margin-right:5px;"></i><strong>SERVER CAPABILITY MATRIX</strong></span>
+                        <span style="color:#888;font-size:11px;"><span id="capability-matrix-hint">Click to expand</span> &nbsp;<i class="fa fa-chevron-down" id="capability-matrix-icon" style="transition:transform 0.2s;"></i></span>
+                    </div>
+                    <div id="capability-matrix-body" style="display:none;border:1px solid #ddd;border-top:none;border-radius:0 0 4px 4px;padding:10px 10px 6px;background:#fff;">
+                        <table class="table table-bordered table-condensed" style="font-size:12px;margin-bottom:6px;background:#fff;">
+                            <thead>
+                                <tr style="background:#37474f;">
+                                    <th style="width:12%;padding:5px 8px;color:#fff;">Server</th>
+                                    <th style="width:13%;padding:5px 8px;color:#fff;">Domain</th>
+                                    <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-plug"></i> Bootstrap</th>
+                                    <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-cloud-upload"></i> CSS Sync</th>
+                                    <th style="width:13%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-upload"></i> Upload Dummy</th>
+                                    <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-rocket"></i> Rocket</th>
+                                    <th style="width:10%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-archive"></i> Full Deploy</th>
+                                    <th style="width:10%;padding:5px 8px;color:#fff;">Handler</th>
+                                    <th style="width:12%;padding:5px 8px;text-align:center;color:#fff;"><i class="fa fa-play-circle"></i> Python Needed?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding:4px 8px;font-weight:bold;color:#e65100;">Hostgator</td>
+                                    <td style="padding:4px 8px;color:#666;">ourschoolerp.com</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                                </tr>
+                                <tr style="background:#fafafa;">
+                                    <td style="padding:4px 8px;font-weight:bold;color:#c62828;">Myschools</td>
+                                    <td style="padding:4px 8px;color:#666;">myschoolserp.com</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:4px 8px;font-weight:bold;color:#1565c0;">Schoolhour</td>
+                                    <td style="padding:4px 8px;color:#666;">schoolhour.in</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                                </tr>
+                                <tr style="background:#fafafa;">
+                                    <td style="padding:4px 8px;font-weight:bold;color:#6a1b9a;">Collegehour</td>
+                                    <td style="padding:4px 8px;color:#666;">collegeerp.in</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;color:#555;">PHP FTP</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#e65100;font-size:11px;" title="Bootstrap &amp; Full Deploy still use Python">⚠ Bootstrap &amp; Full Deploy only</span></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:4px 8px;font-weight:bold;color:#2e7d32;">Godaddy</td>
+                                    <td style="padding:4px 8px;color:#666;">ourcollegeerp.com</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#999;">—</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
+                                    <td style="padding:4px 8px;color:#555;">Python POST</td>
+                                    <td style="padding:4px 8px;text-align:center;"><span style="background:#c62828;color:#fff;padding:2px 6px;border-radius:3px;font-size:11px;font-weight:bold;">YES — All ops</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div style="font-size:11px;color:#888;"><i class="fa fa-play-circle" style="color:#c62828;"></i> <strong style="color:#c62828;">Python server must be running</strong> when using: Godaddy (all buttons) &nbsp;|&nbsp; Bootstrap Plug on any server &nbsp;|&nbsp; Full Deploy on any server. &nbsp; CSS Sync &amp; Rocket for Hostgator / Myschools / Schoolhour / Collegehour = <strong>no Python needed</strong>.</div>
+                    </div>
                 </div>
 
                 <div class="table-responsive">
@@ -728,6 +736,24 @@ function stopPythonServer() {
 
 // Check Python server status on page load
 checkPythonServerStatus();
+
+// ── Server Capability Matrix toggle ─────────────────────────────────────────
+
+function toggleCapabilityMatrix() {
+    var body = document.getElementById('capability-matrix-body');
+    var icon = document.getElementById('capability-matrix-icon');
+    var hint = document.getElementById('capability-matrix-hint');
+    var expanded = body.style.display !== 'none';
+    if (expanded) {
+        $(body).slideUp(200);
+        icon.style.transform = '';
+        hint.textContent = 'Click to expand';
+    } else {
+        $(body).slideDown(200);
+        icon.style.transform = 'rotate(180deg)';
+        hint.textContent = 'Click to collapse';
+    }
+}
 
 // ── Table Creator ────────────────────────────────────────────────────────────
 
@@ -1408,6 +1434,11 @@ function updateCss(btn, subdomainId, subdomainName) {
 
 .btn-group .btn {
     margin-right: 2px;
+}
+
+.btn-toolbar .btn {
+    margin-right: 5px;
+    margin-bottom: 4px;
 }
 
 /* ── Pivot table ───────────────────────────────────── */
