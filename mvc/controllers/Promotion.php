@@ -755,6 +755,78 @@ class Promotion extends Admin_Controller
         }
     }
 
+    public function yearly_status()
+    {
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+        // All active students enrolled in the current academic year
+        $this->db->select('sr.srstudentID, sr.srclassesID, sr.srclasses, sr.srroll, sr.srsectionID, sr.srsection, sr.srregisterNO, sr.srname, s.photo, s.sex');
+        $this->db->from('studentrelation sr');
+        $this->db->join('student s', 's.studentID = sr.srstudentID', 'LEFT');
+        $this->db->where('sr.srschoolyearID', $schoolyearID);
+        $this->db->where('s.active', 1);
+        $this->db->order_by('sr.srclassesID ASC, sr.srroll ASC');
+        $currentStudents = $this->db->get()->result();
+
+        $newStudents     = [];
+        $promotedStudents = [];
+
+        if (!empty($currentStudents)) {
+            $allIDs = array_map(function($r) { return (int)$r->srstudentID; }, $currentStudents);
+
+            // Students who have a record in ANY other year → promoted/returning
+            $prevRows = $this->db->distinct()
+                ->select('srstudentID')
+                ->from('studentrelation')
+                ->where('srschoolyearID !=', $schoolyearID)
+                ->where_in('srstudentID', $allIDs)
+                ->get()->result();
+
+            $promotedIDSet = [];
+            foreach ($prevRows as $r) {
+                $promotedIDSet[(int)$r->srstudentID] = true;
+            }
+
+            foreach ($currentStudents as $student) {
+                if (isset($promotedIDSet[(int)$student->srstudentID])) {
+                    $promotedStudents[] = $student;
+                } else {
+                    $newStudents[] = $student;
+                }
+            }
+
+            // For promoted students, find their most-recent previous class
+            if (!empty($promotedStudents)) {
+                $promotedIDs = array_keys($promotedIDSet);
+                $prevClassRows = $this->db->select('srstudentID, srclasses, srschoolyearID')
+                    ->from('studentrelation')
+                    ->where('srschoolyearID !=', $schoolyearID)
+                    ->where_in('srstudentID', $promotedIDs)
+                    ->order_by('srschoolyearID DESC')
+                    ->get()->result();
+
+                $prevClassMap = [];
+                foreach ($prevClassRows as $row) {
+                    if (!isset($prevClassMap[(int)$row->srstudentID])) {
+                        $prevClassMap[(int)$row->srstudentID] = $row->srclasses;
+                    }
+                }
+
+                foreach ($promotedStudents as &$student) {
+                    $student->prevClass = isset($prevClassMap[(int)$student->srstudentID])
+                        ? $prevClassMap[(int)$student->srstudentID] : 'N/A';
+                }
+                unset($student);
+            }
+        }
+
+        $this->data['newStudents']       = $newStudents;
+        $this->data['promotedStudents']  = $promotedStudents;
+        $this->data['currentSchoolYear'] = $this->schoolyear_m->get_schoolyear($schoolyearID);
+        $this->data['subview']           = 'promotion/yearly_status';
+        $this->load->view('_layout_main', $this->data);
+    }
+
     public function print_preview()
     {
         if (permissionChecker('promotion')) {

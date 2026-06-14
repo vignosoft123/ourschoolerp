@@ -60,15 +60,16 @@ class Invoice_m extends MY_Model {
 {
     if (!empty($studentID) && !empty($schoolyearID) && !empty($deleted_at)) {
         $sql = '
-            SELECT i.* 
+            SELECT i.*
             FROM invoice i
-            INNER JOIN maininvoice m 
-                ON m.maininvoiceID = i.maininvoiceID 
-               AND m.maininvoicestudentID = i.studentID 
+            INNER JOIN maininvoice m
+                ON m.maininvoiceID = i.maininvoiceID
+               AND m.maininvoicestudentID = i.studentID
                AND m.maininvoiceschoolyearID = i.schoolyearID
-            WHERE i.studentID = "'.$studentID.'" 
-              AND i.schoolyearID = "'.$schoolyearID.'" 
-              AND i.deleted_at = "'.$deleted_at.'" 
+               AND m.maininvoicedeleted_at = 1
+            WHERE i.studentID = "'.$studentID.'"
+              AND i.schoolyearID = "'.$schoolyearID.'"
+              AND i.deleted_at = "'.$deleted_at.'"
          ';
 // echo $sql;die;
         return $this->db->query($sql)->result();

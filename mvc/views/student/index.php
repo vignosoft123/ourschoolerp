@@ -61,6 +61,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     .sbar-btn-quick{ background: linear-gradient(135deg, #1a73e8 0%, #1558b0 100%); color: #fff !important; }
     .sbar-btn-excel{ background: linear-gradient(135deg, #217346 0%, #155a2e 100%); color: #fff !important; }
     .sbar-btn-delete{ background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%); color: #fff !important; }
+    .sbar-btn-yearly{ background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: #fff !important; }
     .sbar-btn.sbar-disabled { background: #ccc !important; color: #888 !important; border-color: #ccc !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.7; }
     .sbar-class-wrap { margin-left: auto; display: flex; align-items: center; }
     .sbar-class-wrap select { width: 220px !important; border-radius: 8px !important; font-size: 13px; }
@@ -350,6 +351,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     </div>
                                 </div>
                             <?php } ?>
+
+                            <a href="<?= base_url('promotion/yearly_status') ?>" class="sbar-btn sbar-btn-yearly">
+                                <i class="fa fa-bar-chart"></i> Yearly Status
+                            </a>
 
                             <?php if ($this->session->userdata('usertypeID') != 3) { ?>
                             <div class="sbar-class-wrap">
@@ -1200,6 +1205,30 @@ $(document).on('click', '.photo-zoom-icon', function(e){
 
 <script type="text/javascript">
     $(".select2").select2();
+
+    // Fix: prevent browser autofill in Select2 v3 search inputs.
+    // Select2 v3 uses class 'select2-input' (not 'select2-search__field') and
+    // injects the input dynamically on open. A MutationObserver catches it
+    // the instant it appears — before the browser can autofill it.
+    (function () {
+        function disableAutofill($el) {
+            $el.attr({ autocomplete: 'new-password', autocorrect: 'off', spellcheck: 'false' });
+        }
+        // Cover any already-present inputs
+        disableAutofill($('input.select2-input'));
+        // Cover dynamically injected inputs (triggered on every Select2 open)
+        new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+                var nodes = mutations[i].addedNodes;
+                for (var j = 0; j < nodes.length; j++) {
+                    var node = nodes[j];
+                    if (node.nodeType !== 1) continue;
+                    var $inp = $(node).find('input.select2-input').add($(node).filter('input.select2-input'));
+                    if ($inp.length) disableAutofill($inp);
+                }
+            }
+        }).observe(document.body, { childList: true, subtree: true });
+    }());
 
     $('.global_invoice').click(function() {
         var classesID = $(this).attr("classId");

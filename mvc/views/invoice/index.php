@@ -157,14 +157,23 @@
                 ?>
 
                     <?php if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('usertypeID') == 5){?>
-                    <ul class="nav nav-tabs">
-                            <li class="active"><a href="<?php echo base_url('invoice/index/0');?>" aria-expanded="true">All Classes</a></li>
-                            <?php foreach ($all_classes as $key => $section) {
-                                echo '<li class=""><a href= "'.base_url("invoice/index/").$section->classesID.'"> '.$section->classes.' </a></li>';
-                            } ?>
-                        </ul>
+                    <style>
+                        .inv-class-tab { display:inline-block; padding:5px 15px; border-radius:20px; border:1.5px solid #3c8dbc; color:#3c8dbc; background:#fff; font-size:12px; font-weight:600; text-decoration:none; white-space:nowrap; transition:background .15s,color .15s; }
+                        .inv-class-tab:hover { background:#d6eaf8; color:#2876a5; text-decoration:none; }
+                        .inv-class-tab.inv-active { background:#3c8dbc; color:#fff; border-color:#3c8dbc; }
+                    </style>
+                    <?php $curClassID = (int)(isset($maininvoiceclassesID) ? $maininvoiceclassesID : 0); ?>
+                    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+                        <a href="<?= base_url('invoice/index/0') ?>" class="inv-class-tab <?= $curClassID === 0 ? 'inv-active' : '' ?>">All Classes</a>
+                        <?php foreach ($all_classes as $section): ?>
+                            <a href="<?= base_url('invoice/index/'.$section->classesID) ?>"
+                               class="inv-class-tab <?= $curClassID === (int)$section->classesID ? 'inv-active' : '' ?>">
+                                <?= $section->classes ?>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
 
-                        <?php }?>
+                    <?php }?>
                         
 
                 <div id="hide-table">
@@ -575,17 +584,18 @@
                 dataType: 'json',
                 success: function(response) {
                     if(response.html && response.count > 0) {
-                        // Append new rows to table
-                        $('#example11 tbody').append(response.html);
-                        
+                        // Add rows through DataTables API so search/filter index is updated
+                        var $newRows = $(response.html);
+                        $('#example11').DataTable().rows.add($newRows.get()).draw(false);
+
                         // Update offset
                         var newOffset = offset + response.count;
                         $btn.data('offset', newOffset);
-                        
+
                         // Update button text
                         var totalRecords = parseInt($btn.text().match(/of (\d+)/)[1]);
                         var loadedRecords = newOffset;
-                        
+
                         if(loadedRecords >= totalRecords) {
                             $btn.hide();
                             $('#load-all-btn').hide();
@@ -593,7 +603,7 @@
                             $btn.html('<i class="fa fa-refresh"></i> Load More (Showing ' + loadedRecords + ' of ' + totalRecords + ')');
                             $('#load-all-btn').data('offset', newOffset);
                         }
-                        
+
                         // Re-attach event listeners for new rows
                         attachEventListeners();
                     } else {
@@ -638,16 +648,17 @@
                 dataType: 'json',
                 success: function(response) {
                     if(response.html && response.count > 0) {
-                        // Append all new rows to table
-                        $('#example11 tbody').append(response.html);
-                        
+                        // Add rows through DataTables API so search/filter index is updated
+                        var $newRows = $(response.html);
+                        $('#example11').DataTable().rows.add($newRows.get()).draw(false);
+
                         // Hide both buttons as all records are now loaded
                         $btn.hide();
                         $loadMoreBtn.hide();
-                        
+
                         // Re-attach event listeners for new rows
                         attachEventListeners();
-                        
+
                         alert('Successfully loaded ' + response.count + ' more records. All invoices are now displayed.');
                     } else {
                         $btn.hide();

@@ -3785,6 +3785,20 @@ public function delete_whatsapp_logs()
 
 
 
+public function get_campid_status()
+{
+    $campid = $this->input->post('campid');
+    if (!$campid) {
+        echo json_encode(['status' => 'N/A']);
+        return;
+    }
+    $sms_status = json_decode($this->msg91->getSmsReport($campid), true);
+    $sms_status = explode("-", $sms_status);
+    $sms_status = rtrim($sms_status[1], '}"');
+    $sms_status = trim($sms_status, "';");
+    echo json_encode(['status' => $sms_status ? ucfirst(strtolower($sms_status)) : 'N/A']);
+}
+
 // ✅ Single delete via AJAX
 public function delete_mailandsms()
 {

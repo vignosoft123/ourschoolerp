@@ -1,7 +1,7 @@
 <?php
 
-$lang['panel_title'] = "SMS / Voice / Whatsapp ";
-$lang['add_title'] = "Add a sms / voice / Whatsapp";
+$lang['panel_title'] = "SMS / Whatsapp";
+$lang['add_title'] = "Add a sms / Whatsapp";
 $lang['slno'] = "#";
 $lang['mailandsms_usertype'] = "Role";
 $lang['mailandsms_users'] = "Users";

@@ -453,7 +453,7 @@ class Bulkimport extends Admin_Controller
                 $file_data      = $this->upload->data();
                 $file_path      = './uploads/csv/' . $file_data['file_name'];
                 $column_headers = [
-                    "Name",
+                    "ID Card Name",
                     "Dob",
                     "Gender",
                     "Father Name",
@@ -547,7 +547,7 @@ class Bulkimport extends Admin_Controller
                                     $studentTypeVal  = isset($studentTypeMap[$studentTypeText]) ? $studentTypeMap[$studentTypeText] : 3;
 
                                     $insert_data = [
-                                        'name'              => $row['Name'],
+                                        'name'              => $row['ID Card Name'],
                                         'father_name'       => $row['Father Name'],
                                         'mother_name'       => $row['Mother Name'],
                                         'email'             => $row['Email'],
@@ -583,7 +583,7 @@ class Bulkimport extends Admin_Controller
                                         : $this->getAdmissonNumber($settings);
                                     
                                     $insert_data = [
-                                        'name'               => $row['Name'],
+                                        'name'               => $row['ID Card Name'],
                                         'first_name'         => $row['First Name'],
                                         'last_name'          => $row['Last Name'],
                                         'dob'                => $dob,
@@ -667,7 +667,7 @@ class Bulkimport extends Admin_Controller
                                     if(!customCompute($studentReletion)) {
                                         $arrayStudentRelation = [
                                             'srstudentID'         => $studentID,
-                                            'srname'              => $row['Name'],
+                                            'srname'              => $row['ID Card Name'],
                                             'srclassesID'         => $classID,
                                             'srclasses'           => $setClasses,
                                             'srroll'              => $auto_roll,
@@ -683,7 +683,7 @@ class Bulkimport extends Admin_Controller
                                         $this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
                                     } else {
                                         $arrayStudentRelation = [
-                                            'srname'              => $row['Name'],
+                                            'srname'              => $row['ID Card Name'],
                                             'srclassesID'         => $classID,
                                             'srclasses'           => $setClasses,
                                             // 'srroll'              => $row['Roll'],
@@ -722,7 +722,7 @@ class Bulkimport extends Admin_Controller
                                         $this->studentextend_m->update_studentextend($studentExtendArray, $studentExtend->studentextendID);
                                     }
                                 } else {
-                                    $msg .= $i . ". " . $row['Name'] . " is not added! , ";
+                                    $msg .= $i . ". " . $row['ID Card Name'] . " is not added! , ";
                                     $msg .= implode(' , ', $singlestudentCheck['error']);
                                     $msg .= ". <br/>";
                                 }
@@ -1729,6 +1729,12 @@ class Bulkimport extends Admin_Controller
     {
         $date = trim($date);
         if($date) {
+            // Excel stores dates as numeric serials (e.g. 33227 = 20/12/1990)
+            // This happens when reading xlsx with setReadDataOnly(true) — styles not loaded
+            if (is_numeric($date) && (float)$date > 1 && (float)$date < 2958466) {
+                $unixTs = ((float)$date - 25569) * 86400;
+                return date('Y-m-d', (int)$unixTs);
+            }
             $date = str_replace('/', '-', $date);
             return date("Y-m-d", strtotime($date));
         }
@@ -1962,7 +1968,7 @@ class Bulkimport extends Admin_Controller
         $sheet->setTitle('Students');
 
         $columns = [
-            'A'  => 'Name',                'B'  => 'Dob',                 'C'  => 'Gender',
+            'A'  => 'ID Card Name',        'B'  => 'Dob',                 'C'  => 'Gender',
             'D'  => 'Father Name',         'E'  => 'Email',               'F'  => 'Phone',
             'G'  => 'Address',             'H'  => 'Village',             'I'  => 'Class',
             'J'  => 'Section',             'K'  => 'BloodGroup',          'L'  => 'State',
