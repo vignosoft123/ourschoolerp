@@ -262,6 +262,27 @@ public function insert_markrelation($data)
     return $query->result();
 }
 
+	// Lean variant used by promotion page: only the 5 columns the mark loop needs.
+	// No examschedule JOIN → much smaller result set for large classes.
+	public function student_marks_for_promotion($array) {
+		$this->db->select('mark.studentID, mark.examID, mark.subjectID, markrelation.markpercentageID, mark.mark');
+		$this->db->from('mark');
+		$this->db->join('markrelation', 'markrelation.markID = mark.markID', 'LEFT');
+		if (isset($array['schoolyearID'])) {
+			$this->db->where('mark.schoolyearID', $array['schoolyearID']);
+		}
+		if (isset($array['classesID'])) {
+			$this->db->where('mark.classesID', $array['classesID']);
+		}
+		if (isset($array['examID'])) {
+			$this->db->where('mark.examID', $array['examID']);
+		}
+		if (isset($array['studentID'])) {
+			$this->db->where('mark.studentID', $array['studentID']);
+		}
+		$query = $this->db->get();
+		return $query->result();
+	}
 
 
 	public function student_all_mark_array_new($array) {

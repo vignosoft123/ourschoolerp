@@ -95,9 +95,9 @@ class Promotion extends Admin_Controller
             $this->data['subjects']     = $this->subject_m->general_get_order_by_subject(['classesID' => $classesID]);
             $this->data['exams']        = $this->marksetting_m->get_exam_with_class($classesID);
             $this->data['schoolyears']  = $this->data['topbarschoolyears'];
-            $this->data['students']     = $this->student_m->general_get_order_by_student([
-                'classesID'    => $classesID,
-                'schoolyearID' => $schoolyearID,
+            $this->data['students']     = $this->studentrelation_m->general_get_order_by_student([
+                'srclassesID'    => $classesID,
+                'srschoolyearID' => $schoolyearID,
             ]);
 
             if ($_POST) {
@@ -185,28 +185,8 @@ class Promotion extends Admin_Controller
 
     private function studentPromotionCalculation($classID, $schoolyearID)
     {
-        $studentMarks = $this->mark_m->student_all_mark_array([
-            'classesID'    => $classID,
-            'schoolyearID' => $schoolyearID,
-        ]);
-        $marks = [];
-        foreach ($studentMarks as $studentMark) {
-            if (!isset($highestMarks[$studentMark->examID][$studentMark->subjectID][$studentMark->markpercentageID])) {
-                $marks[$studentMark->studentID][$studentMark->examID][$studentMark->subjectID][$studentMark->markpercentageID] = -1;
-            }
-            $marks[$studentMark->studentID][$studentMark->examID][$studentMark->subjectID][$studentMark->markpercentageID] = $studentMark->mark;
-        }
-
-        $this->allStudentMarks = $marks;
-        $students              = $this->student_m->general_get_order_by_student([
-            'classesID'    => $classID,
-            'schoolyearID' => $schoolyearID,
-        ]);
-
-        $students     = pluck($students, 'obj', 'studentID');
+        // Fetch promotionLog first so we can skip mark computation entirely for normal promotions
         $promotionLog = $this->promotionlog_m->get_promotionlog($this->session->userdata('promotionLogID'));
-        $subjects     = pluck($this->subject_m->get_order_by_subject(['classesID' => $classID]), 'obj',
-            'subjectID');
 
         $this->data['promotionType']         = $promotionLog->promotionType;
         $this->data['promotionClassID']      = $promotionLog->jumpClassID;
@@ -217,11 +197,35 @@ class Promotion extends Admin_Controller
 
         $this->data['promotionExams'] = $promotionExams;
 
+        $students = pluck($this->studentrelation_m->general_get_order_by_student([
+            'srclassesID'    => $classID,
+            'srschoolyearID' => $schoolyearID,
+        ]), 'obj', 'studentID');
+
+        // Normal promotion: marks are irrelevant — skip the entire heavy mark query
+        if ($promotionLog->promotionType == 'normal') {
+            $this->data['studentStatus']  = $students;
+            $this->data['student_result'] = [];
+            return;
+        }
+
+        // Non-normal: fetch only the 5 columns the loop needs; drop the examschedule JOIN
+        $studentMarks = $this->mark_m->student_marks_for_promotion([
+            'classesID'    => $classID,
+            'schoolyearID' => $schoolyearID,
+        ]);
+        $marks = [];
+        foreach ($studentMarks as $studentMark) {
+            $marks[$studentMark->studentID][$studentMark->examID][$studentMark->subjectID][$studentMark->markpercentageID] = $studentMark->mark;
+        }
+        $this->allStudentMarks = $marks;
+
+        $subjects     = pluck($this->subject_m->get_order_by_subject(['classesID' => $classID]), 'obj', 'subjectID');
+        $marksettings = $this->marksetting_m->get_marksetting_markpercentages();
+
         $separatedMarks = [];
         $studentStatus  = [];
         $studentResult  = [];
-
-        $marksettings = $this->marksetting_m->get_marksetting_markpercentages();
 
         if (isset($marksettings[$classID])) {
             if (customCompute($students)) {
@@ -344,11 +348,6 @@ class Promotion extends Admin_Controller
         $this->studentStatus = $studentStatus;
         $this->studentResult = $studentResult;
 
-        if ($promotionLog->promotionType == 'normal') {
-            $this->data['studentStatus']  = $students;
-            $this->data['student_result'] = $studentResult;
-            return;
-        }
         $this->data['studentStatus']  = $this->studentStatus;
         $this->data['student_result'] = $this->studentResult;
     }
@@ -500,22 +499,23 @@ class Promotion extends Admin_Controller
 
         $previousClasseID = $promotionLog->classesID;
         $previousYearID   = $promotionLog->schoolYearID;
-
         $promotionClassID = $promotionLog->jumpClassID;
         $promotionYearID  = $promotionLog->jumpSchoolYearID;
 
+        $targetClassID   = (isset($enroll) && $enroll) ? $previousClasseID : $promotionClassID;
         $explodeStudents = explode(",", $studentIDs);
-        $students        = pluck($this->student_m->general_get_order_by_student([
-            "classesID"    => $previousClasseID,
-            "schoolyearID" => $previousYearID,
+
+        $students = pluck($this->studentrelation_m->general_get_order_by_student([
+            "srclassesID"    => $previousClasseID,
+            "srschoolyearID" => $previousYearID,
         ]), 'obj', 'studentID');
 
-        $promoteClassPreviousStudentsList = pluck($this->student_m->general_get_order_by_student([
-            "classesID"    => isset($enroll) && $enroll ? $previousClasseID : $promotionClassID,
-            "schoolyearID" => $promotionYearID,
+        $promoteClassPreviousStudentsList = pluck($this->studentrelation_m->general_get_order_by_student([
+            "srclassesID"    => $targetClassID,
+            "srschoolyearID" => $promotionYearID,
         ]), 'obj', 'studentID');
 
-        $sections      = $this->section_m->general_get_order_by_section(["classesID" => isset($enroll) && $enroll ? $previousClasseID : $promotionClassID]);
+        $sections      = $this->section_m->general_get_order_by_section(["classesID" => $targetClassID]);
         $lastSectionID = $sections[customCompute($sections) - 1]->sectionID;
         $sections      = pluck($sections, 'obj', 'sectionID');
 
@@ -533,157 +533,225 @@ class Promotion extends Admin_Controller
             }
         }
 
-        if (customCompute($students) && customCompute($studentIDs) && customCompute($previousClasseID)) {
-            $f               = 0;
-            $promoteStudents = isset($promotionLog->promoteStudents) && $promotionLog->promoteStudents != null ? json_decode($promotionLog->promoteStudents,
-                true) : [];
+        if (!customCompute($students) || !customCompute($studentIDs) || !customCompute($previousClasseID)) {
+            return;
+        }
 
-            foreach ($explodeStudents as $key => $studentID) {
-                if ($studentID == 0) {
-                    continue;
-                }
+        // --- PRE-FETCH 1: resolve target class name (same for every student, fetch once) ---
+        $setClassesID = $targetClassID;
+        $setClasses   = null;
+        if ($setClassesID > 0) {
+            $classesRelation = $this->classes_m->general_get_classes($setClassesID);
+            if (customCompute($classesRelation)) {
+                $setClassesID = $classesRelation->classesID;
+                $setClasses   = $classesRelation->classes;
+            }
+        }
 
-                if (isset($students[$studentID])) {
-                    $promoteSectionID = 0;
-                    foreach ($sections as $sectionID => $sectionInfo) {
-                        if (isset($capacity[$sectionID])) {
-                            if ($sectionInfo->capacity >= $capacity[$sectionID] + 1) {
-                                $capacity[$sectionID]++;
-                                $promoteSectionID = $sectionID;
-                                break;
-                            }
-                        } else {
-                            $capacity[$sectionID] = 1;
-                            $promoteSectionID     = $sectionID;
-                            break;
-                        }
+        // Collect valid student IDs that need processing
+        $validStudentIDs = [];
+        foreach ($explodeStudents as $sid) {
+            if ($sid != 0 && isset($students[$sid])) {
+                $validStudentIDs[] = (int) $sid;
+            }
+        }
+
+        if (empty($validStudentIDs)) {
+            return;
+        }
+
+        // --- PRE-FETCH 2: existing studentrelations in new year (1 query instead of N) ---
+        // Key: srstudentID => row (with studentrelationID and srclassesID).
+        // Students already in the TARGET class → skip entirely.
+        // Students in a DIFFERENT class for the new year → UPDATE that record instead of skipping.
+        $existingRelationData = [];
+        $existingRows = $this->db->select('srstudentID, studentrelationID, srclassesID')
+            ->from('studentrelation')
+            ->where('srschoolyearID', $promotionYearID)
+            ->where_in('srstudentID', $validStudentIDs)
+            ->get()->result();
+        foreach ($existingRows as $row) {
+            $existingRelationData[$row->srstudentID] = $row;
+        }
+
+        // --- PRE-FETCH 3: previous section names for all students (1 query instead of N) ---
+        $prevSectionNames = [];
+        $prevSecRows = $this->db->select('srstudentID, srsection')
+            ->from('studentrelation')
+            ->where('srclassesID', $previousClasseID)
+            ->where('srschoolyearID', $previousYearID)
+            ->where_in('srstudentID', $validStudentIDs)
+            ->get()->result();
+        foreach ($prevSecRows as $row) {
+            $prevSectionNames[$row->srstudentID] = $row->srsection;
+        }
+
+        // --- PRE-FETCH 4: all sections for the target class (section name → sectionID map) ---
+        $sectionNameToID   = [];
+        $allTargetSections = $this->db->select('*')->from('section')->where('classesID', $setClassesID)->get()->result();
+        foreach ($allTargetSections as $sec) {
+            $sectionNameToID[$sec->section] = $sec->sectionID;
+        }
+
+        // Cache: section template details looked up by name across all classes (for new section creation)
+        $sectionTemplateCache = [];
+
+        $promoteStudents = isset($promotionLog->promoteStudents) && $promotionLog->promoteStudents != null
+            ? json_decode($promotionLog->promoteStudents, true) : [];
+
+        // Batch containers — built during the loop, executed after
+        $studentUpdateBatch         = [];
+        $studentRelationInsertBatch = [];
+        $studentRelationUpdateBatch = [];
+        $promotedStudentIDs         = [];
+
+        foreach ($explodeStudents as $studentID) {
+            $studentID = (int) $studentID;
+            if ($studentID == 0 || !isset($students[$studentID])) {
+                continue;
+            }
+
+            // Assign section based on capacity
+            $promoteSectionID = 0;
+            foreach ($sections as $sectionID => $sectionInfo) {
+                if (isset($capacity[$sectionID])) {
+                    if ($sectionInfo->capacity >= $capacity[$sectionID] + 1) {
+                        $capacity[$sectionID]++;
+                        $promoteSectionID = $sectionID;
+                        break;
                     }
-
-                    if ($promoteSectionID == 0 || (isset($enroll) && $enroll)) {
-                        $promoteSectionID = $lastSectionID;
-                    }
-
-                    $array = [
-                        'classesID'    => isset($enroll) && $enroll ? $previousClasseID : $promotionClassID,
-                        'schoolyearID' => $promotionYearID,
-                        'roll'         => isset($enroll) && $enroll ? 0 : $roll,
-                        'sectionID'    => $promoteSectionID,
-                    ];
-
-                    $studentReletion = $this->studentrelation_m->get_order_by_studentrelation([
-                        'srstudentID'    => $studentID,
-                        'srschoolyearID' => $promotionYearID,
-                    ]);
-
-                    $setClasses   = null;
-                    $setClassesID = isset($enroll) && $enroll ? $previousClasseID : $promotionClassID;
-                    if ($setClassesID > 0) {
-                        $classesRelation = $this->classes_m->general_get_classes($setClassesID);
-                        if (customCompute($classesRelation)) {
-                            $setClassesID = $classesRelation->classesID;
-                            $setClasses   = $classesRelation->classes;
-                        } else {
-                            $setClassesID = $students[$studentID]->classesID;
-                            $setClasses   = $students[$studentID]->classes;
-                        }
-                    }
-
-                    $setSectionID = null;
-                    $setSection   = null;
-                    if ($promoteSectionID > 0) {
-                        $sectionRelation = $this->section_m->general_get_section($promoteSectionID);
-                        if (customCompute($sectionRelation)) {
-                            $setSectionID = $sectionRelation->sectionID;
-                            $setSection   = $sectionRelation->section;
-                        } else {
-                            $setSectionID = $students[$studentID]->sectionID;
-                            $setSection   = $students[$studentID]->section;
-                        }
-                    }
-
-                    if (!customCompute($studentReletion)) {
-
-                        $sql = "select srsection from studentrelation where srstudentID = $studentID and srclassesID = $previousClasseID and srschoolyearID = $previousYearID";
-                        $prev_res = $this->db->query($sql)->row_array();
-                        $prev_sec_name = $prev_res['srsection'];
-
-                       
-
-                        $new_sec_id_res = $this->db->query("select sectionID from section where section = '$prev_sec_name' and classesID= $setClassesID ")->row_array();
-                        if(is_array($new_sec_id_res) && count($new_sec_id_res) > 0){
-                            $new_sec_id = $new_sec_id_res['sectionID'];
-                        }else{  //create new section if not exists in new academic year
-
-                              if(empty($prev_sec_name)){
-                                $s = "select s.sectionID,sec.section from student s left join section sec on sec.sectionID=s.sectionID where studentID = $studentID and s.classesID = $previousClasseID and schoolyearID = $previousYearID";
-                               $r = $this->db->query($s)->row_array();
-                               $prev_sec_name= $r['section'];
-                            }
-
-                            $s_sql = "select * from section where section = '$prev_sec_name' ";
-                            $section_res = $this->db->query($s_sql)->row_array();
-
-                           
-                            
-                            $array1 = array(
-                                "section" => $prev_sec_name,
-                                "category" => $section_res['category'],
-                                "capacity" => $section_res['capacity'],
-                                "classesID" => $setClassesID,
-                                "teacherID" =>$section_res['teacherID'],
-                                "note" => $section_res['note'],
-                                "create_date" => date("Y-m-d h:i:s"),
-                                "modify_date" => date("Y-m-d h:i:s"),
-                                "create_userID" => $this->session->userdata('loginuserID'),
-                                "create_username" => $this->session->userdata('username'),
-                                "create_usertype" => $this->session->userdata('usertype')
-                            );
-            
-                            $this->section_m->insert_section($array1);
-                            $new_sec_id = $last_section_id = $this->db->insert_id();
-                            
-                        }
-                        $arrayStudentRelation = [
-                            'srstudentID'         => $studentID,
-                            'srname'              => $students[$studentID]->name,
-                            'srclassesID'         => $setClassesID,
-                            'srclasses'           => $setClasses,
-                            'srroll'              => $roll,
-                            'srregisterNO'        => $students[$studentID]->registerNO,
-                            'srsectionID'         => $new_sec_id, //$setSectionID,
-                            'srsection'           => $prev_sec_name, //$setSection,
-                            'srstudentgroupID'    => $students[$studentID]->studentgroupID,
-                            'sroptionalsubjectID' => 0,
-                            'srschoolyearID'      => $promotionYearID,
-                        ];
-                        $this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
-                    }
-
-                    $this->student_m->update_student($array, $studentID);
-                    $this->studentextend_m->update_studentextend_by_studentID(['optionalsubjectID' => 0],
-                        $studentID);
-                    $promoteStudents[] = [
-                        'studentID' => $studentID,
-                        'roll'      => $roll,
-                        'enroll'    => $enroll,
-                        'sectionID' => $promoteSectionID,
-                    ];
-                    $roll++;
+                } else {
+                    $capacity[$sectionID] = 1;
+                    $promoteSectionID     = $sectionID;
+                    break;
                 }
             }
 
+            if ($promoteSectionID == 0 || (isset($enroll) && $enroll)) {
+                $promoteSectionID = $lastSectionID;
+            }
+
+            $studentUpdateBatch[] = [
+                'studentID'    => $studentID,
+                'classesID'    => $targetClassID,
+                'schoolyearID' => $promotionYearID,
+                'roll'         => (isset($enroll) && $enroll) ? 0 : $roll,
+                'sectionID'    => $promoteSectionID,
+            ];
+            $promotedStudentIDs[] = $studentID;
+
+            $existingRecord  = isset($existingRelationData[$studentID]) ? $existingRelationData[$studentID] : null;
+            $alreadyInTarget = $existingRecord && ((int)$existingRecord->srclassesID === (int)$setClassesID);
+
+            // Build studentrelation insert OR update as needed
+            if (!$alreadyInTarget) {
+                $prev_sec_name = isset($prevSectionNames[$studentID]) ? $prevSectionNames[$studentID] : '';
+
+                // Fallback: look up section name from student table when srsection was empty
+                if (empty($prev_sec_name)) {
+                    $r = $this->db->select('sec.section')
+                        ->from('student s')
+                        ->join('section sec', 'sec.sectionID = s.sectionID', 'left')
+                        ->where('s.studentID', $studentID)
+                        ->where('s.classesID', $previousClasseID)
+                        ->where('s.schoolyearID', $previousYearID)
+                        ->get()->row_array();
+                    $prev_sec_name = isset($r['section']) ? $r['section'] : '';
+                }
+
+                // Resolve target sectionID — create the section in the new class if missing
+                if (isset($sectionNameToID[$prev_sec_name])) {
+                    $new_sec_id = $sectionNameToID[$prev_sec_name];
+                } else {
+                    // Fetch template from any existing class (cached to avoid repeat queries)
+                    if (!isset($sectionTemplateCache[$prev_sec_name])) {
+                        $tmpl = $this->db->get_where('section', ['section' => $prev_sec_name])->row_array();
+                        $sectionTemplateCache[$prev_sec_name] = $tmpl ?: [];
+                    }
+                    $tmpl = $sectionTemplateCache[$prev_sec_name];
+
+                    $this->section_m->insert_section([
+                        "section"         => $prev_sec_name,
+                        "category"        => isset($tmpl['category'])  ? $tmpl['category']  : '',
+                        "capacity"        => isset($tmpl['capacity'])  ? $tmpl['capacity']  : 0,
+                        "classesID"       => $setClassesID,
+                        "teacherID"       => isset($tmpl['teacherID']) ? $tmpl['teacherID'] : 0,
+                        "note"            => isset($tmpl['note'])      ? $tmpl['note']      : '',
+                        "create_date"     => date("Y-m-d H:i:s"),
+                        "modify_date"     => date("Y-m-d H:i:s"),
+                        "create_userID"   => $this->session->userdata('loginuserID'),
+                        "create_username" => $this->session->userdata('username'),
+                        "create_usertype" => $this->session->userdata('usertype'),
+                    ]);
+                    $new_sec_id = $this->db->insert_id();
+                    $sectionNameToID[$prev_sec_name] = $new_sec_id; // cache so subsequent students reuse it
+                }
+
+                $relationRow = [
+                    'srname'              => $students[$studentID]->name,
+                    'srclassesID'         => $setClassesID,
+                    'srclasses'           => $setClasses,
+                    'srroll'              => $roll,
+                    'srregisterNO'        => $students[$studentID]->registerNO,
+                    'srsectionID'         => $new_sec_id,
+                    'srsection'           => $prev_sec_name,
+                    'srstudentgroupID'    => $students[$studentID]->studentgroupID,
+                    'sroptionalsubjectID' => 0,
+                    'srschoolyearID'      => $promotionYearID,
+                ];
+
+                if ($existingRecord) {
+                    // Already in the new year but in a different class → UPDATE to target class
+                    $relationRow['studentrelationID'] = $existingRecord->studentrelationID;
+                    $studentRelationUpdateBatch[] = $relationRow;
+                } else {
+                    // No record for new year → INSERT
+                    $relationRow['srstudentID'] = $studentID;
+                    $studentRelationInsertBatch[] = $relationRow;
+                }
+            }
+
+            $promoteStudents[] = [
+                'studentID' => $studentID,
+                'roll'      => $roll,
+                'enroll'    => $enroll,
+                'sectionID' => $promoteSectionID,
+            ];
+            $roll++;
+        }
+
+        // --- BATCH WRITES (wrapped in a transaction) ---
+        $this->db->trans_start();
+
+        if (!empty($studentUpdateBatch)) {
+            $this->db->update_batch('student', $studentUpdateBatch, 'studentID');
+        }
+
+        if (!empty($promotedStudentIDs)) {
+            $this->db->where_in('studentID', $promotedStudentIDs)
+                     ->update('studentextend', ['optionalsubjectID' => 0]);
+        }
+
+        if (!empty($studentRelationUpdateBatch)) {
+            $this->db->update_batch('studentrelation', $studentRelationUpdateBatch, 'studentrelationID');
+        }
+
+        if (!empty($studentRelationInsertBatch)) {
+            $this->db->insert_batch('studentrelation', $studentRelationInsertBatch);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === false) {
+            $this->session->set_flashdata('error', $this->lang->line('promotion_create_class'));
+            echo 'error';
+        } else {
             $this->promotionlog_m->update_promotionlog([
                 'promoteStudents' => json_encode($promoteStudents),
                 'status'          => 1,
             ], $promotionLogID);
-
-            if ($f) {
-                $this->session->set_flashdata('error', $this->lang->line('promotion_create_class'));
-                echo 'error';
-            } else {
-                $this->session->set_flashdata('success', $this->lang->line('menu_success'));
-                echo 'success';
-            }
+            $this->session->set_flashdata('success', $this->lang->line('menu_success'));
+            echo 'success';
         }
     }
 

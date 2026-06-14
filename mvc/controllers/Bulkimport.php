@@ -2025,31 +2025,9 @@ class Bulkimport extends Admin_Controller
             }
         }
 
-        // Static dropdowns applied cell-by-cell (rows 2–201) — most reliable for PhpSpreadsheet 1.21
-        $dropdowns = [
-            'C'  => '"Male,Female"',
-            'K'  => '"A+,A-,B+,B-,O+,O-,AB+,AB-"',
-            'Y'  => '"OC,BC-A,BC-B,BC-C,BC-D,SC,ST,Minority"',
-            'AA' => '"Telugu,English,Hindi,Kannada,Malayalam,Urdu"',
-            'AG' => '"English,Telugu,Hindi,Kannada,Malayalam,Urdu"',
-            'AP' => '"Day Scholar,Transport,Hostel"',
-        ];
-
-        foreach ($dropdowns as $col => $formula) {
-            for ($row = 2; $row <= 201; $row++) {
-                $dv = $sheet->getCell($col . $row)->getDataValidation();
-                $dv->setType(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::TYPE_LIST);
-                $dv->setErrorStyle(\PhpOffice\PhpSpreadsheet\Cell\DataValidation::STYLE_INFORMATION);
-                $dv->setAllowBlank(true);
-                $dv->setShowDropDown(false);
-                $dv->setFormula1($formula);
-            }
-        }
-
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment; filename="sample_student.xlsx"');
         header('Cache-Control: max-age=0');
-        header('Pragma: public');
 
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save('php://output');

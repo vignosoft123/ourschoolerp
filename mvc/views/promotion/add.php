@@ -127,6 +127,9 @@
 </div><!-- /.box -->
 
 <script type="text/javascript">
+
+    var CHUNK_SIZE = 50; // students per AJAX request — keeps each call well under MySQL timeout
+
     $('#classesID').change(function() {
         var classesID = $(this).val();
         var schoolyearID = $('#schoolyear').val();
@@ -147,98 +150,109 @@
 
     $('.all_promotion').click(function() {
         if($(".all_promotion").prop('checked')) {
-            status = "checked";
             $('.promotion').prop("checked", true);
         } else {
-            status = "unchecked";
             $('.promotion').prop("checked", false);
         }
     });
 
-    $('#save').click(function() {
-        if ($('.promotion').filter(':checked').length == 0) {
-            toastr["error"]("<?=$this->lang->line('promotion_select_student')?>");
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": false,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "500",
-                "hideDuration": "500",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
-        } else {
-            var result = [];
-            var status = "";
-            $('.promotion').each(function(index) {
-                status = (this.checked ? $(this).attr('id') : 0);
-                result.push(status);
-            });
+    function collectCheckedIDs() {
+        var ids = [];
+        $('.promotion:checked').each(function() {
+            ids.push($(this).attr('id'));
+        });
+        return ids;
+    }
 
-            $redirect = (window.location.href);
+    function chunkArray(arr, size) {
+        var chunks = [];
+        for (var i = 0; i < arr.length; i += size) {
+            chunks.push(arr.slice(i, i + size));
+        }
+        return chunks;
+    }
+
+    function runChunkedPromotion(checkedIDs, extraData, $btn, originalLabel, onAllDone) {
+        var chunks      = chunkArray(checkedIDs, CHUNK_SIZE);
+        var totalChunks = chunks.length;
+        var chunkIndex  = 0;
+        var promoted    = 0;
+
+        function sendNextChunk() {
+            if (chunkIndex >= totalChunks) {
+                onAllDone(promoted);
+                return;
+            }
+
+            var batchLabel = 'Batch ' + (chunkIndex + 1) + ' / ' + totalChunks +
+                             ' (' + Math.min(promoted + chunks[chunkIndex].length, checkedIDs.length) +
+                             ' of ' + checkedIDs.length + ' students)...';
+            $btn.val(batchLabel);
+
+            var postData = 'studentIDs=' + chunks[chunkIndex].join(',');
+            if (extraData) postData += '&' + extraData;
+
             $.ajax({
                 type: 'POST',
                 url: "<?=base_url('promotion/promotion_to_next_class')?>",
-                data: "studentIDs=" + result,
+                data: postData,
                 dataType: "html",
+                timeout: 120000,
                 success: function(data) {
-                   //window.location.replace($redirect);
+                    if ($.trim(data) === 'success') {
+                        promoted += chunks[chunkIndex].length;
+                        chunkIndex++;
+                        sendNextChunk();
+                    } else {
+                        toastr["error"]('Batch ' + (chunkIndex + 1) + ' failed. ' + promoted + ' students promoted so far. Please retry.');
+                        $btn.prop('disabled', false).val(originalLabel);
+                    }
+                },
+                error: function(xhr, status) {
+                    var msg = (status === 'timeout') ? 'Batch timed out.' : 'Server error.';
+                    toastr["error"](msg + ' ' + promoted + ' students promoted so far. Please retry.');
+                    $btn.prop('disabled', false).val(originalLabel);
                 }
             });
-
         }
 
+        sendNextChunk();
+    }
+
+    $('#save').click(function() {
+        var checkedIDs = collectCheckedIDs();
+        if (checkedIDs.length === 0) {
+            toastr["error"]("<?=$this->lang->line('promotion_select_student')?>");
+            return;
+        }
+
+        var $btn         = $(this).prop('disabled', true);
+        var originalLabel = $btn.val();
+
+        runChunkedPromotion(checkedIDs, null, $btn, originalLabel, function(promoted) {
+            toastr["success"]('Successfully promoted ' + promoted + ' students! Redirecting...');
+            setTimeout(function() {
+                window.location.replace("<?=base_url('promotion/index')?>");
+            }, 1500);
+        });
     });
 
     $('#enroll').click(function() {
-        if ($('.promotion').filter(':checked').length == 0) {
-            toastr["error"]("<?=$this->lang->line('promotion_select_student')?>")
-            toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": false,
-                "progressBar": false,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": false,
-                "onclick": null,
-                "showDuration": "500",
-                "hideDuration": "500",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-            }
-        } else {
-            var result = [];
-            var status = "";
-            $('.promotion').each(function(index) {
-                status = (this.checked ? $(this).attr('id') : 0);
-                result.push(status);
-            });
-
-            $redirect = (window.location.href);
-            $.ajax({
-                type: 'POST',
-                url: "<?=base_url('promotion/promotion_to_next_class')?>",
-                data: "studentIDs=" + result + "&enroll=true",
-                dataType: "html",
-                success: function(data) {
-                   window.location.replace($redirect);
-                }
-            });
-
+        var checkedIDs = collectCheckedIDs();
+        if (checkedIDs.length === 0) {
+            toastr["error"]("<?=$this->lang->line('promotion_select_student')?>");
+            return;
         }
 
+        var $btn          = $(this).prop('disabled', true);
+        var originalLabel = $btn.val();
+
+        runChunkedPromotion(checkedIDs, 'enroll=true', $btn, originalLabel, function(promoted) {
+            toastr["success"]('Successfully enrolled ' + promoted + ' students! Redirecting...');
+            setTimeout(function() {
+                window.location.replace(window.location.href);
+            }, 1500);
+        });
     });
 
 </script>
