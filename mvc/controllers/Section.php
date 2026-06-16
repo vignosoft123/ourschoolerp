@@ -20,6 +20,7 @@ class Section extends Admin_Controller {
 		$this->load->model('classes_m');
 		$this->load->model('teacher_m');
 		$this->load->model('studentrelation_m');
+		$this->load->model('activity_log_m');
 		$language = $this->session->userdata('lang');
 		$this->lang->load('section', $language);
 	}

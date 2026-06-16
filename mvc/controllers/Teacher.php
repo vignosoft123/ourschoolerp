@@ -31,6 +31,7 @@ class Teacher extends Admin_Controller {
         $this->load->model("document_m");
         $this->load->model("leaveapplication_m");
         $this->load->library('updatechecker');
+        $this->load->model('activity_log_m');
         $language = $this->session->userdata('lang');
         $this->lang->load('teacher', $language);
     }
@@ -325,6 +326,15 @@ class Teacher extends Admin_Controller {
                     $this->input->post('password'));
 
                 $this->teacher_m->insert_teacher($array);
+                $newId = $this->db->insert_id();
+                $this->activity_log_m->add([
+                    'module'      => 'teacher',
+                    'action'      => 'create',
+                    'record_id'   => $newId,
+                    'record_type' => 'teacher',
+                    'new_value'   => ['name' => $array['name'], 'phone' => $array['phone'] ?? '', 'designation' => $array['designation'] ?? ''],
+                    'description' => 'New teacher created: ' . $array['name'],
+                ]);
                 $this->session->set_flashdata('success', $this->lang->line('menu_success'));
                 redirect(base_url("teacher/index"));
             }
@@ -378,6 +388,14 @@ class Teacher extends Admin_Controller {
                         $array['signature']   = $this->upload_data['signature']['file_name'];
                         // echo "<pre>";print_r($array);die;
                         $this->teacher_m->update_teacher($array, $id);
+                        $this->activity_log_m->add([
+                            'module'      => 'teacher',
+                            'action'      => 'update',
+                            'record_id'   => $id,
+                            'record_type' => 'teacher',
+                            'new_value'   => ['name' => $array['name'], 'phone' => $array['phone'] ?? '', 'designation' => $array['designation'] ?? ''],
+                            'description' => 'Teacher profile updated: ' . $array['name'],
+                        ]);
                         $this->session->set_flashdata('success', $this->lang->line('menu_success'));
                         redirect(base_url("teacher/index"));
                     }
@@ -408,7 +426,16 @@ class Teacher extends Admin_Controller {
                         }
                     }
                 }
+                $deletedTeacher = $this->data['teacher'];
                 $this->teacher_m->delete_teacher($id);
+                $this->activity_log_m->add([
+                    'module'      => 'teacher',
+                    'action'      => 'delete',
+                    'record_id'   => $id,
+                    'record_type' => 'teacher',
+                    'old_value'   => ['name' => $deletedTeacher->name ?? '', 'phone' => $deletedTeacher->phone ?? ''],
+                    'description' => 'Teacher deleted: ' . ($deletedTeacher->name ?? 'ID ' . $id),
+                ]);
                 $this->session->set_flashdata('success', $this->lang->line('menu_success'));
                 redirect(base_url("teacher/index"));
             } else {
@@ -1013,9 +1040,27 @@ class Teacher extends Admin_Controller {
                     if ( customCompute($teacher) ) {
                         if ( $status == 'chacked' ) {
                             $this->teacher_m->update_teacher([ 'active' => 1 ], $id);
+                            $this->activity_log_m->add([
+                                'module'      => 'teacher',
+                                'action'      => 'update',
+                                'record_id'   => $id,
+                                'record_type' => 'teacher',
+                                'old_value'   => ['active' => 0],
+                                'new_value'   => ['active' => 1],
+                                'description' => 'Teacher (ID: ' . $id . ') activated',
+                            ]);
                             echo 'Success';
                         } elseif ( $status == 'unchacked' ) {
                             $this->teacher_m->update_teacher([ 'active' => 0 ], $id);
+                            $this->activity_log_m->add([
+                                'module'      => 'teacher',
+                                'action'      => 'deactivate',
+                                'record_id'   => $id,
+                                'record_type' => 'teacher',
+                                'old_value'   => ['active' => 1],
+                                'new_value'   => ['active' => 0],
+                                'description' => 'Teacher (ID: ' . $id . ') deactivated: ' . ($teacher->name ?? ''),
+                            ]);
                             echo 'Success';
                         } else {
                             echo "Error";

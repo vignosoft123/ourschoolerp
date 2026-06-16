@@ -61,3 +61,35 @@ CREATE TABLE  IF NOT EXISTS `youtube_links` (
   `sort_order` int(11) NOT NULL DEFAULT '0',
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `module` varchar(100) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `record_id` int(11) DEFAULT NULL,
+  `record_type` varchar(50) DEFAULT NULL,
+  `old_value` text DEFAULT NULL,
+  `new_value` text DEFAULT NULL,
+  `description` text DEFAULT NULL,
+  `performed_by_id` int(11) DEFAULT NULL,
+  `performed_by_name` varchar(255) DEFAULT NULL,
+  `performed_by_usertype` int(11) DEFAULT NULL,
+  `performed_by_usertype_name` varchar(100) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_module_action` (`module`,`action`),
+  KEY `idx_record` (`record_id`,`record_type`),
+  KEY `idx_performed_by` (`performed_by_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `delete_account_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `type` varchar(20) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `user_name` varchar(255) DEFAULT NULL,
+  `reason` text,
+  `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `requested_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

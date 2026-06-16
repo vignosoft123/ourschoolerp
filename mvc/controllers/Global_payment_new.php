@@ -802,8 +802,11 @@ class Global_payment_new extends Admin_Controller
             $this->load->model('setting_m');
             $school_name = isset($this->setting_m->get_setting()->sname) ? $this->setting_m->get_setting()->sname : '';
             foreach ($userTags as $tag) {
-                if ($tag->tagname == '{{paid_amount}}')
-                    $message = str_replace('{{paid_amount}}', $user->paidamount ?? ' ', $message);
+                if ($tag->tagname == '{{paid_amount}}') {
+                    $paid    = $user->paidamount    ?? '0.00';
+                    $balance = $user->balance_amount ?? '0.00';
+                    $message = str_replace('{{paid_amount}}', $paid . ', Balance: ' . $balance, $message);
+                }
                 elseif ($tag->tagname == '{{category}}')
                     $message = str_replace('{{category}}', $user->category ?? ' ', $message);
                 elseif ($tag->tagname == '{{school_name}}')

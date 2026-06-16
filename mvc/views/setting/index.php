@@ -541,7 +541,7 @@
                 <div class="st-field">
                     <label>Current Signature</label>
                     <div class="st-img-preview">
-                        <img src="<?= base_url('/uploads/signatures/') . $setting->correspondent_signature ?>" style="width:150px;height:50px;object-fit:contain;">
+                        <img src="<?= base_url('uploads/signatures/') . $setting->correspondent_signature ?>" style="width:150px;height:50px;object-fit:contain;">
                     </div>
                 </div>
                 <?php endif; ?>

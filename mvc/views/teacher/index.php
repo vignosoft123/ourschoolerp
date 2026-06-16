@@ -23,85 +23,148 @@
 
                 <?php } ?>
 
-                <div id="hide-table">
-                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
-                        <thead>
-                            <tr>
-                                <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
-                                <!-- <th class="col-sm-1"><?=$this->lang->line('teacher_photo')?></th> -->
-                                <th class="col-sm-1">Signature</th>
-                                <th class="col-sm-2"><?=$this->lang->line('teacher_name')?></th>
-                                <th class="col-sm-2"><?="Designation"?></th>
-                                <th class="col-sm-2"><?=$this->lang->line('teacher_email')?></th>
-                                <th class="col-sm-2"><?=$this->lang->line('teacher_phone')?></th>
-                                <th class="col-sm-2">Default Login Time</th>
-                                <th class="col-sm-2">Default Logout Time</th>
-                                <?php if(permissionChecker('teacher_edit')){ ?>
-                                <th class="col-sm-1"><?=$this->lang->line('teacher_status')?></th>
-                                <?php } ?>
-                                <?php if(permissionChecker('teacher_edit') || permissionChecker('teacher_delete') || permissionChecker('teacher_view')) { ?>
-                                <th class="col-sm-2"><?=$this->lang->line('action')?></th>
-                                <?php } ?>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if(customCompute($teachers)) {$i = 1; foreach($teachers as $teacher) { ?>
-                                <tr>
-                                    <td data-title="<?=$this->lang->line('slno')?>">
-                                        <?php echo $i; ?>
-                                    </td>
-                                    <td class="teacher-photo-cell" style="cursor:pointer;" onclick="setTeacherID(<?=$teacher->teacherID?>);" data-toggle="modal" data-target="#teacherPhotoUploadModal" data-title="<?=$this->lang->line('teacher_photo')?>">
-                                        <?=profileimage($teacher->photo)?>
-                                        <span class="photo-zoom-icon" data-img="<?=base_url('uploads/images/').($teacher->photo ? $teacher->photo : 'default.png')?>" title="Preview" onclick="event.stopPropagation();document.getElementById('teacherZoomImg').src=this.getAttribute('data-img');$('#teacherPhotoZoomModal').modal('show');">
-                                            <i class="fa fa-search-plus" aria-hidden="true"></i>
-                                        </span>
-                                    </td>
-                                    <!-- <td data-title="<?=$this->lang->line('teacher_photo')?>">
-                                          <?=signatureimage($teacher->signature)?>
-                                    </td> -->
-                                    <td data-title="<?=$this->lang->line('teacher_name')?>">
-                                        <?php echo $teacher->name; ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('teacher_name')?>">
-                                        <?php echo $teacher->designation; ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('teacher_email')?>">
-                                        <?php echo $teacher->email; ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('teacher_phone')?>">
-                                        <?php echo $teacher->phone; ?>
-                                    </td>
-                                    <td data-title="<?=$this->lang->line('teacher_phone')?>">
-                                        <?php echo $teacher->default_login_time; ?>
-                                    </td>
-                                      <td data-title="<?=$this->lang->line('teacher_phone')?>">
-                                        <?php echo $teacher->default_logout_time; ?>
-                                    </td>
-                                    <?php if(permissionChecker('teacher_edit')){ ?>
-                                    <td data-title="<?=$this->lang->line('teacher_status')?>">
-                                      <div class="onoffswitch-small" id="<?=$teacher->teacherID?>">
-                                          <input type="checkbox" id="myonoffswitch<?=$teacher->teacherID?>" class="onoffswitch-small-checkbox" name="paypal_demo" <?php if($teacher->active === '1') echo "checked='checked'"; ?>>
-                                          <label for="myonoffswitch<?=$teacher->teacherID?>" class="onoffswitch-small-label">
-                                              <span class="onoffswitch-small-inner"></span>
-                                              <span class="onoffswitch-small-switch"></span>
-                                          </label>
-                                      </div>           
-                                    </td>
-                                    <?php } ?>
-                                    <?php if(permissionChecker('teacher_edit') || permissionChecker('teacher_delete') || permissionChecker('teacher_view')) { ?>
-                                    <td class="action-btns" data-title="<?=$this->lang->line('action')?>">
-                                        <?php
-                                            echo btn_view('teacher/view/'.$teacher->teacherID, $this->lang->line('view'));
-                                            echo btn_edit('teacher/edit/'.$teacher->teacherID, $this->lang->line('edit'));
-                                            echo btn_delete('teacher/delete/'.$teacher->teacherID, $this->lang->line('delete'));
-                                        ?>
-                                    </td>
-                                    <?php } ?>
-                                </tr>
-                            <?php $i++; }} ?>
-                        </tbody>
-                    </table>
-                </div>
+                <?php
+                    // Split teachers by active status
+                    $active_teachers   = array_filter((array)$teachers, function($t){ return $t->active === '1'; });
+                    $inactive_teachers = array_filter((array)$teachers, function($t){ return $t->active !== '1'; });
+                ?>
+
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a data-toggle="tab" href="#tab-active" aria-expanded="true">Active <span class="badge" style="background:#5cb85c;"><?=count($active_teachers)?></span></a></li>
+                        <li><a data-toggle="tab" href="#tab-inactive" aria-expanded="false">Inactive <span class="badge" style="background:#d9534f;"><?=count($inactive_teachers)?></span></a></li>
+                    </ul>
+
+                    <div class="tab-content">
+
+                        <!-- ACTIVE TAB -->
+                        <div id="tab-active" class="tab-pane active">
+                            <div class="responsive">
+                                <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
+                                            <th class="col-sm-1">Signature</th>
+                                            <th class="col-sm-2"><?=$this->lang->line('teacher_name')?></th>
+                                            <th class="col-sm-2">Designation</th>
+                                            <th class="col-sm-2"><?=$this->lang->line('teacher_email')?></th>
+                                            <th class="col-sm-2"><?=$this->lang->line('teacher_phone')?></th>
+                                            <th class="col-sm-2">Default Login Time</th>
+                                            <th class="col-sm-2">Default Logout Time</th>
+                                            <?php if(permissionChecker('teacher_edit')){ ?>
+                                            <th class="col-sm-1"><?=$this->lang->line('teacher_status')?></th>
+                                            <?php } ?>
+                                            <?php if(permissionChecker('teacher_edit') || permissionChecker('teacher_delete') || permissionChecker('teacher_view')) { ?>
+                                            <th class="col-sm-2"><?=$this->lang->line('action')?></th>
+                                            <?php } ?>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php $i = 1; foreach($active_teachers as $teacher) { ?>
+                                        <tr>
+                                            <td><?=$i?></td>
+                                            <td class="teacher-photo-cell" style="cursor:pointer;" onclick="setTeacherID(<?=$teacher->teacherID?>);" data-toggle="modal" data-target="#teacherPhotoUploadModal">
+                                                <?=profileimage($teacher->photo)?>
+                                                <span class="photo-zoom-icon" data-img="<?=base_url('uploads/images/').($teacher->photo ? $teacher->photo : 'default.png')?>" title="Preview" onclick="event.stopPropagation();document.getElementById('teacherZoomImg').src=this.getAttribute('data-img');$('#teacherPhotoZoomModal').modal('show');"><i class="fa fa-search-plus"></i></span>
+                                            </td>
+                                            <td><?=$teacher->name?></td>
+                                            <td><?=$teacher->designation?></td>
+                                            <td><?=$teacher->email?></td>
+                                            <td><?=$teacher->phone?></td>
+                                            <td><?=$teacher->default_login_time?></td>
+                                            <td><?=$teacher->default_logout_time?></td>
+                                            <?php if(permissionChecker('teacher_edit')){ ?>
+                                            <td>
+                                                <div class="onoffswitch-small" id="<?=$teacher->teacherID?>">
+                                                    <input type="checkbox" id="myonoffswitch<?=$teacher->teacherID?>" class="onoffswitch-small-checkbox" name="paypal_demo" <?php if($teacher->active === '1') echo "checked='checked'"; ?>>
+                                                    <label for="myonoffswitch<?=$teacher->teacherID?>" class="onoffswitch-small-label">
+                                                        <span class="onoffswitch-small-inner"></span>
+                                                        <span class="onoffswitch-small-switch"></span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <?php } ?>
+                                            <?php if(permissionChecker('teacher_edit') || permissionChecker('teacher_delete') || permissionChecker('teacher_view')) { ?>
+                                            <td class="action-btns">
+                                                <?php
+                                                    echo btn_view('teacher/view/'.$teacher->teacherID, $this->lang->line('view'));
+                                                    echo btn_edit('teacher/edit/'.$teacher->teacherID, $this->lang->line('edit'));
+                                                    echo btn_delete('teacher/delete/'.$teacher->teacherID, $this->lang->line('delete'));
+                                                ?>
+                                            </td>
+                                            <?php } ?>
+                                        </tr>
+                                        <?php $i++; } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div><!-- /tab-active -->
+
+                        <!-- INACTIVE TAB -->
+                        <div id="tab-inactive" class="tab-pane">
+                            <div class="responsive">
+                                <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
+                                            <th class="col-sm-1">Signature</th>
+                                            <th class="col-sm-2"><?=$this->lang->line('teacher_name')?></th>
+                                            <th class="col-sm-2">Designation</th>
+                                            <th class="col-sm-2"><?=$this->lang->line('teacher_email')?></th>
+                                            <th class="col-sm-2"><?=$this->lang->line('teacher_phone')?></th>
+                                            <th class="col-sm-2">Default Login Time</th>
+                                            <th class="col-sm-2">Default Logout Time</th>
+                                            <?php if(permissionChecker('teacher_edit')){ ?>
+                                            <th class="col-sm-1"><?=$this->lang->line('teacher_status')?></th>
+                                            <?php } ?>
+                                            <?php if(permissionChecker('teacher_edit') || permissionChecker('teacher_delete') || permissionChecker('teacher_view')) { ?>
+                                            <th class="col-sm-2"><?=$this->lang->line('action')?></th>
+                                            <?php } ?>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php $i = 1; foreach($inactive_teachers as $teacher) { ?>
+                                        <tr>
+                                            <td><?=$i?></td>
+                                            <td class="teacher-photo-cell" style="cursor:pointer;" onclick="setTeacherID(<?=$teacher->teacherID?>);" data-toggle="modal" data-target="#teacherPhotoUploadModal">
+                                                <?=profileimage($teacher->photo)?>
+                                                <span class="photo-zoom-icon" data-img="<?=base_url('uploads/images/').($teacher->photo ? $teacher->photo : 'default.png')?>" title="Preview" onclick="event.stopPropagation();document.getElementById('teacherZoomImg').src=this.getAttribute('data-img');$('#teacherPhotoZoomModal').modal('show');"><i class="fa fa-search-plus"></i></span>
+                                            </td>
+                                            <td><?=$teacher->name?></td>
+                                            <td><?=$teacher->designation?></td>
+                                            <td><?=$teacher->email?></td>
+                                            <td><?=$teacher->phone?></td>
+                                            <td><?=$teacher->default_login_time?></td>
+                                            <td><?=$teacher->default_logout_time?></td>
+                                            <?php if(permissionChecker('teacher_edit')){ ?>
+                                            <td>
+                                                <div class="onoffswitch-small" id="<?=$teacher->teacherID?>">
+                                                    <input type="checkbox" id="myonoffswitch<?=$teacher->teacherID?>" class="onoffswitch-small-checkbox" name="paypal_demo" <?php if($teacher->active === '1') echo "checked='checked'"; ?>>
+                                                    <label for="myonoffswitch<?=$teacher->teacherID?>" class="onoffswitch-small-label">
+                                                        <span class="onoffswitch-small-inner"></span>
+                                                        <span class="onoffswitch-small-switch"></span>
+                                                    </label>
+                                                </div>
+                                            </td>
+                                            <?php } ?>
+                                            <?php if(permissionChecker('teacher_edit') || permissionChecker('teacher_delete') || permissionChecker('teacher_view')) { ?>
+                                            <td class="action-btns">
+                                                <?php
+                                                    echo btn_view('teacher/view/'.$teacher->teacherID, $this->lang->line('view'));
+                                                    echo btn_edit('teacher/edit/'.$teacher->teacherID, $this->lang->line('edit'));
+                                                    echo btn_delete('teacher/delete/'.$teacher->teacherID, $this->lang->line('delete'));
+                                                ?>
+                                            </td>
+                                            <?php } ?>
+                                        </tr>
+                                        <?php $i++; } ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div><!-- /tab-inactive -->
+
+                    </div><!-- tab-content -->
+                </div><!-- nav-tabs-custom -->
 
             </div> <!-- col-sm-12 -->
         </div><!-- row -->
@@ -155,7 +218,58 @@
     .teacher-photo-cell img { vertical-align:middle; }
     .photo-zoom-icon { margin-left:6px;color:#337ab7;cursor:pointer;display:inline-block;vertical-align:middle; }
     .photo-zoom-icon i { font-size:14px; }
+
+    /* Table styling — matches student list design */
+    #example1 {
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        background: #fff !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+        border-radius: 8px !important;
+        overflow: hidden !important;
+        margin: 15px 0 !important;
+        width: 100% !important;
+        border: 1px solid #e0e0e0 !important;
+    }
+    #example1 thead {
+        background: linear-gradient(135deg, #1a73e8 0%, #1045a8 100%) !important;
+        color: white !important;
+    }
+    #example1 thead th {
+        text-align: center !important;
+        font-weight: 600 !important;
+        font-size: 12px !important;
+        letter-spacing: 0.5px !important;
+        border: none !important;
+        border-right: 1px solid rgba(255,255,255,0.2) !important;
+        color: white !important;
+    }
+    #example1 thead th:last-child { border-right: none !important; }
+    #example1 tbody tr {
+        transition: all 0.3s ease !important;
+        border-bottom: 1px solid #f0f0f0 !important;
+    }
+    #example1 tbody tr:hover {
+        background: linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 2px 8px rgba(255,107,107,0.2) !important;
+    }
+    #example1 tbody td {
+        padding: 12px 10px !important;
+        vertical-align: middle !important;
+        border: 1px solid #e0e0e0 !important;
+        font-size: 13px !important;
+        text-align: center !important;
+    }
+    #example1 tbody tr:nth-child(even) { background: rgba(255,235,238,0.3) !important; }
+    #example1 tbody tr:nth-child(odd)  { background: #fff !important; }
 </style>
+<script>
+    /* Re-draw DataTables column widths when switching tabs */
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function() {
+        $($.fn.dataTable.tables(true)).DataTable().columns.adjust();
+    });
+</script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <script>

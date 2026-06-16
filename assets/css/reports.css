@@ -292,8 +292,269 @@
 @media print {
     .rpt-hscroll-bar,
     .rpt-scroll-top-btn,
-    .rpt-action-bar { display: none !important; }
+    .rpt-action-bar,
+    .no-print { display: none !important; }
     .rpt-sticky-left, .rpt-sticky-left-hd,
     .rpt-sticky-right, .rpt-sticky-right-hd { position: static !important; }
     .rpt-table-wrap { overflow: visible !important; }
+}
+
+/* ── 13. Admission Report ───────────────────────────────────── */
+.adm-box-header {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left-color: #1565c0;
+}
+.adm-box-header h3 { color: #0d47a1; }
+
+.adm-record-count {
+    font-size: 13px;
+    font-weight: 400;
+    color: #1565c0;
+    margin-left: 10px;
+    background: #e3f2fd;
+    border-radius: 10px;
+    padding: 2px 10px;
+    border: 1px solid #90caf9;
+}
+
+.adm-stats-row { margin: 14px 0 16px; }
+
+.adm-stat-card {
+    padding: 16px 12px;
+    border-radius: 10px;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+.adm-stat-card__value { font-size: 34px; font-weight: 700; line-height: 1.1; }
+.adm-stat-card__label { font-size: 13px; margin-top: 5px; opacity: 0.9; letter-spacing: 0.3px; }
+.adm-stat-card__label i { margin-right: 4px; }
+
+.adm-stat-card--blue { background: linear-gradient(135deg, #1565c0, #1976d2); }
+.adm-stat-card--teal { background: linear-gradient(135deg, #006064, #00838f); }
+.adm-stat-card--pink { background: linear-gradient(135deg, #ad1457, #c2185b); }
+
+/* Growth indicators */
+.adm-growth-pos { color: #2e7d32; font-weight: 700; }
+.adm-growth-neg { color: #c62828; font-weight: 700; }
+.adm-growth-na  { color: #aaa; }
+
+/* Admission table — narrower than standard rpt-table */
+.adm-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 13px;
+}
+.adm-table thead th {
+    background: #1565c0;
+    color: #fff;
+    padding: 10px 12px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 13px;
+    border: 1px solid #1976d2;
+    white-space: nowrap;
+}
+.adm-table tbody td {
+    padding: 9px 12px;
+    text-align: center;
+    border: 1px solid #dee2e6;
+    font-size: 13px;
+}
+.adm-table tbody tr:hover td { background: #e3f2fd !important; }
+
+.adm-total-row td {
+    background: #f5f5f5;
+    border-top: 2px solid #1565c0;
+}
+
+/* Compact table wrap — no horizontal scroll needed for narrow tables */
+.rpt-table-wrap--compact { min-width: auto; }
+
+/* DataTables Buttons bar inside admission report */
+#load_admissionreport .dt-buttons { margin-bottom: 10px; }
+#load_admissionreport .dataTables_filter { margin-bottom: 6px; }
+
+/* View button in Actions column */
+.adm-view-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    white-space: nowrap;
+}
+.adm-view-btn:hover {
+    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+    box-shadow: 0 3px 8px rgba(21,101,192,0.4);
+    transform: translateY(-1px);
+    color: #fff;
+}
+.adm-view-btn:active { transform: translateY(0); box-shadow: none; }
+
+/* ── 14. Admission Report — Student popup modal ──────────────── */
+
+/* Modal wrapper: rounded, shadow, overflow clip */
+.adm-modal .modal-dialog { width: 860px; max-width: 96%; }
+.adm-modal .modal-content {
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.22);
+    overflow: hidden;
+}
+
+/* Blue gradient header — ID gives specificity over Bootstrap */
+#adm-student-modal .modal-header {
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%) !important;
+    border-bottom: none !important;
+    padding: 18px 22px 14px !important;
+}
+#adm-student-modal .modal-header .close {
+    color: #fff !important;
+    opacity: 0.75 !important;
+    font-size: 26px !important;
+    font-weight: 300 !important;
+    margin-top: 0 !important;
+    text-shadow: none !important;
+}
+#adm-student-modal .modal-header .close:hover { opacity: 1 !important; }
+
+.adm-modal-title {
+    color: #fff !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    margin: 0 0 10px !important;
+    letter-spacing: 0.2px;
+}
+.adm-modal-title i { margin-right: 8px; opacity: 0.9; }
+
+/* Stat chips row inside header */
+.adm-modal-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.adm-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 13px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+}
+.adm-chip--total { background: rgba(255,255,255,0.18); color: #fff;    border: 1px solid rgba(255,255,255,0.45); }
+.adm-chip--boys  { background: rgba(100,181,246,0.28); color: #e3f2fd; border: 1px solid rgba(100,181,246,0.5); }
+.adm-chip--girls { background: rgba(240,98,146,0.28);  color: #fce4ec; border: 1px solid rgba(240,98,146,0.5); }
+
+/* Scrollable body — zero padding; sections float inside */
+#adm-student-modal .modal-body {
+    padding: 0 !important;
+    background: #f4f6fb !important;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* Section cards (one per gender) */
+.adm-popup-section {
+    margin: 14px 14px 0;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+    overflow: hidden;
+}
+.adm-popup-section:last-child { margin-bottom: 14px; }
+
+/* Colored section header bar */
+.adm-popup-section-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #fff;
+}
+.adm-popup-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.28);
+    border-radius: 12px;
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.adm-gender-boys   .adm-popup-section-head { background: linear-gradient(90deg, #1565c0 0%, #1976d2 100%); }
+.adm-gender-girls  .adm-popup-section-head { background: linear-gradient(90deg, #c62828 0%, #e53935 100%); }
+.adm-gender-others .adm-popup-section-head { background: linear-gradient(90deg, #6a1b9a 0%, #7b1fa2 100%); }
+
+/* Table inside section — flush to card edges */
+.adm-popup-table {
+    margin-bottom: 0;
+    border: none !important;
+}
+.adm-popup-table thead th {
+    background: #eceff1 !important;
+    color: #37474f !important;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 9px 12px;
+    text-align: center;
+    border-bottom: 2px solid #cfd8dc !important;
+    border-top: none !important;
+    white-space: nowrap;
+}
+.adm-popup-table tbody td {
+    font-size: 13px;
+    vertical-align: middle;
+    text-align: center;
+    padding: 8px 12px;
+    border-color: #eceff1 !important;
+    color: #424242;
+}
+.adm-popup-table tbody tr:nth-child(even) td { background: #f9fafb; }
+.adm-popup-table tbody tr:hover td { background: #e8f0fe !important; }
+
+/* Student photo */
+.adm-popup-photo {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #b0bec5;
+    display: block;
+    margin: 0 auto;
+}
+
+/* Name column */
+.adm-popup-name {
+    text-align: left !important;
+    font-weight: 600 !important;
+    color: #1a237e !important;
+}
+
+/* Spinner */
+.adm-loader-wrap {
+    text-align: center;
+    padding: 48px 0;
+    color: #90a4ae;
+}
+
+/* Modal footer */
+#adm-student-modal .modal-footer {
+    background: #f5f5f5;
+    border-top: 1px solid #e0e0e0;
+    padding: 10px 20px;
+}
+
+@media print {
+    .adm-stats-row { display: none !important; }
 }

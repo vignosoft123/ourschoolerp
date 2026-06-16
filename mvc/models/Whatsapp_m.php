@@ -743,11 +743,9 @@ private function log_whatsapp_history($results)
 						$message = str_replace('{{category}}', ' ', $message);
 					}
 				}elseif($userTag->tagname == '{{paid_amount}}') {
-					if($user->paidamount) {
-						$message = str_replace('{{paid_amount}}', $user->paidamount, $message);
-					} else {
-						$message = str_replace('{{paid_amount}}', ' ', $message);
-					}
+					$paid    = $user->paidamount     ?? '0.00';
+					$balance = $user->balance_amount ?? '0.00';
+					$message = str_replace('{{paid_amount}}', $paid . ', Balance: ' . $balance, $message);
 				}
 			}
 		}

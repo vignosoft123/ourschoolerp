@@ -302,78 +302,49 @@ Class Setting extends Admin_Controller {
                     $array['photo']            = $this->upload_data['file']['file_name'];
 
 
-                    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['image']) && !empty($_FILES['image']['name']) ) {
+                    if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['image']) && !empty($_FILES['image']['name'])) {
 
-                    $targetDir = "uploads/signatures/";
+                        $targetDir = FCPATH . "uploads/signatures/";
+                        if (!is_dir($targetDir)) { mkdir($targetDir, 0777, true); }
 
-                    // Extract the original file extension
-                    $imageFileType = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+                        $imageFileType = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
+                        $newFileName   = pathinfo($_FILES["image"]["name"], PATHINFO_FILENAME) . "_" . time() . "." . $imageFileType;
+                        $targetFile    = $targetDir . $newFileName;
+                        $uploadOk      = 1;
 
-                    // Create a unique name by appending a timestamp to the original file name
-                    $newFileName = pathinfo($_FILES["image"]["name"], PATHINFO_FILENAME) . "_" . time() . "." . $imageFileType;
-
-                    // Set the target file path with the new name
-                    $targetFile = $targetDir . $newFileName;
-
-
-                    // $targetFile = $targetDir . basename($_FILES["image"]["name"]);
-                    $uploadOk = 1;
-                
-                    // Get the image file type
-                    $imageFileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
-                
-                    // Check if the uploaded file is an actual image or a fake image
-                    $check = getimagesize($_FILES["image"]["tmp_name"]);
-                    if ($check !== false) {
-                        $width = $check[0];
-                        $height = $check[1];
-                       // echo "File is an image - " . $check["mime"] . ".<br>";
-                
-                        // Check if the image dimensions are within the allowed range
-                        if ($width >= 300 && $width <= 500 && $height >= 100 && $height <= 150) {
-                            $uploadOk = 1;
-                        } else {
-                            echo "Invalid image dimensions. Please upload a signature with dimensions between 300x100 and 500x150 pixels.<br>";
+                        // Validate it is a real image
+                        if (getimagesize($_FILES["image"]["tmp_name"]) === false) {
+                            $this->session->set_flashdata('error', 'Signature: file is not a valid image.');
                             $uploadOk = 0;
                         }
-                    } else {
-                        echo "File is not an image.<br>";
-                        $uploadOk = 0;
-                    }
-                  
-                    // Check if the file is too large (2MB limit for signature)
-                    if ($_FILES["image"]["size"] > 2000000) {  // 2MB limit
-                        echo "Sorry, your file is too large.";
-                        $uploadOk = 0;
-                    }
-                
-                    // Allow certain file formats (JPEG, PNG, JPG, and GIF)
-                    if ($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg" && $imageFileType != "gif") {
-                        echo "Sorry, only JPG, JPEG, PNG & GIF files are allowed.";
-                        $uploadOk = 0;
-                    }
-                
-                    // Check if $uploadOk is set to 0 due to an error
-                    if ($uploadOk == 0) {
-                        echo "Sorry, your file was not uploaded.";
-                    } else {
-                        // Try to upload the file
-                        if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
-                            // echo "The file ". basename($_FILES["image"]["name"]). " has been uploaded.";
-                            $array['correspondent_signature']            = $newFileName;
-                        } else {
-                            // echo "Sorry, there was an error uploading your file.";
-                            $array['correspondent_signature']            = "";
+
+                        // 2 MB size limit
+                        if ($_FILES["image"]["size"] > 2000000) {
+                            $this->session->set_flashdata('error', 'Signature: file exceeds 2 MB limit.');
+                            $uploadOk = 0;
                         }
+
+                        // Allowed formats
+                        if (!in_array($imageFileType, ['jpg', 'jpeg', 'png', 'gif'])) {
+                            $this->session->set_flashdata('error', 'Signature: only JPG, PNG and GIF files are allowed.');
+                            $uploadOk = 0;
+                        }
+
+                        if ($uploadOk == 1 && move_uploaded_file($_FILES["image"]["tmp_name"], $targetFile)) {
+                            $array['correspondent_signature'] = $newFileName;
+                        } else {
+                            // Keep existing value on failure
+                            $array['correspondent_signature'] = $_POST['correspondent_signature'];
+                        }
+
+                    } else {
+                        $array['correspondent_signature'] = $_POST['correspondent_signature'];
                     }
-                } else {
-                      $array['correspondent_signature'] = $_POST['correspondent_signature'];
-                }
 
                 // ID CARD BACKGROUND TEMPLATE UPLOAD START
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['id_card_template_file']) && !empty($_FILES['id_card_template_file']['name'])) {
 
-    $targetDir = "uploads/idcard_templates/";
+    $targetDir = FCPATH . "uploads/idcard_templates/";
 
     // Create directory if not exists
     if (!is_dir($targetDir)) {

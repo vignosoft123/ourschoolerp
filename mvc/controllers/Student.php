@@ -2692,6 +2692,16 @@ class Student extends Admin_Controller
 								// echo $objStudent->parentID;die;
 							$this->student_m->update_student($array, $studentID);
 
+							$this->load->model('activity_log_m');
+							$this->activity_log_m->add([
+								'module'      => 'student',
+								'action'      => 'update',
+								'record_id'   => $studentID,
+								'record_type' => 'student',
+								'new_value'   => ['name' => $array['name'] ?? '', 'phone' => $array['phone'] ?? ''],
+								'description' => 'Student profile updated: ' . ($array['name'] ?? 'ID ' . $studentID),
+							]);
+
 							if($objStudent->parentID == 0 || $objStudent->parentID == null){
 								if ($studentID > 0) {
 									$parent_array = array();
@@ -3256,9 +3266,29 @@ class Student extends Admin_Controller
 					if (customCompute($student)) {
 						if ($status == 'chacked') {
 							$this->student_m->update_student(array('active' => 1), $id);
+							$this->load->model('activity_log_m');
+							$this->activity_log_m->add([
+								'module'      => 'student',
+								'action'      => 'update',
+								'record_id'   => $id,
+								'record_type' => 'student',
+								'old_value'   => ['active' => 0],
+								'new_value'   => ['active' => 1],
+								'description' => 'Student (ID: ' . $id . ') activated',
+							]);
 							echo 'Success';
 						} elseif ($status == 'unchacked') {
 							$this->student_m->update_student(array('active' => 0), $id);
+							$this->load->model('activity_log_m');
+							$this->activity_log_m->add([
+								'module'      => 'student',
+								'action'      => 'deactivate',
+								'record_id'   => $id,
+								'record_type' => 'student',
+								'old_value'   => ['active' => 1],
+								'new_value'   => ['active' => 0],
+								'description' => 'Student (ID: ' . $id . ') deactivated',
+							]);
 							echo 'Success';
 						} else {
 							echo "Error";

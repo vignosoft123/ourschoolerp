@@ -396,9 +396,10 @@ if ( !defined('BASEPATH') ) {
 
             //dynamically alter queries - db migration
             // Only run schema updates for Admins to save performance
-            if ($this->session->userdata('usertypeID') == 1) {
-                $this->apply_updates();
-            }
+            // Schema updates now triggered manually via Subdomains page button
+            // if ($this->session->userdata('usertypeID') == 1) {
+            //     $this->apply_updates();
+            // }
 
 
 
@@ -1148,46 +1149,59 @@ if ( !defined('BASEPATH') ) {
             $updates = json_decode(file_get_contents($json_path), true);
         
             foreach ($updates as $update) {
-                if ($update['type'] === 'alter' && isset($update['check_column'])) {
-                    $table = $update['check_column']['table'];
-                    $column = $update['check_column']['column'];
-        
-                    if (!$this->column_exists($table, $column)) {
+                try {
+                    if ($update['type'] === 'alter' && isset($update['check_column'])) {
+                        $table  = $update['check_column']['table'];
+                        $column = $update['check_column']['column'];
+                        if (!$this->column_exists($table, $column)) {
+                            $this->db->query($update['query']);
+                        }
+
+                    } elseif ($update['type'] === 'insert' && isset($update['check_row'])) {
+                        $table = $update['check_row']['table'];
+
+                        // Support both formats:
+                        //   new → check_row.where : { col: val }
+                        //   old → check_row.column + check_row.value
+                        if (!empty($update['check_row']['where'])) {
+                            $where = $update['check_row']['where'];
+                        } elseif (!empty($update['check_row']['column']) && isset($update['check_row']['value'])) {
+                            $where = [ $update['check_row']['column'] => $update['check_row']['value'] ];
+                        } else {
+                            $where = null;
+                        }
+
+                        if ($where !== null) {
+                            $result = $this->db->get_where($table, $where);
+                            $exists = ($result !== false) ? ($result->num_rows() > 0) : false;
+                        } else {
+                            $exists = false;
+                        }
+
+                        if (!$exists) {
+                            $this->db->query($update['query']);
+                        }
+
+                    } elseif ($update['type'] === 'create' && isset($update['check_table'])) {
+                        $table  = $update['check_table'];
+                        $result = $this->db->query("SHOW TABLES LIKE '$table'");
+                        if ($result !== false && $result->num_rows() == 0) {
+                            $this->db->query($update['query']);
+                        }
+
+                    } elseif ($update['type'] === 'index' && isset($update['check_index'])) {
+                        $table = $update['check_index']['table'];
+                        $index = $update['check_index']['index'];
+                        if (!$this->index_exists($table, $index)) {
+                            $this->db->query($update['query']);
+                        }
+
+                    } elseif ($update['type'] === 'raw') {
                         $this->db->query($update['query']);
-                       // echo "Executed ALTER: {$update['query']}<br>";
-                    } else {
-                       // echo "Skipped ALTER (already exists): $column in $table<br>";
                     }
-        
-                } elseif ($update['type'] === 'insert' && isset($update['check_row'])) {
-                    $table = $update['check_row']['table'];
-                    $where = $update['check_row']['where'];
-        
-                    $exists = $this->db->get_where($table, $where)->num_rows() > 0;
-        
-                    if (!$exists) {
-                        $this->db->query($update['query']);
-                       // echo "Executed INSERT: {$update['query']}<br>";
-                    } else {
-                        //echo "Skipped INSERT (row already exists in $table)<br>";
-                    }
-        
-                } elseif ($update['type'] === 'create' && isset($update['check_table'])) {
-                    $table = $update['check_table'];
-                    $query = $this->db->query("SHOW TABLES LIKE '$table'");
-                    if ($query->num_rows() == 0) {
-                        $this->db->query($update['query']);
-                    }
-                } elseif ($update['type'] === 'index' && isset($update['check_index'])) {
-                    $table = $update['check_index']['table'];
-                    $index = $update['check_index']['index'];
-                    if (!$this->index_exists($table, $index)) {
-                        $this->db->query($update['query']);
-                    }
-                } elseif ($update['type'] === 'raw') {
-                    $this->db->query($update['query']);
-                } else {
-                    //echo "Invalid update entry or unsupported type.<br>";
+                } catch (Exception $e) {
+                    // Skip failed entry — do not let one broken entry stop the rest
+                    log_message('error', 'apply_updates failed: ' . $e->getMessage());
                 }
             }
         }

@@ -131,6 +131,7 @@ This is a JSON array of migration entries. The system reads each entry and runs 
 - **2026-05-24**: **Student Login Credentials feature** — on student creation, sends SMS (template ID=3) and WhatsApp (`STUDENT_REGISTRATION` template) with username/password/URL. Per-row SMS, WhatsApp, and Change Login buttons added to student list. Bulk "Send Login Details" dropdown button (checkbox-gated, sends SMS and/or WhatsApp in parallel). `tagConvertor()` `{{password}}` fixed to use `$user->phone` (was hardcoded `"123456"`). New controller methods: `send_login_sms`, `send_login_whatsapp`, `send_bulk_login_sms`, `send_bulk_login_whatsapp`, `update_login_details`. 4 migration rows added to `schema_updates.json`.
 - **2026-05-09**: Documented **Client-Side Excel Export via SheetJS** (Section 8.3) — clone table → strip tooltip attrs → replace em-dashes → `table_to_sheet` → `writeFile`. Reference: Invoice Report (`mvc/views/report/invoicereport/InvoicereportReport.php`). colspan/rowspan merged headers preserved automatically.
 - **2026-05-14**: Implemented and documented **Firebase Push Notification System** (Section 10) — full admin UI (compose, history, setup, verify), Kreait SDK individual sends (Google removed `/batch`), cascading Role→Year→Class→Section→Users filter, only app-installed students shown in dropdown, image URL support, custom sound (`school_1`), `studentrelation` column name fix (`sr` prefix), select2 must be loaded via `headerassets`, foreground vs background notification behaviour documented.
+- **2026-06-17**: Implemented **Activity Logging System** (Section 11) — common `Activity_log_m` model with `add()` method, `activity_logs` table, admin Logs UI with filters/pagination, wired into Teacher/User/Student/Exam/Delete Account Request controllers.
 
 ## 8. Reusable UI Patterns
 
@@ -746,6 +747,185 @@ Do NOT call `.select2()` from an AJAX callback timing issue context — initiali
 ---
 
 ### 10.11 Troubleshooting Reference
+
+---
+
+## 11. Activity Logging System
+
+Implemented 2026-06-17. A centralised audit trail that records who did what, to which record, when, and from which IP. Callable from any controller with one method call.
+
+---
+
+### 11.1 Key Files
+
+| File | Purpose |
+|---|---|
+| `mvc/models/Activity_log_m.php` | **The common model** — `add()`, `get_logs()`, `count_logs()` |
+| `mvc/controllers/Logs.php` | Admin controller — paginated viewer with filters |
+| `mvc/views/logs/index.php` | Admin UI — table with Module/Action/Type/Date/Search filters |
+| `mvc/language/english/logs_lang.php` | Language strings for the Logs page |
+| `new domains/new db tables/tables.sql` | `CREATE TABLE activity_logs` statement |
+
+**Admin URL**: `/logs`
+**Menu**: Bottom of sidebar (`menuName = 'logs'`, `parentID = 0`, `priority = 10`)
+**Permission name**: `logs`
+**Icon**: `fa-history`
+
+---
+
+### 11.2 `activity_logs` Table Structure
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | INT AUTO_INCREMENT PK | — |
+| `module` | VARCHAR(100) | Feature name e.g. `student`, `teacher`, `delete_account_request` |
+| `action` | VARCHAR(50) | `create` / `update` / `delete` / `deactivate` / `view` |
+| `record_id` | INT | ID of the affected record (studentID, teacherID, etc.) |
+| `record_type` | VARCHAR(50) | `student` / `teacher` / `user` / `exam` etc. |
+| `old_value` | TEXT | JSON of the state **before** the change |
+| `new_value` | TEXT | JSON of the state **after** the change |
+| `description` | TEXT | Human-readable sentence explaining what happened |
+| `performed_by_id` | INT | `userID` from session — who triggered the action |
+| `performed_by_name` | VARCHAR(255) | `name` from session |
+| `performed_by_usertype` | INT | `usertypeID` from session |
+| `performed_by_usertype_name` | VARCHAR(100) | `usertype` string from session |
+| `ip_address` | VARCHAR(45) | Client IP (`$this->input->ip_address()`) |
+| `created_at` | DATETIME | Auto-set to NOW |
+
+**Indexes**: `idx_module_action`, `idx_record (record_id, record_type)`, `idx_performed_by`
+
+> **Note**: The table must be created by running `tables.sql` on the tenant DB. The schema_updates.json adds only the **menu, permission, and permission_relationship** rows — it does NOT create the table itself (to keep large DDL out of the migration JSON).
+
+---
+
+### 11.3 How to Add Logging to Any Module (Step-by-Step)
+
+#### Step 1 — Load the model in the controller constructor
+
+```php
+public function __construct() {
+    parent::__construct();
+    // ... existing model loads ...
+    $this->load->model('activity_log_m');  // ← add this line
+}
+```
+
+> For the **Student** controller (which is very large), load the model inline inside the specific method instead of the constructor to avoid touching the shared constructor:
+> ```php
+> $this->load->model('activity_log_m');
+> $this->activity_log_m->add([...]);
+> ```
+
+#### Step 2 — Call `add()` after every successful DB operation
+
+```php
+$this->activity_log_m->add([
+    'module'      => 'module_name',     // lowercase, underscore — matches menu/permission name
+    'action'      => 'create',          // create | update | delete | deactivate | view
+    'record_id'   => $id,               // the PK of the affected record (int)
+    'record_type' => 'student',         // what type of entity was affected
+    'old_value'   => ['active' => 1],   // array OR JSON string of BEFORE state (null if create)
+    'new_value'   => ['active' => 0],   // array OR JSON string of AFTER state (null if delete)
+    'description' => 'Student (ID: ' . $id . ') deactivated via Delete Account Request',
+]);
+```
+
+**Rules**:
+- `old_value` / `new_value` accept **arrays** (auto-encoded to JSON) or a JSON string directly.
+- The model auto-fills `performed_by_id`, `performed_by_name`, `performed_by_usertype`, `performed_by_usertype_name`, `ip_address`, and `created_at` from the session — you do NOT pass these.
+- If the `activity_logs` table doesn't exist yet, `add()` returns `0` silently — no crash, no side-effect.
+- Always call `add()` **after** the DB insert/update/delete succeeds, never before.
+- For **CREATE**: set `old_value = null`, pass the new record fields in `new_value`.
+- For **DELETE**: read the record first (before deleting), store its fields in `old_value`, set `new_value = null`.
+- For **active/inactive toggle**: `old_value = ['active' => 1]`, `new_value = ['active' => 0]` (or reverse).
+
+#### Step 3 — Add the module name to the Logs admin filter dropdown (optional)
+
+In `mvc/views/logs/index.php`, add the module to the `$modules` array:
+
+```php
+$modules = ['delete_account_request','student','teacher','user','fee','exam','attendance', 'your_new_module'];
+```
+
+---
+
+### 11.4 Modules Already Wired (as of 2026-06-17)
+
+| Module | Controller | Actions Logged |
+|---|---|---|
+| `delete_account_request` | `Delete_account_request.php` | `deactivate` (mark as processed) |
+| `teacher` | `Teacher.php` | `create`, `update`, `delete`, `update` (activate), `deactivate` |
+| `user` | `User.php` | `create`, `update`, `delete`, `update` (activate), `deactivate` |
+| `student` | `Student.php` | `update` (activate), `deactivate` |
+| `exam` | `Exam.php` | `create`, `update`, `delete` |
+
+---
+
+### 11.5 `Activity_log_m` Method Reference
+
+```php
+// Save one log entry — auto-fills session/IP fields
+$this->activity_log_m->add([
+    'module'      => string,   // required
+    'action'      => string,   // required
+    'record_id'   => int,      // optional
+    'record_type' => string,   // optional
+    'old_value'   => array|string|null,
+    'new_value'   => array|string|null,
+    'description' => string,   // optional but strongly recommended
+]);
+// returns: int (inserted log ID), or 0 if table missing
+
+// Fetch paginated logs with optional filters
+$this->activity_log_m->get_logs($filters, $limit, $offset);
+// $filters keys: module, action, record_type, performed_by_id, date_from, date_to, search
+
+// Count logs (same filters, for pagination)
+$this->activity_log_m->count_logs($filters);
+```
+
+---
+
+### 11.6 Menu and Permission Setup
+
+These three `raw` entries are in `schema_updates.json` (run via `/Schema_update/apply_updates`):
+
+```sql
+-- Menu entry (priority=10 = bottom of sidebar, below delete_account_request at 20)
+INSERT INTO `menu` (`menuName`,`link`,`icon`,`status`,`parentID`,`priority`)
+SELECT 'logs','logs','fa-history','1','0','10'
+FROM dual WHERE NOT EXISTS (SELECT 1 FROM `menu` WHERE `menuName`='logs');
+
+-- Permission entry
+INSERT INTO `permissions` (`name`,`description`)
+SELECT 'logs','logs' FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name`='logs');
+
+-- Admin usertype gets the permission
+INSERT INTO `permission_relationships` (`usertype_id`,`permission_id`)
+SELECT 1, permissionID FROM `permissions` WHERE `name`='logs'
+AND NOT EXISTS (SELECT 1 FROM `permission_relationships`
+    WHERE `usertype_id`=1 AND `permission_id`=(SELECT permissionID FROM `permissions` WHERE `name`='logs'));
+```
+
+**Sidebar label**: add to `mvc/language/english/topbar_menu_lang.php`:
+```php
+$lang['menu_logs'] = 'Logs';
+```
+
+**Mobile app menu**: add `'logs'` to the `$hideMenu` array in `mvc/controllers/api/v10/Backendmenucall.php` — this is an admin-only web feature, not needed in the mobile API menu.
+
+---
+
+### 11.7 Priority Numbers for Sidebar Position Reference
+
+| Menu Item | `priority` | Position |
+|---|---|---|
+| Settings | 30 | Near bottom |
+| Delete Account Request | 20 | Below Settings |
+| **Logs** | **10** | **Last / very bottom** |
+| (All other menus) | >30 | Higher = earlier in sidebar |
+
+> **Rule**: Higher `priority` number = appears **earlier** (higher) in the sidebar. Use low numbers (1–15) for items that should appear at the very bottom.
 
 | Symptom | Cause | Fix |
 |---|---|---|

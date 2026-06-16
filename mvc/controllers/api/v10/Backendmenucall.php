@@ -86,6 +86,9 @@ class Backendmenucall extends Api_Controller
             'gmeetliveclass',
             'zoomsettings',
 
+            'delete_account_request',
+            'logs',
+
         );
 
         $tree = [];

@@ -19,8 +19,9 @@ class Classes extends Admin_Controller {
 		$this->load->model("classes_m");
 		$this->load->model("teacher_m");
 		$this->load->model('studentrelation_m');
+		$this->load->model('activity_log_m');
 		$language = $this->session->userdata('lang');
-		$this->lang->load('classes', $language);	
+		$this->lang->load('classes', $language);
 	}
 
 	protected function rules() {
@@ -89,6 +90,15 @@ class Classes extends Admin_Controller {
 				);
 
 				$this->classes_m->insert_classes($array);
+				$newId = $this->db->insert_id();
+				$this->activity_log_m->add([
+					'module'      => 'classes',
+					'action'      => 'create',
+					'record_id'   => $newId,
+					'record_type' => 'classes',
+					'new_value'   => ['classes' => $array['classes']],
+					'description' => 'Class created: ' . $array['classes'],
+				]);
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("classes/index"));
 			}
@@ -132,6 +142,14 @@ class Classes extends Admin_Controller {
 						$this->studentrelation_m->update_studentrelation_with_multicondition(array('srclasses' => $this->input->post("classes")), array('srclassesID' => $id));
 
 						$this->classes_m->update_classes($array, $id);
+						$this->activity_log_m->add([
+							'module'      => 'classes',
+							'action'      => 'update',
+							'record_id'   => $id,
+							'record_type' => 'classes',
+							'new_value'   => ['classes' => $array['classes']],
+							'description' => 'Class updated: ' . $array['classes'],
+						]);
 						$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 						redirect(base_url("classes/index"));
 					}
@@ -155,6 +173,14 @@ class Classes extends Admin_Controller {
 			$classes = $this->classes_m->get_single_classes(array('classesID' => $id));
 			if(customCompute($classes)) {
 				$this->classes_m->delete_classes($id);
+				$this->activity_log_m->add([
+					'module'      => 'classes',
+					'action'      => 'delete',
+					'record_id'   => $id,
+					'record_type' => 'classes',
+					'old_value'   => ['classes' => $classes->classes ?? ''],
+					'description' => 'Class deleted: ' . ($classes->classes ?? 'ID ' . $id),
+				]);
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("classes/index"));
 			} else {

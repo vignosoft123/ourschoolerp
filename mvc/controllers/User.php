@@ -26,6 +26,7 @@ class User extends Admin_Controller {
 		$this->load->model("hourly_template_m");
 		$this->load->model("make_payment_m");
 		$this->load->model("leaveapplication_m");
+		$this->load->model('activity_log_m');
 		$language = $this->session->userdata('lang');
 		$this->lang->load('user', $language);
 	}
@@ -239,6 +240,15 @@ class User extends Admin_Controller {
 				$this->usercreatemail($this->input->post('email'), $this->input->post('username'), $this->input->post('password'));
 
 				$this->user_m->insert_user($array);
+				$newId = $this->db->insert_id();
+				$this->activity_log_m->add([
+					'module'      => 'user',
+					'action'      => 'create',
+					'record_id'   => $newId,
+					'record_type' => 'user',
+					'new_value'   => ['name' => $array['name'] ?? '', 'phone' => $array['phone'] ?? '', 'username' => $array['username'] ?? ''],
+					'description' => 'New user created: ' . ($array['name'] ?? ''),
+				]);
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("user/index"));
 			}
@@ -300,7 +310,14 @@ class User extends Admin_Controller {
 					$array['photo'] = $this->upload_data['file']['file_name'];
 
 					$this->user_m->update_user($array, $id);
-					// echo $this->db->last_query();die;
+					$this->activity_log_m->add([
+						'module'      => 'user',
+						'action'      => 'update',
+						'record_id'   => $id,
+						'record_type' => 'user',
+						'new_value'   => ['name' => $array['name'] ?? '', 'phone' => $array['phone'] ?? ''],
+						'description' => 'User profile updated: ' . ($array['name'] ?? 'ID ' . $id),
+					]);
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 					redirect(base_url("user/index"));
 				}
@@ -326,7 +343,16 @@ class User extends Admin_Controller {
 						}
 					}
 				}
+				$deletedUser = $this->data['user'];
 				$this->user_m->delete_user($id);
+				$this->activity_log_m->add([
+					'module'      => 'user',
+					'action'      => 'delete',
+					'record_id'   => $id,
+					'record_type' => 'user',
+					'old_value'   => ['name' => $deletedUser->name ?? '', 'phone' => $deletedUser->phone ?? ''],
+					'description' => 'User deleted: ' . ($deletedUser->name ?? 'ID ' . $id),
+				]);
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("user/index"));
 			} else {
@@ -859,9 +885,27 @@ class User extends Admin_Controller {
 					if(customCompute($user)) {
 						if($status == 'chacked') {
 							$this->user_m->update_user(array('active' => 1), $id);
+							$this->activity_log_m->add([
+								'module'      => 'user',
+								'action'      => 'update',
+								'record_id'   => $id,
+								'record_type' => 'user',
+								'old_value'   => ['active' => 0],
+								'new_value'   => ['active' => 1],
+								'description' => 'User (ID: ' . $id . ') activated: ' . ($user->name ?? ''),
+							]);
 							echo 'Success';
 						} elseif($status == 'unchacked') {
 							$this->user_m->update_user(array('active' => 0), $id);
+							$this->activity_log_m->add([
+								'module'      => 'user',
+								'action'      => 'deactivate',
+								'record_id'   => $id,
+								'record_type' => 'user',
+								'old_value'   => ['active' => 1],
+								'new_value'   => ['active' => 0],
+								'description' => 'User (ID: ' . $id . ') deactivated: ' . ($user->name ?? ''),
+							]);
 							echo 'Success';
 						} else {
 							echo "Error";

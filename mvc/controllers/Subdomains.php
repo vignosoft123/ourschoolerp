@@ -761,6 +761,88 @@ class Subdomains extends Admin_Controller {
 		]);
 	}
 
+	public function run_schema_updates() {
+		header('Content-Type: application/json');
+		$server      = strtolower(trim($this->input->post('server')));
+		$ids_raw     = trim($this->input->post('subdomain_ids'));
+
+		if (!$server) {
+			echo json_encode(['success' => false, 'message' => 'Server is required']);
+			return;
+		}
+
+		$selected_ids = [];
+		if (!empty($ids_raw)) {
+			$selected_ids = array_values(array_filter(array_map('intval', explode(',', $ids_raw))));
+		}
+		if (empty($selected_ids)) {
+			echo json_encode(['success' => false, 'message' => 'No subdomains selected. Please check at least one row.']);
+			return;
+		}
+
+		$domain_map = [
+			'hostgator'   => 'ourschoolerp.com',
+			'myschools'   => 'myschoolserp.com',
+			'schoolhour'  => 'schoolhour.in',
+			'collegehour' => 'collegeerp.in',
+			'godaddy'     => 'ourcollegeerp.com',
+		];
+		$base_domain = isset($domain_map[$server]) ? $domain_map[$server] : '';
+		if (!$base_domain) {
+			echo json_encode(['success' => false, 'message' => "Unknown server '$server'"]);
+			return;
+		}
+
+		$this->db->where('server', $server);
+		$this->db->where('status', 'active');
+		$this->db->where_in('id', $selected_ids);
+		$rows = $this->db->get('subdomain_settings')->result();
+
+		if (empty($rows)) {
+			echo json_encode(['success' => false, 'message' => 'No matching active subdomains found']);
+			return;
+		}
+
+		$results    = [];
+		$schema_key = SCHEMA_UPDATE_KEY;
+
+		foreach ($rows as $sub) {
+			$full_domain = $sub->subdomain . '.' . $base_domain;
+			$url         = 'https://' . $full_domain . '/schema_runner/run?key=' . urlencode($schema_key);
+
+			$ch = curl_init($url);
+			curl_setopt_array($ch, [
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_TIMEOUT        => 120,
+				CURLOPT_SSL_VERIFYPEER => false,
+				CURLOPT_SSL_VERIFYHOST => false,
+			]);
+			$body = curl_exec($ch);
+			$err  = curl_error($ch);
+			$code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			curl_close($ch);
+
+			if (!$body || $err) {
+				$results[$sub->subdomain] = [
+					'status'  => 'error',
+					'message' => 'Connection failed: ' . ($err ?: "HTTP $code"),
+				];
+			} else {
+				$data = json_decode($body, true);
+				$results[$sub->subdomain] = $data ?: [
+					'status'  => 'error',
+					'message' => 'Invalid response: ' . substr($body, 0, 150),
+				];
+			}
+		}
+
+		echo json_encode([
+			'success'          => true,
+			'results'          => $results,
+			'total_subdomains' => count($rows),
+		]);
+	}
+
 	public function ftp_upload_file() {
 		header('Content-Type: application/json');
 		$server    = strtolower(trim($this->input->post('server')));

@@ -23,6 +23,7 @@
         {
             parent::__construct();
             $this->load->model("exam_m");
+            $this->load->model('activity_log_m');
             $this->load->library('updatechecker');
             $this->data['notdeleteArray'] = $this->notdeleteArray;
             $language = $this->session->userdata('lang');
@@ -73,6 +74,15 @@
                     $array["academic_year"] = $this->session->userdata('defaultschoolyearID');
 
                     $this->exam_m->insert_exam($array);
+                    $newId = $this->db->insert_id();
+                    $this->activity_log_m->add([
+                        'module'      => 'exam',
+                        'action'      => 'create',
+                        'record_id'   => $newId,
+                        'record_type' => 'exam',
+                        'new_value'   => ['exam' => $array['exam'], 'date' => $array['date']],
+                        'description' => 'New exam created: ' . $array['exam'],
+                    ]);
                     $this->session->set_flashdata('success', $this->lang->line('menu_success'));
                     redirect(base_url("exam/index"));
                 }
@@ -138,7 +148,14 @@
                                 $this->db->where('examID',$examID);
                                 $this->db->update('mark',array('exam'=> $this->input->post("exam") ));
                             }
-
+                            $this->activity_log_m->add([
+                                'module'      => 'exam',
+                                'action'      => 'update',
+                                'record_id'   => $examID,
+                                'record_type' => 'exam',
+                                'new_value'   => ['exam' => $array['exam'], 'date' => $array['date']],
+                                'description' => 'Exam updated: ' . $array['exam'],
+                            ]);
                             $this->session->set_flashdata('success', $this->lang->line('menu_success'));
                             redirect(base_url("exam/index"));
                         }
@@ -160,7 +177,16 @@
 	public function delete() {
 		$examID = htmlentities(escapeString($this->uri->segment(3)));
 		if((int)$examID && !in_array($examID, $this->notdeleteArray)) {
-			$this->exam_m->delete_exam($examID);
+			$examData = $this->exam_m->get_exam($examID);
+		$this->exam_m->delete_exam($examID);
+		$this->activity_log_m->add([
+			'module'      => 'exam',
+			'action'      => 'delete',
+			'record_id'   => $examID,
+			'record_type' => 'exam',
+			'old_value'   => ['exam' => $examData->exam ?? '', 'date' => $examData->date ?? ''],
+			'description' => 'Exam deleted: ' . ($examData->exam ?? 'ID ' . $examID),
+		]);
 			$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 			redirect(base_url("exam/index"));
 		} else {

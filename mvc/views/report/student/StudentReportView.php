@@ -3,7 +3,9 @@
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-studentreport"></i> <?=$this->lang->line('panel_title')?></h3>
-
+        <a href="<?=base_url('admissionreport')?>" class="btn btn-info btn-sm pull-right" style="margin-top:3px;">
+            <i class="fa fa-bar-chart"></i> Admission Report
+        </a>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li class="active"><?=$this->lang->line('menu_studentreport')?></li>

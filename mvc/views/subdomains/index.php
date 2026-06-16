@@ -96,6 +96,11 @@
                             <button id="refresh_age_btn" class="btn btn-refresh-age btn-sm" onclick="refreshSchoolsAge()" disabled title="Refresh school age data for all subdomains on selected server">
                                 <i class="fa fa-refresh"></i> Refresh Schools Age
                             </button>
+                            &nbsp;
+                            <button id="schema_update_btn" class="btn btn-sm btn-schema-update" onclick="runSchemaUpdates()" disabled
+                                title="Run schema_updates.json on selected subdomains only — updates each subdomain's live database">
+                                <i class="fa fa-database"></i> Run Schema Updates
+                            </button>
                         </div>
 
                     </div>
@@ -336,6 +341,28 @@
     </div>
 </div>
 
+<!-- ══ Schema Update Modal ═══════════════════════════════════════════════════ -->
+<div class="modal fade" id="schemaUpdateModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#6a1b9a;color:#fff;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-database"></i> Schema Update Results</h4>
+            </div>
+            <div class="modal-body" style="padding:12px;">
+                <p style="font-size:12px;color:#555;margin:0 0 10px;">
+                    Server: <strong id="su_server_label">—</strong> &nbsp;|&nbsp;
+                    Subdomains: <strong id="su_count_label">—</strong>
+                </p>
+                <div id="su_result_area" style="max-height:480px;overflow-y:auto;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ══ Row Info Modal ════════════════════════════════════════════════════════ -->
 <div class="modal fade" id="rowInfoModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-md" role="document">
@@ -474,6 +501,7 @@ function updateBulkDeployBtn() {
         $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to ' + count + ' Selected');
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy ' + count + ' Selected');
         $('#ftp_upload_btn').prop('disabled', false);
+        $('#schema_update_btn').prop('disabled', false).html('<i class="fa fa-database"></i> Run Schema Updates (' + count + ')');
         if (showUploadBtn) {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
         } else {
@@ -486,6 +514,7 @@ function updateBulkDeployBtn() {
         $('#bulk_deploy_btn').prop('disabled', false).html('<i class="fa fa-rocket"></i> Deploy MVC to All ' + server);
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy All ' + server);
         $('#ftp_upload_btn').prop('disabled', false);
+        $('#schema_update_btn').prop('disabled', true).html('<i class="fa fa-database"></i> Run Schema Updates');
         if (showUploadBtn) {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
         } else {
@@ -498,6 +527,7 @@ function updateBulkDeployBtn() {
         $('#bulk_deploy_btn').prop('disabled', true).html('<i class="fa fa-rocket"></i> Bulk Deploy MVC');
         $('#bulk_full_deploy_btn').prop('disabled', true).html('<i class="fa fa-archive"></i> Bulk Full Deploy');
         $('#ftp_upload_btn').prop('disabled', true);
+        $('#schema_update_btn').prop('disabled', true).html('<i class="fa fa-database"></i> Run Schema Updates');
         $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
     }
 }
@@ -1712,6 +1742,12 @@ function updateCss(btn, subdomainId, subdomainName) {
 .btn-ftp-upload:hover,
 .btn-ftp-upload:focus { background-color: #263238; border-color: #1a2226; color: #fff; }
 .btn-ftp-upload:disabled { background-color: #b0bec5; border-color: #b0bec5; color: #fff; cursor: not-allowed; }
+
+/* ── Schema Update button ──────────────────────────── */
+.btn-schema-update { background-color: #6a1b9a; border-color: #4a148c; color: #fff; }
+.btn-schema-update:hover,
+.btn-schema-update:focus { background-color: #4a148c; border-color: #38006b; color: #fff; }
+.btn-schema-update:disabled { background-color: #ce93d8; border-color: #ce93d8; color: #fff; cursor: not-allowed; }
 </style>
 
 <script type="text/javascript">
@@ -1826,6 +1862,79 @@ function showRowInfo(d) {
     set('ri-created_at',      d['_created_at']);
 
     $('#rowInfoModal').modal('show');
+}
+
+// ── Run Schema Updates ────────────────────────────────────────────────────────
+
+function runSchemaUpdates() {
+    var server = $('#server_filter').val();
+    var ids    = Array.from(selectedIds);
+    if (!server) { alert('Please select a server first.'); return; }
+    if (ids.length === 0) { alert('Please select at least one subdomain using the checkboxes.'); return; }
+
+    $('#su_server_label').text(server);
+    $('#su_count_label').text(ids.length + ' subdomain(s)');
+    $('#su_result_area').html(
+        '<div style="text-align:center;padding:20px;">' +
+        '<i class="fa fa-spinner fa-spin fa-2x" style="color:#6a1b9a;"></i>' +
+        '<p style="margin-top:8px;color:#555;font-size:13px;">Running schema updates on ' + ids.length + ' subdomain(s)...<br>' +
+        '<small>This may take up to 2 minutes.</small></p></div>'
+    );
+    $('#schemaUpdateModal').modal('show');
+
+    $.ajax({
+        url:      '<?= base_url("subdomains/run_schema_updates") ?>',
+        type:     'POST',
+        dataType: 'json',
+        data:     { server: server, subdomain_ids: ids.join(',') },
+        timeout:  180000,
+        success: function(res) {
+            if (!res.success) {
+                $('#su_result_area').html(
+                    '<div class="alert alert-danger" style="font-size:12px;">' + res.message + '</div>'
+                );
+                return;
+            }
+            var html = '';
+            $.each(res.results, function(subdomain, data) {
+                var isErr     = data.status === 'error' || !data.success;
+                var hasFailed = !isErr && data.failed > 0;
+                var headerBg  = isErr ? '#f44336' : (hasFailed ? '#ff9800' : '#388e3c');
+                var icon      = isErr ? 'times-circle' : (hasFailed ? 'exclamation-triangle' : 'check-circle');
+                var summary   = isErr
+                    ? (data.message || 'Connection error')
+                    : ('✔ ' + data.passed + ' applied &nbsp; ↷ ' + data.skipped + ' skipped &nbsp; ✖ ' + data.failed + ' failed');
+
+                html += '<div style="margin-bottom:8px;border:1px solid #ddd;border-radius:4px;overflow:hidden;">';
+                html += '<div style="background:' + headerBg + ';color:#fff;padding:6px 10px;cursor:pointer;font-size:12px;font-weight:600;" ' +
+                        'onclick="$(this).next().toggle()">' +
+                        '<i class="fa fa-' + icon + '"></i> &nbsp;' + subdomain + ' &nbsp;<small style="font-weight:normal;">' + summary + '</small>' +
+                        ' &nbsp;<small style="float:right;">click to expand</small></div>';
+
+                if (!isErr && data.details && data.details.length) {
+                    html += '<div style="display:none;max-height:220px;overflow-y:auto;">';
+                    html += '<table class="table table-condensed" style="font-size:11px;margin:0;">';
+                    $.each(data.details, function(i, d) {
+                        var color = d.status === 'ok' ? '#e8f5e9' : (d.status === 'failed' ? '#ffebee' : '#f5f5f5');
+                        var ic    = d.status === 'ok' ? 'check' : (d.status === 'failed' ? 'times' : 'minus');
+                        html += '<tr style="background:' + color + ';"><td style="width:30px;">[' + d.n + ']</td>' +
+                                '<td><i class="fa fa-' + ic + '"></i> ' + $('<div>').text(d.msg).html() + '</td></tr>';
+                    });
+                    html += '</table></div>';
+                } else if (isErr) {
+                    html += '<div style="padding:6px 10px;font-size:11px;color:#c62828;">' + (data.message || '') + '</div>';
+                }
+                html += '</div>';
+            });
+            $('#su_result_area').html(html);
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? (xhr.responseJSON.message || xhr.statusText) : xhr.statusText;
+            $('#su_result_area').html(
+                '<div class="alert alert-danger" style="font-size:12px;">AJAX error: ' + msg + '</div>'
+            );
+        }
+    });
 }
 
 // ── Refresh Schools Age ───────────────────────────────────────────────────────

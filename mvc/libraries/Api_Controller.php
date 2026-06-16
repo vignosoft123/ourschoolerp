@@ -187,7 +187,7 @@ class Api_Controller extends REST_Controller
                 }
             }
 
-            $permissionBypass = ['voice_messages'];
+            $permissionBypass = ['voice_messages', 'delete_account_request'];
 
             if(!empty($mode)) {
                 $permissionSet = $this->session->userdata('master_permission_set');
