@@ -23,8 +23,9 @@ Class Subject extends Admin_Controller {
 		$this->load->model("student_m");
 		$this->load->model("subjectteacher_m");
 		$this->load->model("studentrelation_m");
+		$this->load->model('activity_log_m');
 		$language = $this->session->userdata('lang');
-		$this->lang->load('subject', $language);	
+		$this->lang->load('subject', $language);
 	}
 
 	public function index() {
@@ -159,6 +160,14 @@ Class Subject extends Admin_Controller {
 				);
 				$this->subject_m->insert_subject($array);
 				$subjectID = $this->db->insert_id();
+				$this->activity_log_m->add([
+					'module'      => 'subject',
+					'action'      => 'create',
+					'record_id'   => $subjectID,
+					'record_type' => 'subject',
+					'new_value'   => ['subject' => $array['subject'], 'classesID' => $array['classesID']],
+					'description' => 'Subject created: ' . $array['subject'],
+				]);
 
 				$teachers = $this->input->post('teacherID');
 				$subjectteacherArray = [];
@@ -228,6 +237,14 @@ Class Subject extends Admin_Controller {
 							);
 							
 							$this->subject_m->update_subject($array, $id);
+							$this->activity_log_m->add([
+								'module'      => 'subject',
+								'action'      => 'update',
+								'record_id'   => $id,
+								'record_type' => 'subject',
+								'new_value'   => ['subject' => $array['subject'], 'classesID' => $array['classesID']],
+								'description' => 'Subject updated: ' . $array['subject'],
+							]);
 							$teachers = $this->input->post('teacherID');
 							$subjectteacherArray = [];
 							if($teachers) {
@@ -276,6 +293,14 @@ Class Subject extends Admin_Controller {
 				if(customCompute($subject)) {
 					$this->subjectteacher_m->delete_subjectteacher_by_array(array('subjectID' => $id));
 					$this->subject_m->delete_subject($id);
+					$this->activity_log_m->add([
+						'module'      => 'subject',
+						'action'      => 'delete',
+						'record_id'   => $id,
+						'record_type' => 'subject',
+						'old_value'   => ['subject' => $subject->subject ?? ''],
+						'description' => 'Subject deleted: ' . ($subject->subject ?? 'ID ' . $id),
+					]);
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 					redirect(base_url("subject/index/$url"));
 				} else {

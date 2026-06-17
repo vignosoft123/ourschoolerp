@@ -134,6 +134,15 @@ class Section extends Admin_Controller {
 				);
 
 				$this->section_m->insert_section($array);
+				$newId = $this->db->insert_id();
+				$this->activity_log_m->add([
+					'module'      => 'section',
+					'action'      => 'create',
+					'record_id'   => $newId,
+					'record_type' => 'section',
+					'new_value'   => ['section' => $array['section'], 'classesID' => $array['classesID']],
+					'description' => 'Section created: ' . $array['section'],
+				]);
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("section/index/".$this->input->post('classesID')));
 			}
@@ -184,6 +193,14 @@ class Section extends Admin_Controller {
 							$this->studentrelation_m->update_studentrelation_with_multicondition(array('srsection' => $this->input->post("section")), array('srsectionID' => $id));
 
 							$this->section_m->update_section($array, $id);
+							$this->activity_log_m->add([
+								'module'      => 'section',
+								'action'      => 'update',
+								'record_id'   => $id,
+								'record_type' => 'section',
+								'new_value'   => ['section' => $array['section'], 'classesID' => $array['classesID']],
+								'description' => 'Section updated: ' . $array['section'],
+							]);
 							$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 							redirect(base_url("section/index/$url"));
 						}
@@ -213,6 +230,14 @@ class Section extends Admin_Controller {
 			$classes = $this->classes_m->get_single_classes(array('classesID' => $url));
 			if(customCompute($section) && customCompute($classes)) {
 				$this->section_m->delete_section($id);
+				$this->activity_log_m->add([
+					'module'      => 'section',
+					'action'      => 'delete',
+					'record_id'   => $id,
+					'record_type' => 'section',
+					'old_value'   => ['section' => $section->section ?? ''],
+					'description' => 'Section deleted: ' . ($section->section ?? 'ID ' . $id),
+				]);
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("section/index/$url"));
 			} else {

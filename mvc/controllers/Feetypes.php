@@ -18,8 +18,9 @@ class Feetypes extends Admin_Controller {
 		parent::__construct();
 		$this->load->model("feetypes_m");
 		$this->load->model("section_m");
+		$this->load->model('activity_log_m');
 		$language = $this->session->userdata('lang');
-		$this->lang->load('feetypes', $language);	
+		$this->lang->load('feetypes', $language);
 	}
 
 	public function index() {
@@ -95,6 +96,14 @@ class Feetypes extends Admin_Controller {
                     $this->feetypes_m->insert_feetypes($array);
                 }
 
+				$this->activity_log_m->add([
+					'module'      => 'feetypes',
+					'action'      => 'create',
+					'record_id'   => $this->db->insert_id(),
+					'record_type' => 'feetypes',
+					'new_value'   => ['feetypes' => $this->input->post("feetypes")],
+					'description' => 'Fee type created: ' . $this->input->post("feetypes"),
+				]);
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("feetypes/index"));
 			}
@@ -129,6 +138,14 @@ class Feetypes extends Admin_Controller {
 						);
 
 						$this->feetypes_m->update_feetypes($array, $id);
+						$this->activity_log_m->add([
+							'module'      => 'feetypes',
+							'action'      => 'update',
+							'record_id'   => $id,
+							'record_type' => 'feetypes',
+							'new_value'   => ['feetypes' => $array['feetypes']],
+							'description' => 'Fee type updated: ' . $array['feetypes'],
+						]);
 						$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 						redirect(base_url("feetypes/index"));
 					}
@@ -154,6 +171,15 @@ class Feetypes extends Admin_Controller {
 			if ($feetype) {
 				$new_status = ($feetype->active_status == 1) ? 0 : 1;
 				$this->feetypes_m->update_feetypes(array('active_status' => $new_status), $id);
+				$this->activity_log_m->add([
+					'module'      => 'feetypes',
+					'action'      => $new_status ? 'update' : 'deactivate',
+					'record_id'   => $id,
+					'record_type' => 'feetypes',
+					'old_value'   => ['active_status' => $feetype->active_status],
+					'new_value'   => ['active_status' => $new_status],
+					'description' => 'Fee type ' . ($new_status ? 'activated' : 'deactivated') . ': ' . $feetype->feetypes,
+				]);
 				echo json_encode(array('success' => true, 'active_status' => $new_status));
 				return;
 			}

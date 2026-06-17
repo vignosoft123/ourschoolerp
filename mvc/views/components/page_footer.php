@@ -181,6 +181,28 @@ $('.dataTable').DataTable({
         { extend: 'pdfHtml5',   text: '<i class="fa fa-file-pdf-o"></i> PDF',    className: 'dt-btn dt-btn-pdf'   }
     ],
     initComplete: function() {
+        // Prevent Chrome/browser autofill on the DataTables search box.
+        // Chrome ignores autocomplete="off" but respects readonly — so we start
+        // readonly (blocks autofill) and remove it only when the user focuses.
+        var $input = $(this.api().table().container()).find('.dataTables_filter input');
+        $input.attr({
+            autocomplete : 'new-password',
+            autocorrect  : 'off',
+            spellcheck   : 'false',
+            readonly     : true
+        }).on('focus', function() {
+            $(this).removeAttr('readonly');
+        }).on('blur', function() {
+            $(this).attr('readonly', true);
+        });
+        // Belt-and-suspenders: clear any value that slipped through after load
+        setTimeout(function() {
+            if ($input.val() && $input.val() !== $input.data('dt-user-typed')) {
+                $input.val('').trigger('input');
+            }
+        }, 300);
+        $input.on('keydown', function() { $(this).data('dt-user-typed', true); });
+
         var $table   = $(this.api().table().node());
         var $wrapper = $table.closest('.dataTables_wrapper');
         var $dtLeft  = $wrapper.find('.dt-top-left');

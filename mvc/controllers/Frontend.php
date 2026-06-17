@@ -253,6 +253,67 @@
             $this->bladeView->render('views/templates/privacy');
         }
 
+        public function delete_account()
+        {
+            $this->bladeView->render('views/templates/delete_account');
+        }
+
+        public function submit_delete_request()
+        {
+            header('Content-Type: application/json');
+
+            $type   = trim($this->input->post('type'));
+            $phone  = trim($this->input->post('phone'));
+            $reason = trim($this->input->post('reason'));
+
+            if (!in_array($type, ['student', 'teacher', 'user']) || empty($phone)) {
+                echo json_encode(['success' => false, 'message' => 'Account type and mobile number are required.']);
+                return;
+            }
+
+            // Look up the user by phone in the relevant table
+            $map = [
+                'student' => ['student', 'studentID', 'phone'],
+                'teacher' => ['teacher', 'teacherID', 'phone'],
+                'user'    => ['user',    'userID',    'phone'],
+            ];
+            [$table, $pk, $phoneCol] = $map[$type];
+
+            $row = $this->db->select("$pk AS user_id, name")
+                            ->from($table)
+                            ->where($phoneCol, $phone)
+                            ->where('active', 1)
+                            ->limit(1)
+                            ->get()->row();
+
+            if (!$row) {
+                echo json_encode(['success' => false, 'message' => 'No active account found with the provided mobile number and account type.']);
+                return;
+            }
+
+            $this->load->model('Delete_account_request_m');
+
+            if ($this->Delete_account_request_m->request_exists($type, $row->user_id)) {
+                echo json_encode(['success' => false, 'message' => 'A deletion request for this account is already pending. Our team will process it shortly.']);
+                return;
+            }
+
+            $id = $this->Delete_account_request_m->insert_request([
+                'type'         => $type,
+                'user_id'      => $row->user_id,
+                'user_name'    => $row->name,
+                'reason'       => $reason ?: null,
+                'status'       => 'pending',
+                'requested_at' => date('Y-m-d H:i:s'),
+            ]);
+
+            if ($id) {
+                echo json_encode(['success' => true, 'message' => 'Your account deletion request has been submitted successfully. Our team will process it within 7 working days.']);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Failed to submit request. Please try again or contact the school administration.']);
+            }
+        }
+
         public function school_json(){
         
             

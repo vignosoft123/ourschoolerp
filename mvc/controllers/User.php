@@ -315,6 +315,7 @@ class User extends Admin_Controller {
 						'action'      => 'update',
 						'record_id'   => $id,
 						'record_type' => 'user',
+						'old_value'   => ['name' => $this->data['user']->name ?? '', 'phone' => $this->data['user']->phone ?? ''],
 						'new_value'   => ['name' => $array['name'] ?? '', 'phone' => $array['phone'] ?? ''],
 						'description' => 'User profile updated: ' . ($array['name'] ?? 'ID ' . $id),
 					]);

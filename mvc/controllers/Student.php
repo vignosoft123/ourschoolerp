@@ -1119,7 +1119,15 @@ class Student extends Admin_Controller
 					$this->studentextend_m->insert_studentextend($studentExtendArray);
 					$this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
 
-
+					$this->load->model('activity_log_m');
+					$this->activity_log_m->add([
+						'module'      => 'student',
+						'action'      => 'create',
+						'record_id'   => $studentID,
+						'record_type' => 'student',
+						'new_value'   => ['name' => $array['name'] ?? '', 'roll' => $array['roll'] ?? '', 'phone' => $array['phone'] ?? ''],
+						'description' => 'New student admitted: ' . ($array['name'] ?? 'ID ' . $studentID),
+					]);
 
 					$this->load->model("mailandsmstemplate_m");
 					$template = $this->mailandsmstemplate_m->get_mailandsmstemplate(2); //school admmission
@@ -1870,6 +1878,16 @@ class Student extends Admin_Controller
 					$this->studentextend_m->insert_studentextend($studentExtendArray);
 					$this->studentrelation_m->insert_studentrelation($arrayStudentRelation);
 
+					$this->load->model('activity_log_m');
+					$this->activity_log_m->add([
+						'module'      => 'student',
+						'action'      => 'create',
+						'record_id'   => $studentID,
+						'record_type' => 'student',
+						'new_value'   => ['name' => $array['name'] ?? '', 'roll' => $array['roll'] ?? '', 'phone' => $array['phone'] ?? ''],
+						'description' => 'New student admitted: ' . ($array['name'] ?? 'ID ' . $studentID),
+					]);
+
 					$sibling_ids = array_filter((array)$this->input->post('sibling_studentID'));
 					foreach ($sibling_ids as $sibID) {
 						$sibID = (int)$sibID;
@@ -2476,7 +2494,7 @@ class Student extends Admin_Controller
 							$array["address"] = $this->input->post("address");
 							$array["classesID"] = $this->input->post("classesID");
 							$array["sectionID"] = $this->input->post("sectionID");
-							// $array["roll"] = $this->input->post("roll");
+							$array["roll"] = $this->input->post("roll");
 							$array["bloodgroup"] = $this->input->post("bloodgroup");
 							$array["state"] = $this->input->post("state");
 							$array["country"] = $this->input->post("country");
@@ -2625,7 +2643,7 @@ class Student extends Admin_Controller
 									'srname' => $this->input->post("name"),
 									'srclassesID' => $this->input->post("classesID"),
 									'srclasses' => $setClasses,
-									// 'srroll' => $this->input->post("roll"),
+									'srroll' => $this->input->post("roll"),
 									'srregisterNO' => $this->input->post("registerNO"),
 									'srsectionID' => $this->input->post("sectionID"),
 									'srsection' => $setSection,
@@ -2650,7 +2668,7 @@ class Student extends Admin_Controller
 									'srname' => $this->input->post("name"),
 									'srclassesID' => $this->input->post("classesID"),
 									'srclasses' => $setClasses,
-									// 'srroll' => $this->input->post("roll"),
+									'srroll' => $this->input->post("roll"),
 									'srregisterNO' => $this->input->post("registerNO"),
 									'srsectionID' => $this->input->post("sectionID"),
 									'srsection' => $setSection,
@@ -2698,7 +2716,8 @@ class Student extends Admin_Controller
 								'action'      => 'update',
 								'record_id'   => $studentID,
 								'record_type' => 'student',
-								'new_value'   => ['name' => $array['name'] ?? '', 'phone' => $array['phone'] ?? ''],
+								'old_value'   => ['name' => $objStudent->name ?? '', 'roll' => $objStudent->srroll ?? $objStudent->roll ?? '', 'phone' => $objStudent->phone ?? ''],
+								'new_value'   => ['name' => $array['name'] ?? '', 'roll' => $array['roll'] ?? '', 'phone' => $array['phone'] ?? ''],
 								'description' => 'Student profile updated: ' . ($array['name'] ?? 'ID ' . $studentID),
 							]);
 

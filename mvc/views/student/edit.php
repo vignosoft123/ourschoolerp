@@ -221,7 +221,7 @@
                                     <?=$this->lang->line("student_roll")?> <span class="text-red">*</span>
                                 </label>
                                 
-                                    <input type="text" class="form-control" id="roll" name="roll" value="<?=set_value('roll', $student->srroll)?>" >
+                                    <input type="text" class="form-control" id="roll" name="roll" value="<?=set_value('roll', $student->srroll ?: $student->roll)?>" >
                                
                                 <span class="err control-label">
                                     <?php echo form_error('roll'); ?>

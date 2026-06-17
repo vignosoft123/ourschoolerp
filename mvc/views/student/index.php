@@ -365,7 +365,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         $array[$classa->classesID] = $classa->classes;
                                     }
                                 }
-                                echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2'");
+                                echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control'");
                                 ?>
                             </div>
                             <?php } ?>
@@ -404,7 +404,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         $array[$classa->classesID] = $classa->classes;
                                     }
                                 }
-                                echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control select2'");
+                                echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID_legacy' class='form-control'");
                                 ?>
                             </div>
                         <?php } ?>

@@ -11,8 +11,12 @@
                         <?= !empty($frontend->terms_label) ? htmlspecialchars($frontend->terms_label) : 'Terms &amp; Conditions' ?>
                     </a>
                     <span style="color:#999;">|</span>
-                    <a href="<?= base_url('frontend/privacy') ?>" style="color:#8dc63f; margin-left:15px;">
+                    <a href="<?= base_url('frontend/privacy') ?>" style="color:#8dc63f; margin-left:15px; margin-right:15px;">
                         <?= !empty($frontend->privacy_label) ? htmlspecialchars($frontend->privacy_label) : 'Privacy Policy' ?>
+                    </a>
+                    <span style="color:#999;">|</span>
+                    <a href="<?= base_url('frontend/delete_account') ?>" style="color:#8dc63f; margin-left:15px;">
+                        Delete Account
                     </a>
                 </div>
             </div>

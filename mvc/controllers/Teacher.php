@@ -393,6 +393,7 @@ class Teacher extends Admin_Controller {
                             'action'      => 'update',
                             'record_id'   => $id,
                             'record_type' => 'teacher',
+                            'old_value'   => ['name' => $this->data['teacher']->name ?? '', 'phone' => $this->data['teacher']->phone ?? '', 'designation' => $this->data['teacher']->designation ?? ''],
                             'new_value'   => ['name' => $array['name'], 'phone' => $array['phone'] ?? '', 'designation' => $array['designation'] ?? ''],
                             'description' => 'Teacher profile updated: ' . $array['name'],
                         ]);
