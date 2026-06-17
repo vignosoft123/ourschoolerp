@@ -479,10 +479,10 @@ private function log_whatsapp_history($results)
 		$get_msg91s = $this->smssettings_m->get_order_by_whatsapp();
 
 		if (isset($get_msg91s[1]->field_values) && isset($get_msg91s[2]->field_values)) {
-			$user_name = $get_msg91s[1]->field_values;
-			$password  = $get_msg91s[2]->field_values;
+			$user_name = trim($get_msg91s[1]->field_values);
+			$password  = trim($get_msg91s[2]->field_values);
 
-			$url = "http://bwa.mindwhile.com/api/checkbalancewamu.php?user=$user_name&pass=$password";
+			$url = "http://bwa.mindwhile.com/api/checkbalancewamu.php?user=" . urlencode($user_name) . "&pass=" . urlencode($password);
 			// echo "URL: " . $url . "<br>";
 
 			$ch = curl_init();
@@ -495,17 +495,17 @@ private function log_whatsapp_history($results)
 				CURLOPT_ENCODING => '',
 			]);
 
-			$result = curl_exec($ch);
-			$error = curl_error($ch);
+			$result   = curl_exec($ch);
+			$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+			$error    = curl_error($ch);
 			curl_close($ch);
 
-			if ($error) {
-				echo "CURL ERROR: " . $error;
+			if ($error || $httpCode != 200) {
 				return 0;
 			}
 
-		return $result;
-			die;
+			$clean = trim($result);
+			return is_numeric($clean) ? $clean : 0;
 		}
 
 		return 0;
