@@ -35,6 +35,45 @@ class Mailandsmstemplate extends Admin_Controller {
 		$this->load->view('_layout_main', $this->data);
 	}
 
+	public function whatsapp_edit() {
+		$id = htmlentities(escapeString($this->uri->segment(3)));
+		if(!(int)$id) { redirect(base_url('mailandsmstemplate/whatsapp_index')); }
+
+		$this->data['headerassets'] = array(
+			'css' => array(
+				'assets/select2/css/select2.css',
+				'assets/select2/css/select2-bootstrap.css'
+			),
+			'js' => array(
+				'assets/select2/select2.js'
+			)
+		);
+
+		$this->data['whatsapp_template'] = $this->db->where('mailandsmstemplateID', $id)->get('whatapp_templates')->row();
+		if(!$this->data['whatsapp_template']) { redirect(base_url('mailandsmstemplate/whatsapp_index')); }
+
+		if($_POST) {
+			$array = array(
+				'template_name' => $this->input->post('whatsapp_name'),
+				'usertypeID'    => $this->input->post('whatsapp_user'),
+				'template'      => $this->input->post('whatsapp_temp_name'),
+				'templ_id'      => $this->input->post('template_id'),
+				'params'        => $this->input->post('params'),
+				'short_name'    => $this->input->post('short_name'),
+			);
+			$this->db->where('mailandsmstemplateID', $id)->update('whatapp_templates', $array);
+			$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+			redirect(base_url('mailandsmstemplate/whatsapp_index'));
+		}
+
+		$usertypes = $this->usertype_m->get_usertype();
+		$this->data['usertypes'] = $usertypes;
+		$this->all_tag($usertypes);
+		$this->data['whatsapp_user'] = $this->data['whatsapp_template']->usertypeID;
+		$this->data["subview"] = "mailandsmstemplate/whatsapp_edit";
+		$this->load->view('_layout_main', $this->data);
+	}
+
 	protected function rules_email() {
 		$rules = array(
 				array(
@@ -141,6 +180,7 @@ class Mailandsmstemplate extends Admin_Controller {
 				$this->data["sms"] = 0;
 				$this->data["email_user"] = $this->input->post('email_user');
 				$this->data["sms_user"] = 'select';
+				$this->data["whatsapp_user"] = 'select';
 				$rules = $this->rules_email();
 				$this->form_validation->set_rules($rules);
 				if ($this->form_validation->run() == FALSE) {
@@ -164,6 +204,7 @@ class Mailandsmstemplate extends Admin_Controller {
 				$this->data["sms"] = 1;
 				$this->data["email_user"] = 'select';
 				$this->data["sms_user"] = $this->input->post('sms_user');
+				$this->data["whatsapp_user"] = 'select';
 				$rules = $this->rules_sms();
 				$this->form_validation->set_rules($rules);
 				if ($this->form_validation->run() == FALSE) {
@@ -188,7 +229,8 @@ class Mailandsmstemplate extends Admin_Controller {
 				$this->data["sms"] = 0;
 				$this->data["voice"] = 1;
 				$this->data["email_user"] = 'select';
-				$this->data["sms_user"] = $this->input->post('sms_user');
+				$this->data["sms_user"] = 'select';
+				$this->data["whatsapp_user"] = 'select';
 				$rules = $this->rules_voice();
 				$this->form_validation->set_rules($rules);
 				if ($this->form_validation->run() == FALSE) {
@@ -212,7 +254,8 @@ class Mailandsmstemplate extends Admin_Controller {
 				$this->data["sms"] = 0;
 				$this->data["whatsapp"] = 1;
 				$this->data["email_user"] = 'select';
-				$this->data["sms_user"] = $this->input->post('sms_user');
+				$this->data["sms_user"] = 'select';
+				$this->data["whatsapp_user"] = $this->input->post('whatsapp_user');
 				//$rules = $this->rules_sms();
 				// $this->form_validation->set_rules($rules);
 				// if ($this->form_validation->run() == FALSE) {
@@ -242,6 +285,7 @@ class Mailandsmstemplate extends Admin_Controller {
 			$this->data["sms"] = 0;
 			$this->data["email_user"] = 'select';
 			$this->data["sms_user"] = 'select';
+			$this->data["whatsapp_user"] = 'select';
 				$this->data["subview"] = "mailandsmstemplate/add";
 			$this->load->view('_layout_main', $this->data);
 		}

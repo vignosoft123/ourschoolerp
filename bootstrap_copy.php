@@ -47,13 +47,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if ($k !== API_KEY || !$s || !$d) {
         die(json_encode(['success' => false, 'message' => 'Bad GET params']));
     }
-    $pub  = dirname(__DIR__);
-    $tgt  = $pub . '/' . $s . $d . '/';
-    $src  = __DIR__ . '/mvc.zip';
+    $pub      = dirname(__DIR__);
+    $tgt      = $pub . '/' . $s . $d . '/';
+    $type     = $_GET['type'] ?? 'mvc';
+    $zip_name = ($type === 'assets') ? 'assets.zip' : (($type === 'frontend') ? 'frontend.zip' : 'mvc.zip');
+    $src      = __DIR__ . '/' . $zip_name;
     if (!is_dir($tgt)) die(json_encode(['success' => false, 'message' => "Target not found: $tgt"]));
-    if (!file_exists($src)) die(json_encode(['success' => false, 'message' => 'mvc.zip not on dummy server']));
+    if (!file_exists($src)) die(json_encode(['success' => false, 'message' => $zip_name . ' not on dummy server']));
 
     @set_time_limit(300);
+    if ($type === 'assets' || $type === 'frontend') {
+        $z = new ZipArchive;
+        if ($z->open($src) !== TRUE) die(json_encode(['success' => false, 'message' => 'Failed to open zip']));
+        $z->extractTo($tgt); $z->close();
+        $label = $type === 'assets' ? 'Assets' : 'Frontend';
+        die(json_encode(['success' => true, 'message' => "{$label} deployed to {$s}"]));
+    }
+    // MVC: backup config files, extract, restore
     $cfgs = ['mvc/config/development/database.php', 'mvc/config/css_update_config.php'];
     $bak = [];
     foreach ($cfgs as $r) { $f = $tgt . $r; if (file_exists($f)) $bak[$r] = file_get_contents($f); }

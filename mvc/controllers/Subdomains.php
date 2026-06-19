@@ -257,10 +257,10 @@ class Subdomains extends Admin_Controller {
 
 			$actions .= $sep;
 
-			// Group 2 — Deploy (order: Plug → CSS → Rocket → Archive)
+			// Group 2 — Deploy (order: Plug → Rocket → Archive; CSS removed)
 			$actions .= '<span class="btn-group-wrap">';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-bootstrap" title="Bootstrap: copy Cssupdate+Mvcdeploy to live server" onclick="event.stopPropagation();bootstrapSubdomain(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-plug"></i></a>';
-			$actions .= '<a href="javascript:void(0)" class="btn btn-warning btn-sm" title="Sync CSS to live server" onclick="event.stopPropagation();updateCss(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-cloud-upload"></i></a>';
+			// $actions .= '<a href="javascript:void(0)" class="btn btn-warning btn-sm" title="Sync CSS to live server" onclick="event.stopPropagation();updateCss(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-cloud-upload"></i></a>';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-deploy-mvc" title="Deploy MVC from localhost to live server" onclick="event.stopPropagation();deployMvc(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\',\'' . addslashes($subdomain->server) . '\')"><i class="fa fa-rocket"></i></a>';
 			$actions .= '<a href="javascript:void(0)" class="btn btn-sm btn-full-deploy" title="Full Deploy: extract all zip files (new domain)" onclick="event.stopPropagation();fullDeploy(this,' . $subdomain->id . ',\'' . addslashes($subdomain->subdomain) . '\')"><i class="fa fa-archive"></i></a>';
 			$actions .= '</span>';
@@ -638,6 +638,124 @@ class Subdomains extends Admin_Controller {
 			echo json_encode(['success' => true, 'message' => "mvc.zip ({$size_mb} MB) uploaded to {$cfg['dummy_dir']}/.{$extra_msg} Now click Rocket on each subdomain."]);
 		} else {
 			echo json_encode(['success' => false, 'message' => "FTP put failed — could not write mvc.zip to {$cfg['dummy_dir']}/"]);
+		}
+	}
+
+	public function upload_assets_zip_php($server = '') {
+		header('Content-Type: application/json');
+
+		$assets_zip_path = 'C:/xampp/htdocs/ourschoolerp/assets.zip';
+		if (!file_exists($assets_zip_path)) {
+			echo json_encode(['success' => false, 'message' => "assets.zip not found at: $assets_zip_path"]);
+			return;
+		}
+
+		$ftp_configs = [
+			'hostgator'   => ['host' => 'cs3005.hostgator.in',  'port' => 21, 'user' => 'mindw2ft',  'pass' => 'Mindwhile$1986@', 'dummy_dir' => 'dummy1.ourschoolerp.com'],
+			'myschools'   => ['host' => 'sh203.bigrock.com',     'port' => 21, 'user' => 'myschknc',  'pass' => 'Kiran$1986@',    'dummy_dir' => 'dummy1.myschoolserp.com'],
+			'schoolhour'  => ['host' => 'schoolhour.in',         'port' => 21, 'user' => 'schoodj8',  'pass' => 'School@123456@', 'dummy_dir' => 'dummy1.schoolhour.in'],
+			'collegehour' => ['host' => 'collegehour.in',        'port' => 21, 'user' => 'collenv4p', 'pass' => 'Satya$1986$',   'dummy_dir' => 'dummy1.collegeerp.in'],
+		];
+
+		if (!isset($ftp_configs[$server])) {
+			echo json_encode(['success' => false, 'message' => "No FTP config for server '$server'. Valid: " . implode(', ', array_keys($ftp_configs))]);
+			return;
+		}
+
+		$cfg  = $ftp_configs[$server];
+		$conn = @ftp_connect($cfg['host'], $cfg['port'], 60);
+		if (!$conn) {
+			echo json_encode(['success' => false, 'message' => "FTP connect failed to {$cfg['host']}:{$cfg['port']}"]);
+			return;
+		}
+		if (!@ftp_login($conn, $cfg['user'], $cfg['pass'])) {
+			ftp_close($conn);
+			echo json_encode(['success' => false, 'message' => "FTP login failed — check credentials"]);
+			return;
+		}
+		ftp_pasv($conn, true);
+		if (!@ftp_chdir($conn, $cfg['dummy_dir'])) {
+			ftp_close($conn);
+			echo json_encode(['success' => false, 'message' => "FTP directory not found: {$cfg['dummy_dir']}"]);
+			return;
+		}
+
+		$assets_ok = @ftp_put($conn, 'assets.zip', $assets_zip_path, FTP_BINARY);
+
+		// Also re-upload bootstrap_copy.php so the updated type=assets GET support is live
+		$bootstrap_path = 'C:/xampp/htdocs/ourschoolerp/bootstrap_copy.php';
+		$bootstrap_ok   = file_exists($bootstrap_path) ? @ftp_put($conn, 'bootstrap_copy.php', $bootstrap_path, FTP_ASCII) : false;
+
+		ftp_close($conn);
+
+		if ($assets_ok) {
+			$size_mb = round(filesize($assets_zip_path) / 1024 / 1024, 2);
+			echo json_encode([
+				'success' => true,
+				'message' => "assets.zip ({$size_mb} MB) uploaded to {$cfg['dummy_dir']}/" .
+				             ($bootstrap_ok ? ' + bootstrap_copy.php updated.' : ''),
+			]);
+		} else {
+			echo json_encode(['success' => false, 'message' => "FTP put failed — could not write assets.zip to {$cfg['dummy_dir']}/"]);
+		}
+	}
+
+	public function upload_frontend_zip_php($server = '') {
+		header('Content-Type: application/json');
+
+		$frontend_zip_path = 'C:/xampp/htdocs/ourschoolerp/frontend.zip';
+		if (!file_exists($frontend_zip_path)) {
+			echo json_encode(['success' => false, 'message' => "frontend.zip not found at: $frontend_zip_path"]);
+			return;
+		}
+
+		$ftp_configs = [
+			'hostgator'   => ['host' => 'cs3005.hostgator.in',  'port' => 21, 'user' => 'mindw2ft',  'pass' => 'Mindwhile$1986@', 'dummy_dir' => 'dummy1.ourschoolerp.com'],
+			'myschools'   => ['host' => 'sh203.bigrock.com',     'port' => 21, 'user' => 'myschknc',  'pass' => 'Kiran$1986@',    'dummy_dir' => 'dummy1.myschoolserp.com'],
+			'schoolhour'  => ['host' => 'schoolhour.in',         'port' => 21, 'user' => 'schoodj8',  'pass' => 'School@123456@', 'dummy_dir' => 'dummy1.schoolhour.in'],
+			'collegehour' => ['host' => 'collegehour.in',        'port' => 21, 'user' => 'collenv4p', 'pass' => 'Satya$1986$',   'dummy_dir' => 'dummy1.collegeerp.in'],
+		];
+
+		if (!isset($ftp_configs[$server])) {
+			echo json_encode(['success' => false, 'message' => "No FTP config for server '$server'. Valid: " . implode(', ', array_keys($ftp_configs))]);
+			return;
+		}
+
+		$cfg  = $ftp_configs[$server];
+		$conn = @ftp_connect($cfg['host'], $cfg['port'], 60);
+		if (!$conn) {
+			echo json_encode(['success' => false, 'message' => "FTP connect failed to {$cfg['host']}:{$cfg['port']}"]);
+			return;
+		}
+		if (!@ftp_login($conn, $cfg['user'], $cfg['pass'])) {
+			ftp_close($conn);
+			echo json_encode(['success' => false, 'message' => "FTP login failed — check credentials"]);
+			return;
+		}
+		ftp_pasv($conn, true);
+		if (!@ftp_chdir($conn, $cfg['dummy_dir'])) {
+			ftp_close($conn);
+			echo json_encode(['success' => false, 'message' => "FTP directory not found: {$cfg['dummy_dir']}"]);
+			return;
+		}
+
+		$frontend_ok = @ftp_put($conn, 'frontend.zip', $frontend_zip_path, FTP_BINARY);
+
+		// Also re-upload bootstrap_copy.php so the updated type=frontend GET support is live
+		$bootstrap_path = 'C:/xampp/htdocs/ourschoolerp/bootstrap_copy.php';
+		$bootstrap_ok   = file_exists($bootstrap_path) ? @ftp_put($conn, 'bootstrap_copy.php', $bootstrap_path, FTP_ASCII) : false;
+
+		ftp_close($conn);
+
+		if ($frontend_ok) {
+			$size_mb = round(filesize($frontend_zip_path) / 1024 / 1024, 2);
+			echo json_encode([
+				'success' => true,
+				'message' => "frontend.zip ({$size_mb} MB) uploaded to {$cfg['dummy_dir']}/" .
+				             ($bootstrap_ok ? ' + bootstrap_copy.php updated.' : ''),
+			]);
+		} else {
+			echo json_encode(['success' => false, 'message' => "FTP put failed — could not write frontend.zip to {$cfg['dummy_dir']}/"]);
 		}
 	}
 

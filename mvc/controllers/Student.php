@@ -881,8 +881,6 @@ class Student extends Admin_Controller
 
 		$this->addRemarksColumn();
 
-
-
 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
 			$this->data['classes'] = $this->classes_m->get_classes();
 			$this->data['sections'] = $this->section_m->general_get_section();
@@ -4148,6 +4146,17 @@ private function addRemarksColumn() {
 		$sql = "ALTER TABLE `student` ADD `remarks` TEXT NULL DEFAULT NULL AFTER `pickup_id`";
 		$this->db->query($sql);
 	}
+}
+
+public function fill_whatsapp_from_phone()
+{
+	if ($this->session->userdata('usertypeID') != 1) {
+		echo json_encode(['message' => 'Permission denied.']);
+		return;
+	}
+	$this->db->query("UPDATE student SET alternative_phone1 = phone WHERE (alternative_phone1 IS NULL OR alternative_phone1 = '') AND (phone IS NOT NULL AND phone != '')");
+	$affected = $this->db->affected_rows();
+	echo json_encode(['message' => $affected . ' student(s) updated successfully.']);
 }
 
 public function export_comprehensive_excel()

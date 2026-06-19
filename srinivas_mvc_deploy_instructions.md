@@ -1,6 +1,6 @@
 # MVC Deployment System — Complete Reference
 **Project:** OurSchoolERP (staging.ourschoolerp.localhost)  
-**Created:** 2026-06-06 | **Updated:** 2026-06-09 (cPanel one-click subdomain creation; SQL import via dummy server; auto full deploy)  
+**Created:** 2026-06-06 | **Updated:** 2026-06-19 (assets.zip deploy; frontend.zip deploy; GoDaddy cPanel Fileman upload strategy for large files)  
 **Author context:** Srinivas — this file was generated to capture the full deployment system so any future Claude session can understand and extend it without re-discovery.
 
 ---
@@ -76,15 +76,19 @@ CPANEL_CONFIGS={
 | File | Purpose |
 |---|---|
 | `mvcdeploy.php` | Standalone PHP receiver — only on GoDaddy subdomain roots |
-| `bootstrap_copy.php` | Dummy server script: copies Cssupdate.php + Mvcdeploy.php to subdomains; also handles MVC extraction via GET request |
+| `bootstrap_copy.php` | Dummy server script: copies Cssupdate.php + Mvcdeploy.php to subdomains; handles MVC/assets/frontend extraction via GET `?type=mvc\|assets\|frontend` |
 | `full_deploy.php` | Dummy server script: extracts ALL zip files for new domain setup |
 | `css_sync.php` | CSS sync proxy for dummy server (fallback for mod_security servers) |
+| `assets.zip` | Zipped assets/ folder — deployed via "Deploy Assets" button |
+| `frontend.zip` | Zipped frontend/ folder — deployed via "Deploy Frontend" button |
 
 ### On Live Servers (each subdomain root)
 | File | Location | Purpose |
 |---|---|---|
 | `mvc/controllers/Cssupdate.php` | `mvc/controllers/` | Receives CSS files + controller uploads from Python |
 | `mvc/controllers/Mvcdeploy.php` | `mvc/controllers/` | CI controller: check, receive, trigger methods for MVC deploy |
+| `mvc/controllers/Assetsdeploy.php` | `mvc/controllers/` | CI controller: check, trigger — extracts assets.zip from webroot (GoDaddy only) |
+| `mvc/controllers/Frontenddeploy.php` | `mvc/controllers/` | CI controller: check, trigger — extracts frontend.zip from webroot (GoDaddy only) |
 | `mvc/config/css_update_config.php` | `mvc/config/` | Holds the CSS API key |
 
 ### Dummy Server Files (upload once per dummy server)
@@ -114,6 +118,10 @@ Folder: `C:\xampp\htdocs\ourschoolerp\need to upload in dummy1\`
 | `POST /full-deploy-bulk` | Full deploy to multiple subdomains |
 | `POST /create-cpanel-subdomain` | **One-click new subdomain**: creates folder + DB + user + privileges + SQL import + full deploy + DB record |
 | `GET /config-check` | Debug: shows configured servers for cpanel/ftp/dummy/domains |
+| `POST /upload-assets-zip/{server}` | FTP-upload local assets.zip to dummy server for given FTP server |
+| `POST /deploy-assets-bulk` | Deploy assets.zip to multiple live subdomains (FTP: via dummy bootstrap; GoDaddy: cPanel Fileman + trigger) |
+| `POST /upload-frontend-zip/{server}` | FTP-upload local frontend.zip to dummy server for given FTP server |
+| `POST /deploy-frontend-bulk` | Deploy frontend.zip to multiple live subdomains (FTP: via dummy bootstrap; GoDaddy: cPanel Fileman + trigger) |
 
 ---
 
@@ -142,11 +150,21 @@ Folder: `C:\xampp\htdocs\ourschoolerp\need to upload in dummy1\`
 | Full Deploy All | Once per new subdomain (extracts ALL zip files) | `localhost:8000/full-deploy-bulk` |
 
 **GROUP 2 — Regular Updates** (run every time you make changes):
-| Button | When | Endpoint / Handler |
-|---|---|---|
-| Sync CSS to All | Every CSS change | `localhost:8000/update-css-bulk` |
-| Upload MVC to Dummy | Every MVC update (HostGator/MySchools/Schoolhour/Collegehour) | PHP `upload_mvc_zip_php/{server}` via FTP — uploads **mvc.zip + bootstrap_copy.php + full_deploy.php** |
-| Deploy MVC to All | After "Upload MVC to Dummy" (or directly for GoDaddy) | `localhost:8000/deploy-mvc-bulk` |
+| Button | Color | When | Endpoint / Handler |
+|---|---|---|---|
+| Sync CSS to All | Teal | Every CSS change | `localhost:8000/update-css-bulk` |
+| Upload MVC to Dummy | Olive | Every MVC update — FTP servers only | PHP `upload_mvc_zip_php/{server}` — FTP uploads **mvc.zip + bootstrap_copy.php + full_deploy.php** |
+| Deploy MVC to All | Dark teal | After "Upload to Dummy" or directly for GoDaddy | `localhost:8000/deploy-mvc-bulk` |
+| FTP Upload File | Gray | Upload any single file via FTP | PHP FTP modal |
+| Upload Assets to Dummy | Orange | Every assets update — FTP servers only | PHP `upload_assets_zip_php/{server}` — FTP uploads **assets.zip + bootstrap_copy.php** |
+| Deploy Assets | Dark green | After "Upload Assets to Dummy" or directly for GoDaddy | `localhost:8000/deploy-assets-bulk` |
+| Upload Frontend to Dummy | Blue | Every frontend update — FTP servers only | PHP `upload_frontend_zip_php/{server}` — FTP uploads **frontend.zip + bootstrap_copy.php** |
+| Deploy Frontend | Purple | After "Upload Frontend to Dummy" or directly for GoDaddy | `localhost:8000/deploy-frontend-bulk` |
+
+**Button enable logic:**
+- "Upload X to Dummy" buttons → enabled only when an **FTP server** is selected in the server filter (hostgator / myschools / schoolhour / collegehour)
+- "Deploy X" buttons → enabled when any server is selected OR subdomains are checked
+- GoDaddy never needs "Upload X to Dummy" — Python handles the upload internally via cPanel Fileman API
 
 **GROUP 3 — Info / Admin:**
 | Button | Purpose |
@@ -417,7 +435,88 @@ FTP path: sh203.bigrock.com:21 → {sub}.myschoolserp.com/assets/inilabs/{filena
 
 ---
 
-### 7E. Bootstrap Flow (Plug Button)
+### 7E. Assets Deploy Flow ("Deploy Assets" Button)
+
+> **Key difference from MVC:** No config file backup/restore needed — assets/ contains only static files (CSS, JS, images). Also, GoDaddy uses **cPanel Fileman API** upload (not direct POST) because `post_max_size` on shared hosting silently discards large POST bodies.
+
+#### GoDaddy Flow (cPanel Fileman upload + CI trigger)
+```
+Root cause of old "Unauthorized" error:
+  assets.zip = 7.45 MB. PHP post_max_size on GoDaddy shared hosting is smaller.
+  When POST body exceeds limit, PHP silently discards entire body including $_POST['api_key'].
+  api_key is null → "Unauthorized". The fix: bypass PHP POST entirely.
+
+New flow:
+1. Python → cPanel Fileman API (server-side upload):
+   POST https://{cpanel_host}:2083/execute/Fileman/upload_files
+        dir={home}/public_html/{sub}.ourcollegeerp.com
+        file-1=assets.zip
+   (cPanel API upload is server-side — no PHP POST limit applies)
+
+2. Python → check GET https://{sub}.ourcollegeerp.com/assetsdeploy/check
+   If controller missing → auto-upload Assetsdeploy.php via cPanel Fileman
+
+3. Python → GET https://{sub}.ourcollegeerp.com/assetsdeploy/trigger?api_key=KEY
+   Assetsdeploy::trigger() reads assets.zip from webroot → ZipArchive::extractTo() → deletes zip
+```
+
+#### FTP Servers (HostGator / MySchools / Schoolhour / Collegehour) Flow
+```
+Step 1 — "Upload Assets to Dummy" button (once per assets update):
+  PHP FTP → assets.zip + bootstrap_copy.php → dummy server root
+
+Step 2 — "Deploy Assets" button (per subdomain):
+  Python → GET https://dummy1.{domain}/bootstrap_copy.php
+             ?k=KEY&s={sub}&d=.{domain}&type=assets
+  bootstrap_copy.php (dummy server):
+    - Reads assets.zip from __DIR__
+    - ZipArchive::extractTo({target_subdomain}/)  [no config backup needed]
+    - Returns {"success":true, "message":"Assets deployed to {sub}"}
+```
+
+---
+
+### 7F. Frontend Deploy Flow ("Deploy Frontend" Button)
+
+Same pattern as Assets deploy — same two strategies by server type.
+
+#### GoDaddy Flow (cPanel Fileman upload + CI trigger)
+```
+1. Python → cPanel Fileman API upload of frontend.zip to subdomain webroot
+   POST https://{cpanel_host}:2083/execute/Fileman/upload_files
+        dir={home}/public_html/{sub}.ourcollegeerp.com
+        file-1=frontend.zip
+
+2. Python → check GET https://{sub}.ourcollegeerp.com/frontenddeploy/check
+   If controller missing → auto-upload Frontenddeploy.php via cPanel Fileman
+
+3. Python → GET https://{sub}.ourcollegeerp.com/frontenddeploy/trigger?api_key=KEY
+   Frontenddeploy::trigger() reads frontend.zip from webroot → extractTo() → deletes zip
+```
+
+#### FTP Servers Flow
+```
+Step 1 — "Upload Frontend to Dummy" button:
+  PHP FTP → frontend.zip + bootstrap_copy.php → dummy server root
+
+Step 2 — "Deploy Frontend" button:
+  Python → GET https://dummy1.{domain}/bootstrap_copy.php
+             ?k=KEY&s={sub}&d=.{domain}&type=frontend
+  bootstrap_copy.php returns {"success":true, "message":"Frontend deployed to {sub}"}
+```
+
+**bootstrap_copy.php `type` parameter logic:**
+```php
+$type     = $_GET['type'] ?? 'mvc';
+$zip_name = ($type === 'assets') ? 'assets.zip'
+          : (($type === 'frontend') ? 'frontend.zip' : 'mvc.zip');
+// assets/frontend: simple extractTo, no config backup
+// mvc: backup database.php + css_update_config.php, extract, restore
+```
+
+---
+
+### 7H. Bootstrap Flow (Plug Button)
 
 ```
 Python → POST https://dummy1.{domain}/bootstrap_copy.php
@@ -497,7 +596,30 @@ remote_dir = f"{webroot}/{sub}.{domain}" if webroot else f"{sub}.{domain}"
 
 ---
 
-## 13. Config Files Preserved During MVC Deploy
+## 13. Assetsdeploy.php Controller Methods (GoDaddy — on each live subdomain)
+
+| Method | URL | Purpose |
+|---|---|---|
+| `check()` | `/assetsdeploy/check` | Returns `{exists:true}` — Python uses this to detect if controller needs auto-upload |
+| `trigger()` | `/assetsdeploy/trigger?api_key=X` | Reads `assets.zip` from webroot, extracts via ZipArchive, deletes zip — called after cPanel Fileman upload |
+| `receive()` | `/assetsdeploy/receive` | Legacy POST receiver (kept for compatibility — not used by current flow due to PHP post_max_size limit) |
+
+> **GoDaddy only.** FTP servers don't use this controller — they use `bootstrap_copy.php?type=assets` on the dummy server.
+
+---
+
+## 13B. Frontenddeploy.php Controller Methods (GoDaddy — on each live subdomain)
+
+| Method | URL | Purpose |
+|---|---|---|
+| `check()` | `/frontenddeploy/check` | Returns `{exists:true}` — Python uses this to detect if controller needs auto-upload |
+| `trigger()` | `/frontenddeploy/trigger?api_key=X` | Reads `frontend.zip` from webroot, extracts via ZipArchive, deletes zip — called after cPanel Fileman upload |
+
+> **GoDaddy only.** FTP servers use `bootstrap_copy.php?type=frontend` on dummy server instead.
+
+---
+
+## 14. Config Files Preserved During MVC Deploy
 
 These files are backed up and restored during every MVC deployment to preserve server-specific database settings:
 - `mvc/config/development/database.php` — DB credentials per subdomain
@@ -505,7 +627,7 @@ These files are backed up and restored during every MVC deployment to preserve s
 
 ---
 
-## 14. Python .env Full Structure
+## 15. Python .env Full Structure
 
 ```env
 DB_HOST=119.18.54.141
@@ -527,6 +649,8 @@ CSS_UPDATE_API_KEY=65b03a8eb7cdf6799815bfd17ba7367d1113b642e12dec28
 SERVER_DOMAINS={"godaddy":"ourcollegeerp.com","hostgator":"ourschoolerp.com","myschools":"myschoolserp.com","schoolhour":"schoolhour.in","collegehour":"collegeerp.in"}
 
 MVC_ZIP_PATH=C:/xampp/htdocs/ourschoolerp/mvc.zip
+ASSETS_ZIP_PATH=C:/xampp/htdocs/ourschoolerp/assets.zip
+FRONTEND_ZIP_PATH=C:/xampp/htdocs/ourschoolerp/frontend.zip
 MVC_DEPLOY_API_KEY=a3517b0f46b17c8b813d850e8ef65fd035df328d45f0a836
 
 DUMMY_SERVERS={"godaddy":"dummy1.ourcollegeerp.com","hostgator":"dummy1.ourschoolerp.com","myschools":"dummy1.myschoolserp.com","schoolhour":"dummy1.schoolhour.in","collegehour":"dummy1.collegeerp.in"}
@@ -540,7 +664,7 @@ FTP_CONFIGS={"hostgator":{"host":"cs3005.hostgator.in","port":21,"user":"mindw2f
 
 ---
 
-## 15. Known Issues & Status
+## 16. Known Issues & Status
 
 | Issue | Status | Fix |
 |---|---|---|
@@ -567,3 +691,6 @@ FTP_CONFIGS={"hostgator":{"host":"cs3005.hostgator.in","port":21,"user":"mindw2f
 | Auto Create saved wrong data (db_name included full HTML) | Fixed | `<br/>` tags in Main1.php output are inline HTML, not newlines. Fix: `str_ireplace('<br/>', "\n", $body)` before regex, use `[^\n]+` pattern |
 | SQL import: no tables created despite "success" | Fixed | Python was GET-ing the importer on the new subdomain, whose DNS hadn't propagated yet from localhost. Fix: upload importer to dummy server root instead — always live, same physical server = localhost MySQL works |
 | SQL import skipped `/*!...*/` MySQL conditional statements | Fixed | Previous importer skipped lines starting with `/*`, which caught `/*!40101 SET NAMES utf8 */` etc. Fix: only skip `--` comment lines; also added `SET NAMES utf8mb4` on connection |
+| GoDaddy assets deploy returned "Unauthorized" | Fixed | `assets.zip` = 7.45 MB exceeded GoDaddy PHP `post_max_size`. PHP silently discards entire POST body when limit exceeded → `$_POST['api_key']` is null → "Unauthorized". Fix: switched GoDaddy from direct POST to cPanel Fileman API upload (server-side, no PHP limit) + GET trigger endpoint. |
+| New Python endpoint not found (404) after code change | Known pitfall | Python server must be **restarted** after any new endpoint is added. FastAPI only registers routes at startup — new code is not hot-loaded even with `--reload` for the route table itself. |
+| "Deploy Assets/Frontend" on FTP server says "not on dummy server" | Expected behavior | "Upload X to Dummy" must be clicked first for FTP servers. GoDaddy does not need this step — Python uploads directly. |

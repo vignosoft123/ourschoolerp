@@ -371,6 +371,64 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                             <?php } ?>
 
                         </div><!-- /.student-top-bar -->
+
+                        <!-- Advanced Tools (superadmin only) -->
+                        <?php if ($this->session->userdata('usertypeID') == 1) { ?>
+                        <div style="margin-bottom:12px;">
+                            <button type="button" onclick="toggleAdvanced()" id="advancedToggleBtn"
+                                style="background:none;border:1px dashed #aaa;color:#666;font-size:12px;padding:5px 14px;border-radius:6px;cursor:pointer;">
+                                <i class="fa fa-cogs" id="advancedIcon"></i> Advanced <i class="fa fa-chevron-down" id="advancedChevron"></i>
+                            </button>
+                            <div id="advancedPanel" style="display:none;margin-top:8px;padding:12px 16px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;">
+                                <span style="font-size:12px;color:#888;margin-right:12px;"><i class="fa fa-info-circle"></i> Advanced data operations</span>
+                                <button type="button" onclick="fillWhatsappFromPhone()" id="fillWaBtn"
+                                    style="background:#25D366;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
+                                    <i class="fa fa-whatsapp"></i> Fill WhatsApp from Phone
+                                </button>
+                            </div>
+                        </div>
+                        <script>
+                        function toggleAdvanced() {
+                            var panel   = document.getElementById('advancedPanel');
+                            var chevron = document.getElementById('advancedChevron');
+                            var open    = panel.style.display === 'block';
+                            panel.style.display   = open ? 'none' : 'block';
+                            chevron.className = open ? 'fa fa-chevron-down' : 'fa fa-chevron-up';
+                        }
+                        function fillWhatsappFromPhone() {
+                            Swal.fire({
+                                title: 'Fill WhatsApp Numbers?',
+                                text: 'This will copy Phone to WhatsApp for all students where WhatsApp is empty.',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonColor: '#25D366',
+                                confirmButtonText: 'Yes, Fill Now',
+                                cancelButtonText: 'Cancel'
+                            }).then(function(result) {
+                                if (!result.isConfirmed) return;
+                                var btn = document.getElementById('fillWaBtn');
+                                btn.disabled = true;
+                                btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Running...';
+                                $.ajax({
+                                    url: '<?= base_url("student/fill_whatsapp_from_phone") ?>',
+                                    type: 'POST',
+                                    success: function(res) {
+                                        var data = typeof res === 'string' ? JSON.parse(res) : res;
+                                        Swal.fire('Done!', data.message, 'success');
+                                    },
+                                    error: function() {
+                                        Swal.fire('Error', 'Something went wrong.', 'error');
+                                    },
+                                    complete: function() {
+                                        btn.disabled = false;
+                                        btn.innerHTML = '<i class="fa fa-whatsapp"></i> Fill WhatsApp from Phone';
+                                    }
+                                });
+                            });
+                        }
+                        </script>
+                        <?php } ?>
+
                         <?php } ?>
                     <?php } ?>
 

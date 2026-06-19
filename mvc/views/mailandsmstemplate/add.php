@@ -746,7 +746,55 @@
                 ?>
             }
         });
-        
+
+        var whatsapp_setuser = "<?=isset($whatsapp_user) ? $whatsapp_user : 'select'?>";
+        if(whatsapp_setuser !='select') {
+            <?php
+                if(customCompute($usertypes)) {
+                    foreach ($usertypes as $key => $usertype) {
+                        echo 'if('.$usertype->usertypeID." == whatsapp_setuser) {"."\n";
+                            echo '$("#whatsapp_'.str_replace(' ', '', $usertype->usertype).'").show();'."\n";
+                        echo '} else {'."\n";
+                            echo '$("#whatsapp_'.str_replace(' ', '', $usertype->usertype).'").hide();'."\n";
+                        echo '}'."\n";
+                    }
+                }
+            ?>
+        } else {
+            <?php
+                if(customCompute($usertypes)) {
+                    foreach ($usertypes as $key => $usertype) {
+                        echo '$("#whatsapp_'.str_replace(' ', '', $usertype->usertype).'").hide();'."\n";
+                    }
+                }
+            ?>
+        }
+
+        $('#whatsapp_user').change(function() {
+            var whatsapp_user = $(this).val();
+            if(whatsapp_user !='select') {
+                <?php
+                    if(customCompute($usertypes)) {
+                        foreach ($usertypes as $key => $usertype) {
+                            echo 'if('.$usertype->usertypeID." == whatsapp_user) {"."\n";
+                                echo '$("#whatsapp_'.str_replace(' ', '', $usertype->usertype).'").show();'."\n";
+                            echo '} else {'."\n";
+                                echo '$("#whatsapp_'.str_replace(' ', '', $usertype->usertype).'").hide();'."\n";
+                            echo '}'."\n";
+                        }
+                    }
+                ?>
+            } else {
+                <?php
+                    if(customCompute($usertypes)) {
+                        foreach ($usertypes as $key => $usertype) {
+                            echo '$("#whatsapp_'.str_replace(' ', '', $usertype->usertype).'").hide();'."\n";
+                        }
+                    }
+                ?>
+            }
+        });
+
         $('#email_template').jqte();
     });
 

@@ -47,56 +47,86 @@
                     <div class="col-sm-8" style="margin-top: 25px;">
 
                         <!-- ── GROUP 1: One-Time Setup (per new subdomain) ────────────── -->
-                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:3px;display:block;"><i class="fa fa-wrench"></i> ONE-TIME SETUP</div>
-                        <div style="margin-bottom:8px;">
+                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:4px;display:block;"><i class="fa fa-wrench"></i> ONE-TIME SETUP</div>
+                        <div style="margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
                             <button id="cpanel_create_btn" class="btn btn-info btn-sm" onclick="openCpanelCreateModal()" disabled title="Create a new subdomain folder in cPanel directly from localhost — no manual login needed (HostGator / MySchools / GoDaddy)">
                                 <i class="fa fa-server"></i> Create in cPanel
                             </button>
-                            &nbsp;
                             <button id="auto_create_btn" class="btn btn-success btn-sm" onclick="openAutoCreateModal()" disabled title="Auto-create subdomain: enter a live URL, system reads DB details from /main1 and inserts record automatically">
-                                <i class="fa fa-magic"></i> Auto insert Subdomain
+                                <i class="fa fa-magic"></i> Auto Insert Subdomain
                             </button>
-                            &nbsp;
                             <button id="bulk_migration_btn" class="btn btn-warning btn-sm" onclick="migrationAll()" disabled title="Create DB tables for all subdomains on selected server">
                                 <i class="fa fa-shuttle-van"></i> Create Tables
                             </button>
-                            &nbsp;
                             <button id="bulk_bootstrap_btn" class="btn btn-bootstrap btn-sm" onclick="bulkBootstrap()" disabled title="Bootstrap: copy Mvcdeploy.php + Cssupdate.php to each subdomain (first-time setup only)">
                                 <i class="fa fa-plug"></i> Bootstrap All
                             </button>
-                            &nbsp;
                             <button id="bulk_full_deploy_btn" class="btn btn-full-deploy btn-sm" onclick="bulkFullDeploy()" disabled title="Full Deploy: extract ALL zip files (assets, frontend, mvc, vendor etc.) — for new subdomain setup only">
                                 <i class="fa fa-archive"></i> Full Deploy All
                             </button>
                         </div>
 
                         <!-- ── GROUP 2: Regular Updates (run each time you make changes) ─ -->
-                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:3px;display:block;"><i class="fa fa-refresh"></i> REGULAR UPDATES</div>
+                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:4px;display:block;"><i class="fa fa-refresh"></i> REGULAR UPDATES</div>
                         <div style="margin-bottom:8px;">
-                            <button id="bulk_css_btn" class="btn btn-info btn-sm" onclick="bulkUpdateCss()" disabled title="Sync CSS files from localhost to all subdomains on selected server">
-                                <i class="fa fa-cloud-upload"></i> Sync CSS to All
-                            </button>
-                            &nbsp;
-                            <button id="upload_mvc_zip_btn" class="btn btn-warning btn-sm" onclick="uploadMvcZipToServer()" disabled title="HostGator/MySchools: Upload local mvc.zip to dummy server ONCE — then click Rocket on each subdomain (no FTP per subdomain)">
-                                <i class="fa fa-upload"></i> Upload MVC to Dummy
-                            </button>
-                            &nbsp;
-                            <button id="bulk_deploy_btn" class="btn btn-deploy-mvc btn-sm" onclick="bulkDeployMvc()" disabled title="Deploy MVC to all subdomains. For HostGator/MySchools: click 'Upload MVC to Dummy' first">
-                                <i class="fa fa-rocket"></i> Deploy MVC to All
-                            </button>
-                            &nbsp;
-                            <button id="ftp_upload_btn" class="btn btn-ftp-upload btn-sm" onclick="openFtpUploadModal()" disabled title="Upload any file from localhost to the same path on all active subdomains of the selected server">
-                                <i class="fa fa-file-o"></i> FTP Upload File
-                            </button>
+
+                            <!-- MVC row -->
+                            <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
+                                <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">MVC</span>
+                                <button id="upload_mvc_zip_btn" class="btn btn-warning btn-sm" onclick="uploadMvcZipToServer()" disabled title="HostGator/MySchools/Schoolhour/Collegehour: Upload local mvc.zip to dummy server ONCE — then click Rocket">
+                                    <i class="fa fa-upload"></i> Upload MVC to Dummy
+                                </button>
+                                <button id="bulk_deploy_btn" class="btn btn-deploy-mvc btn-sm" onclick="bulkDeployMvc()" disabled title="Deploy MVC to subdomains. FTP servers: click Upload MVC to Dummy first">
+                                    <i class="fa fa-rocket"></i> Deploy MVC to All
+                                </button>
+                                <!-- <button id="ftp_upload_btn" class="btn btn-ftp-upload btn-sm" onclick="openFtpUploadModal()" disabled title="Upload any single file from localhost to all active subdomains of the selected server">
+                                    <i class="fa fa-file-o"></i> FTP Upload File
+                                </button> -->
+                            </div>
+
+                            <!-- Assets row -->
+                            <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
+                                <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">Assets</span>
+                                <button id="upload_assets_zip_btn" class="btn btn-assets-upload btn-sm" onclick="uploadAssetsZipToServer()" disabled
+                                    title="FTP servers only: Upload local assets.zip to dummy server ONCE — then click Deploy Assets">
+                                    <i class="fa fa-image"></i> Upload Assets to Dummy
+                                </button>
+                                <button id="bulk_deploy_assets_btn" class="btn btn-deploy-assets btn-sm" onclick="bulkDeployAssets()" disabled
+                                    title="Deploy assets.zip to subdomains. GoDaddy: cPanel upload. FTP servers: click Upload Assets to Dummy first.">
+                                    <i class="fa fa-picture-o"></i> Deploy Assets
+                                </button>
+                            </div>
+
+                            <!-- Frontend row -->
+                            <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
+                                <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">Frontend</span>
+                                <button id="upload_frontend_zip_btn" class="btn btn-frontend-upload btn-sm" onclick="uploadFrontendZipToServer()" disabled
+                                    title="FTP servers only: Upload local frontend.zip to dummy server ONCE — then click Deploy Frontend">
+                                    <i class="fa fa-code"></i> Upload Frontend to Dummy
+                                </button>
+                                <button id="bulk_deploy_frontend_btn" class="btn btn-deploy-frontend btn-sm" onclick="bulkDeployFrontend()" disabled
+                                    title="Deploy frontend.zip to subdomains. GoDaddy: cPanel upload. FTP servers: click Upload Frontend to Dummy first.">
+                                    <i class="fa fa-desktop"></i> Deploy Frontend
+                                </button>
+                            </div>
+
+                            <!-- CSS (commented out — not in use)
+                            <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
+                                <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">CSS</span>
+                                <button id="bulk_css_btn" class="btn btn-info btn-sm" onclick="bulkUpdateCss()" disabled title="Sync CSS files from localhost to all subdomains on selected server">
+                                    <i class="fa fa-cloud-upload"></i> Sync CSS to All
+                                </button>
+                            </div>
+                            -->
+
                         </div>
 
                         <!-- ── GROUP 3: Info / Admin ────────────────────────────────────── -->
-                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:3px;display:block;"><i class="fa fa-info-circle"></i> INFO / ADMIN</div>
-                        <div>
+                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:4px;display:block;"><i class="fa fa-info-circle"></i> INFO / ADMIN</div>
+                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
                             <button id="refresh_age_btn" class="btn btn-refresh-age btn-sm" onclick="refreshSchoolsAge()" disabled title="Refresh school age data for all subdomains on selected server">
                                 <i class="fa fa-refresh"></i> Refresh Schools Age
                             </button>
-                            &nbsp;
                             <button id="schema_update_btn" class="btn btn-sm btn-schema-update" onclick="runSchemaUpdates()" disabled
                                 title="Run schema_updates.json on selected subdomains only — updates each subdomain's live database">
                                 <i class="fa fa-database"></i> Run Schema Updates
@@ -502,10 +532,16 @@ function updateBulkDeployBtn() {
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy ' + count + ' Selected');
         $('#ftp_upload_btn').prop('disabled', false);
         $('#schema_update_btn').prop('disabled', false).html('<i class="fa fa-database"></i> Run Schema Updates (' + count + ')');
+        $('#bulk_deploy_assets_btn').prop('disabled', false).html('<i class="fa fa-picture-o"></i> Deploy Assets (' + count + ')');
+        $('#bulk_deploy_frontend_btn').prop('disabled', false).html('<i class="fa fa-desktop"></i> Deploy Frontend (' + count + ')');
         if (showUploadBtn) {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
+            $('#upload_assets_zip_btn').prop('disabled', false).html('<i class="fa fa-image"></i> Upload Assets to Dummy (' + server + ')');
+            $('#upload_frontend_zip_btn').prop('disabled', false).html('<i class="fa fa-code"></i> Upload Frontend to Dummy (' + server + ')');
         } else {
             $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
+            $('#upload_assets_zip_btn').prop('disabled', true).html('<i class="fa fa-image"></i> Upload Assets to Dummy');
+            $('#upload_frontend_zip_btn').prop('disabled', true).html('<i class="fa fa-code"></i> Upload Frontend to Dummy');
         }
     } else if (server) {
         $('#cpanel_create_btn').prop('disabled', !showCpanelBtn);
@@ -515,10 +551,16 @@ function updateBulkDeployBtn() {
         $('#bulk_full_deploy_btn').prop('disabled', false).html('<i class="fa fa-archive"></i> Full Deploy All ' + server);
         $('#ftp_upload_btn').prop('disabled', false);
         $('#schema_update_btn').prop('disabled', true).html('<i class="fa fa-database"></i> Run Schema Updates');
+        $('#bulk_deploy_assets_btn').prop('disabled', false).html('<i class="fa fa-picture-o"></i> Deploy Assets All');
+        $('#bulk_deploy_frontend_btn').prop('disabled', false).html('<i class="fa fa-desktop"></i> Deploy Frontend All');
         if (showUploadBtn) {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
+            $('#upload_assets_zip_btn').prop('disabled', false).html('<i class="fa fa-image"></i> Upload Assets to Dummy (' + server + ')');
+            $('#upload_frontend_zip_btn').prop('disabled', false).html('<i class="fa fa-code"></i> Upload Frontend to Dummy (' + server + ')');
         } else {
             $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
+            $('#upload_assets_zip_btn').prop('disabled', true).html('<i class="fa fa-image"></i> Upload Assets to Dummy');
+            $('#upload_frontend_zip_btn').prop('disabled', true).html('<i class="fa fa-code"></i> Upload Frontend to Dummy');
         }
     } else {
         $('#cpanel_create_btn').prop('disabled', true);
@@ -529,6 +571,10 @@ function updateBulkDeployBtn() {
         $('#ftp_upload_btn').prop('disabled', true);
         $('#schema_update_btn').prop('disabled', true).html('<i class="fa fa-database"></i> Run Schema Updates');
         $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
+        $('#upload_assets_zip_btn').prop('disabled', true).html('<i class="fa fa-image"></i> Upload Assets to Dummy');
+        $('#upload_frontend_zip_btn').prop('disabled', true).html('<i class="fa fa-code"></i> Upload Frontend to Dummy');
+        $('#bulk_deploy_assets_btn').prop('disabled', true).html('<i class="fa fa-picture-o"></i> Deploy Assets');
+        $('#bulk_deploy_frontend_btn').prop('disabled', true).html('<i class="fa fa-desktop"></i> Deploy Frontend');
     }
 }
 
@@ -1200,7 +1246,7 @@ function submitCpanelCreate() {
                 setTimeout(function() {
                     $('#cpanelCreateModal').modal('hide');
                     $('#subdomains-table').DataTable().ajax.reload();
-                }, 4000);
+                }, 12000);
             }
             $('#cpanel_create_result').html(html).show();
         },
@@ -1311,6 +1357,137 @@ function bulkDeployMvc() {
             btn.html(originalHtml).prop('disabled', false);
             var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
             alert('Bulk Deploy failed:\n' + detail);
+        }
+    });
+}
+
+// ── Deploy Assets ────────────────────────────────────────────────────────────
+
+function uploadAssetsZipToServer() {
+    var server = $('#server_filter').val();
+    if (!server) { alert('Please select a server first.'); return; }
+    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
+    if (ftpServers.indexOf(server) === -1) {
+        alert(server + ' uses direct deploy — assets.zip goes straight to each live subdomain.\nOnly HostGator/Myschools/Schoolhour/Collegehour need this dummy upload step.');
+        return;
+    }
+    var btn = $('#upload_assets_zip_btn');
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading assets.zip...');
+    $.ajax({
+        url: '<?=base_url("subdomains/upload_assets_zip_php")?>/' + server,
+        type: 'POST',
+        dataType: 'json',
+        success: function(res) {
+            if (res && res.success) {
+                alert('✅ assets.zip uploaded to dummy server (' + server + ')!\n\n' + res.message);
+            } else {
+                alert('❌ Upload failed: ' + (res ? res.message : 'Unknown error'));
+            }
+        },
+        error: function(xhr) {
+            alert('❌ Request failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : xhr.statusText));
+        },
+        complete: function() {
+            btn.prop('disabled', false).html('<i class="fa fa-image"></i> Upload Assets to Dummy (' + server + ')');
+        }
+    });
+}
+
+function bulkDeployAssets() {
+    var ids    = Array.from(selectedIds);
+    var server = $('#server_filter').val();
+    if (ids.length === 0 && !server) {
+        alert('Please check subdomains or select a server first.');
+        return;
+    }
+    var label = ids.length > 0
+        ? ids.length + ' selected subdomain(s)'
+        : 'ALL active subdomains on ' + server + ' server';
+    if (!confirm('Deploy assets.zip to ' + label + '?\n\n⚠ This will overwrite the assets/ folder on each selected subdomain.\n\nAre you sure?')) return;
+
+    var btn = $('#bulk_deploy_assets_btn');
+    var originalHtml = btn.html();
+    btn.html('<i class="fa fa-spinner fa-spin"></i> Deploying Assets...').prop('disabled', true);
+
+    var payload = ids.length > 0 ? { subdomain_ids: ids } : { server: server };
+
+    $.ajax({
+        url: 'http://localhost:8000/deploy-assets-bulk',
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        dataType: 'json',
+        success: function(response) {
+            btn.html(originalHtml).prop('disabled', false);
+            var msg = 'Assets Deploy Complete\n';
+            msg += 'Success: ' + response.success_count + ' / ' + response.total + '\n\n';
+            if (response.details && response.details.length) {
+                response.details.forEach(function(d) {
+                    msg += (d.success ? '✓ ' : '✗ ') + d.subdomain + ': ' + d.message + '\n';
+                });
+            }
+            alert(msg);
+        },
+        error: function(xhr) {
+            btn.html(originalHtml).prop('disabled', false);
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Assets Deploy failed:\n' + detail);
+        }
+    });
+}
+
+// ── Deploy Frontend ───────────────────────────────────────────────────────────
+
+function uploadFrontendZipToServer() {
+    var server = $('#server_filter').val();
+    if (!server) { alert('Please select a server first.'); return; }
+    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
+    if (ftpServers.indexOf(server) === -1) {
+        alert(server + ' uses direct deploy via cPanel. Only HostGator/Myschools/Schoolhour/Collegehour need this step.');
+        return;
+    }
+    var btn = $('#upload_frontend_zip_btn');
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading frontend.zip...');
+    $.ajax({
+        url: '<?=base_url("subdomains/upload_frontend_zip_php")?>/' + server,
+        type: 'POST', dataType: 'json',
+        success: function(res) {
+            if (res && res.success) alert('✅ frontend.zip uploaded to dummy server (' + server + ')!\n\n' + res.message);
+            else alert('❌ Upload failed: ' + (res ? res.message : 'Unknown error'));
+        },
+        error: function(xhr) { alert('❌ Request failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : xhr.statusText)); },
+        complete: function() { btn.prop('disabled', false).html('<i class="fa fa-code"></i> Upload Frontend to Dummy (' + server + ')'); }
+    });
+}
+
+function bulkDeployFrontend() {
+    var ids    = Array.from(selectedIds);
+    var server = $('#server_filter').val();
+    if (ids.length === 0 && !server) { alert('Please check subdomains or select a server first.'); return; }
+    var label = ids.length > 0 ? ids.length + ' selected subdomain(s)' : 'ALL active subdomains on ' + server;
+    if (!confirm('Deploy frontend.zip to ' + label + '?\n\n⚠ This will overwrite frontend files on each selected subdomain.\n\nAre you sure?')) return;
+    var btn = $('#bulk_deploy_frontend_btn');
+    var originalHtml = btn.html();
+    btn.html('<i class="fa fa-spinner fa-spin"></i> Deploying Frontend...').prop('disabled', true);
+    var payload = ids.length > 0 ? { subdomain_ids: ids } : { server: server };
+    $.ajax({
+        url: 'http://localhost:8000/deploy-frontend-bulk',
+        type: 'POST', contentType: 'application/json',
+        data: JSON.stringify(payload), dataType: 'json',
+        success: function(response) {
+            btn.html(originalHtml).prop('disabled', false);
+            var msg = 'Frontend Deploy Complete\nSuccess: ' + response.success_count + ' / ' + response.total + '\n\n';
+            if (response.details && response.details.length) {
+                response.details.forEach(function(d) {
+                    msg += (d.success ? '✓ ' : '✗ ') + d.subdomain + ': ' + d.message + '\n';
+                });
+            }
+            alert(msg);
+        },
+        error: function(xhr) {
+            btn.html(originalHtml).prop('disabled', false);
+            var detail = xhr.responseJSON ? xhr.responseJSON.detail : 'Unknown error';
+            alert('Frontend Deploy failed:\n' + detail);
         }
     });
 }
@@ -1748,6 +1925,22 @@ function updateCss(btn, subdomainId, subdomainName) {
 .btn-schema-update:hover,
 .btn-schema-update:focus { background-color: #4a148c; border-color: #38006b; color: #fff; }
 .btn-schema-update:disabled { background-color: #ce93d8; border-color: #ce93d8; color: #fff; cursor: not-allowed; }
+.btn-assets-upload { background-color: #e65100; border-color: #bf360c; color: #fff; }
+.btn-assets-upload:hover,
+.btn-assets-upload:focus { background-color: #bf360c; border-color: #a02000; color: #fff; }
+.btn-assets-upload:disabled { background-color: #ffccbc; border-color: #ffccbc; color: #fff; cursor: not-allowed; }
+.btn-deploy-assets { background-color: #00695c; border-color: #004d40; color: #fff; }
+.btn-deploy-assets:hover,
+.btn-deploy-assets:focus { background-color: #004d40; border-color: #00332a; color: #fff; }
+.btn-deploy-assets:disabled { background-color: #b2dfdb; border-color: #b2dfdb; color: #fff; cursor: not-allowed; }
+.btn-frontend-upload { background-color: #1565c0; border-color: #0d47a1; color: #fff; }
+.btn-frontend-upload:hover,
+.btn-frontend-upload:focus { background-color: #0d47a1; border-color: #082f6e; color: #fff; }
+.btn-frontend-upload:disabled { background-color: #90caf9; border-color: #90caf9; color: #fff; cursor: not-allowed; }
+.btn-deploy-frontend { background-color: #6a1b9a; border-color: #4a148c; color: #fff; }
+.btn-deploy-frontend:hover,
+.btn-deploy-frontend:focus { background-color: #4a148c; border-color: #2d0060; color: #fff; }
+.btn-deploy-frontend:disabled { background-color: #ce93d8; border-color: #ce93d8; color: #fff; cursor: not-allowed; }
 </style>
 
 <script type="text/javascript">

@@ -702,5 +702,9 @@
     {
         "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'logs' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'logs'))",
         "type": "raw"
+    },
+    {
+        "query": "UPDATE `student` SET alternative_phone1 = phone WHERE (alternative_phone1 IS NULL OR alternative_phone1 = '') AND (phone IS NOT NULL AND phone != '')",
+        "type": "raw"
     }
 ]

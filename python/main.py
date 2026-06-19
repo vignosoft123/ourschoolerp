@@ -23,6 +23,8 @@ CSS_FOLDER_PATH    = os.getenv("CSS_FOLDER_PATH", "C:/xampp/htdocs/ourschoolerp/
 CSS_UPDATE_API_KEY = os.getenv("CSS_UPDATE_API_KEY", "")
 SERVER_DOMAINS     = json.loads(os.getenv("SERVER_DOMAINS", "{}"))
 MVC_ZIP_PATH       = os.getenv("MVC_ZIP_PATH", "C:/xampp/htdocs/ourschoolerp/mvc.zip")
+ASSETS_ZIP_PATH    = os.getenv("ASSETS_ZIP_PATH", "C:/xampp/htdocs/ourschoolerp/assets.zip")
+FRONTEND_ZIP_PATH  = os.getenv("FRONTEND_ZIP_PATH", "C:/xampp/htdocs/ourschoolerp/frontend.zip")
 MVC_DEPLOY_API_KEY = os.getenv("MVC_DEPLOY_API_KEY", "")
 DUMMY_SERVERS      = json.loads(os.getenv("DUMMY_SERVERS", "{}"))
 CPANEL_CONFIGS     = json.loads(os.getenv("CPANEL_CONFIGS", "{}"))
@@ -1097,9 +1099,9 @@ def _build_sql_importer_php(db_name: str, db_user: str, db_pass: str) -> str:
         "    }\n"
         "}\n"
         "$conn->close();\n"
+        "echo json_encode(['success'=>true,'imported'=>$count,'errors'=>$errors]);\n"
         "@unlink($sql_file);\n"
         "@unlink(__FILE__);\n"
-        "echo json_encode(['success'=>true,'imported'=>$count,'errors'=>$errors]);\n"
     )
 
 
@@ -1163,9 +1165,17 @@ async def create_cpanel_subdomain(request: Request):
 
     # ── Step 1: Create subdomain folder ─────────────────────────────────────
     ftp_cfg  = FTP_CONFIGS.get(server, {})
-    webroot  = ftp_cfg.get("webroot", "public_html")
     full_sub = f"{subdomain}.{domain_suffix}"
-    dir_path = f"{webroot}/{full_sub}" if webroot else full_sub
+
+    # Document root convention per server:
+    # - GoDaddy: public_html/{sub}.{domain}  (cPanel standard for cloud hosting)
+    # - HostGator / MySchools / Schoolhour / Collegehour: {sub}.{domain} directly in FTP home
+    #   (matches where existing subdomains live, and where bootstrap_copy.php / full_deploy.php
+    #    extract to via dirname(__DIR__) — dummy at home root → parent = home → target = home/{sub})
+    if server == "godaddy":
+        dir_path = f"public_html/{full_sub}"
+    else:
+        dir_path = full_sub
 
     try:
         data, working_auth = _cpanel_call(cp, auth_headers, "SubDomain/addsubdomain",
@@ -1183,7 +1193,41 @@ async def create_cpanel_subdomain(request: Request):
     else:
         results["subdomain"] = f"{full_sub} created"
 
-    # ── Step 1b: Add DNS A record in GoDaddy cloud DNS ──────────────────────
+    # ── Step 1b (HostGator/FTP servers): Ensure subdomain doc root is at HOME ROOT ──
+    # HostGator cPanel ignores our 'dir' param and always creates subdomains under
+    # public_html/{sub}.domain. But full_deploy.php and existing subdomains all live
+    # at the FTP home root (no public_html). We fix this by:
+    #   (a) FTP mkdir — create {sub}.domain directly in the FTP home root
+    #   (b) modifysubdomain — point the Apache vhost to the home-root directory
+    if server != "godaddy" and server in FTP_CONFIGS:
+        ftp_local = FTP_CONFIGS[server]
+        try:
+            fconn = ftplib.FTP()
+            fconn.connect(ftp_local['host'], int(ftp_local.get('port', 21)), timeout=30)
+            fconn.login(ftp_local['user'], ftp_local['pass'])
+            fconn.set_pasv(True)
+            try:
+                fconn.mkd(full_sub)
+                results["home_dir"] = f"{full_sub}/ created at FTP home root"
+            except ftplib.error_perm:
+                results["home_dir"] = f"{full_sub}/ already exists at FTP home root"
+            fconn.quit()
+        except Exception as e:
+            results["home_dir"] = f"FTP mkdir warning: {e}"
+        # Update cPanel vhost to serve from home-root dir (not public_html)
+        try:
+            mod_data, _ = _cpanel_call(cp, [working_auth], "SubDomain/modifysubdomain", {
+                "domain": subdomain, "rootdomain": domain_suffix, "newdocroot": dir_path,
+            })
+            if mod_data.get("status") == 1:
+                results["docroot"] = f"vhost doc root → {dir_path}"
+            else:
+                errs = mod_data.get("errors") or [str(mod_data)]
+                results["docroot"] = f"modifysubdomain warning: {'; '.join(str(e) for e in errs)}"
+        except Exception as e:
+            results["docroot"] = f"modifysubdomain error: {e}"
+
+    # ── Step 1d: Add DNS A record in GoDaddy cloud DNS ──────────────────────
     # cPanel's SubDomain/addsubdomain only updates the local BIND zone file.
     # GoDaddy's nameservers (domaincontrol.com) are a separate DNS system and
     # must be updated via GoDaddy's Domains API for the subdomain to resolve publicly.
@@ -1246,8 +1290,10 @@ async def create_cpanel_subdomain(request: Request):
     # Files are uploaded to the DUMMY server (not the new subdomain) because:
     # 1. Dummy server is always live — no DNS propagation delay for new subdomains
     # 2. Dummy server is on the same physical host, so 'localhost' MySQL = same DB server
+    # NOTE: dummy server is ALWAYS at {home}/{dummy_host} — NOT under public_html.
+    # Regular subdomains use public_html/ but dummy1 lives directly in the FTP home.
+    dummy_host = DUMMY_SERVERS.get(server, "")
     if DB_IMPORT_SQL_PATH and os.path.exists(DB_IMPORT_SQL_PATH):
-        dummy_host = DUMMY_SERVERS.get(server, "")
         if not dummy_host:
             results["sql_import"] = f"skipped — no dummy server configured for '{server}'"
         else:
@@ -1255,8 +1301,7 @@ async def create_cpanel_subdomain(request: Request):
                 with open(DB_IMPORT_SQL_PATH, "rb") as f:
                     sql_bytes = f.read()
                 php_script = _build_sql_importer_php(db_name, db_user, db_password)
-                ftp_webroot = ftp_cfg.get("webroot", "public_html")
-                dummy_dir = f"{cp['home']}/{ftp_webroot}/{dummy_host}" if ftp_webroot else f"{cp['home']}/{dummy_host}"
+                dummy_dir = f"{cp['home']}/{dummy_host}"
                 upload_result = _cpanel_fileman_upload_to_dir(cp, working_auth, dummy_dir, {
                     "import_db.sql": sql_bytes,
                     "import_db_run.php": php_script.encode("utf-8"),
@@ -1266,7 +1311,7 @@ async def create_cpanel_subdomain(request: Request):
                 else:
                     importer_url = f"https://{dummy_host}/import_db_run.php"
                     try:
-                        imp_resp = requests.get(importer_url, timeout=120, verify=False)
+                        imp_resp = requests.get(importer_url, timeout=120, verify=False, headers=BROWSER_HEADERS)
                         imp_data = imp_resp.json()
                         if imp_data.get("success"):
                             err_note = f" ({len(imp_data['errors'])} warnings)" if imp_data.get("errors") else ""
@@ -1290,8 +1335,7 @@ async def create_cpanel_subdomain(request: Request):
         try:
             with open(full_deploy_local, "rb") as f:
                 fd_bytes = f.read()
-            ftp_webroot2 = ftp_cfg.get("webroot", "public_html")
-            dummy_dir2 = f"{cp['home']}/{ftp_webroot2}/{dummy_host}" if ftp_webroot2 else f"{cp['home']}/{dummy_host}"
+            dummy_dir2 = f"{cp['home']}/{dummy_host}"
             _cpanel_fileman_upload_to_dir(cp, working_auth, dummy_dir2, {"full_deploy.php": fd_bytes})
         except Exception:
             pass  # non-fatal — proceed with whatever is already on dummy server
@@ -1711,6 +1755,26 @@ def _upload_mvc_zip_to_dummy(server: str, zip_bytes: bytes) -> dict:
     return _upload_files_via_ftp(ftp_cfg, dummy_dir, {"mvc.zip": zip_bytes})
 
 
+def _upload_assets_zip_to_dummy(server: str, zip_bytes: bytes) -> dict:
+    """Upload assets.zip to the dummy server for the given FTP-based server."""
+    if server not in FTP_CONFIGS:
+        return {"success": False, "message": f"No FTP config for server: {server}"}
+    dummy_host = DUMMY_SERVERS.get(server, "")
+    if not dummy_host:
+        return {"success": False, "message": f"No dummy server configured for: {server}"}
+    return _upload_files_via_ftp(FTP_CONFIGS[server], dummy_host, {"assets.zip": zip_bytes})
+
+
+def _upload_frontend_zip_to_dummy(server: str, zip_bytes: bytes) -> dict:
+    """Upload frontend.zip to the dummy server for the given FTP-based server."""
+    if server not in FTP_CONFIGS:
+        return {"success": False, "message": f"No FTP config for server: {server}"}
+    dummy_host = DUMMY_SERVERS.get(server, "")
+    if not dummy_host:
+        return {"success": False, "message": f"No dummy server configured for: {server}"}
+    return _upload_files_via_ftp(FTP_CONFIGS[server], dummy_host, {"frontend.zip": zip_bytes})
+
+
 def _deploy_mvc_via_ftp(subdomain: dict, zip_bytes: bytes) -> dict:
     """
     FTP-based MVC deploy. Two strategies depending on server:
@@ -1922,6 +1986,152 @@ async def upload_mvc_zip(server: str):
     return result
 
 
+@app.post("/upload-assets-zip/{server}")
+async def upload_assets_zip(server: str):
+    """
+    Upload local assets.zip to the dummy server for HostGator / MySchools / Schoolhour / Collegehour.
+    Call this ONCE before clicking Deploy Assets on multiple subdomains.
+    GoDaddy does not use this endpoint (direct POST per subdomain).
+    """
+    if server not in FTP_CONFIGS:
+        raise HTTPException(status_code=400, detail=f"No FTP config for '{server}'. FTP servers only.")
+    if server not in DUMMY_SERVERS:
+        raise HTTPException(status_code=400, detail=f"No dummy server configured for '{server}'")
+    if not os.path.exists(ASSETS_ZIP_PATH):
+        raise HTTPException(status_code=500, detail=f"Local assets.zip not found: {ASSETS_ZIP_PATH}")
+    with open(ASSETS_ZIP_PATH, "rb") as f:
+        zip_bytes = f.read()
+    return _upload_assets_zip_to_dummy(server, zip_bytes)
+
+
+@app.post("/upload-frontend-zip/{server}")
+async def upload_frontend_zip(server: str):
+    """Upload local frontend.zip to the dummy server for FTP-based servers."""
+    if server not in FTP_CONFIGS:
+        raise HTTPException(status_code=400, detail=f"No FTP config for '{server}'. FTP servers only.")
+    if server not in DUMMY_SERVERS:
+        raise HTTPException(status_code=400, detail=f"No dummy server configured for '{server}'")
+    if not os.path.exists(FRONTEND_ZIP_PATH):
+        raise HTTPException(status_code=500, detail=f"Local frontend.zip not found: {FRONTEND_ZIP_PATH}")
+    with open(FRONTEND_ZIP_PATH, "rb") as f:
+        zip_bytes = f.read()
+    return _upload_frontend_zip_to_dummy(server, zip_bytes)
+
+
+def _deploy_assets_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
+    """
+    Deploy assets.zip to a live subdomain.
+    FTP servers: calls bootstrap_copy.php?type=assets on dummy (zip must be uploaded first).
+    GoDaddy: direct HTTP POST to Assetsdeploy CI controller; auto-uploads it if missing.
+    """
+    server = subdomain.get("server", "").lower()
+    if server not in SERVER_DOMAINS:
+        return {"success": False, "message": f"No domain mapping for server: {server}"}
+    base_domain = SERVER_DOMAINS[server]
+    sub_name    = subdomain['subdomain']
+
+    # FTP servers: call bootstrap_copy.php with type=assets on dummy server
+    if server in FTP_CONFIGS:
+        dummy_host = DUMMY_SERVERS.get(server, "")
+        if not dummy_host:
+            return {"success": False, "message": f"No dummy server configured for: {server}"}
+        try:
+            r = requests.get(
+                f"https://{dummy_host}/bootstrap_copy.php",
+                params={"k": CSS_UPDATE_API_KEY, "s": sub_name, "d": f".{base_domain}", "type": "assets"},
+                headers=BROWSER_HEADERS,
+                timeout=120,
+                verify=False,
+            )
+            try:
+                result = r.json()
+                if not result.get("success") and "assets.zip" in result.get("message", "").lower():
+                    result["message"] = (
+                        "assets.zip not on dummy server — click 'Upload Assets to Dummy' button first, then retry."
+                    )
+                return result
+            except ValueError:
+                return {"success": False, "message": f"bootstrap_copy GET {r.status_code}: {r.text[:200]}"}
+        except requests.exceptions.RequestException as e:
+            return {"success": False, "message": f"bootstrap_copy GET failed: {e}"}
+
+    # GoDaddy: upload assets.zip via cPanel Fileman API (avoids PHP post_max_size limit),
+    # then GET /assetsdeploy/trigger to extract (same pattern as Mvcdeploy.trigger).
+    cp = CPANEL_CONFIGS.get(server)
+    if not cp:
+        return {"success": False, "message": f"No cPanel config for: {server}"}
+
+    sub_root = f"{cp['home']}/public_html/{sub_name}.{base_domain}"
+    api_base = f"https://{cp['host']}:{cp['port']}"
+    cpanel_headers = {"Authorization": f"cpanel {cp['user']}:{cp['token']}"}
+
+    # ── Step 1: Upload assets.zip to live subdomain webroot via cPanel Fileman ──
+    try:
+        up = requests.post(
+            f"{api_base}/execute/Fileman/upload_files",
+            headers=cpanel_headers,
+            data={"dir": sub_root, "overwrite": 1},
+            files={"file-0": ("assets.zip", zip_bytes, "application/zip")},
+            verify=False,
+            timeout=180,
+        )
+        ur = up.json()
+        if ur.get("status") != 1:
+            return {"success": False, "message": f"cPanel Fileman upload failed: {ur.get('errors', ur)}"}
+    except Exception as e:
+        return {"success": False, "message": f"cPanel upload error: {e}"}
+
+    # ── Step 2: Auto-upload Assetsdeploy.php if missing ────────────────────────
+    check_url   = f"https://{sub_name}.{base_domain}/assetsdeploy/check"
+    trigger_url = f"https://{sub_name}.{base_domain}/assetsdeploy/trigger"
+
+    controller_exists = False
+    try:
+        check = requests.get(check_url, timeout=10, verify=False, headers=BROWSER_HEADERS)
+        controller_exists = check.status_code in [200, 406]
+    except requests.exceptions.RequestException:
+        pass
+
+    if not controller_exists:
+        local_ctrl = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "mvc", "controllers", "Assetsdeploy.php")
+        )
+        if not os.path.exists(local_ctrl):
+            return {"success": False, "message": "Assetsdeploy.php not found locally. Cannot auto-upload."}
+        with open(local_ctrl, "r", encoding="utf-8") as f:
+            ctrl_content = f.read()
+        upload_result = _upload_controller_to_subdomain(subdomain, "Assetsdeploy.php", ctrl_content)
+        if not upload_result.get("success"):
+            return {
+                "success": False,
+                "message": f"Assetsdeploy controller missing. Auto-upload failed: {upload_result.get('message')}. "
+                           f"Ensure Cssupdate.php is deployed on {sub_name}.{base_domain} first.",
+            }
+
+    # ── Step 3: GET trigger to extract assets.zip on live server ───────────────
+    try:
+        r = requests.get(
+            trigger_url,
+            params={"api_key": CSS_UPDATE_API_KEY},
+            headers=BROWSER_HEADERS,
+            timeout=180,
+            verify=False,
+        )
+        try:
+            result = r.json()
+            if not controller_exists and result.get("success"):
+                result["message"] += " (Assetsdeploy.php was auto-uploaded first)"
+            return result
+        except ValueError:
+            return {"success": False, "message": f"trigger GET {r.status_code}: {r.text[:200]}"}
+    except requests.exceptions.ConnectionError:
+        return {"success": False, "message": f"Cannot connect to {trigger_url}"}
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Trigger request timed out — server may still be processing"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": str(e)}
+
+
 @app.post("/ftp-upload-file")
 async def ftp_upload_file(request: Request):
     """
@@ -2116,6 +2326,238 @@ async def deploy_mvc_bulk(request: Request):
     }
 
 
+@app.post("/deploy-assets-bulk")
+async def deploy_assets_bulk(request: Request):
+    """Deploy local assets.zip to multiple live subdomains at once."""
+    body          = await request.json()
+    subdomain_ids = body.get("subdomain_ids", [])
+    server        = body.get("server", "")
+
+    if not subdomain_ids and not server:
+        raise HTTPException(status_code=422, detail="Provide either 'subdomain_ids' or 'server'")
+
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        if subdomain_ids:
+            placeholders = ",".join(["%s"] * len(subdomain_ids))
+            cur.execute(
+                f"SELECT * FROM subdomain_settings WHERE id IN ({placeholders}) AND status='active'",
+                subdomain_ids,
+            )
+        else:
+            cur.execute(
+                "SELECT * FROM subdomain_settings WHERE server=%s AND status='active'",
+                (server,),
+            )
+        subdomains = cur.fetchall()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomains:
+        raise HTTPException(status_code=404, detail="No active subdomains found for the given criteria")
+
+    if not os.path.exists(ASSETS_ZIP_PATH):
+        raise HTTPException(status_code=500, detail=f"Local assets.zip not found: {ASSETS_ZIP_PATH}")
+
+    with open(ASSETS_ZIP_PATH, "rb") as f:
+        zip_bytes = f.read()
+
+    results       = []
+    success_count = 0
+
+    for sub in subdomains:
+        result = _deploy_assets_to_subdomain(sub, zip_bytes)
+        results.append({
+            "id":        sub["id"],
+            "subdomain": sub.get("subdomain"),
+            "success":   result.get("success", False),
+            "message":   result.get("message", ""),
+        })
+        if result.get("success"):
+            success_count += 1
+
+    return {
+        "success":       success_count > 0,
+        "total":         len(subdomains),
+        "success_count": success_count,
+        "message":       f"Assets deployed to {success_count}/{len(subdomains)} subdomains",
+        "details":       results,
+    }
+
+
+# ─── Frontend Deploy ──────────────────────────────────────────────────────────
+
+def _deploy_frontend_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
+    server = subdomain.get("server", "").lower()
+    if server not in SERVER_DOMAINS:
+        return {"success": False, "message": f"No domain mapping for server: {server}"}
+    base_domain = SERVER_DOMAINS[server]
+    sub_name    = subdomain["subdomain"]
+
+    # FTP servers: call bootstrap_copy.php with type=frontend on dummy
+    if server in FTP_CONFIGS:
+        dummy_host = DUMMY_SERVERS.get(server, "")
+        if not dummy_host:
+            return {"success": False, "message": f"No dummy server for: {server}"}
+        try:
+            r = requests.get(
+                f"https://{dummy_host}/bootstrap_copy.php",
+                params={"k": CSS_UPDATE_API_KEY, "s": sub_name, "d": f".{base_domain}", "type": "frontend"},
+                headers=BROWSER_HEADERS, timeout=120, verify=False,
+            )
+            try:
+                result = r.json()
+                if not result.get("success") and "frontend.zip" in result.get("message", "").lower():
+                    result["message"] = "frontend.zip not on dummy server — click 'Upload Frontend to Dummy' first."
+                return result
+            except ValueError:
+                return {"success": False, "message": f"bootstrap_copy GET {r.status_code}: {r.text[:200]}"}
+        except requests.exceptions.RequestException as e:
+            return {"success": False, "message": f"bootstrap_copy GET failed: {e}"}
+
+    # GoDaddy: cPanel Fileman upload + GET trigger (avoids PHP post_max_size limit)
+    cpanel_cfg = CPANEL_CONFIGS.get(server)
+    if not cpanel_cfg:
+        return {"success": False, "message": f"No cPanel config for server: {server}"}
+
+    remote_dir   = f"{cpanel_cfg['home']}/public_html/{sub_name}.{base_domain}"
+    upload_url   = f"https://{cpanel_cfg['host']}:{cpanel_cfg['port']}/execute/Fileman/upload_files"
+    trigger_url  = f"https://{sub_name}.{base_domain}/frontenddeploy/trigger"
+    check_url    = f"https://{sub_name}.{base_domain}/frontenddeploy/check"
+
+    # Step 1: upload frontend.zip to subdomain webroot via cPanel Fileman
+    try:
+        upload_resp = requests.post(
+            upload_url,
+            headers={
+                "Authorization": f"cpanel {cpanel_cfg['user']}:{cpanel_cfg['token']}",
+            },
+            files={"file-1": ("frontend.zip", zip_bytes, "application/zip")},
+            data={"dir": remote_dir, "overwrite": "1"},
+            timeout=300, verify=False,
+        )
+        upload_data = upload_resp.json()
+        if not (upload_data.get("status") == 1 or upload_data.get("errors") is None):
+            errors = upload_data.get("errors") or upload_data.get("messages") or str(upload_data)
+            return {"success": False, "message": f"cPanel Fileman upload failed: {errors}"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": f"cPanel Fileman upload error: {e}"}
+
+    # Step 2: auto-upload Frontenddeploy.php controller if missing
+    controller_exists = False
+    try:
+        check = requests.get(check_url, timeout=10, verify=False, headers=BROWSER_HEADERS)
+        controller_exists = check.status_code in [200, 406]
+    except requests.exceptions.RequestException:
+        pass
+
+    if not controller_exists:
+        local_ctrl = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "mvc", "controllers", "Frontenddeploy.php")
+        )
+        if not os.path.exists(local_ctrl):
+            return {"success": False, "message": "Frontenddeploy.php not found locally."}
+        with open(local_ctrl, "r", encoding="utf-8") as f:
+            ctrl_content = f.read()
+        upload_result = _upload_controller_to_subdomain(subdomain, "Frontenddeploy.php", ctrl_content)
+        if not upload_result.get("success"):
+            return {"success": False, "message": f"Frontenddeploy.php auto-upload failed: {upload_result.get('message')}"}
+
+    # Step 3: trigger extraction via GET
+    try:
+        resp = requests.get(
+            trigger_url,
+            params={"api_key": CSS_UPDATE_API_KEY},
+            headers=BROWSER_HEADERS, timeout=180, verify=False,
+        )
+        try:
+            result = resp.json()
+            if not controller_exists and result.get("success"):
+                result["message"] += " (Frontenddeploy.php auto-uploaded first)"
+            return result
+        except ValueError:
+            return {"success": False, "message": f"HTTP {resp.status_code}: unexpected response"}
+    except requests.exceptions.ConnectionError:
+        return {"success": False, "message": f"Cannot connect to {trigger_url}"}
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Request timed out — server may still be processing"}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": str(e)}
+
+
+@app.post("/deploy-frontend-bulk")
+async def deploy_frontend_bulk(request: Request):
+    """Deploy local frontend.zip to multiple live subdomains at once."""
+    body          = await request.json()
+    subdomain_ids = body.get("subdomain_ids", [])
+    server        = body.get("server", "")
+
+    if not subdomain_ids and not server:
+        raise HTTPException(status_code=422, detail="Provide either 'subdomain_ids' or 'server'")
+
+    main_conn = get_db_connection()
+    if not main_conn:
+        raise HTTPException(status_code=500, detail="Could not connect to main database")
+    try:
+        cur = main_conn.cursor(dictionary=True)
+        if subdomain_ids:
+            placeholders = ",".join(["%s"] * len(subdomain_ids))
+            cur.execute(
+                f"SELECT * FROM subdomain_settings WHERE id IN ({placeholders}) AND status='active'",
+                subdomain_ids,
+            )
+        else:
+            cur.execute(
+                "SELECT * FROM subdomain_settings WHERE server=%s AND status='active'",
+                (server,),
+            )
+        subdomains = cur.fetchall()
+    except Error as e:
+        raise HTTPException(status_code=500, detail=f"Main DB error: {e}")
+    finally:
+        if main_conn.is_connected():
+            cur.close()
+            main_conn.close()
+
+    if not subdomains:
+        raise HTTPException(status_code=404, detail="No active subdomains found for the given criteria")
+
+    if not os.path.exists(FRONTEND_ZIP_PATH):
+        raise HTTPException(status_code=500, detail=f"Local frontend.zip not found: {FRONTEND_ZIP_PATH}")
+
+    with open(FRONTEND_ZIP_PATH, "rb") as f:
+        zip_bytes = f.read()
+
+    results       = []
+    success_count = 0
+
+    for sub in subdomains:
+        result = _deploy_frontend_to_subdomain(sub, zip_bytes)
+        results.append({
+            "id":        sub["id"],
+            "subdomain": sub.get("subdomain"),
+            "success":   result.get("success", False),
+            "message":   result.get("message", ""),
+        })
+        if result.get("success"):
+            success_count += 1
+
+    return {
+        "success":       success_count > 0,
+        "total":         len(subdomains),
+        "success_count": success_count,
+        "message":       f"Frontend deployed to {success_count}/{len(subdomains)} subdomains",
+        "details":       results,
+    }
+
+
 # ─── Full Deploy (New Subdomain Setup) ────────────────────────────────────────
 
 def _full_deploy_to_subdomain(subdomain: dict) -> dict:
@@ -2145,6 +2587,7 @@ def _full_deploy_to_subdomain(subdomain: dict) -> dict:
                 "db_name":       subdomain.get("db_name", ""),
                 "db_pass":       subdomain.get("db_pass", ""),
             },
+            headers=BROWSER_HEADERS,
             timeout=120,
             verify=False,
         )
@@ -2153,7 +2596,7 @@ def _full_deploy_to_subdomain(subdomain: dict) -> dict:
         except ValueError:
             return {
                 "success": False,
-                "message": f"HTTP {resp.status_code}: full_deploy.php not found on dummy server. Upload it first.",
+                "message": f"HTTP {resp.status_code}: full_deploy.php returned non-JSON (mod_security block or file missing). Response: {resp.text[:200]}",
             }
     except requests.exceptions.ConnectionError:
         return {"success": False, "message": f"Cannot connect to dummy server: {dummy_url}"}

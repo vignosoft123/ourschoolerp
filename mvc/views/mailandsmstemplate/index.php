@@ -1,11 +1,6 @@
 
 <div class="box">
     <div class="box-header">
-       <a href="<?php echo base_url('mailandsmstemplate/index');?>"> <h3 class="box-title"><i class="fa icon-template"></i> <?=$this->lang->line('panel_title')?></h3></a>
-
-        <a href="<?php echo base_url('mailandsmstemplate/whatsapp_index');?>"> <h3 class="box-title"><i class="fa icon-template"></i> Whatsapp Templates</h3></a>
-
-       
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
             <li class="active"><?=$this->lang->line('menu_mailandsmstemplate')?></li>
@@ -16,16 +11,20 @@
         <div class="row">
             <div class="col-sm-12">
 
-                <?php 
-                    if(permissionChecker('mailandsmstemplate_add')) {
-                ?>
-                    <h5 class="page-header">
-                        <a href="<?php echo base_url('mailandsmstemplate/add') ?>">
-                            <i class="fa fa-plus"></i> 
-                            <?=$this->lang->line('add_title')?>
-                        </a>
-                    </h5>
-                <?php } ?>
+                <div class="nav-tabs-custom" style="margin-bottom:15px;">
+                    <ul class="nav nav-tabs">
+                        <li class="active">
+                            <a href="<?=base_url('mailandsmstemplate/index')?>">
+                                <i class="fa icon-template"></i> <?=$this->lang->line('panel_title')?>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?=base_url('mailandsmstemplate/whatsapp_index')?>">
+                                <i class="fa fa-whatsapp"></i> Whatsapp Templates
+                            </a>
+                        </li>
+                    </ul>
+                </div>
 
                 <div id="hide-table">
                     <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
@@ -101,3 +100,12 @@
         </div>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    <?php if(permissionChecker('mailandsmstemplate_add')) { ?>
+    var $addBtn = $('<a href="<?=base_url('mailandsmstemplate/add')?>" class="btn btn-success btn-sm" style="margin-left:5px"><i class="fa fa-plus"></i> <?=$this->lang->line('add_title')?></a>');
+    $('.buttons-pdf').after($addBtn);
+    <?php } ?>
+});
+</script>

@@ -84,7 +84,7 @@ defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
-defined('VERSION')             OR define('VERSION', '2.65');
+defined('VERSION')             OR define('VERSION', '2.66');
 defined('CSSVERSION')          OR define('CSSVERSION', '1.008');
 defined('CUSTOM_CSS')          OR define('CUSTOM_CSS', 'assets/inilabs/custom-overrides.css');
 defined('SCHEMA_UPDATE_KEY')   OR define('SCHEMA_UPDATE_KEY', 'a3517b0f46b17c8b813d850e8ef65fd035df328d45f0a836');
