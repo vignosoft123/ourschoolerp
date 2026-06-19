@@ -2043,7 +2043,7 @@ class Bulkimport extends Admin_Controller
     private function getAdmissonNumber($objSettings)
 	{
 		$schoolyearID = $this->session->userdata('defaultschoolyearID');
-		$count = $this->db->where('srschoolyearID', $schoolyearID)->count_all_results('studentrelation');
+		$count = $this->db->where('createschoolyearID', $schoolyearID)->count_all_results('student');
 		$num = $count + 1;
 		return $objSettings->schoolCode . sprintf("%04d", $num);
 	}

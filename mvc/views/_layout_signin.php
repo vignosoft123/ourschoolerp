@@ -17,7 +17,7 @@
     <link href="<?php echo base_url('assets/inilabs/responsive.css'); ?>" rel="stylesheet"  type="text/css">
 </head>
 
-<body class="">
+<body class="" style="margin:0;padding:0;background:#fff;">
 
     <!-- <div class="col-md-4 col-md-offset-4 marg" style="margin-top:30px;">
         <?php
