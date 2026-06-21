@@ -471,6 +471,22 @@
         }
     },
     {
+        "query": "ALTER TABLE `voice_messages` ADD `class_id` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "voice_messages",
+            "column": "class_id"
+        }
+    },
+    {
+        "query": "ALTER TABLE `voice_messages` ADD `section_id` INT(11) NOT NULL DEFAULT '0'",
+        "type": "alter",
+        "check_column": {
+            "table": "voice_messages",
+            "column": "section_id"
+        }
+    },
+    {
         "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('youtube_links', 'youtube', 'fa-youtube-play', '1', '17', '190')",
         "type": "insert",
         "check_row": {

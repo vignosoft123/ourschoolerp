@@ -16,6 +16,24 @@
                 <input type="text" name="voice_name" class="form-control" value="<?php echo set_value('voice_name'); ?>" placeholder="Enter voice message name" required>
             </div>
 
+            <!-- Class -->
+            <div class="form-group">
+                <label>Class <span class="text-danger">*</span></label>
+                <?php
+                $classArr = ['0' => 'Please Select'];
+                if (customCompute($classes))
+                    foreach ($classes as $c)
+                        $classArr[$c->classesID] = $c->classes;
+                echo form_dropdown('class_id', $classArr, set_value('class_id'), "id='class_id' class='form-control select2'");
+                ?>
+            </div>
+
+            <!-- Section (AJAX) -->
+            <div class="form-group" id="sectionDiv" style="display:none;">
+                <label>Section</label>
+                <?php echo form_dropdown('section_id', ['0' => 'Please Select'], set_value('section_id'), "id='section_id' class='form-control select2'"); ?>
+            </div>
+
             <!-- Audio Input Tabs -->
             <div class="form-group">
                 <label><?php echo $this->lang->line('voice_audio_label'); ?> <span class="text-danger">*</span></label>
@@ -71,6 +89,25 @@
 </div>
 
 <script>
+$('.select2').select2();
+
+$(document).on('change', '#class_id', function() {
+    var id = $(this).val();
+    if (id == '0') {
+        $('#section_id').html('<option value="0">Please Select</option>');
+        $('#sectionDiv').hide('fast');
+    } else {
+        $('#sectionDiv').show('fast');
+        $.ajax({
+            type: 'POST',
+            url: '<?php echo base_url("voice_messages/getSection"); ?>',
+            data: { classesID: id },
+            dataType: 'html',
+            success: function(d) { $('#section_id').html(d); $('#section_id').trigger('change.select2'); }
+        });
+    }
+});
+
 $(function() {
     // Tab switch sets audio_source
     $('#audioTabs a[data-toggle="tab"]').on('shown.bs.tab', function(e) {

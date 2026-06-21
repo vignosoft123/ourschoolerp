@@ -74,6 +74,9 @@ ALTER TABLE `youtube_links`  ADD COLUMN IF NOT EXISTS `view_count`           INT
 ALTER TABLE `youtube_links`  ADD COLUMN IF NOT EXISTS `sort_order`           INT(11) NOT NULL DEFAULT '0';
 ALTER TABLE `youtube_links`  ADD COLUMN IF NOT EXISTS `updated_at`           DATETIME NULL DEFAULT NULL;
 
+ALTER TABLE `voice_messages` ADD COLUMN IF NOT EXISTS `class_id`            INT(11) NOT NULL DEFAULT '0';
+ALTER TABLE `voice_messages` ADD COLUMN IF NOT EXISTS `section_id`          INT(11) NOT NULL DEFAULT '0';
+
 -- WARNING: Only run this if mailandsmstemplateID does NOT already have AUTO_INCREMENT.
 -- If it already has PRIMARY KEY + AUTO_INCREMENT this will throw "Multiple primary key" error.
 -- Check first: SHOW CREATE TABLE whatapp_templates;

@@ -10,6 +10,8 @@ class Voice_messages extends Admin_Controller {
     public function __construct() {
         parent::__construct();
         $this->load->model('voice_messages_m');
+        $this->load->model('classes_m');
+        $this->load->model('section_m');
         $language = $this->session->userdata('lang');
         $this->lang->load('voice_messages', $language);
 
@@ -21,12 +23,25 @@ class Voice_messages extends Admin_Controller {
 
     public function index() {
         $schoolyearID = $this->session->userdata('defaultschoolyearID');
-        $this->data['voices'] = $this->voice_messages_m->get_all(['school_year_id' => $schoolyearID]);
+        $this->db->select('vm.*, c.classes as class_name, s.section as section_name');
+        $this->db->from('voice_messages vm');
+        $this->db->join('classes c',   'c.classesID = vm.class_id',   'left');
+        $this->db->join('section s',   's.sectionID = vm.section_id', 'left');
+        $this->db->where('vm.school_year_id', $schoolyearID);
+        $this->db->order_by('vm.id', 'DESC');
+        $query = $this->db->get();
+        $this->data['voices'] = $query ? $query->result() : [];
         $this->data['subview'] = 'voice_messages/index';
         $this->load->view('_layout_main', $this->data);
     }
 
     public function add() {
+        $this->data['headerassets'] = [
+            'css' => ['assets/select2/css/select2.css', 'assets/select2/css/select2-bootstrap.css'],
+            'js'  => ['assets/select2/select2.js']
+        ];
+        $this->data['classes'] = $this->classes_m->general_get_classes();
+
         if ($_POST) {
             $this->form_validation->set_rules('voice_name', 'Voice Name', 'trim|required|max_length[255]');
             if ($this->form_validation->run() === FALSE) {
@@ -43,6 +58,8 @@ class Voice_messages extends Admin_Controller {
             }
             $this->voice_messages_m->insert([
                 'voice_name'          => $this->input->post('voice_name'),
+                'class_id'            => (int)$this->input->post('class_id'),
+                'section_id'          => (int)$this->input->post('section_id'),
                 'file_name'           => $upload['file_name'],
                 'file_original_name'  => $upload['original_name'],
                 'file_size'           => $upload['file_size'],
@@ -68,6 +85,12 @@ class Voice_messages extends Admin_Controller {
             redirect(base_url('voice_messages/index'));
         }
         $this->data['voice'] = $voice;
+        $this->data['headerassets'] = [
+            'css' => ['assets/select2/css/select2.css', 'assets/select2/css/select2-bootstrap.css'],
+            'js'  => ['assets/select2/select2.js']
+        ];
+        $this->data['classes'] = $this->classes_m->general_get_classes();
+
         if ($_POST) {
             $this->form_validation->set_rules('voice_name', 'Voice Name', 'trim|required|max_length[255]');
             if ($this->form_validation->run() === FALSE) {
@@ -77,6 +100,8 @@ class Voice_messages extends Admin_Controller {
             }
             $array = [
                 'voice_name' => $this->input->post('voice_name'),
+                'class_id'   => (int)$this->input->post('class_id'),
+                'section_id' => (int)$this->input->post('section_id'),
                 'updated_at' => date('Y-m-d H:i:s'),
             ];
             // Replace audio only if a new file/recording is provided
@@ -133,6 +158,17 @@ class Voice_messages extends Admin_Controller {
             }
         }
         echo json_encode(['success' => true, 'file_name' => $newName]);
+    }
+
+    public function getSection() {
+        $classesID = $this->input->post('classesID');
+        if ((int)$classesID) {
+            $sections = $this->section_m->general_get_order_by_section(['classesID' => $classesID]);
+            echo "<option value='0'>Please Select</option>";
+            if (customCompute($sections))
+                foreach ($sections as $s)
+                    echo "<option value='{$s->sectionID}'>{$s->section}</option>";
+        }
     }
 
     public function delete() {

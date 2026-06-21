@@ -26,6 +26,8 @@
                 <tr>
                     <th width="40">#</th>
                     <th>Voice Name</th>
+                    <th width="120">Class</th>
+                    <th width="120">Section</th>
                     <th width="320">Audio Preview</th>
                     <th width="150">Created Date</th>
                     <th width="120">Action</th>
@@ -36,6 +38,8 @@
                 <tr>
                     <td><?php echo $sl++; ?></td>
                     <td><?php echo htmlspecialchars($row->voice_name); ?></td>
+                    <td><?php echo $row->class_name ? htmlspecialchars($row->class_name) : '<span class="text-muted">All</span>'; ?></td>
+                    <td><?php echo $row->section_name ? htmlspecialchars($row->section_name) : '<span class="text-muted">All</span>'; ?></td>
                     <td>
                         <audio controls style="width:300px;height:36px;">
                             <source src="<?php echo base_url('uploads/voice_messages/' . $row->file_name); ?>">
@@ -49,7 +53,7 @@
                     </td>
                 </tr>
                 <?php endforeach; else: ?>
-                <tr><td colspan="5" class="text-center text-muted">No voice messages found.</td></tr>
+                <tr><td colspan="7" class="text-center text-muted">No voice messages found.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

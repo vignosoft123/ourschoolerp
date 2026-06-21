@@ -16,6 +16,25 @@
                 <input type="text" name="voice_name" class="form-control" value="<?php echo htmlspecialchars($voice->voice_name); ?>" placeholder="Enter voice message name" required>
             </div>
 
+            <!-- Class -->
+            <div class="form-group">
+                <label>Class <span class="text-danger">*</span></label>
+                <?php
+                $classArr = ['0' => 'Please Select'];
+                if (customCompute($classes))
+                    foreach ($classes as $c)
+                        $classArr[$c->classesID] = $c->classes;
+                $selectedClass = isset($voice->class_id) ? $voice->class_id : 0;
+                echo form_dropdown('class_id', $classArr, $selectedClass, "id='class_id' class='form-control select2'");
+                ?>
+            </div>
+
+            <!-- Section (AJAX) -->
+            <div class="form-group" id="sectionDiv" <?php echo ($selectedClass && $selectedClass != '0') ? '' : 'style="display:none;"'; ?>>
+                <label>Section</label>
+                <?php echo form_dropdown('section_id', ['0' => 'Please Select'], isset($voice->section_id) ? $voice->section_id : 0, "id='section_id' class='form-control select2'"); ?>
+            </div>
+
             <!-- Current Audio -->
             <div class="form-group">
                 <label>Current Audio:</label>
@@ -83,6 +102,42 @@
 </div>
 
 <script>
+$('.select2').select2();
+
+$(document).on('change', '#class_id', function() {
+    var id = $(this).val();
+    if (id == '0') {
+        $('#section_id').html('<option value="0">Please Select</option>');
+        $('#sectionDiv').hide('fast');
+    } else {
+        $('#sectionDiv').show('fast');
+        $.ajax({
+            type: 'POST',
+            url: '<?php echo base_url("voice_messages/getSection"); ?>',
+            data: { classesID: id },
+            dataType: 'html',
+            success: function(d) { $('#section_id').html(d); $('#section_id').trigger('change.select2'); }
+        });
+    }
+});
+
+// Pre-populate section dropdown on page load
+var existingClassId  = '<?php echo isset($voice->class_id)   ? (int)$voice->class_id   : 0; ?>';
+var existingSectionId = '<?php echo isset($voice->section_id) ? (int)$voice->section_id : 0; ?>';
+if (existingClassId && existingClassId != '0') {
+    $.ajax({
+        type: 'POST',
+        url: '<?php echo base_url("voice_messages/getSection"); ?>',
+        data: { classesID: existingClassId },
+        dataType: 'html',
+        success: function(d) {
+            $('#section_id').html(d);
+            if (existingSectionId) { $('#section_id').val(existingSectionId); }
+            $('#section_id').trigger('change.select2');
+        }
+    });
+}
+
 $(function() {
     // Tab switch updates audio_source based on whether there is new content
     $('#audioTabs a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
