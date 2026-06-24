@@ -11,3 +11,6 @@ $lang['voice_update_success']    = 'Voice message updated successfully.';
 $lang['voice_delete_success']    = 'Voice message deleted successfully.';
 $lang['voice_edit_btn']          = 'Edit';
 $lang['voice_delete_btn']        = 'Delete';
+$lang['voice_save_btn']          = 'Save Voice Message';
+$lang['voice_update_btn']        = 'Update Voice Message';
+$lang['voice_back_btn']          = 'Back';

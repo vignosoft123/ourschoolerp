@@ -14,8 +14,18 @@ class Voice_messages extends Api_Controller {
     // GET api/v10/voice_messages/index or api/v10/voice_messages/index/1
     public function index_get($id = null) {
         $schoolyearID = $this->session->userdata('defaultschoolyearID');
+        $usertypeID   = (int)$this->session->userdata('usertypeID');
+        $loginuserID  = (int)$this->session->userdata('loginuserID');
+
         if ((int)$id) {
-            $voice = $this->voice_messages_m->get_one(['id' => $id, 'school_year_id' => $schoolyearID]);
+            $this->db->select('vm.*, c.classes as class_name, s.section as section_name');
+            $this->db->from('voice_messages vm');
+            $this->db->join('classes c', 'c.classesID = vm.class_id', 'left');
+            $this->db->join('section s', 's.sectionID = vm.section_id', 'left');
+            $this->db->where('vm.id', $id);
+            $this->db->where('vm.school_year_id', $schoolyearID);
+            $query = $this->db->get();
+            $voice = $query ? $query->row() : null;
             if (!$voice) {
                 $this->response(['status' => false, 'message' => 'Not found', 'data' => []], REST_Controller::HTTP_NOT_FOUND);
                 return;
@@ -24,8 +34,42 @@ class Voice_messages extends Api_Controller {
             unset($voice->created_by, $voice->created_by_usertype);
             $this->retdata['voice_message'] = $voice;
         } else {
-            $voices = $this->voice_messages_m->get_all(['school_year_id' => $schoolyearID]);
-            if (!$voices) $voices = [];
+            $this->db->select('vm.*, c.classes as class_name, s.section as section_name');
+            $this->db->from('voice_messages vm');
+            $this->db->join('classes c', 'c.classesID = vm.class_id', 'left');
+            $this->db->join('section s', 's.sectionID = vm.section_id', 'left');
+            $this->db->where('vm.school_year_id', $schoolyearID);
+
+            if (in_array($usertypeID, [1, 2])) {
+                // Admin/Teacher: optional class_id and section_id filter via query params
+                $filterClassID   = (int)$this->get('class_id');
+                $filterSectionID = (int)$this->get('section_id');
+                if ($filterClassID) {
+                    $this->db->where('vm.class_id', $filterClassID);
+                    if ($filterSectionID) {
+                        $this->db->where('vm.section_id', $filterSectionID);
+                    }
+                }
+            } else {
+                // Students: show only messages matching their class/section (or broadcast messages with class_id=0)
+                $student = $this->db->get_where('students', ['loginuserID' => $loginuserID])->row();
+                if ($student) {
+                    $this->db->group_start();
+                        $this->db->where('vm.class_id', 0);
+                        $this->db->or_group_start();
+                            $this->db->where('vm.class_id', $student->classesID);
+                            $this->db->group_start();
+                                $this->db->where('vm.section_id', 0);
+                                $this->db->or_where('vm.section_id', $student->sectionID);
+                            $this->db->group_end();
+                        $this->db->group_end();
+                    $this->db->group_end();
+                }
+            }
+
+            $this->db->order_by('vm.id', 'DESC');
+            $query  = $this->db->get();
+            $voices = $query ? $query->result() : [];
             foreach ($voices as &$v) {
                 $v->file_url = base_url('uploads/voice_messages/' . $v->file_name);
                 unset($v->created_by, $v->created_by_usertype);
@@ -59,6 +103,8 @@ class Voice_messages extends Api_Controller {
         }
         $id = $this->voice_messages_m->insert([
             'voice_name'          => $voiceName,
+            'class_id'            => (int)$this->post('class_id'),
+            'section_id'          => (int)$this->post('section_id'),
             'file_name'           => $upload['file_name'],
             'file_original_name'  => $upload['original_name'],
             'file_size'           => $upload['file_size'],
@@ -88,6 +134,12 @@ class Voice_messages extends Api_Controller {
         $array = ['updated_at' => date('Y-m-d H:i:s')];
         if ($this->post('voice_name')) {
             $array['voice_name'] = $this->post('voice_name');
+        }
+        if ($this->post('class_id') !== null) {
+            $array['class_id'] = (int)$this->post('class_id');
+        }
+        if ($this->post('section_id') !== null) {
+            $array['section_id'] = (int)$this->post('section_id');
         }
         if (!empty($_FILES['audio_file']['name'])) {
             $upload = $this->_handleApiAudioUpload();
@@ -161,28 +213,41 @@ class Voice_messages extends Api_Controller {
 |
 | 1. LIST ALL
 |    GET  api/v10/voice_messages/index
+|    GET  api/v10/voice_messages/index?class_id=3
+|    GET  api/v10/voice_messages/index?class_id=3&section_id=2
 |    curl -X GET "BASE_URL/index" -H "Authorization: Bearer TOKEN"
+|    Response includes: class_name, section_name, file_url
+|    Filtering (Admin/Teacher only):
+|      - Pass class_id to filter by class
+|      - Pass class_id + section_id to filter by class and section
+|    Students: auto-filtered to their class/section plus broadcasts (class_id=0).
 |
 | 2. GET ONE
 |    GET  api/v10/voice_messages/index/1
 |    curl -X GET "BASE_URL/index/1" -H "Authorization: Bearer TOKEN"
 |
-| 3. ADD
+| 3. ADD  (Admin/Teacher only)
 |    POST api/v10/voice_messages/add
 |    curl -X POST "BASE_URL/add" \
 |         -H "Authorization: Bearer TOKEN" \
 |         -F "voice_name=Good Morning" \
+|         -F "class_id=3" \
+|         -F "section_id=2" \
 |         -F "audio_file=@/path/to/file.mp3"
+|    Note: Omit class_id (or send 0) to broadcast to all classes.
+|          Omit section_id (or send 0) to broadcast to all sections.
 |
-| 4. EDIT
+| 4. EDIT  (Admin/Teacher only)
 |    POST api/v10/voice_messages/edit
 |    curl -X POST "BASE_URL/edit" \
 |         -H "Authorization: Bearer TOKEN" \
 |         -F "id=1" \
 |         -F "voice_name=Updated Name" \
+|         -F "class_id=3" \
+|         -F "section_id=2" \
 |         -F "audio_file=@/path/to/new_file.mp3"
 |
-| 5. DELETE
+| 5. DELETE  (Admin/Teacher only)
 |    POST api/v10/voice_messages/delete
 |    curl -X POST "BASE_URL/delete" \
 |         -H "Authorization: Bearer TOKEN" \

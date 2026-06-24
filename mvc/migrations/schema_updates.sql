@@ -206,10 +206,28 @@ INSERT INTO `permissions` (`name`, `description`)
 INSERT INTO `permissions` (`name`, `description`)
     SELECT 'youtube', 'youtube'
     FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'youtube');
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'youtube_add', 'youtube_add'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'youtube_add');
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'youtube_edit', 'youtube_edit'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'youtube_edit');
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'youtube_delete', 'youtube_delete'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'youtube_delete');
 
 INSERT INTO `permissions` (`name`, `description`)
     SELECT 'voice_messages', 'voice_messages'
     FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'voice_messages');
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'voice_messages_add', 'voice_messages_add'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'voice_messages_add');
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'voice_messages_edit', 'voice_messages_edit'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'voice_messages_edit');
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'voice_messages_delete', 'voice_messages_delete'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'voice_messages_delete');
 
 INSERT INTO `permissions` (`name`, `description`)
     SELECT 'delete_account_request', 'delete_account_request'
@@ -263,11 +281,35 @@ INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
     SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube'
     AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
         AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube'));
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube_add'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube_add'));
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube_edit'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube_edit'));
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube_delete'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube_delete'));
 
 INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
     SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages'
     AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
         AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages'));
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages_add'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages_add'));
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages_edit'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages_edit'));
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages_delete'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages_delete'));
 
 INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
     SELECT 1, permissionID FROM `permissions` WHERE `name` = 'delete_account_request'

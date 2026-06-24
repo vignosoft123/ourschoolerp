@@ -638,6 +638,48 @@
         "type": "raw"
     },
     {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('youtube_add', 'youtube_add')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "youtube_add"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('youtube_edit', 'youtube_edit')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "youtube_edit"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('youtube_delete', 'youtube_delete')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "youtube_delete"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube_add' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube_add'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube_edit' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube_edit'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'youtube_delete' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'youtube_delete'))",
+        "type": "raw"
+    },
+    {
         "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('voice_messages', 'voice_messages', 'fa-microphone', '1', '17', '210')",
         "type": "insert",
         "check_row": {
@@ -659,6 +701,48 @@
     },
     {
         "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('voice_messages_add', 'voice_messages_add')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "voice_messages_add"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('voice_messages_edit', 'voice_messages_edit')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "voice_messages_edit"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) VALUES ('voice_messages_delete', 'voice_messages_delete')",
+        "type": "insert",
+        "check_row": {
+            "table": "permissions",
+            "where": {
+                "name": "voice_messages_delete"
+            }
+        }
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages_add' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages_add'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages_edit' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages_edit'))",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'voice_messages_delete' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'voice_messages_delete'))",
         "type": "raw"
     },
     {

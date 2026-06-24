@@ -521,7 +521,9 @@ private function log_whatsapp_history($results)
 
         if(!empty($user->phone) && !empty($whatsapp_params['template_name']) && !empty($whatsapp_params['params'])){
             $userTags = $this->mailandsmstemplatetag_m->get_order_by_mailandsmstemplatetag(array('usertypeID' => 3));
-            $message = $this->tagConvertor($userTags, $user, $params, 'SMS');         
+            // {{paid_amount}} already includes balance ("amount, Balance: X"), so drop the separate {{balance_amount}} param
+            $params = str_replace('|{{balance_amount}}', '', $params);
+            $message = $this->tagConvertor($userTags, $user, $params, 'SMS');
              $this->sendWhatsapp($user->phone, $message, $template_name);
              return 1;
         }else{
@@ -745,7 +747,7 @@ private function log_whatsapp_history($results)
 				}elseif($userTag->tagname == '{{paid_amount}}') {
 					$paid    = $user->paidamount     ?? '0.00';
 					$balance = $user->balance_amount ?? '0.00';
-					$message = str_replace('{{paid_amount}}', $paid . ', Balance: ' . $balance, $message);
+					$message = str_replace('{{paid_amount}}', $paid . ' and Balance: ' . $balance, $message);
 				}
 			}
 		}
