@@ -23,6 +23,11 @@
                                 <i class="fa fa-whatsapp"></i> Whatsapp Templates
                             </a>
                         </li>
+                        <li>
+                            <a href="<?=base_url('mailandsmstemplate/notification_config')?>">
+                                <i class="fa fa-bell"></i> Notification Config
+                            </a>
+                        </li>
                     </ul>
                 </div>
 

@@ -1709,6 +1709,14 @@
         if (empty($result)) {
             $result = "Zero";
         }
-        
+
         return $result;
+    }
+
+    function notification_enabled($event_key, $type) {
+        $ci = &get_instance();
+        $row = $ci->db->where('event_key', $event_key)
+                      ->get('notification_event_config')->row();
+        if (!$row) return true;
+        return $type === 'sms' ? (bool)$row->sms_enabled : (bool)$row->whatsapp_enabled;
     }

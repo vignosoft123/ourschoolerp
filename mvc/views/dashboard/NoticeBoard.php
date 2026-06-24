@@ -1,11 +1,11 @@
-      <div class="box">
-        <div class="box-header bg-white">
+      <div class="box" style="flex:1; display:flex; flex-direction:column;">
+        <div class="box-header bg-white" style="background:#FFF9E6 !important;">
           <h3 class="box-title text-black">
               <?=$this->lang->line('dashboard_notice')?>
             </h3>
         </div>
 
-        <div class="box-body">
+        <div class="box-body" style="flex:1; overflow-y:auto; padding:0; min-height:180px;">
           <table class="table">
               <tbody>
                 <?php

@@ -1027,6 +1027,9 @@ foreach($months_array as $mkey => $v) {
 	}
 	
 	public function send_marks_to_sms() {
+		if (!notification_enabled('exam_marks', 'sms')) {
+			echo json_encode(['status' => false, 'message' => 'SMS is disabled for Exam Marks in Notification Config']); return;
+		}
 		// echo "<pre>";print_r($_POST);die;
 	    $this->load->model('mailandsms_m');
 		$marks_grade = $this->input->post('marks_grade');
@@ -1195,9 +1198,12 @@ foreach($months_array as $mkey => $v) {
 	}
 
 	public function send_marks_to_whatsapp() {
+		if (!notification_enabled('exam_marks', 'whatsapp')) {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp is disabled for Exam Marks in Notification Config']); return;
+		}
 		// error_reporting(E_ALL);
 		// ini_set('display_errors', 1);
-		// echo "<pre>";print_r($_POST);die; 
+		// echo "<pre>";print_r($_POST);die;
 		$marks_grade = $this->input->post('marks_grade');
 		$st_ids = $this->input->post('st_ids');
 		$mobile_no = $this->input->post('mobile_no');
@@ -1457,6 +1463,9 @@ foreach($months_array as $mkey => $v) {
 
 public function send_balance_whatsapp()
 {
+    if (!notification_enabled('fee_reminder', 'whatsapp')) {
+        echo json_encode(['status' => false, 'message' => 'WhatsApp is disabled for Fee Reminder in Notification Config']); return;
+    }
     $retArray = ['status' => false, 'message' => ''];
 
     $st_ids       = $this->input->post('st_ids');

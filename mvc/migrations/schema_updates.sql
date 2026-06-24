@@ -358,3 +358,51 @@ INSERT INTO `mailandsmstemplatetag` (`usertypeID`, `tagname`)
 INSERT INTO `setting` (`fieldoption`, `value`)
     SELECT 'student_present_time', '9-00'
     FROM dual WHERE NOT EXISTS (SELECT 1 FROM `setting` WHERE `fieldoption` = 'student_present_time');
+
+
+-- ------------------------------------------------------------
+-- CREATE TABLE: notification_event_config
+-- ------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `notification_event_config` (
+    `id`                INT(11)      NOT NULL AUTO_INCREMENT,
+    `event_key`         VARCHAR(50)  NOT NULL,
+    `event_name`        VARCHAR(100) NOT NULL,
+    `sms_enabled`       TINYINT(1)   NOT NULL DEFAULT 1,
+    `whatsapp_enabled`  TINYINT(1)   NOT NULL DEFAULT 1,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_event_key` (`event_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- ------------------------------------------------------------
+-- INSERT: notification_event_config seed rows
+-- ------------------------------------------------------------
+
+INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+    SELECT 'fee_payment', 'Fee Payment', 1, 1
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'fee_payment');
+
+INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+    SELECT 'attendance', 'Absent Attendance', 1, 1
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'attendance');
+
+INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+    SELECT 'student_registration', 'Student Registration / Login', 1, 1
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'student_registration');
+
+INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+    SELECT 'exam_marks', 'Exam Marks', 1, 1
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'exam_marks');
+
+INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+    SELECT 'fee_reminder', 'Fee Reminder', 1, 1
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'fee_reminder');
+
+INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+    SELECT 'progress_card', 'Progress Card', 1, 1
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'progress_card');
+
+INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+    SELECT 'holiday_intimation', 'Holiday Intimation', 1, 1
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'holiday_intimation');

@@ -13,39 +13,14 @@
                 </div>
             </section>
         </aside>
-        <footer class="main-footer">
-          	<div class="pull-right hidden-xs">
-            	<b>v</b> <?php echo VERSION;//config_item('ini_version');?>
-          	</div>
-          	 <strong><?=$siteinfos->footer?>
-
-               Office Timings:- 10.00 AM to 6.00 PM&nbsp;&nbsp; &nbsp; 
-
-                Support Number:- +91 8639963641 &nbsp;&nbsp; Mail Id:- ourschoolerp123@gmail.com
-
-
-          	<!-- &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;
-          	<b></b>Download:-</b><a href="https://download.anydesk.com/AnyDesk.exe?_ga=2.19595825.802529734.1629965987-92454584.1629965987"><img src="<?=base_url('uploads/anydesk.png')?>"style="width: 113px;height: 20px;">
-        
-        </a> -->
-          	</strong> 
-            
-<!-- 
-    <ul class="nav navbar-nav">
-    <li class="dropdown notifications-menu">
-            <p style="margin-top: 13px;color: #fff;"><b><?php if(customCompute($siteinfos)) { echo namesorting($siteinfos->sname, 14); } ?></b>  </p>
-        </li>
-
-        <li class="dropdown notifications-menu">
-            <p style="margin-top: 13px;color: #fff;"><b>Office Timings :-</b> 10:00 A.M. to 7:00 P.M.</p>
-        </li>
-        <li class="dropdown notifications-menu">
-            <p style="margin-top: 13px;color: #fff; margin-left: 10px;"><b>Support Number :- </b> <img src="<?=base_url('uploads/whatsapp.png')?>" style="width: 20px;height: 20px;color: #fff;"> +91 8639963641</p>
-        </li>
-        <li class="dropdown notifications-menu">
-            <p style="margin-top: 13px;color: #fff; margin-left: 10px;"><b>Mail Id :- </b> <img src="<?=base_url('uploads/mail.png')?>" style="width: 20px;height: 20px;color: #fff;"> <a href="mailto:ourschoolerp123@gmail.com">ourschoolerp123@gmail.com</a></p>
-        </li>
-</ul> -->
+        <footer class="main-footer" style="text-align:center;">
+          	<strong>
+                <?=$siteinfos->footer?> &nbsp;|&nbsp;
+                Office Timings:- 10.00 AM to 6.00 PM &nbsp;|&nbsp;
+                Support Number:- +91 8639963641 &nbsp;|&nbsp;
+                Mail Id:- ourschoolerp123@gmail.com
+          	</strong>
+            <span class="pull-right hidden-xs"><b>v</b> <?php echo VERSION;?></span>
         </footer>
 <?php $this->load->view("components/page_footer"); ?>
 

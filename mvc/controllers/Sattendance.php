@@ -512,15 +512,18 @@ class Sattendance extends Admin_Controller
 						if ($messageType == 'email') {
 							// 		$this->sendAbsentEmail($students, $schoolyearID, $classes, $sectionID);
 						} elseif ($messageType == 'sms') {
-							$this->sendAbsentSMS($students, $schoolyearID, $classes, $sectionID);
-							
+							if (notification_enabled('attendance', 'sms')) {
+								$this->sendAbsentSMS($students, $schoolyearID, $classes, $sectionID);
+							}
 						}
 					}else if($send_whatsapp == 1){
-						$this->sendAbsentWhatsapp($students, $schoolyearID, $classes, $sectionID);
+						if (notification_enabled('attendance', 'whatsapp')) {
+							$this->sendAbsentWhatsapp($students, $schoolyearID, $classes, $sectionID);
+						}
 					}
 
 				}else{
-					if($send_whatsapp == 1){
+					if($send_whatsapp == 1 && notification_enabled('attendance', 'whatsapp')){
 						$this->sendAbsentWhatsapp($students, $schoolyearID, $classes, $sectionID);
 					}
 				}

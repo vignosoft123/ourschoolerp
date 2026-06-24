@@ -659,9 +659,11 @@ class Global_payment_new extends Admin_Controller
         $student->paidamount = $entered_payment;
         $student->date       = date("d-m-Y");
 
-        $sms_status = $this->userConfigSMS($student, 'msg91');
+        if (notification_enabled('fee_payment', 'sms')) {
+            $sms_status = $this->userConfigSMS($student, 'msg91');
+        }
 
-        if ($this->input->post('send_whatsapp')) {
+        if ($this->input->post('send_whatsapp') && notification_enabled('fee_payment', 'whatsapp')) {
             $whatsapp_config_send = $this->Whatsapp_m->whatsapp_config_send($student);
             if (empty($whatsapp_config_send)) {
                 $messege = "phone or template or params missing!, So Whatsapp Not Sent";

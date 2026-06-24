@@ -4483,6 +4483,9 @@ private function getComprehensiveStudentDataBySection($classesID, $sectionID, $s
 		if (!permissionChecker('student_edit')) {
 			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
 		}
+		if (!notification_enabled('student_registration', 'sms')) {
+			echo json_encode(['status' => false, 'message' => 'SMS is disabled for Student Registration in Notification Config']); return;
+		}
 		$id = (int)$this->input->post('id');
 		if (!$id) {
 			echo json_encode(['status' => false, 'message' => 'Invalid student ID']); return;
@@ -4507,6 +4510,9 @@ private function getComprehensiveStudentDataBySection($classesID, $sectionID, $s
 		header('Content-Type: application/json');
 		if (!permissionChecker('student_edit')) {
 			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		if (!notification_enabled('student_registration', 'whatsapp')) {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp is disabled for Student Registration in Notification Config']); return;
 		}
 		$id = (int)$this->input->post('id');
 		if (!$id) {
@@ -4541,6 +4547,9 @@ private function getComprehensiveStudentDataBySection($classesID, $sectionID, $s
 		if (!permissionChecker('student_edit')) {
 			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
 		}
+		if (!notification_enabled('student_registration', 'sms')) {
+			echo json_encode(['status' => false, 'message' => 'SMS is disabled for Student Registration in Notification Config']); return;
+		}
 		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
 		if (!$ids) {
 			echo json_encode(['status' => false, 'message' => 'No students selected']); return;
@@ -4565,6 +4574,9 @@ private function getComprehensiveStudentDataBySection($classesID, $sectionID, $s
 		header('Content-Type: application/json');
 		if (!permissionChecker('student_edit')) {
 			echo json_encode(['status' => false, 'message' => 'Permission denied']); return;
+		}
+		if (!notification_enabled('student_registration', 'whatsapp')) {
+			echo json_encode(['status' => false, 'message' => 'WhatsApp is disabled for Student Registration in Notification Config']); return;
 		}
 		$ids = array_filter(array_map('intval', explode(',', $this->input->post('ids'))));
 		if (!$ids) {

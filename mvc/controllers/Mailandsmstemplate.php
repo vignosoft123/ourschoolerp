@@ -19,6 +19,7 @@ class Mailandsmstemplate extends Admin_Controller {
 		$this->load->model('usertype_m');
 		$this->load->model("mailandsmstemplate_m");
 		$this->load->model("mailandsmstemplatetag_m");
+		$this->load->model("notification_event_config_m");
 		$language = $this->session->userdata('lang');
 		$this->lang->load('mailandsmstemplate', $language);
 	}
@@ -32,6 +33,23 @@ class Mailandsmstemplate extends Admin_Controller {
 	public function whatsapp_index() {
 		$this->data['mailandsmstemplates'] = $this->mailandsmstemplate_m->get_order_by_whatsapptemplate_with_usertypeID();
 		$this->data["subview"] = "mailandsmstemplate/whatsapp_index";
+		$this->load->view('_layout_main', $this->data);
+	}
+
+	public function notification_config() {
+		if ($this->input->post()) {
+			$events = $this->notification_event_config_m->get_all();
+			foreach ($events as $event) {
+				$sms      = $this->input->post('sms_enabled_' . $event->event_key)      ? 1 : 0;
+				$whatsapp = $this->input->post('whatsapp_enabled_' . $event->event_key) ? 1 : 0;
+				$this->notification_event_config_m->update_by_key($event->event_key, $sms, $whatsapp);
+			}
+			$this->session->set_flashdata('success', 'Notification configuration saved successfully.');
+			redirect(base_url('mailandsmstemplate/notification_config'));
+		}
+
+		$this->data['events']  = $this->notification_event_config_m->get_all();
+		$this->data["subview"] = "mailandsmstemplate/notification_config";
 		$this->load->view('_layout_main', $this->data);
 	}
 

@@ -85,7 +85,7 @@ $(function() {
                         }
                     ?>
                 ],
-                color: 'rgb(0,163,241)'
+                color: '#2ecc71'
             },{
                 name: '<?=$this->lang->line("dashboard_absent")?>',
                 data: [
@@ -99,7 +99,7 @@ $(function() {
                         }
                     ?>
                 ],
-                color: 'rgb(1,107,214)'
+                color: '#e74c3c'
             }]
         });
     }
@@ -117,10 +117,10 @@ $(function() {
         var color = '#000';
         var attendanceTitle = '';
         if(type == 'P') {
-            color = 'rgb(0,163,241)';
+            color = '#2ecc71';
             attendanceTitle = '<?=$this->lang->line("dashboard_present")?>';
         } else {
-            color = 'rgb(1,107,214)';
+            color = '#e74c3c';
             attendanceTitle = '<?=$this->lang->line("dashboard_absent")?>';
         }
 

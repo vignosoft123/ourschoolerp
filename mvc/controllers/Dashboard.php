@@ -369,6 +369,8 @@ if ( !defined('BASEPATH') ) {
             $this->_incomeExpenseGraph();
             $this->_visitorGraph();
             $this->_profile();
+            $this->_todayFinancials();
+            $this->_feeCollectionStats();
 
             if ( ( config_item('demo') === false ) && ( $this->data['siteinfos']->auto_update_notification == 1 ) && ( $this->session->userdata('usertypeID') == 1 ) && ( $this->session->userdata('loginuserID') == 1 ) ) {
                 if ( $this->session->userdata('updatestatus') === null ) {
@@ -851,6 +853,89 @@ if ( !defined('BASEPATH') ) {
             $this->data['incomeMonthTotal']   = $paymentMonthTotal;//$incomeMonthTotal;
             $this->data['expenseMonthAndDay'] = $expenseMonthAndDay;
             $this->data['expenseMonthTotal']  = $expenseMonthTotal;
+        }
+
+        private function _todayFinancials()
+        {
+            $schoolyearID = $this->session->userdata('defaultschoolyearID');
+            $today        = date('Y-m-d');
+
+            $this->db->select_sum('paymentamount', 'total');
+            $this->db->from('payment');
+            $this->db->where('schoolyearID', $schoolyearID);
+            $this->db->where("DATE(paymentdate) =", $today);
+            $todayFee = $this->db->get()->row();
+
+            $this->db->select_sum('amount', 'total');
+            $this->db->from('income');
+            $this->db->where('schoolyearID', $schoolyearID);
+            $this->db->where('date', $today);
+            $todayOther = $this->db->get()->row();
+
+            $this->db->select_sum('amount', 'total');
+            $this->db->from('expense');
+            $this->db->where('schoolyearID', $schoolyearID);
+            $this->db->where('date', $today);
+            $todayExp = $this->db->get()->row();
+
+            $this->data['today_income']  = (float)($todayFee->total ?? 0) + (float)($todayOther->total ?? 0);
+            $this->data['today_expense'] = (float)($todayExp->total ?? 0);
+        }
+
+        private function _feeCollectionStats()
+        {
+            $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+            // Fee paid/partial/due totals
+            $feeStatusRows = $this->db->select('paidstatus, COUNT(*) as cnt, COALESCE(SUM(amount), 0) as total')
+                ->from('invoice')
+                ->where('schoolyearID', $schoolyearID)
+                ->where('deleted_at', 1)
+                ->group_by('paidstatus')
+                ->get()->result();
+
+            $feeStatus = ['paid' => 0.0, 'partial' => 0.0, 'due' => 0.0];
+            foreach ($feeStatusRows as $r) {
+                if ($r->paidstatus == 2)     $feeStatus['paid']    = (float)$r->total;
+                elseif ($r->paidstatus == 1) $feeStatus['partial'] = (float)$r->total;
+                else                         $feeStatus['due']     = (float)$r->total;
+            }
+            $this->data['feeStatus'] = $feeStatus;
+
+            // Class-wise invoiced vs collected
+            $sql = "SELECT c.classes,
+                        COALESCE(SUM(i.amount), 0) as total_invoiced,
+                        COALESCE(SUM(pt.paid_amount), 0) as total_collected
+                    FROM invoice i
+                    LEFT JOIN classes c ON i.classesID = c.classesID
+                    LEFT JOIN (
+                        SELECT invoiceID, SUM(paymentamount) as paid_amount
+                        FROM payment WHERE schoolyearID = " . (int)$schoolyearID . "
+                        GROUP BY invoiceID
+                    ) pt ON i.invoiceID = pt.invoiceID
+                    WHERE i.schoolyearID = " . (int)$schoolyearID . " AND i.deleted_at = 1
+                    GROUP BY i.classesID, c.classes
+                    ORDER BY c.classes";
+            $this->data['feeClassStats'] = $this->db->query($sql)->result();
+
+            // Fee type breakdown
+            $this->data['feeTypeStats'] = $this->db
+                ->select('feetype, COALESCE(SUM(amount), 0) as total')
+                ->from('invoice')
+                ->where('schoolyearID', $schoolyearID)
+                ->where('deleted_at', 1)
+                ->group_by('feetype')
+                ->order_by('total', 'DESC')
+                ->get()->result();
+
+            // Recent 10 payments
+            $sql2 = "SELECT p.paymentamount, p.paymentdate, p.paymenttype, s.name as student_name
+                     FROM payment p
+                     LEFT JOIN student s ON p.studentID = s.studentID
+                     WHERE p.schoolyearID = " . (int)$schoolyearID . "
+                     ORDER BY p.paymentdate DESC, p.paymentID DESC
+                     LIMIT 10";
+            $this->data['recentPayments'] = $this->db->query($sql2)->result();
         }
 
         private function _visitorGraph()

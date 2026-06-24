@@ -132,6 +132,7 @@ This is a JSON array of migration entries. The system reads each entry and runs 
 - **2026-05-09**: Documented **Client-Side Excel Export via SheetJS** (Section 8.3) — clone table → strip tooltip attrs → replace em-dashes → `table_to_sheet` → `writeFile`. Reference: Invoice Report (`mvc/views/report/invoicereport/InvoicereportReport.php`). colspan/rowspan merged headers preserved automatically.
 - **2026-05-14**: Implemented and documented **Firebase Push Notification System** (Section 10) — full admin UI (compose, history, setup, verify), Kreait SDK individual sends (Google removed `/batch`), cascading Role→Year→Class→Section→Users filter, only app-installed students shown in dropdown, image URL support, custom sound (`school_1`), `studentrelation` column name fix (`sr` prefix), select2 must be loaded via `headerassets`, foreground vs background notification behaviour documented.
 - **2026-06-17**: Implemented **Activity Logging System** (Section 11) — common `Activity_log_m` model with `add()` method, `activity_logs` table, admin Logs UI with filters/pagination, wired into Teacher/User/Student/Exam/Delete Account Request controllers.
+- **2026-06-25**: Implemented **Notification Event Config System** (Section 12) — central SMS/WhatsApp on/off toggle per event. New table `notification_event_config`, model `Notification_event_config_m`, 3rd tab at `/mailandsmstemplate/notification_config`. Global helper `notification_enabled($event_key, $type)` in `action_helper.php` guards all sends. Wired into: Fee Payment (both Global_payment controllers), Attendance (Sattendance), Student Login (Student, 4 methods), Exam Marks + Fee Reminder (Progresscardreport). WhatsApp `{{paid_amount}}` param format also fixed: now sends 3 params (`name`, `amount and Balance: X`, `date`) instead of 4.
 
 ## 8. Reusable UI Patterns
 
@@ -938,3 +939,102 @@ $lang['menu_logs'] = 'Logs';
 | Users dropdown shows 0 students | No students have logged into the app (no device tokens) | Students must log in via mobile app to register their token |
 | Sent to fewer than selected users | `get_students_with_tokens` was applying class filter on top of explicit IDs | Fixed: class/section filter is skipped when `userIDs[]` are posted |
 | Image not showing in notification (iOS) | iOS requires Notification Service Extension in Ionic app | Mobile app team must add the extension |
+
+---
+
+## 12. Notification Event Config System
+
+Implemented 2026-06-25. A central on/off switch for SMS and WhatsApp sending per event. Accessible as a 3rd tab on the Mail/SMS Template page.
+
+---
+
+### 12.1 Key Files
+
+| File | Purpose |
+|---|---|
+| `mvc/models/Notification_event_config_m.php` | Model — `get_all()`, `update_by_key()` |
+| `mvc/controllers/Mailandsmstemplate.php` | `notification_config()` method — GET loads view, POST saves flags |
+| `mvc/views/mailandsmstemplate/notification_config.php` | Admin UI — event table with SMS + WhatsApp checkboxes |
+| `mvc/helpers/action_helper.php` | `notification_enabled($event_key, $type)` — global helper, loaded on every request |
+
+**Admin URL**: `/mailandsmstemplate/notification_config`
+**Tab**: 3rd tab alongside "Mail / SMS Template" and "Whatsapp Templates"
+
+---
+
+### 12.2 DB Table — `notification_event_config`
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | INT AUTO_INCREMENT PK | — |
+| `event_key` | VARCHAR(50) UNIQUE | Machine key used in code e.g. `fee_payment` |
+| `event_name` | VARCHAR(100) | Human-readable label shown in the UI |
+| `sms_enabled` | TINYINT(1) DEFAULT 1 | 1 = send SMS, 0 = block SMS for this event |
+| `whatsapp_enabled` | TINYINT(1) DEFAULT 1 | 1 = send WhatsApp, 0 = block WhatsApp for this event |
+
+**Seeded via migration** — run `/Schema_update/apply_updates` once after deploy. All 7 rows default to enabled (1, 1).
+
+---
+
+### 12.3 Seeded Events
+
+| `event_key` | `event_name` | Wired In |
+|---|---|---|
+| `fee_payment` | Fee Payment | `Global_payment_new.php`, `Global_payment.php` |
+| `attendance` | Absent Attendance | `Sattendance.php` |
+| `student_registration` | Student Registration / Login | `Student.php` (4 methods) |
+| `exam_marks` | Exam Marks | `Progresscardreport.php` |
+| `fee_reminder` | Fee Reminder | `Progresscardreport.php` |
+| `progress_card` | Progress Card | `Progresscardreport.php` (config row only) |
+| `holiday_intimation` | Holiday Intimation | Config row only — wire when needed |
+
+---
+
+### 12.4 The `notification_enabled()` Helper
+
+Defined in `mvc/helpers/action_helper.php` (globally loaded on every request — no need to load it manually).
+
+```php
+notification_enabled($event_key, $type)   // $type = 'sms' or 'whatsapp'
+// Returns: true (allow send) or false (block send)
+// Safe default: returns true if table/row missing — existing sends never break before migration runs
+```
+
+**Usage pattern** (wrap every SMS/WhatsApp send with this guard):
+```php
+// SMS guard
+if (notification_enabled('fee_payment', 'sms')) {
+    $this->userConfigSMS($student, 'msg91');
+}
+
+// WhatsApp guard (combined with form checkbox if applicable)
+if ($this->input->post('send_whatsapp') && notification_enabled('fee_payment', 'whatsapp')) {
+    $this->Whatsapp_m->whatsapp_config_send($student);
+}
+```
+
+---
+
+### 12.5 How to Add a New Event
+
+When building a new feature that sends SMS or WhatsApp:
+
+1. **Add seed row** to `schema_updates.json` (insert type) and `schema_updates.sql` (WHERE NOT EXISTS):
+   ```sql
+   INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
+       SELECT 'my_new_event', 'My New Event', 1, 1
+       FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'my_new_event');
+   ```
+
+2. **Wrap the send call** in the controller with `notification_enabled('my_new_event', 'sms')` / `notification_enabled('my_new_event', 'whatsapp')`.
+
+3. Run `/Schema_update/apply_updates` — the new row appears automatically in the Notification Config tab.
+
+---
+
+### 12.6 Important Rules
+
+- **Templates are separate from config** — adding a new SMS/WhatsApp template from the frontend does NOT require a new `notification_event_config` row. The config table controls code-level events, not template content.
+- **Config is the master switch** — if `sms_enabled = 0`, SMS is blocked even if other settings (like `setting.is_fee_sms`) are enabled.
+- **Default is allow** — if a row is missing or the table doesn't exist yet, `notification_enabled()` returns `true` so existing functionality never breaks.
+- **Maintenance log** entry: add to Section 7 whenever a new event is wired.

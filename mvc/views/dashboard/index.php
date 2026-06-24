@@ -100,7 +100,13 @@
             'blue',
             'violet',
             'yellow',
-             'orange',
+            'orange',
+        );
+        $arrayIconColor = array(
+            'dark-cream-clr',
+            'dark-peach-clr',
+            'dark-purple-clr',
+            'dark-purple-clr',
         );
 
         function allModuleArray($usertypeID='1', $dashboardWidget) {
@@ -187,6 +193,7 @@
                     $generateBoxArray[$getAllSessionDataKey] = array(
                         'icon' => $dashboardWidget['allmenu'][$getAllSessionDataKey],
                         'color' => $arrayColor[$counter],
+                        'iconColor' => $arrayIconColor[$counter],
                         'link' => $getAllSessionDataKey,
                         'count' => $userArray[$getActiveUserID][$getAllSessionDataKey],
                         'menu' => $dashboardWidget['allmenulang'][$getAllSessionDataKey],
@@ -212,6 +219,7 @@
                             $generateBoxArray[$getAllSessionDataKey] = array(
                                 'icon' => $dashboardWidget['allmenu'][$getAllSessionDataKey],
                                 'color' => $arrayColor[$counter],
+                                'iconColor' => $arrayIconColor[$counter],
                                 'link' => $getAllSessionDataKey,
                                 'count' => $userArray[$getActiveUserID][$getAllSessionDataKey],
                                 'menu' => $dashboardWidget['allmenulang'][$getAllSessionDataKey]
@@ -228,16 +236,16 @@
             <div class="col-lg-2 col-xs-4">
                 <div class="small-box <?=$generateBoxValue['color']?>">
                     <a class="small-box-footer" href="<?=base_url($generateBoxValue['link'])?>">
-                        <div class="icon <?=$generateBoxValue['color']?>" style="padding: 9.5px 18px 6px 18px;">
-                            <!-- <i class="fa <?=$generateBoxValue['icon']?>"></i> -->
+                        <div class="icon icon-bg <?=$generateBoxValue['iconColor']?>">
+                            <i class="fa <?=$generateBoxValue['icon']?>" style="font-size:24px; line-height:46px; color:#fff;"></i>
                         </div>
                         <div class="inner">
-                            <h3 class="h3-title">
-                                <?=$generateBoxValue['count']?>
-                            </h3>
                             <p class="para-txt">
                                 <?=$this->lang->line('menu_'.$generateBoxValue['menu'])?>
                             </p>
+                            <h3 class="h3-title">
+                                <?=$generateBoxValue['count']?>
+                            </h3>
                         </div>
                     </a>
                 </div>
@@ -284,6 +292,35 @@
                     </a>
                 </div>
             </div>
+            <?php if(in_array($this->session->userdata('usertypeID'), array(1,5))): ?>
+            <div class="col-lg-2 col-xs-4">
+                <div class="small-box light-blue-clr">
+                    <a class="small-box-footer" href="<?= base_url('income');?>">
+                        <div class="icon icon-bg dark-blue-clr">
+                            <i class="fa fa-inr" style="font-size:24px; line-height:46px; color:#fff;"></i>
+                        </div>
+                        <div class="inner">
+                            <p class="para-txt">Today's Finance</p>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+                                <div style="text-align:left;">
+                                    <div style="font-size:9px; color:#27ae60; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Income</div>
+                                    <div style="font-size:12px; font-weight:700; color:#1a7a1a; line-height:1.2;">
+                                        <?= number_format($today_income, 0) ?>
+                                    </div>
+                                </div>
+                                <div style="width:1px; height:28px; background:#cde; margin:0 4px;"></div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:9px; color:#e74c3c; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;">Expense</div>
+                                    <div style="font-size:12px; font-weight:700; color:#a00; line-height:1.2;">
+                                        <?= number_format($today_expense, 0) ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            <?php endif; ?>
             <?php } ?>
 </div>
 
@@ -291,45 +328,237 @@
     <div class="row">
         <div class="col-sm-8">
             <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#EAF6FF;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-area-chart text-blue"></i> Accounts Summary
+                        <small style="font-size:10px; color:#999; margin-left:4px;">Click month to view day-wise details</small>
+                    </h3>
+                </div>
                 <div class="box-body" style="padding: 10px 0px;">
                     <div id="earningGraph"></div>
                 </div>
             </div>
         </div>
         <div class="col-sm-4">
-        <div class="box">
-                <div class="box-body" style="padding: 10px 0px;">
-                   
+            <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#E6F4FE;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-pie-chart text-blue"></i> Fee Collection Status
+                    </h3>
+                </div>
+                <div class="box-body" style="padding:10px 0;">
+                    <div id="feeStatusDonut" style="min-height:200px;"></div>
+                    <div style="display:flex; justify-content:space-around; padding:8px 10px 4px; border-top:1px solid #f0f0f0; margin-top:4px;">
+                        <div style="text-align:center;">
+                            <div style="font-size:16px; font-weight:700; color:#2ecc71;">
+                                &#8377;<?= number_format($feeStatus['paid'] ?? 0, 0) ?>
+                            </div>
+                            <div style="font-size:10px; color:#777;">Paid</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:16px; font-weight:700; color:#f39c12;">
+                                &#8377;<?= number_format($feeStatus['partial'] ?? 0, 0) ?>
+                            </div>
+                            <div style="font-size:10px; color:#777;">Partial</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <div style="font-size:16px; font-weight:700; color:#e74c3c;">
+                                &#8377;<?= number_format($feeStatus['due'] ?? 0, 0) ?>
+                            </div>
+                            <div style="font-size:10px; color:#777;">Due</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Class-wise Fee Collection + Fee Type Breakdown -->
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#EBF5FF;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-bar-chart text-blue"></i> Class-wise Fee Collection
+                    </h3>
+                </div>
+                <div class="box-body" style="padding:10px 0;">
+                    <div id="feeClassBarChart" style="min-height:260px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#F5EEFF;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-pie-chart text-blue"></i> Fee by Type
+                    </h3>
+                </div>
+                <div class="box-body" style="padding:10px 0;">
+                    <div id="feeTypeDonut" style="min-height:260px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Payments + Collection Summary -->
+    <div class="row">
+        <div class="col-sm-8">
+            <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#EDFBF2;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-list text-blue"></i> Recent Fee Payments
+                    </h3>
+                </div>
+                <div class="box-body" style="padding:0;">
+                    <table class="table table-condensed table-hover" style="margin:0; font-size:12px;">
+                        <thead>
+                            <tr style="background:#f9f9f9;">
+                                <th style="padding:8px 12px;">Student</th>
+                                <th style="padding:8px 12px;">Date</th>
+                                <th style="padding:8px 12px;">Mode</th>
+                                <th style="padding:8px 12px; text-align:right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php if(customCompute($recentPayments)): foreach($recentPayments as $rp): ?>
+                            <tr>
+                                <td style="padding:7px 12px;"><?= htmlspecialchars($rp->student_name ?? '&mdash;') ?></td>
+                                <td style="padding:7px 12px; white-space:nowrap;"><?= date('d M Y', strtotime($rp->paymentdate)) ?></td>
+                                <td style="padding:7px 12px;"><span class="label label-default" style="font-size:10px;"><?= htmlspecialchars($rp->paymenttype ?? '') ?></span></td>
+                                <td style="padding:7px 12px; text-align:right; font-weight:600; color:#27ae60;">
+                                    &#8377;<?= number_format($rp->paymentamount, 0) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; else: ?>
+                            <tr><td colspan="4" style="text-align:center; color:#aaa; padding:24px;">No payments recorded yet</td></tr>
+                        <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#FFFBEB;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-check-circle text-blue"></i> Collection Summary
+                    </h3>
+                </div>
+                <div class="box-body" style="padding:16px;">
+                    <?php
+                        $totalInvoiced    = ($feeStatus['paid'] ?? 0) + ($feeStatus['partial'] ?? 0) + ($feeStatus['due'] ?? 0);
+                        $totalCollected   = ($feeStatus['paid'] ?? 0) + ($feeStatus['partial'] ?? 0);
+                        $collectionPct    = $totalInvoiced > 0 ? round(($feeStatus['paid'] / $totalInvoiced) * 100) : 0;
+                    ?>
+                    <div style="margin-bottom:10px;">
+                        <div style="font-size:11px; color:#888; margin-bottom:2px;">Total Invoiced</div>
+                        <div style="font-size:20px; font-weight:700; color:#333;">&#8377;<?= number_format($totalInvoiced, 0) ?></div>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-bottom:14px;">
+                        <div style="flex:1; background:#e8fdf1; border-radius:6px; padding:8px 10px; text-align:center;">
+                            <div style="font-size:13px; font-weight:700; color:#27ae60;">&#8377;<?= number_format($totalCollected, 0) ?></div>
+                            <div style="font-size:10px; color:#777; margin-top:2px;">Collected</div>
+                        </div>
+                        <div style="flex:1; background:#fef0f0; border-radius:6px; padding:8px 10px; text-align:center;">
+                            <div style="font-size:13px; font-weight:700; color:#e74c3c;">&#8377;<?= number_format($feeStatus['due'] ?? 0, 0) ?></div>
+                            <div style="font-size:10px; color:#777; margin-top:2px;">Outstanding</div>
+                        </div>
+                    </div>
+                    <div style="font-size:11px; color:#888; margin-bottom:5px;">Full-payment Rate</div>
+                    <div class="progress" style="height:16px; border-radius:8px; margin-bottom:4px;">
+                        <div class="progress-bar progress-bar-success" style="width:<?= $collectionPct ?>%; border-radius:8px; line-height:16px; font-size:11px;">
+                            <?php if($collectionPct >= 10): ?><?= $collectionPct ?>%<?php endif; ?>
+                        </div>
+                    </div>
+                    <div style="font-size:11px; color:#aaa; text-align:right;"><?= $collectionPct ?>% invoices fully paid</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <?php } ?>
 
 <?php if($getActiveUserID == 1 || $getActiveUserID == 5) { ?>
     <div class="row">
-        <!-- <div class="col-sm-4">
-            <?php $this->load->view('dashboard/ProfileBox'); ?>
-        </div> -->
         <div class="col-sm-8">
             <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#EDFAF4;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-bar-chart text-blue"></i> Students Today's Attendance
+                        <small style="font-size:10px; color:#999; margin-left:4px;">Click columns to view monthly data</small>
+                    </h3>
+                </div>
                 <div class="box-body" style="padding: 10px 0px;">
                     <div id="attendanceGraph"></div>
                 </div>
             </div>
         </div>
+        <div class="col-sm-4">
+            <div class="box">
+                <div class="box-header with-border" style="padding:8px 15px; background:#FFF0F2;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-users text-blue"></i> Today's Attendance
+                        <small style="font-size:10px; color:#999; margin-left:4px;"><?= date('d M Y') ?></small>
+                    </h3>
+                </div>
+                <div class="box-body" style="padding:0; height:280px; overflow-y:auto;">
+                    <?php if(customCompute($todaysAttendance)): ?>
+                    <table class="table table-condensed" style="margin:0; font-size:12px;">
+                        <thead>
+                            <tr style="background:#f9f9f9;">
+                                <th style="padding:7px 12px;">Class</th>
+                                <th style="padding:7px 8px; text-align:center; color:#27ae60;">Present</th>
+                                <th style="padding:7px 8px; text-align:center; color:#e74c3c;">Absent</th>
+                                <th style="padding:7px 8px; text-align:center; color:#888;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach($todaysAttendance as $classID => $att):
+                            $p = (int)($att['P'] ?? 0);
+                            $a = (int)($att['A'] ?? 0);
+                            $total = $p + $a;
+                            $pct   = $total > 0 ? round(($p / $total) * 100) : 0;
+                            $pctColor = $pct >= 80 ? '#27ae60' : ($pct >= 60 ? '#f39c12' : '#e74c3c');
+                        ?>
+                        <tr style="border-bottom:1px solid #f5f5f5;">
+                            <td style="padding:6px 12px; font-size:11px;">
+                                <?= isset($classes[$classID]) ? htmlspecialchars($classes[$classID]->classes) : 'Class '.$classID ?>
+                            </td>
+                            <td style="padding:6px 8px; text-align:center; font-weight:600; color:#27ae60;"><?= $p ?></td>
+                            <td style="padding:6px 8px; text-align:center; font-weight:600; color:#e74c3c;"><?= $a ?></td>
+                            <td style="padding:6px 8px; text-align:center; font-weight:700; color:<?= $pctColor ?>; font-size:11px;"><?= $pct ?>%</td>
+                        </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php else: ?>
+                    <div style="text-align:center; color:#bbb; padding:60px 0; font-size:13px;">
+                        <i class="fa fa-clock-o" style="font-size:28px; display:block; margin-bottom:8px;"></i>
+                        Attendance not marked yet today
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="row">
+    <div class="row" style="display:flex; flex-wrap:wrap; align-items:stretch;">
         <?php if(permissionChecker('notice')) { ?>
-        <div class="col-sm-6">
+        <div class="col-sm-6" style="display:flex; flex-direction:column;">
             <?php $this->load->view('dashboard/NoticeBoard', array('val' => 5, 'length' => 15, 'maxlength' => 45)); ?>
         </div>
         <?php } ?>
-        <div class="col-sm-6">
-            <div class="box">
-                <div class="box-body" style="padding: 10px 0px;">
-                    <div id="visitor"></div>
+        <div class="col-sm-6" style="display:flex; flex-direction:column;">
+            <div class="box" style="flex:1; display:flex; flex-direction:column;">
+                <div class="box-header with-border" style="padding:8px 15px; background:#E8F4FD;">
+                    <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                        <i class="fa fa-line-chart text-blue"></i> Site Visits
+                        <small style="font-size:10px; color:#999; margin-left:4px;">Last 7 days</small>
+                    </h3>
+                </div>
+                <div class="box-body" style="flex:1; padding:10px 0; min-height:180px;">
+                    <div id="visitor" style="height:100%;"></div>
                 </div>
             </div>
         </div>
@@ -351,12 +580,77 @@
     </div>
 <?php } ?>
 
-<div class="row">
-  <div class="col-sm-6">
-      <div class="box">
+<div class="row" style="display:flex; flex-wrap:wrap; align-items:stretch;">
+  <div class="col-sm-6" style="display:flex; flex-direction:column;">
+      <div class="box" style="flex:1;">
+          <div class="box-header with-border" style="padding:8px 15px; background:#F0F4FF;">
+              <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                  <i class="fa fa-calendar text-blue"></i> School Calendar
+              </h3>
+          </div>
           <div class="box-body">
               <!-- THE CALENDAR -->
               <div id="calendar"></div>
+          </div>
+      </div>
+  </div>
+  <div class="col-sm-6" style="display:flex; flex-direction:column;">
+      <div class="box" style="flex:1; display:flex; flex-direction:column;">
+          <div class="box-header with-border" style="padding:10px 15px; background:#FFF5EE;">
+              <h3 class="box-title" style="font-size:13px; font-weight:700;">
+                  <i class="fa fa-calendar-check-o text-blue"></i> Upcoming Events &amp; Holidays
+              </h3>
+          </div>
+          <div class="box-body" style="padding:0; flex:1; overflow-y:auto; min-height:200px;">
+              <?php
+                  // Merge events and holidays into one sorted list
+                  $upcomingItems = [];
+                  $today = date('Y-m-d');
+                  if(customCompute($events)) {
+                      foreach($events as $ev) {
+                          if(isset($ev->fdate) && $ev->fdate >= $today) {
+                              $upcomingItems[] = ['date' => $ev->fdate, 'title' => $ev->title, 'type' => 'event'];
+                          }
+                      }
+                  }
+                  if(customCompute($holidays)) {
+                      foreach($holidays as $hd) {
+                          if(isset($hd->fdate) && $hd->fdate >= $today) {
+                              $upcomingItems[] = ['date' => $hd->fdate, 'title' => $hd->title, 'type' => 'holiday'];
+                          }
+                      }
+                  }
+                  usort($upcomingItems, function($a, $b){ return strcmp($a['date'], $b['date']); });
+                  $upcomingItems = array_slice($upcomingItems, 0, 12);
+              ?>
+              <?php if(count($upcomingItems) > 0): ?>
+              <table class="table table-condensed" style="margin:0; font-size:12px;">
+                  <tbody>
+                  <?php foreach($upcomingItems as $item): ?>
+                      <tr style="border-bottom:1px solid #f5f5f5;">
+                          <td style="padding:8px 12px; width:90px; white-space:nowrap; color:#888;">
+                              <?= date('d M', strtotime($item['date'])) ?>
+                          </td>
+                          <td style="padding:8px 12px;">
+                              <?= htmlspecialchars($item['title']) ?>
+                          </td>
+                          <td style="padding:8px 12px; text-align:right;">
+                              <?php if($item['type'] === 'holiday'): ?>
+                                  <span class="label" style="background:#e74c3c; font-size:9px;">Holiday</span>
+                              <?php else: ?>
+                                  <span class="label" style="background:#3498db; font-size:9px;">Event</span>
+                              <?php endif; ?>
+                          </td>
+                      </tr>
+                  <?php endforeach; ?>
+                  </tbody>
+              </table>
+              <?php else: ?>
+              <div style="text-align:center; color:#bbb; padding:60px 0; font-size:13px;">
+                  <i class="fa fa-calendar-o" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                  No upcoming events or holidays
+              </div>
+              <?php endif; ?>
           </div>
       </div>
   </div>
@@ -372,4 +666,7 @@
 <?php $this->load->view("dashboard/EarningHighChartJavascript.php"); ?>
 <?php $this->load->view("dashboard/CalenderJavascript"); ?>
 <?php $this->load->view("dashboard/VisitorHighChartJavascript"); ?>
+<?php if($getActiveUserID == 1 || $getActiveUserID == 5): ?>
+<?php $this->load->view("dashboard/FeeCollectionChartJavascript"); ?>
+<?php endif; ?>
 
