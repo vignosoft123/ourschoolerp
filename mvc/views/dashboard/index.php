@@ -656,6 +656,223 @@
   </div>
 </div><!-- /.row -->
 
+<!-- ── This Month's Birthdays ──────────────────────────────────────── -->
+<?php
+    $bTotal    = count($birthday_students) + count($birthday_teachers) + count($birthday_users);
+    $today_day = (int)date('j');
+?>
+<div class="row">
+    <div class="col-sm-12">
+        <div class="box">
+            <div class="box-header with-border" style="background:#FFFBEB; padding:10px 15px;">
+                <h3 class="box-title" style="font-size:14px; font-weight:700;">
+                    &#127874; This Month's Birthdays
+                    <small style="font-size:11px; color:#999; margin-left:6px;"><?= date('F Y') ?></small>
+                </h3>
+                <div class="box-tools pull-right">
+                    <span style="font-size:11px; background:#f39c12; color:#fff; border-radius:10px; padding:3px 10px; font-weight:600;">
+                        <?= $bTotal ?> this month
+                    </span>
+                </div>
+            </div>
+            <div class="box-body" style="padding:0;">
+                <?php if($bTotal == 0): ?>
+                    <div style="text-align:center; color:#bbb; padding:40px 0; font-size:13px;">
+                        <i class="fa fa-smile-o" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                        No birthdays this month
+                    </div>
+                <?php else: ?>
+                <div style="display:flex; border-top:1px solid #f0f0f0;">
+
+                    <!-- ── Students ── -->
+                    <div style="flex:5; border-right:1px solid #f0f0f0;">
+                        <!-- Header row with filter icon -->
+                        <div style="background:#EBF5FB; padding:8px 14px; border-bottom:1px solid #e0eaf3; display:flex; align-items:center; gap:6px;">
+                            <i class="fa fa-graduation-cap" style="color:#2471A3;"></i>
+                            <strong style="font-size:12px; color:#2471A3;">Students</strong>
+                            <span id="bday-student-count" style="margin-left:auto; font-size:10px; background:#2471A3; color:#fff; border-radius:8px; padding:1px 7px;"><?= count($birthday_students) ?></span>
+                            <button id="bday-filter-toggle" title="Filter by Class &amp; Section"
+                                style="background:none; border:1px solid #2471A3; border-radius:4px; padding:1px 6px; cursor:pointer; color:#2471A3; font-size:11px; line-height:1.6; margin-left:4px;">
+                                <i class="fa fa-filter"></i>
+                            </button>
+                        </div>
+                        <!-- Collapsible filter panel -->
+                        <div id="bday-filter-panel" style="display:none; background:#f0f7fc; padding:7px 14px; border-bottom:1px solid #cde2f0; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <select id="bday-class-filter" style="font-size:11px; padding:3px 6px; border:1px solid #b0cfe0; border-radius:4px; min-width:130px; color:#333;">
+                                <option value="">All Classes</option>
+                                <?php
+                                    $uniqueClasses = [];
+                                    foreach($birthday_students as $bs) {
+                                        if(!empty($bs->classesID) && !isset($uniqueClasses[$bs->classesID])) {
+                                            $uniqueClasses[$bs->classesID] = $bs->classname ?? '—';
+                                        }
+                                    }
+                                    foreach($uniqueClasses as $cid => $cname) {
+                                        echo "<option value='".htmlspecialchars($cid)."'>".htmlspecialchars($cname)."</option>";
+                                    }
+                                ?>
+                            </select>
+                            <select id="bday-section-filter" disabled style="font-size:11px; padding:3px 6px; border:1px solid #b0cfe0; border-radius:4px; min-width:110px; color:#333;">
+                                <option value="">All Sections</option>
+                            </select>
+                            <button id="bday-filter-clear" style="font-size:11px; padding:3px 8px; background:#e74c3c; color:#fff; border:none; border-radius:4px; cursor:pointer;">
+                                <i class="fa fa-times"></i> Clear
+                            </button>
+                        </div>
+                        <!-- Student list -->
+                        <div id="bday-student-list" style="max-height:300px; overflow-y:auto;">
+                            <?php if(customCompute($birthday_students)): ?>
+                                <?php foreach($birthday_students as $bs):
+                                    $isToday = ((int)date('j', strtotime($bs->dob)) === $today_day);
+                                ?>
+                                <div class="bday-student-row"
+                                     data-class-id="<?= (int)($bs->classesID ?? 0) ?>"
+                                     data-section-id="<?= (int)($bs->sectionID ?? 0) ?>"
+                                     style="display:flex; align-items:center; gap:10px; padding:7px 14px; border-bottom:1px solid #f5f5f5; <?= $isToday ? 'background:#FFFDE7;' : '' ?>">
+                                    <div style="width:32px; height:32px; border-radius:50%; overflow:hidden; flex-shrink:0; background:#c5d8e8; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#fff;">
+                                        <?php if(!empty($bs->photo)): ?>
+                                            <img src="<?= imagelink($bs->photo) ?>" style="width:100%; height:100%; object-fit:cover;" alt="">
+                                        <?php else: ?>
+                                            <?= strtoupper(substr($bs->name, 0, 1)) ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            <?= $isToday ? '&#127874; ' : '' ?><?= htmlspecialchars($bs->name) ?>
+                                        </div>
+                                        <div style="font-size:10px; color:#888;">
+                                            <?= date('d M', strtotime($bs->dob)) ?>
+                                            <?php if(!empty($bs->classname)): ?>&nbsp;&middot;&nbsp;<?= htmlspecialchars($bs->classname) ?><?php endif; ?>
+                                            <?php if(!empty($bs->sectionname)): ?>&nbsp;&middot;&nbsp;<?= htmlspecialchars($bs->sectionname) ?><?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <?php if($isToday): ?>
+                                        <span style="font-size:9px; background:#e67e22; color:#fff; border-radius:8px; padding:2px 6px; white-space:nowrap; flex-shrink:0;">Today!</span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div style="text-align:center; color:#bbb; padding:30px 0; font-size:12px;">No student birthdays this month</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- ── Teachers ── -->
+                    <div style="flex:4; border-right:1px solid #f0f0f0;">
+                        <!-- Header row with filter icon -->
+                        <div style="background:#EAFAF1; padding:8px 14px; border-bottom:1px solid #d5f0e0; display:flex; align-items:center; gap:6px;">
+                            <i class="fa fa-user" style="color:#1E8449;"></i>
+                            <strong style="font-size:12px; color:#1E8449;">Teachers</strong>
+                            <span id="bday-teacher-count" style="margin-left:auto; font-size:10px; background:#1E8449; color:#fff; border-radius:8px; padding:1px 7px;"><?= count($birthday_teachers) ?></span>
+                            <button id="bday-teacher-filter-toggle" title="Filter by Designation"
+                                style="background:none; border:1px solid #1E8449; border-radius:4px; padding:1px 6px; cursor:pointer; color:#1E8449; font-size:11px; line-height:1.6; margin-left:4px;">
+                                <i class="fa fa-filter"></i>
+                            </button>
+                        </div>
+                        <!-- Collapsible filter panel -->
+                        <div id="bday-teacher-filter-panel" style="display:none; background:#f0faf5; padding:7px 14px; border-bottom:1px solid #b8e8c8; gap:6px; align-items:center; flex-wrap:wrap;">
+                            <select id="bday-designation-filter" style="font-size:11px; padding:3px 6px; border:1px solid #8ecfa8; border-radius:4px; min-width:160px; color:#333;">
+                                <option value="">All Designations</option>
+                                <?php
+                                    $uniqueDesignations = [];
+                                    foreach($birthday_teachers as $bt) {
+                                        $d = trim($bt->designation ?? '');
+                                        if($d !== '' && !in_array($d, $uniqueDesignations)) {
+                                            $uniqueDesignations[] = $d;
+                                        }
+                                    }
+                                    sort($uniqueDesignations);
+                                    foreach($uniqueDesignations as $d) {
+                                        echo "<option value='".htmlspecialchars($d)."'>".htmlspecialchars($d)."</option>";
+                                    }
+                                ?>
+                            </select>
+                            <button id="bday-teacher-filter-clear" style="font-size:11px; padding:3px 8px; background:#e74c3c; color:#fff; border:none; border-radius:4px; cursor:pointer;">
+                                <i class="fa fa-times"></i> Clear
+                            </button>
+                        </div>
+                        <!-- Teacher list -->
+                        <div style="max-height:300px; overflow-y:auto;">
+                            <?php if(customCompute($birthday_teachers)): ?>
+                                <?php foreach($birthday_teachers as $bt):
+                                    $isToday = ((int)date('j', strtotime($bt->dob)) === $today_day);
+                                ?>
+                                <div class="bday-teacher-row"
+                                     data-designation="<?= htmlspecialchars(trim($bt->designation ?? '')) ?>"
+                                     style="display:flex; align-items:center; gap:10px; padding:7px 14px; border-bottom:1px solid #f5f5f5; <?= $isToday ? 'background:#FFFDE7;' : '' ?>">
+                                    <div style="width:32px; height:32px; border-radius:50%; overflow:hidden; flex-shrink:0; background:#a9d9b7; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#fff;">
+                                        <?php if(!empty($bt->photo)): ?>
+                                            <img src="<?= imagelink($bt->photo) ?>" style="width:100%; height:100%; object-fit:cover;" alt="">
+                                        <?php else: ?>
+                                            <?= strtoupper(substr($bt->name, 0, 1)) ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            <?= $isToday ? '&#127874; ' : '' ?><?= htmlspecialchars($bt->name) ?>
+                                        </div>
+                                        <div style="font-size:10px; color:#888;">
+                                            <?= date('d M', strtotime($bt->dob)) ?>
+                                            <?php if(!empty($bt->designation)): ?>&nbsp;&middot;&nbsp;<?= htmlspecialchars($bt->designation) ?><?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <?php if($isToday): ?>
+                                        <span style="font-size:9px; background:#e67e22; color:#fff; border-radius:8px; padding:2px 6px; white-space:nowrap; flex-shrink:0;">Today!</span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div style="text-align:center; color:#bbb; padding:30px 0; font-size:12px;">No teacher birthdays this month</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- ── Staff / Users ── -->
+                    <div style="flex:3;">
+                        <div style="background:#F5EEF8; padding:8px 14px; border-bottom:1px solid #e8d8f0; display:flex; align-items:center; gap:6px;">
+                            <i class="fa fa-users" style="color:#7D3C98;"></i>
+                            <strong style="font-size:12px; color:#7D3C98;">Staff</strong>
+                            <span style="margin-left:auto; font-size:10px; background:#7D3C98; color:#fff; border-radius:8px; padding:1px 7px;"><?= count($birthday_users) ?></span>
+                        </div>
+                        <div style="max-height:300px; overflow-y:auto;">
+                            <?php if(customCompute($birthday_users)): ?>
+                                <?php foreach($birthday_users as $bu):
+                                    $isToday = ((int)date('j', strtotime($bu->dob)) === $today_day);
+                                ?>
+                                <div style="display:flex; align-items:center; gap:10px; padding:7px 14px; border-bottom:1px solid #f5f5f5; <?= $isToday ? 'background:#FFFDE7;' : '' ?>">
+                                    <div style="width:32px; height:32px; border-radius:50%; overflow:hidden; flex-shrink:0; background:#c8a9d9; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:#fff;">
+                                        <?php if(!empty($bu->photo)): ?>
+                                            <img src="<?= imagelink($bu->photo) ?>" style="width:100%; height:100%; object-fit:cover;" alt="">
+                                        <?php else: ?>
+                                            <?= strtoupper(substr($bu->name, 0, 1)) ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div style="flex:1; min-width:0;">
+                                        <div style="font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            <?= $isToday ? '&#127874; ' : '' ?><?= htmlspecialchars($bu->name) ?>
+                                        </div>
+                                        <div style="font-size:10px; color:#888;">
+                                            <?= date('d M', strtotime($bu->dob)) ?>
+                                        </div>
+                                    </div>
+                                    <?php if($isToday): ?>
+                                        <span style="font-size:9px; background:#e67e22; color:#fff; border-radius:8px; padding:2px 6px; white-space:nowrap; flex-shrink:0;">Today!</span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div style="text-align:center; color:#bbb; padding:30px 0; font-size:12px;">No staff birthdays this month</div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                </div><!-- /.flex row -->
+                <?php endif; ?>
+            </div><!-- /.box-body -->
+        </div><!-- /.box -->
+    </div>
+</div><!-- /.row birthdays -->
+
 <?php
     if($attendanceSystem != 'subject') {
         $this->load->view("dashboard/AttendanceHighChartJavascript");
@@ -669,4 +886,115 @@
 <?php if($getActiveUserID == 1 || $getActiveUserID == 5): ?>
 <?php $this->load->view("dashboard/FeeCollectionChartJavascript"); ?>
 <?php endif; ?>
+
+<script>
+/* ── Birthday student filter ─────────────────────────────────────── */
+(function () {
+    // Build section map from data attributes: { classId: { sectionId: sectionName } }
+    var sectionMap = {};
+    document.querySelectorAll('.bday-student-row').forEach(function (row) {
+        var cid = row.dataset.classId;
+        var sid = row.dataset.sectionId;
+        if (!cid || cid === '0') return;
+        if (!sectionMap[cid]) sectionMap[cid] = {};
+        // Read section name from the subtitle text (3rd segment after ·)
+        var sub = row.querySelector('div > div:last-child');
+        if (sub && sid && sid !== '0' && !sectionMap[cid][sid]) {
+            var parts = sub.textContent.split('·');
+            if (parts.length >= 3) sectionMap[cid][sid] = parts[2].trim();
+        }
+    });
+
+    var $toggle      = document.getElementById('bday-filter-toggle');
+    var $panel       = document.getElementById('bday-filter-panel');
+    var $classFilter = document.getElementById('bday-class-filter');
+    var $secFilter   = document.getElementById('bday-section-filter');
+    var $clearBtn    = document.getElementById('bday-filter-clear');
+    var $count       = document.getElementById('bday-student-count');
+    var $rows        = document.querySelectorAll('.bday-student-row');
+
+    if (!$toggle) return;
+
+    // Toggle filter panel visibility
+    $toggle.addEventListener('click', function () {
+        var shown = $panel.style.display === 'flex';
+        $panel.style.display = shown ? 'none' : 'flex';
+    });
+
+    // Populate sections when class changes
+    $classFilter.addEventListener('change', function () {
+        var cid = this.value;
+        $secFilter.innerHTML = '<option value="">All Sections</option>';
+        if (cid && sectionMap[cid]) {
+            Object.keys(sectionMap[cid]).forEach(function (sid) {
+                var opt = document.createElement('option');
+                opt.value = sid;
+                opt.textContent = sectionMap[cid][sid] || ('Section ' + sid);
+                $secFilter.appendChild(opt);
+            });
+            $secFilter.disabled = false;
+        } else {
+            $secFilter.disabled = true;
+        }
+        applyFilter();
+    });
+
+    $secFilter.addEventListener('change', applyFilter);
+
+    $clearBtn.addEventListener('click', function () {
+        $classFilter.value = '';
+        $secFilter.innerHTML = '<option value="">All Sections</option>';
+        $secFilter.disabled = true;
+        applyFilter();
+    });
+
+    function applyFilter() {
+        var cid = $classFilter.value;
+        var sid = $secFilter.value;
+        var visible = 0;
+        $rows.forEach(function (row) {
+            var match = (!cid || row.dataset.classId === cid) &&
+                        (!sid || row.dataset.sectionId === sid);
+            row.style.display = match ? 'flex' : 'none';
+            if (match) visible++;
+        });
+        $count.textContent = visible;
+    }
+}());
+
+/* ── Birthday teacher filter ─────────────────────────────────────── */
+(function () {
+    var $toggle   = document.getElementById('bday-teacher-filter-toggle');
+    var $panel    = document.getElementById('bday-teacher-filter-panel');
+    var $desgFilt = document.getElementById('bday-designation-filter');
+    var $clearBtn = document.getElementById('bday-teacher-filter-clear');
+    var $count    = document.getElementById('bday-teacher-count');
+    var $rows     = document.querySelectorAll('.bday-teacher-row');
+
+    if (!$toggle) return;
+
+    $toggle.addEventListener('click', function () {
+        var shown = $panel.style.display === 'flex';
+        $panel.style.display = shown ? 'none' : 'flex';
+    });
+
+    $desgFilt.addEventListener('change', applyTeacherFilter);
+
+    $clearBtn.addEventListener('click', function () {
+        $desgFilt.value = '';
+        applyTeacherFilter();
+    });
+
+    function applyTeacherFilter() {
+        var desg = $desgFilt.value.trim();
+        var visible = 0;
+        $rows.forEach(function (row) {
+            var match = !desg || row.dataset.designation === desg;
+            row.style.display = match ? 'flex' : 'none';
+            if (match) visible++;
+        });
+        $count.textContent = visible;
+    }
+}());
+</script>
 

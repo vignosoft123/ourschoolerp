@@ -371,6 +371,7 @@ if ( !defined('BASEPATH') ) {
             $this->_profile();
             $this->_todayFinancials();
             $this->_feeCollectionStats();
+            $this->_birthdayList();
 
             if ( ( config_item('demo') === false ) && ( $this->data['siteinfos']->auto_update_notification == 1 ) && ( $this->session->userdata('usertypeID') == 1 ) && ( $this->session->userdata('loginuserID') == 1 ) ) {
                 if ( $this->session->userdata('updatestatus') === null ) {
@@ -936,6 +937,42 @@ if ( !defined('BASEPATH') ) {
                      ORDER BY p.paymentdate DESC, p.paymentID DESC
                      LIMIT 10";
             $this->data['recentPayments'] = $this->db->query($sql2)->result();
+        }
+
+        private function _birthdayList()
+        {
+            $month = (int)date('n');
+
+            $sql_s = "SELECT s.studentID as id, s.name, s.dob, s.photo,
+                             c.classesID, c.classes as classname,
+                             sec.sectionID, sec.section as sectionname
+                      FROM student s
+                      LEFT JOIN classes c ON s.classesID = c.classesID
+                      LEFT JOIN section sec ON s.sectionID = sec.sectionID
+                      WHERE MONTH(s.dob) = $month
+                        AND s.active = 1
+                        AND s.dob != '0000-00-00'
+                        AND s.dob IS NOT NULL
+                      ORDER BY DAY(s.dob) ASC";
+            $this->data['birthday_students'] = $this->db->query($sql_s)->result();
+
+            $sql_t = "SELECT teacherID as id, name, dob, photo, designation
+                      FROM teacher
+                      WHERE MONTH(dob) = $month
+                        AND active = 1
+                        AND dob != '0000-00-00'
+                        AND dob IS NOT NULL
+                      ORDER BY DAY(dob) ASC";
+            $this->data['birthday_teachers'] = $this->db->query($sql_t)->result();
+
+            $sql_u = "SELECT systemadminID as id, name, dob, photo
+                      FROM systemadmin
+                      WHERE MONTH(dob) = $month
+                        AND active = 1
+                        AND dob != '0000-00-00'
+                        AND dob IS NOT NULL
+                      ORDER BY DAY(dob) ASC";
+            $this->data['birthday_users'] = $this->db->query($sql_u)->result();
         }
 
         private function _visitorGraph()
