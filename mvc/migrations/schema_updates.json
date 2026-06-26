@@ -846,5 +846,39 @@
         "query": "INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`) VALUES ('holiday_intimation', 'Holiday Intimation', 1, 1)",
         "type": "insert",
         "check_row": { "table": "notification_event_config", "where": { "event_key": "holiday_intimation" } }
+    },
+
+    {
+        "query": "ALTER TABLE `expense` ADD `expense_payment_type` VARCHAR(50) NOT NULL DEFAULT 'Cash'",
+        "type": "alter",
+        "check_column": { "table": "expense", "column": "expense_payment_type" }
+    },
+    {
+        "query": "ALTER TABLE `expense` ADD `expense_bank_name` VARCHAR(100) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": { "table": "expense", "column": "expense_bank_name" }
+    },
+    {
+        "query": "CREATE TABLE `daysheet_opening_balance` ( `id` int(11) NOT NULL AUTO_INCREMENT, `date` date NOT NULL, `account_type` varchar(50) NOT NULL, `opening_amount` double NOT NULL DEFAULT '0', `schoolyearID` int(11) NOT NULL DEFAULT '0', `created_by` int(11) NOT NULL DEFAULT '0', `created_on` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`), UNIQUE KEY `uniq_date_account_year` (`date`,`account_type`,`schoolyearID`) ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+        "type": "create",
+        "check_table": "daysheet_opening_balance"
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('daysheetreport', 'daysheetreport', 'fa-calendar-check-o', '1', '16', '238')",
+        "type": "insert",
+        "check_row": { "table": "menu", "where": { "menuName": "daysheetreport" } }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) SELECT 'daysheetreport', 'daysheetreport' FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'daysheetreport')",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'daysheetreport' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'daysheetreport'))",
+        "type": "raw"
+    },
+    {
+        "query": "ALTER TABLE `make_payment` ADD `salary_bank_name` VARCHAR(100) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": { "table": "make_payment", "column": "salary_bank_name" }
     }
 ]

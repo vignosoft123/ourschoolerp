@@ -63,10 +63,42 @@
                     </div>
 
 
-                    <?php 
-                        if(form_error('date')) 
+                    <div class="form-group">
+                        <label for="expense_payment_type" class="col-sm-2 control-label">
+                            Payment Type <span class="text-red">*</span>
+                        </label>
+                        <div class="col-sm-6">
+                            <?php $cur_pt = set_value('expense_payment_type', isset($expense->expense_payment_type) ? $expense->expense_payment_type : 'Cash'); ?>
+                            <select name="expense_payment_type" id="expense_payment_type" class="form-control">
+                                <option value="Cash" <?=($cur_pt=='Cash'?'selected':'')?>>Cash</option>
+                                <option value="Digital" <?=($cur_pt=='Digital'?'selected':'')?>>Digital</option>
+                                <option value="Cheque" <?=($cur_pt=='Cheque'?'selected':'')?>>Cheque</option>
+                                <option value="Others" <?=($cur_pt=='Others'?'selected':'')?>>Others</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <?php $cur_bn = set_value('expense_bank_name', isset($expense->expense_bank_name) ? $expense->expense_bank_name : ''); ?>
+                    <div class="form-group" id="bankDiv" <?=($cur_pt!='Others'?'style="display:none;"':'')?>>
+                        <label for="expense_bank_name" class="col-sm-2 control-label">
+                            Bank Name
+                        </label>
+                        <div class="col-sm-6">
+                            <select name="expense_bank_name" id="expense_bank_name" class="form-control">
+                                <option value="">-- Select Bank --</option>
+                                <?php if(customCompute($banks)) foreach($banks as $bank): ?>
+                                <option value="<?=$bank->bank_name?>" <?=($cur_bn==$bank->bank_name?'selected':'')?>>
+                                    <?=$bank->bank_name?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <?php
+                        if(form_error('date'))
                             echo "<div class='form-group has-error' >";
-                        else     
+                        else
                             echo "<div class='form-group' >";
                     ?>
                         <label for="date" class="col-sm-2 control-label">
@@ -246,9 +278,16 @@
     });
 
     $(document).on("change","#expensetypesID",function(){
-    var selected_dropdown = $('select[name="expensetypesID"] option:selected').text();
-    // alert(selected_dropdown);
-    $("#namea").val(selected_dropdown);
+        var selected_dropdown = $('select[name="expensetypesID"] option:selected').text();
+        $("#namea").val(selected_dropdown);
+    });
 
-});
+    $(document).on('change', '#expense_payment_type', function() {
+        if ($(this).val() === 'Others') {
+            $('#bankDiv').show();
+        } else {
+            $('#bankDiv').hide();
+            $('#expense_bank_name').val('');
+        }
+    });
 </script>

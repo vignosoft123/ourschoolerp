@@ -17,6 +17,7 @@ class Expense extends Admin_Controller {
 	function __construct() {
 		parent::__construct();
 		$this->load->model("expense_m");
+		$this->load->model("banks_m");
 		$language = $this->session->userdata('lang');
 		$this->lang->load('expense', $language);
 	}
@@ -109,6 +110,7 @@ class Expense extends Admin_Controller {
 
 		// print_r($_POST);DIE;
 		$this->data["expensetypes"] = $this->db->get('expensetypes')->result();
+		$this->data["banks"] = $this->banks_m->get_active_banks();
 
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) {
 			$this->data['headerassets'] = array(
@@ -126,6 +128,8 @@ class Expense extends Admin_Controller {
 					$this->data["subview"] = "expense/add";
 					$this->load->view('_layout_main', $this->data);
 				} else {
+					$paymentType = $this->input->post("expense_payment_type") ?: 'Cash';
+					$bankName = (strtolower($paymentType) === 'others') ? ($this->input->post("expense_bank_name") ?: '') : '';
 					$array = array(
 						"expense_referenceno" 		=> $this->input->post("expense_referenceno"),
 						"expense" 		=> $this->input->post("expense"),
@@ -142,6 +146,8 @@ class Expense extends Admin_Controller {
 						'userID' 		=> $this->session->userdata('loginuserID'),
 						'schoolyearID' 	=> $this->session->userdata('defaultschoolyearID'),
 						'expensetypesID' 	=> $this->input->post("expensetypesID"),
+						'expense_payment_type' => $paymentType,
+						'expense_bank_name'    => $bankName,
 					);
 					$this->expense_m->insert_expense($array);
 					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
@@ -160,6 +166,7 @@ class Expense extends Admin_Controller {
 	public function edit() {
 
 		$this->data["expensetypes"] = $this->db->get('expensetypes')->result();
+		$this->data["banks"] = $this->banks_m->get_active_banks();
 		
 		if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) {
 			$this->data['headerassets'] = array(
@@ -183,6 +190,8 @@ class Expense extends Admin_Controller {
 							$this->data["subview"] = "expense/edit";
 							$this->load->view('_layout_main', $this->data);
 						} else {
+							$paymentType = $this->input->post("expense_payment_type") ?: 'Cash';
+							$bankName = (strtolower($paymentType) === 'others') ? ($this->input->post("expense_bank_name") ?: '') : '';
 							$array = array(
 								"expense_referenceno" 		=> $this->input->post("expense_referenceno"),
 								"expense" 		=> $this->input->post("expense"),
@@ -197,6 +206,8 @@ class Expense extends Admin_Controller {
 								'uname' 		=> $this->session->userdata('name'),
 								'userID' 		=> $this->session->userdata('loginuserID'),
 								'expensetypesID' 	=> $this->input->post('expensetypesID'),
+								'expense_payment_type' => $paymentType,
+								'expense_bank_name'    => $bankName,
 							);
 
 							$this->expense_m->update_expense($array, $id);

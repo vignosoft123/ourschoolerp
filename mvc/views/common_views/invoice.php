@@ -286,7 +286,7 @@
         <?php endif; ?>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
-            <li class="active"><a href="<?=base_url("global_payment")?>"><?=$this->lang->line('menu_global_payment')?></a></li>
+            <li class="active"><a href="<?=base_url("global_payment_new")?>"><?=$this->lang->line('menu_global_payment')?></a></li>
         </ol>
     </div><!-- /.box-header -->
   </div>

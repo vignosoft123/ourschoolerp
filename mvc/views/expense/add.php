@@ -62,10 +62,38 @@
                         </span>
                     </div>
 
-                    <?php 
-                        if(form_error('date')) 
+                    <div class="form-group">
+                        <label for="expense_payment_type" class="col-sm-2 control-label">
+                            Payment Type <span class="text-red">*</span>
+                        </label>
+                        <div class="col-sm-6">
+                            <select name="expense_payment_type" id="expense_payment_type" class="form-control">
+                                <option value="Cash">Cash</option>
+                                <option value="Digital">Digital</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="bankDiv" style="display:none;">
+                        <label for="expense_bank_name" class="col-sm-2 control-label">
+                            Bank Name
+                        </label>
+                        <div class="col-sm-6">
+                            <select name="expense_bank_name" id="expense_bank_name" class="form-control">
+                                <option value="">-- Select Bank --</option>
+                                <?php if(customCompute($banks)) foreach($banks as $bank): ?>
+                                <option value="<?=$bank->bank_name?>"><?=$bank->bank_name?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+
+                    <?php
+                        if(form_error('date'))
                             echo "<div class='form-group has-error' >";
-                        else     
+                        else
                             echo "<div class='form-group' >";
                     ?>
                         <label for="date" class="col-sm-2 control-label">
@@ -252,8 +280,15 @@ $(function() {
 
 $(document).on("change","#expensetypesID",function(){
     var selected_dropdown = $('select[name="expensetypesID"] option:selected').text();
-    // alert(selected_dropdown);
     $("#namea").val(selected_dropdown);
+});
 
+$(document).on('change', '#expense_payment_type', function() {
+    if ($(this).val() === 'Others') {
+        $('#bankDiv').show();
+    } else {
+        $('#bankDiv').hide();
+        $('#expense_bank_name').val('');
+    }
 });
 </script>

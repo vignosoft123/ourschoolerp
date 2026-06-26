@@ -24,6 +24,7 @@ class Make_payment extends Admin_Controller {
         $this->load->model("salary_template_m");
         $this->load->model("salaryoption_m");
         $this->load->model("hourly_template_m");
+        $this->load->model("banks_m");
 
         $language = $this->session->userdata('lang');
         $this->lang->load('make_payment', $language);
@@ -173,6 +174,7 @@ class Make_payment extends Admin_Controller {
                 if(customCompute($user)) {
                     $this->data['usertype'] = $this->usertype_m->get_usertype($user->usertypeID);
                     $this->data['user'] = $user;
+                    $this->data['banks'] = $this->banks_m->get_active_banks();
 
                     $manageSalary = $this->manage_salary_m->get_single_manage_salary(array('usertypeID' => $usertypeID, 'userID' => $userID));
                     if(customCompute($manageSalary)) {
@@ -239,6 +241,7 @@ class Make_payment extends Admin_Controller {
                                             "net_salary"        => $this->data['netsalary'],
                                             'payment_amount'    => $this->input->post('payment_amount'),
                                             "payment_method"    => $this->input->post("payment_method"),
+                                            'salary_bank_name'  => ($this->input->post("payment_method") == '3') ? ($this->input->post("salary_bank_name") ?: '') : '',
                                             "comments"          => $this->input->post("comments"),
                                             'templateID'        => $manageSalary->template,
                                             'salaryID'          => $manageSalary->salary,

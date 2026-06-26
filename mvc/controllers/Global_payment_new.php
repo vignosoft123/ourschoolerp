@@ -193,11 +193,16 @@ class Global_payment_new extends Admin_Controller
 
         if (customCompute($payments)) {
             $invoiceIDs = array_unique(array_map(function($p) { return $p->invoiceID; }, $payments));
-            $this->db->select('invoiceID, feetype')->from('invoice')->where_in('invoiceID', $invoiceIDs);
-            $invoiceMap = [];
+            $this->db->select('invoiceID, feetype, discount')->from('invoice')->where_in('invoiceID', $invoiceIDs);
+            $invoiceMap         = [];
+            $invoiceDiscountMap = [];
             foreach ($this->db->get()->result() as $inv) {
-                $invoiceMap[$inv->invoiceID] = $inv->feetype;
+                $invoiceMap[$inv->invoiceID]         = $inv->feetype;
+                $invoiceDiscountMap[$inv->invoiceID] = (float)$inv->discount;
             }
+
+            // Track which invoice's discount has already been attributed to avoid double-counting
+            $attributedDiscounts = [];
 
             foreach ($payments as $payment) {
                 $gid = $payment->globalpaymentID;
@@ -209,6 +214,13 @@ class Global_payment_new extends Admin_Controller
                     $wf = $weaverandfine[$payment->paymentID];
                     $returnArray['weaver'][$gid] = ($returnArray['weaver'][$gid] ?? 0) + $wf->weaver;
                     $returnArray['fine'][$gid]   = ($returnArray['fine'][$gid] ?? 0)   + $wf->fine;
+                }
+
+                // Attribute invoice-level discount to the first globalpayment that covers this invoice
+                $invId = $payment->invoiceID;
+                if (!isset($attributedDiscounts[$invId]) && !empty($invoiceDiscountMap[$invId])) {
+                    $returnArray['invoice_discount'][$gid] = ($returnArray['invoice_discount'][$gid] ?? 0) + $invoiceDiscountMap[$invId];
+                    $attributedDiscounts[$invId] = true;
                 }
 
                 if (!isset($returnArray['paiddate'][$gid])) {

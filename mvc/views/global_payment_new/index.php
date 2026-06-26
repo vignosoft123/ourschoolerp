@@ -384,11 +384,41 @@
                 <label>Payment Date</label>
                 <input type="date" name="created_date" id="created_date" class="form-control">
             </div>
-            <div style="display:flex; align-items:flex-end; padding-bottom:2px;">
-                <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12px; color:#4a5568; font-weight:600; text-transform:none; letter-spacing:0; margin:0;">
-                    <input type="checkbox" name="send_whatsapp" id="send_whatsapp" checked>
-                    Send WhatsApp
+            <div style="display:flex; align-items:flex-end; padding-bottom:4px;">
+                <label for="send_whatsapp" id="wa_label" style="
+                    display:inline-flex; align-items:center; gap:7px;
+                    border:2px solid #25D366; border-radius:8px;
+                    padding:5px 11px 5px 8px; cursor:pointer; margin:0;
+                    background:#f0fdf4; transition:background .15s, border-color .15s;
+                    user-select:none; white-space:nowrap;
+                ">
+                    <input type="checkbox" name="send_whatsapp" id="send_whatsapp" checked
+                        style="width:15px;height:15px;accent-color:#25D366;cursor:pointer;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="#25D366" style="flex-shrink:0;">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.85L.057 23.16a.75.75 0 0 0 .916.916l5.344-1.472A11.942 11.942 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.942 9.942 0 0 1-5.13-1.426l-.36-.214-3.733 1.028 1.046-3.624-.235-.373A9.944 9.944 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/>
+                    </svg>
+                    <span id="wa_label_text" style="font-size:12px;font-weight:600;color:#16a34a;">Send WhatsApp</span>
                 </label>
+                <script>
+                    (function(){
+                        var cb = document.getElementById('send_whatsapp');
+                        var lbl = document.getElementById('wa_label');
+                        var txt = document.getElementById('wa_label_text');
+                        var icon = lbl.querySelector('svg');
+                        function applyState(){
+                            if(cb.checked){
+                                lbl.style.borderColor='#25D366'; lbl.style.background='#f0fdf4';
+                                icon.style.fill='#25D366'; txt.style.color='#16a34a';
+                            } else {
+                                lbl.style.borderColor='#cbd5e1'; lbl.style.background='#f8fafc';
+                                icon.style.fill='#94a3b8'; txt.style.color='#94a3b8';
+                            }
+                        }
+                        cb.addEventListener('change', applyState);
+                        applyState();
+                    })();
+                </script>
             </div>
         </div>
 
@@ -421,7 +451,7 @@
                     <tr>
                         <td style="color:#718096;"><?=$i?></td>
                         <td>
-                            <input type="checkbox" class="record_checkbox" value="<?=$invoice->invoiceID?>" data-maininvoiceid="<?=$invoice->maininvoiceID?>">
+                            <!-- <input type="checkbox" class="record_checkbox" value="<?=$invoice->invoiceID?>" data-maininvoiceid="<?=$invoice->maininvoiceID?>"> -->
                             <!-- <a class="update_single btn btn-xs" data-id="<?=$invoice->invoiceID?>" data-mainid="<?=$invoice->maininvoiceID?>"
                                style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:4px; padding:2px 6px;">
                                 <i class="fa fa-trash-o"></i>
@@ -525,11 +555,13 @@
                                 $gid   = $gp->globalpaymentID;
                                 $tpaid = isset($paidpayments['paid'][$gid])   ? $paidpayments['paid'][$gid]   : 0;
                                 $twvr  = isset($paidpayments['weaver'][$gid]) ? $paidpayments['weaver'][$gid] : 0;
+                                $tinvdisc = isset($paidpayments['invoice_discount'][$gid]) ? $paidpayments['invoice_discount'][$gid] : 0;
+                                $tdiscount = $twvr + $tinvdisc;
                                 $tfine = isset($paidpayments['fine'][$gid])   ? $paidpayments['fine'][$gid]   : 0;
                                 if ($tpaid == 0 && $tfine == 0) continue;
                                 $has_history = true;
                                 $invoice_total     += $tpaid;
-                                $invoice_weaver    += $twvr;
+                                $invoice_weaver    += $tdiscount;
                                 $invoice_paid_fine += $tpaid;
 
                                 $feeTypes    = isset($paidpayments['invoice_id'][$gid])    ? $paidpayments['invoice_id'][$gid]    : ['—'];
@@ -551,7 +583,7 @@
                                     <td style="color:#2e8b57; font-weight:600;"><?=htmlspecialchars($feeName)?></td>
                                     <td class="text-right" style="color:#3a7bd5; font-weight:600;"><?=number_format($rowPaid,2)?></td>
                                     <?php if ($ri === 0): ?>
-                                    <td rowspan="<?=$rowspan?>" class="text-right" style="vertical-align:middle;"><?=number_format($twvr,2)?></td>
+                                    <td rowspan="<?=$rowspan?>" class="text-right" style="vertical-align:middle;"><?=number_format($tdiscount,2)?></td>
                                     <td rowspan="<?=$rowspan?>" class="text-right" style="font-weight:600; vertical-align:middle;"><?=number_format($tpaid,2)?></td>
                                     <td rowspan="<?=$rowspan?>" style="vertical-align:middle;"><?=$badge?></td>
                                     <td rowspan="<?=$rowspan?>" style="color:#4a5568; vertical-align:middle;"><?=$payDate?></td>

@@ -91,13 +91,23 @@
                                     '0' => $this->lang->line('make_payment_select_payment_method'),
                                     '1' => $this->lang->line('make_payment_payment_cash'),
                                     '2' => $this->lang->line('make_payment_payment_cheque'),
+                                    '3' => 'Others (Bank Transfer)',
                                 );
-
                                 echo form_dropdown("payment_method", $paymentArray, set_value("payment_method"), "id='payment_method' class='form-control'");
                             ?>
                             <span class="text-red">
                                 <?=form_error('payment_method')?>
                             </span>
+                        </div>
+
+                        <div class="form-group" id="salary_bank_div" style="display:none;">
+                            <label>Bank Name <span class="text-red">*</span></label>
+                            <select name="salary_bank_name" id="salary_bank_name" class="form-control">
+                                <option value="">-- Select Bank --</option>
+                                <?php if(customCompute($banks)): foreach($banks as $bank): ?>
+                                <option value="<?=htmlspecialchars($bank->bank_name)?>"><?=htmlspecialchars($bank->bank_name)?></option>
+                                <?php endforeach; endif; ?>
+                            </select>
                         </div>
 
                         <div class="form-group <?=form_error('comments') ? 'has-error' : '' ?>">
@@ -111,6 +121,16 @@
             </div>
         <?php } ?>
     </div>
+<script>
+$(document).on('change', '#payment_method', function() {
+    if ($(this).val() == '3') {
+        $('#salary_bank_div').show();
+    } else {
+        $('#salary_bank_div').hide();
+        $('#salary_bank_name').val('');
+    }
+});
+</script>
 
     <div class="col-sm-9">
         <div class="box">
