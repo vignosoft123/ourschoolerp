@@ -1,5 +1,6 @@
 [
     {
+        "_sync_note": "SYNC RULE: Any query added to THIS file must also be added to schema_updates.sql (with ADD COLUMN IF NOT EXISTS / WHERE NOT EXISTS guards), and vice versa. Both files must always stay in sync. schema_updates.json = auto-run by the PHP migration runner. schema_updates.sql = manual import via phpMyAdmin for new servers.",
         "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('banks', 'banks', 'fa-university', '1', '16', '240')",
         "type": "insert",
         "check_row": {
@@ -880,5 +881,53 @@
         "query": "ALTER TABLE `make_payment` ADD `salary_bank_name` VARCHAR(100) NULL DEFAULT NULL",
         "type": "alter",
         "check_column": { "table": "make_payment", "column": "salary_bank_name" }
+    },
+    {
+        "query": "ALTER TABLE `payment` ADD `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP",
+        "type": "alter",
+        "check_column": { "table": "payment", "column": "created_at" }
+    },
+    {
+        "query": "ALTER TABLE `expense` ADD `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP",
+        "type": "alter",
+        "check_column": { "table": "expense", "column": "created_at" }
+    },
+    {
+        "query": "ALTER TABLE `income` ADD `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP",
+        "type": "alter",
+        "check_column": { "table": "income", "column": "created_at" }
+    },
+    {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) VALUES ('daysummaryreport', 'daysummaryreport', 'fa-table', '1', '16', '239')",
+        "type": "insert",
+        "check_row": { "table": "menu", "where": { "menuName": "daysummaryreport" } }
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) SELECT 'daysummaryreport', 'daysummaryreport' FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'daysummaryreport')",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'daysummaryreport' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'daysummaryreport'))",
+        "type": "raw"
+    },
+    {
+        "query": "ALTER TABLE `classes` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
+        "type": "alter",
+        "check_column": { "table": "classes", "column": "active_status" }
+    },
+    {
+        "query": "ALTER TABLE `section` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
+        "type": "alter",
+        "check_column": { "table": "section", "column": "active_status" }
+    },
+    {
+        "query": "ALTER TABLE `subject` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
+        "type": "alter",
+        "check_column": { "table": "subject", "column": "active_status" }
+    },
+    {
+        "query": "ALTER TABLE `syllabus` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
+        "type": "alter",
+        "check_column": { "table": "syllabus", "column": "active_status" }
     }
 ]

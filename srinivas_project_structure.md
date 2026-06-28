@@ -74,7 +74,8 @@ This is a JSON array of migration entries. The system reads each entry and runs 
 | `alter` | `check_column: { table, column }` | Adding/modifying a column |
 | `create` | `check_table: "table_name"` | Creating a new table |
 | `insert` | `check_row: { table, where: {} }` | Inserting a default/seed row |
-| `raw` | _(none — always runs)_ | Index creation, complex SQL with no simple check |
+| `index` | `check_index: { table, index }` | Adding a DB index (checks by index name) |
+| `raw` | _(none — always runs)_ | Complex SQL where none of the above checks fit |
 
 ### Entry Skeleton Examples
 
@@ -100,6 +101,13 @@ This is a JSON array of migration entries. The system reads each entry and runs 
     "check_row": { "table": "permissions", "where": { "name": "my_feature" } }
 }
 
+// INDEX — add a DB index (skipped if index name already exists on the table)
+{
+    "query": "ALTER TABLE `mark` ADD INDEX `idx_mark_student` (`studentID`, `schoolyearID`)",
+    "type": "index",
+    "check_index": { "table": "mark", "index": "idx_mark_student" }
+}
+
 // RAW — no guard, always runs (use only when a check is not possible)
 {
     "query": "ALTER TABLE mark ADD INDEX idx_name (col1, col2)",
@@ -107,7 +115,21 @@ This is a JSON array of migration entries. The system reads each entry and runs 
 }
 ```
 
-> **Rule**: Every new DB change (new table, new column, seed data) MUST be added as an entry in this file. Never ask the user to run raw SQL manually — add it here instead.
+> **Rule — ALTER and INSERT**: Every new column, index, or seed-data row MUST be added to **both** `schema_updates.json` (entry with safety check) **and** `schema_updates.sql` (equivalent SQL with `ADD COLUMN IF NOT EXISTS` / `WHERE NOT EXISTS` guard). Always update both files together — never one without the other.
+>
+> **Rule — CREATE TABLE**: `CREATE TABLE` DDL does **NOT** go in `schema_updates.json` or `schema_updates.sql`. It belongs in **`new domains/new db tables/tables.sql`** (the full-schema setup file used when creating a fresh tenant database). The migration files handle incremental changes only; `tables.sql` defines the full table set. After adding a new table to `tables.sql`, add only its **menu/permission/seed INSERT** rows to the JSON/SQL migration files.
+
+### Parallel SQL File — `schema_updates.sql`
+
+**File**: `mvc/migrations/schema_updates.sql`
+
+A plain SQL counterpart to `schema_updates.json`. Contains the same schema changes written as raw SQL with MySQL 8.0+ `IF NOT EXISTS` / `WHERE NOT EXISTS` guards — safe to import more than once.
+
+**Purpose**: Used for bulk import when setting up a **new server or staging DB** — paste directly into phpMyAdmin or run via CLI instead of running the PHP migration runner.
+
+**Keep both files in sync**: whenever a new migration entry is added to `schema_updates.json`, add the equivalent SQL statement (with `ADD COLUMN IF NOT EXISTS` or `WHERE NOT EXISTS` guard) to `schema_updates.sql`.
+
+**Key difference**: `schema_updates.json` runs through the PHP runner at `/Schema_update/apply_updates`; `schema_updates.sql` is for direct DB import. Both are idempotent.
 
 ---
 
@@ -133,6 +155,8 @@ This is a JSON array of migration entries. The system reads each entry and runs 
 - **2026-05-14**: Implemented and documented **Firebase Push Notification System** (Section 10) — full admin UI (compose, history, setup, verify), Kreait SDK individual sends (Google removed `/batch`), cascading Role→Year→Class→Section→Users filter, only app-installed students shown in dropdown, image URL support, custom sound (`school_1`), `studentrelation` column name fix (`sr` prefix), select2 must be loaded via `headerassets`, foreground vs background notification behaviour documented.
 - **2026-06-17**: Implemented **Activity Logging System** (Section 11) — common `Activity_log_m` model with `add()` method, `activity_logs` table, admin Logs UI with filters/pagination, wired into Teacher/User/Student/Exam/Delete Account Request controllers.
 - **2026-06-25**: Implemented **Notification Event Config System** (Section 12) — central SMS/WhatsApp on/off toggle per event. New table `notification_event_config`, model `Notification_event_config_m`, 3rd tab at `/mailandsmstemplate/notification_config`. Global helper `notification_enabled($event_key, $type)` in `action_helper.php` guards all sends. Wired into: Fee Payment (both Global_payment controllers), Attendance (Sattendance), Student Login (Student, 4 methods), Exam Marks + Fee Reminder (Progresscardreport). WhatsApp `{{paid_amount}}` param format also fixed: now sends 3 params (`name`, `amount and Balance: X`, `date`) instead of 4.
+- **2026-06-29**: Documented **`index` migration type** (Section 5) — `check_index: { table, index }` guard using `SHOW INDEX`. Documented **`schema_updates.sql`** parallel SQL file (Section 5) — MySQL 8.0+ `ADD COLUMN IF NOT EXISTS` guards, for direct DB import on new servers. Added **Section 8.5** HTML blob Excel export pattern (used by Day Summary Report). Implemented **Day Summary Report** (Section 13) — `/Daysummaryreport`, running-balance ledger for fee/income/expense/salary, tabbed by payment mode, AJAX pattern, native Excel export via HTML blob.
+- **2026-06-29**: Documented **Day Sheet Report** (Section 14) — `/Daysheetreport`, 8-section daily financial snapshot, `daysheet_opening_balance` table for per-account opening balance chain, `dsCards` JS object for card-click popups, colored Excel export via HTML blob. Established **`tables.sql` separation rule** (Section 5) — CREATE TABLE DDL goes to `new domains/new db tables/tables.sql`, NOT to migration JSON/SQL files.
 
 ## 8. Reusable UI Patterns
 
@@ -359,6 +383,45 @@ $(document).on('click', '#changeLoginSaveBtn', function() {  // save (delegated)
 ```
 
 **Reference implementation**: `mvc/views/student/index.php` — Change Login Details modal (added 2026-05-24).
+
+---
+
+### 8.5 Excel Export via HTML Blob (`.xls` / no library)
+
+An alternative to the SheetJS approach (8.3) when the report is **built in PHP and injected via AJAX** (i.e., you don't have a static `<table>` in the DOM before the user clicks Export).
+
+**When to use**: The report data is passed back to the browser as a JS object (`dsmData`), and the Export button reconstructs the table client-side. SheetJS needs a real DOM table to read; this approach builds HTML as a string and downloads it directly.
+
+**Pattern** (reference: `mvc/views/report/daysummary/DaysummaryreportView.php`):
+```javascript
+// Build an HTML string with inline styles (CSS classes are ignored by Excel)
+var h = '<html xmlns:o="urn:schemas-microsoft-com:office:office"'
+      + ' xmlns:x="urn:schemas-microsoft-com:office:excel">'
+      + '<head><meta charset="UTF-8"></head><body>';
+
+// ... build tables using inline style="..." on every <td>/<th>
+
+h += '</body></html>';
+
+var blob = new Blob([h], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+var url  = URL.createObjectURL(blob);
+var a    = document.createElement('a');
+a.href   = url;
+a.download = 'ReportName_' + dateLabel + '.xls';
+document.body.appendChild(a);
+a.click();
+document.body.removeChild(a);
+URL.revokeObjectURL(url);
+```
+
+**Key rules**:
+- **Inline styles only** — Excel ignores CSS classes, `<style>` blocks, and external stylesheets. Every `background`, `color`, `text-align`, `font-weight` must be in the element's `style=""` attribute.
+- **Output is `.xls`**, not `.xlsx` — this is the legacy Excel XML format. It opens in modern Excel fine, but is not the same as SheetJS's `.xlsx`.
+- **Guard the export button** — check that the data variable exists first (`if (typeof dsmData === 'undefined') { alert(...); return; }`), since the button is rendered before the report loads.
+- **Use this pattern when**: the exported data comes from a JS object, not from a DOM table.
+- **Use SheetJS (8.3) when**: the data is already in a visible `<table>` in the DOM.
+
+---
 
 #### Modal Visual Design Style (project standard)
 
@@ -1038,3 +1101,258 @@ When building a new feature that sends SMS or WhatsApp:
 - **Config is the master switch** — if `sms_enabled = 0`, SMS is blocked even if other settings (like `setting.is_fee_sms`) are enabled.
 - **Default is allow** — if a row is missing or the table doesn't exist yet, `notification_enabled()` returns `true` so existing functionality never breaks.
 - **Maintenance log** entry: add to Section 7 whenever a new event is wired.
+
+---
+
+## 13. Day Summary Report
+
+Implemented 2026-06-29. A daily financial ledger that shows every fee, income, expense, and salary transaction for a selected date, with a running balance and payment-mode breakdown.
+
+---
+
+### 13.1 Key Files
+
+| File | Purpose |
+|---|---|
+| `mvc/controllers/Daysummaryreport.php` | Admin controller — index (filter form), `getReport()` AJAX endpoint |
+| `mvc/models/Daysummary_m.php` | 4 query methods — fee, income, expense, salary transactions |
+| `mvc/models/Daysheet_m.php` | `get_opening_balance($date, $schoolyearID)` — keyed by bank account |
+| `mvc/models/Banks_m.php` | `get_active_banks()` — used to build payment-mode tab list |
+| `mvc/views/report/daysummary/DaysummaryreportView.php` | Filter form (date picker) + AJAX loader |
+| `mvc/views/report/daysummary/DaysummaryreportReport.php` | Rendered report output (injected via AJAX) |
+| `mvc/language/english/daysummaryreport_lang.php` | Language strings |
+
+**Admin URL**: `/Daysummaryreport`
+**Permission name**: `daysummaryreport`
+**Dependencies**: `datepicker` only (no select2 needed)
+
+---
+
+### 13.2 Data Flow
+
+```
+User selects date → clicks "Load Summary"
+    ↓ AJAX POST to /daysummaryreport/getReport  { date: 'dd-mm-yyyy' }
+    ↓
+Controller:
+  1. Fetches opening balance per bank account  (Daysheet_m)
+  2. Fetches fee, income, expense, salary rows (Daysummary_m — 4 methods)
+  3. Normalises into a flat $transactions array with sort_key
+  4. Sorts by sort_key (fee→income→expense→salary, then by PK)
+  5. Calculates running balance row-by-row
+  6. Builds payment-mode summary (collection vs payment per mode)
+  7. Renders DaysummaryreportReport view → returns JSON { status: true, render: "..." }
+    ↓
+JS injects resp.render into #load_daysummaryreport div
+```
+
+---
+
+### 13.3 Transaction Types and Sort Order
+
+| `type` | Source Table | Label | Receipt / Payment | Sort Priority |
+|---|---|---|---|---|
+| `fee` | `payment` + `invoice` + `student` + `feetypes` | Fee Collection | Receipt | 0 |
+| `income` | `income` + `income_categories` | Other Income | Receipt | 1 |
+| `expense` | `expense` + `expensetypes` | Expense | Payment | 2 |
+| `salary` | `make_payment` + `teacher`/`user`/`systemadmin` | Salary | Payment | 3 |
+
+Within each type, rows are sorted by `created_at` / `create_date` then PK ascending.
+
+---
+
+### 13.4 Payment Mode Logic
+
+Payment mode is resolved per transaction:
+- **Fee**: `paymenttype` column. If `paymenttype = 'Others'` AND `payment_other_details` is not empty → use `payment_other_details` as the mode (this stores the bank name).
+- **Expense**: same pattern — `expense_payment_type`, falls back to `expense_bank_name`.
+- **Salary**: `payment_method` INT — `1 = Cash`, `2 = Cheque`, anything else → `salary_bank_name` column.
+- **Income**: always `Cash` (no payment mode column on income table).
+
+**Tab list** built in this order: `Cash`, `Digital`, `Cheque`, [active bank names from `banks_m`], `Others`.
+
+---
+
+### 13.5 Opening Balance Source
+
+`Daysheet_m->get_opening_balance($date, $schoolyearID)` returns an **associative array keyed by bank/account name**. The controller sums all values for `$totalOpening`. The individual per-account breakdown is also passed to the view as `$openingByAccount` for display.
+
+---
+
+### 13.6 Excel Export Pattern
+
+Uses the **HTML blob method (Section 8.5)** — NOT SheetJS — because the report is reconstructed from a JS data object (`dsmData`) rather than a DOM table.
+
+The controller passes `$transactions` split into `receipts` (fee + income) and `payments` (expense + salary) arrays as part of the rendered HTML. The view embeds these as a `dsmData` JS variable. The Export button reads `dsmData` and builds the `.xls` file client-side.
+
+**Guard**: the Export button checks `if (typeof dsmData === 'undefined')` before running — shows alert if report not loaded yet.
+
+---
+
+### 13.7 AJAX Response Contract
+
+```json
+{ "status": true,  "render": "<html string of report>" }
+{ "status": false, "render": "<error view html>" }
+```
+
+On `status: false` (no POST data or missing date), the JS shows a generic error alert. On permission failure, `render` contains the standard report-error partial view.
+
+---
+
+## 14. Day Sheet Report
+
+Implemented (pre-2026-06-29, UI completed 2026-06-28). A daily financial snapshot report showing opening balance, fee collection, other income, expenses, salary, and closing balance — grouped by payment mode (account).
+
+---
+
+### 14.1 Key Files
+
+| File | Purpose |
+|---|---|
+| `mvc/controllers/Daysheetreport.php` | Controller — `index()` (filter form), `getDaysheetReport()` AJAX |
+| `mvc/models/Daysheet_m.php` | Core model — opening balance, fee/income/expense/salary aggregates |
+| `mvc/views/report/daysheet/DaysheetreportView.php` | Date-picker filter form + AJAX loader + JS handlers (print, export) |
+| `mvc/views/report/daysheet/DaysheetreportReport.php` | Full rendered report output (injected via AJAX) |
+
+**Admin URL**: `/Daysheetreport`
+**Permission name**: `daysheetreport`
+**Menu**: Finance → Day Sheet (fa-calendar-check-o, priority 238)
+
+---
+
+### 14.2 The 8 Report Sections
+
+| # | Title | Data Source | Key Variable |
+|---|---|---|---|
+| 1 | Opening Balance | `daysheet_opening_balance` (via `Daysheet_m`) | `$opening[$acct]` per account |
+| 2 | Today's Fee Collection | `payment` grouped by `paymenttype` | `$feeByType`, `$totalFeeCollection` |
+| 3 | Other Income | `income` grouped by `income_categories` | `$incomeBycat`, `$totalOtherIncome` |
+| 4 | Expenses (Account Wise) | `expense` per payment type + `make_payment` salary | `$expenseItems`, `$salaryDetail`, `$salaryTotal` |
+| 5 | Today's Summary | Computed totals | `$netCashFlow` |
+| 6 | Closing Balance | Per-account: Opening + Received − Spent | `$closing[$acct]` |
+| 7 | Expense Category Wise | `expense` grouped by `expensetypes` | `$expenseByCat` |
+| 8 | Collection Category Wise | `payment` grouped by `feetypes` | `$feeByFeetype` |
+
+---
+
+### 14.3 `daysheet_opening_balance` Table
+
+**Purpose**: Stores the manually-confirmed opening balance per account per date. Acts as the starting point for computing closing balances. Closing balance of day N automatically becomes the opening balance of day N+1 (auto-chain).
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | INT AUTO_INCREMENT PK | — |
+| `date` | DATE | The date for this opening balance |
+| `account_type` | VARCHAR(50) | `Cash`, `Digital`, `Cheque`, or a bank name |
+| `opening_amount` | DOUBLE | Opening balance value |
+| `schoolyearID` | INT | Tenant school year scope |
+| `created_by` | INT | Admin who set it |
+| `created_on` | DATETIME DEFAULT CURRENT_TIMESTAMP | — |
+
+**Unique key**: `(date, account_type, schoolyearID)` — one row per account per date per year.
+
+> **Table definition**: `new domains/new db tables/tables.sql` — NOT in schema_updates migration files.
+
+---
+
+### 14.4 Account / Payment Mode List (`$accounts`)
+
+The `$accounts` array drives Sections 1, 6, and the closing balance table. It is built from:
+- Standard fixed modes: `Cash`, `Digital`, `Cheque`, `Others`
+- Active bank names: fetched from the `banks` table via `Banks_m->get_active_banks()`
+
+This same list is keyed into `$opening[$acct]`, `$received[$acct]`, `$expByTypeAgg[$acct]`, `$closing[$acct]`.
+
+---
+
+### 14.5 Salary Deduction — Critical Gotcha
+
+Salary amounts must be deducted from the **per-account** closing balance (Section 6), not just from the total expenses. When computing `$expByTypeAgg`, the controller loops through `$salaryDetail` after aggregating expenses and adds each salary payment to the matching account key:
+
+```php
+foreach ($salaryDetail as $sd) {
+    $pm = (int)$sd->payment_method;
+    if ($pm === 1)      { $key = 'Cash'; }
+    elseif ($pm === 2)  { $key = 'Cheque'; }
+    elseif ($pm === 3 && !empty($sd->bank_name)) { $key = $sd->bank_name; }
+    else                { $key = 'Cash'; }
+    $expByTypeAgg[$key] = ($expByTypeAgg[$key] ?? 0) + (float)$sd->payment_amount;
+}
+```
+
+**Without this loop**, salary is counted in `$totalExpenses` but never subtracted from any account's `Spent` column — so closing balances are wrong.
+
+---
+
+### 14.6 `dsCards` JS Object
+
+The report view embeds all card/popup data in a JS object `dsCards` for the card-click modal system:
+
+```javascript
+var dsCards = {
+    feeByType:       [...],   // [{label, total}]
+    incomeBycat:     [...],   // [{category, total}]
+    expenseByCat:    [...],   // [{category, total}]
+    salaryDetail:    [...],   // [{name, amount, method}]
+    salaryTotal:     0,
+    totalFeeCollection: 0,
+    totalOtherIncome:   0,
+    totalExpenses:      0,
+    netCashFlow:        0,
+    feeCount:           0,
+    cash:    { opening, received, spent, closing },
+    digital: { opening, received, spent, closing },
+    cheque:  { opening, received, spent, closing },
+    others:  { opening, received, spent, closing },
+    banks:   [...],           // [{name, opening, received, spent, closing}]
+    bankClosingTotal: 0,
+    // Added for Excel export:
+    totalOpening:    0,
+    totalReceived:   0,
+    totalSpent:      0,
+    totalClosing:    0,
+    accounts:        [...],   // ordered list of account names
+    feeByFeetype:    [...],   // [{feetype, total}]
+    expItemsByAcct:  {...}    // { "Cash": [{expense, category, amount}], ... }
+};
+```
+
+Card clicks open a shared `#ds-card-modal` Bootstrap modal. Each card type (collection, otherincome, expenses, netcashflow, cash, digital, bank) fills the modal with the relevant breakdown table.
+
+---
+
+### 14.7 Excel Export
+
+Uses the **HTML blob method (Section 8.5)**. All 8 report sections are exported with color-coded section headers matching the on-screen color scheme:
+
+| Section | Header Color |
+|---|---|
+| Opening Balance | `#1b5e20` (dark green) |
+| Fee Collection | `#0d47a1` (dark blue) |
+| Other Income | `#4a148c` (dark purple) |
+| Expenses | `#b71c1c` (dark red) |
+| Today's Summary | `#e65100` (dark orange) |
+| Closing Balance | `#004d40` (dark teal) |
+| Expense Category | `#bf360c` (deep orange) |
+| Fee Category | `#0d47a1` (dark blue) |
+
+The export handler is in `DaysheetreportView.php` (JS click on `#daysheet-export-btn`). It reads from `dsCards` which is defined in the injected `DaysheetreportReport.php` output.
+
+**Warning dialog**: Excel shows *"file format and extension don't match"* because the file is HTML with a `.xls` extension. This is expected — click **Yes** to open. The file displays correctly with all colors and formatting.
+
+---
+
+### 14.8 `created_at` Timestamp Columns
+
+The Daily Summary Report (Section 13) needs transaction entry times. Three `ALTER TABLE` migrations add these:
+
+```sql
+ALTER TABLE `payment` ADD COLUMN IF NOT EXISTS `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `expense` ADD COLUMN IF NOT EXISTS `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `income`  ADD COLUMN IF NOT EXISTS `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+```
+
+`make_payment` already had `create_date DATETIME` — used as-is for salary time.
+
+After these columns exist, `Daysummary_m` queries use `DATE_FORMAT(p.created_at, '%h:%i %p') AS txn_time` to show entry time in the ledger's Time column.

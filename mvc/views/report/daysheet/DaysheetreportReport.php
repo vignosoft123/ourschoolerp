@@ -55,7 +55,14 @@ var dsCards = {
     cheque:  { opening:<?=(float)($opening['Cheque']??0)?>, received:<?=(float)($received['Cheque']??0)?>, spent:<?=(float)($expByTypeAgg['Cheque']??0)?>, closing:<?=(float)($closing['Cheque']??0)?> },
     others:  { opening:<?=(float)($opening['Others']??0)?>, received:<?=(float)($received['Others']??0)?>, spent:<?=(float)($expByTypeAgg['Others']??0)?>, closing:<?=(float)($closing['Others']??0)?> },
     banks:   <?=json_encode($bankDetails) ?>,
-    bankClosingTotal: <?=(float)$bankClosingTotal ?>
+    bankClosingTotal: <?=(float)$bankClosingTotal ?>,
+    totalOpening:  <?=(float)$totalOpening ?>,
+    totalReceived: <?=(float)$totalReceived ?>,
+    totalSpent:    <?=(float)$totalSpent ?>,
+    totalClosing:  <?=(float)$totalClosing ?>,
+    accounts:      <?=json_encode(array_values($accounts)) ?>,
+    feeByFeetype:  <?=json_encode(customCompute($feeByFeetype) ? array_map(function($r){ return ['feetype'=>($r->feetype?:'Others'),'total'=>(float)$r->total]; }, $feeByFeetype) : []) ?>,
+    expItemsByAcct: <?=json_encode(array_map(function($items){ return array_map(function($item){ return ['expense'=>$item->expense,'category'=>($item->category?:''),'amount'=>(float)$item->amount]; }, $items); }, $expItemsByAcct)) ?>
 };
 </script>
 
@@ -193,6 +200,9 @@ var dsCards = {
 <div class="rpt-action-bar" style="margin-bottom:14px;">
     <button id="daysheet-print-btn" class="btn btn-default rpt-action-btn">
         <i class="fa fa-print"></i> Print
+    </button>
+    <button id="daysheet-export-btn" class="btn btn-success rpt-action-btn" style="margin-left:8px;">
+        <i class="fa fa-file-excel-o"></i> Export Excel
     </button>
 </div>
 
@@ -604,7 +614,6 @@ var dsCards = {
 
 </div><!-- /.row sections 7+8 -->
 
-<?= reportfooter($siteinfos, $schoolyearsessionobj) ?>
 
 </div><!-- /.box-body -->
 </div><!-- /#printablediv -->

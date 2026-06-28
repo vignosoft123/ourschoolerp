@@ -283,35 +283,19 @@ Class Subject extends Admin_Controller {
 		}	
 	}
 
-	public function delete() {
+	public function toggle_status() {
+		header('Content-Type: application/json');
 		$id = htmlentities(escapeString($this->uri->segment(3)));
-		$url = htmlentities(escapeString($this->uri->segment(4)));
-		if((int)$id && (int)$url) {
-			$fetchClass = pluck($this->classes_m->get_classes(), 'classesID', 'classesID');
-			if(isset($fetchClass[$url])) {
-				$subject = $this->subject_m->general_get_single_subject(array('subjectID' => $id, 'classesID' => $url));
-				if(customCompute($subject)) {
-					$this->subjectteacher_m->delete_subjectteacher_by_array(array('subjectID' => $id));
-					$this->subject_m->delete_subject($id);
-					$this->activity_log_m->add([
-						'module'      => 'subject',
-						'action'      => 'delete',
-						'record_id'   => $id,
-						'record_type' => 'subject',
-						'old_value'   => ['subject' => $subject->subject ?? ''],
-						'description' => 'Subject deleted: ' . ($subject->subject ?? 'ID ' . $id),
-					]);
-					$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-					redirect(base_url("subject/index/$url"));
-				} else {
-					redirect(base_url("subject/index"));
-				}
-			} else {
-				redirect(base_url("subject/index"));
+		if ((int)$id) {
+			$row = $this->subject_m->general_get_single_subject(array('subjectID' => $id));
+			if ($row) {
+				$new_status = ($row->active_status == 1) ? 0 : 1;
+				$this->subject_m->update_subject(array('active_status' => $new_status), $id);
+				echo json_encode(array('success' => true, 'active_status' => $new_status));
+				return;
 			}
-		} else {
-			redirect(base_url("subject/index"));
 		}
+		echo json_encode(array('success' => false));
 	}
 
 	public function unique_subject() {

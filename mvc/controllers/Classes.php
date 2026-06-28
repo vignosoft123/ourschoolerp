@@ -167,28 +167,19 @@ class Classes extends Admin_Controller {
 		}
 	}
 
-	public function delete() {
+	public function toggle_status() {
+		header('Content-Type: application/json');
 		$id = htmlentities(escapeString($this->uri->segment(3)));
-		if((int)$id) {
-			$classes = $this->classes_m->get_single_classes(array('classesID' => $id));
-			if(customCompute($classes)) {
-				$this->classes_m->delete_classes($id);
-				$this->activity_log_m->add([
-					'module'      => 'classes',
-					'action'      => 'delete',
-					'record_id'   => $id,
-					'record_type' => 'classes',
-					'old_value'   => ['classes' => $classes->classes ?? ''],
-					'description' => 'Class deleted: ' . ($classes->classes ?? 'ID ' . $id),
-				]);
-				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-				redirect(base_url("classes/index"));
-			} else {
-				redirect(base_url("classes/index"));
+		if ((int)$id) {
+			$row = $this->classes_m->get_single_classes(array('classesID' => $id));
+			if ($row) {
+				$new_status = ($row->active_status == 1) ? 0 : 1;
+				$this->classes_m->update_classes(array('active_status' => $new_status), $id);
+				echo json_encode(array('success' => true, 'active_status' => $new_status));
+				return;
 			}
-		} else {
-			redirect(base_url("classes/index"));
 		}
+		echo json_encode(array('success' => false));
 	}
 
 	public function unique_classes() {

@@ -1,0 +1,22 @@
+<?php defined('BASEPATH') or exit('No direct script access allowed');
+
+$lang['daysummaryreport_title']          = 'Daily Summary Report';
+$lang['daysummaryreport_date']           = 'Date';
+$lang['daysummaryreport_load']           = 'Load Summary';
+$lang['daysummaryreport_opening']        = 'Opening Balance';
+$lang['daysummaryreport_receipts']       = 'Total Receipts';
+$lang['daysummaryreport_payments']       = 'Total Payments';
+$lang['daysummaryreport_closing']        = 'Closing Balance';
+$lang['daysummaryreport_all']            = 'All Transactions';
+$lang['daysummaryreport_time']           = 'Time';
+$lang['daysummaryreport_particular']     = 'Particular';
+$lang['daysummaryreport_name']           = 'Student / Expense';
+$lang['daysummaryreport_category']       = 'Category';
+$lang['daysummaryreport_mode']           = 'Payment Mode';
+$lang['daysummaryreport_receipt']        = 'Receipt (₹)';
+$lang['daysummaryreport_payment']        = 'Payment (₹)';
+$lang['daysummaryreport_balance']        = 'Balance (₹)';
+$lang['daysummaryreport_day_summary']    = 'Day Summary';
+$lang['daysummaryreport_mode_summary']   = 'Payment Mode Summary';
+$lang['daysummaryreport_collection']     = 'Collection';
+$lang['daysummaryreport_expense']        = 'Expense';

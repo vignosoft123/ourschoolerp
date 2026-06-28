@@ -256,36 +256,19 @@ class Syllabus extends Admin_Controller {
 		}
 	}
 
-	public function delete() {
-		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+	public function toggle_status() {
+		header('Content-Type: application/json');
 		$id = htmlentities(escapeString($this->uri->segment(3)));
-		$url = htmlentities(escapeString($this->uri->segment(4)));
-		if((int)$id && (int)$url) {
-			if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1))  {
-				$fetchClasses = pluck($this->classes_m->get_classes(), 'classesID', 'classesID');
-				if(isset($fetchClasses[$url])) {
-					$syllabus = $this->syllabus_m->get_single_syllabus(array('syllabusID' => $id, 'schoolyearID' => $schoolyearID));
-					if(customCompute($syllabus)) {
-						if(config_item('demo') == FALSE) {
-							if(file_exists(FCPATH.'uploads/images/'.$syllabus->file)) {
-								unlink(FCPATH.'uploads/images/'.$syllabus->file);
-							}
-						}
-						$this->syllabus_m->delete_syllabus($id);
-						$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-						redirect(base_url("syllabus/index/$url"));
-					} else {
-						redirect(base_url("syllabus/index"));	
-					}
-				} else {
-					redirect(base_url("syllabus/index"));
-				}
-			} else {
-				redirect(base_url("syllabus/index"));
+		if ((int)$id) {
+			$row = $this->syllabus_m->get_single_syllabus(array('syllabusID' => $id));
+			if ($row) {
+				$new_status = ($row->active_status == 1) ? 0 : 1;
+				$this->syllabus_m->update_syllabus(array('active_status' => $new_status), $id);
+				echo json_encode(array('success' => true, 'active_status' => $new_status));
+				return;
 			}
-		} else {
-			redirect(base_url("syllabus/index"));
 		}
+		echo json_encode(array('success' => false));
 	}
 
 	public function unique_classes() {

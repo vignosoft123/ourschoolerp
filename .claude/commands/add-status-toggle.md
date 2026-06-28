@@ -19,9 +19,11 @@ Read all three files fully before making any changes.
 
 From the model file, read the `$_table_name` property and the `$_primary_key` property. These are required for the migration and toggle logic.
 
-## Step 3 — Add migration to schema_updates.json
+## Step 3 — Add migration to BOTH schema files
 
-Add this entry at the end of `mvc/migrations/schema_updates.json` (before the closing `]`):
+Every DB change must be added to **two files** — always update both together.
+
+### 3a — Add to `mvc/migrations/schema_updates.json` (before the closing `]`):
 
 ```json
 {
@@ -31,7 +33,15 @@ Add this entry at the end of `mvc/migrations/schema_updates.json` (before the cl
 }
 ```
 
+### 3b — Add to `mvc/migrations/schema_updates.sql` (at the end of the ALTER TABLE columns section):
+
+```sql
+ALTER TABLE `{table_name}` ADD COLUMN IF NOT EXISTS `active_status` TINYINT(1) NOT NULL DEFAULT '1';
+```
+
 Replace `{table_name}` with the actual table name from Step 2.
+
+> **Why two files?** `schema_updates.json` is run automatically by the app's migration runner on every page load. `schema_updates.sql` is a standalone SQL file for manual import via phpMyAdmin on production/staging servers. Both must stay in sync.
 
 ## Step 4 — Update the Controller
 

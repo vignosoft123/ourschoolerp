@@ -303,6 +303,7 @@ class Global_payment_new extends Admin_Controller
         $this->data['sections']     = 0;
         $this->data['students']     = [];
         $this->data['globalpayments'] = [];
+        $this->data['discount_only_invoices'] = [];
         $this->data['prev_balances']           = [];
         $this->data['total_carry_forward_due'] = 0;
 
@@ -373,6 +374,19 @@ class Global_payment_new extends Admin_Controller
                     'obj', 'paymentID'
                 );
 
+                // Invoices with a discount but whose displayed paid amount rounds to 0.00
+                // (shown as standalone "Discount" rows in the Payment History popup)
+                $this->data['discount_only_invoices'] = [];
+                $pmtMap = $this->data['payments'];  // invoiceID => sum of payments
+                $wvrMap = $this->data['weavers'];    // invoiceID => sum of waivers
+                foreach ((array)$this->data['invoices'] as $_inv) {
+                    $invPaid = round((float)(array_key_exists($_inv->invoiceID, $pmtMap) ? $pmtMap[$_inv->invoiceID] : 0), 2);
+                    $invWvr  = round((float)(array_key_exists($_inv->invoiceID, $wvrMap) ? $wvrMap[$_inv->invoiceID]  : 0), 2);
+                    if ((float)$_inv->discount > 0 && $invPaid <= 0 && $invWvr <= 0) {
+                        $this->data['discount_only_invoices'][] = $_inv;
+                    }
+                }
+
                 // Carry-forward computation (new feature)
                 $cfResult = $this->computeCarryForward($single_student->srstudentID, $schoolyearID);
                 $this->data['prev_balances']           = $cfResult['prev_balances'];
@@ -384,6 +398,7 @@ class Global_payment_new extends Admin_Controller
                 $this->data['single_group']   = [];
                 $this->data['invoices']        = [];
                 $this->data['globalpayments']  = [];
+                $this->data['discount_only_invoices'] = [];
                 $this->data['prev_balances']           = [];
                 $this->data['total_carry_forward_due'] = 0;
             }

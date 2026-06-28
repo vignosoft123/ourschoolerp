@@ -596,6 +596,32 @@
                                     <?php endif; ?>
                                 </tr>
                             <?php endforeach; } } ?>
+                            <?php
+                            // Discount-only rows: invoices that have a discount (invoice.discount OR weaverandfine waiver
+                            // from "Change Amount" modal) but NO actual payment amount — these have no globalpaymentID
+                            // and never appear in the globalpayments loop above.
+                            foreach ((array)$invoices as $_dinv):
+                                $_dinvPaid  = round(isset($payments[$_dinv->invoiceID]) ? (float)$payments[$_dinv->invoiceID] : 0, 2);
+                                if ($_dinvPaid > 0) continue;  // has real payments → already shown in globalpayments loop
+                                $_dinvWvr   = round(isset($weavers[$_dinv->invoiceID])  ? (float)$weavers[$_dinv->invoiceID]  : 0, 2);
+                                $_dinvDisc  = (float)($_dinv->discount ?? 0);
+                                $_totalDisc = $_dinvDisc + $_dinvWvr;
+                                if ($_totalDisc <= 0) continue;  // no discount of any kind
+                                $has_history = true;
+                                $invoice_weaver += $_totalDisc;
+                                $discFeeName = isset($feetypes[$_dinv->feetypeID]) ? $feetypes[$_dinv->feetypeID] : '—';
+                            ?>
+                                    <tr>
+                                        <td style="color:#9b59b6; font-weight:600; vertical-align:middle; font-style:italic;">Discount</td>
+                                        <td style="color:#2e8b57; font-weight:600;"><?=htmlspecialchars($discFeeName)?></td>
+                                        <td class="text-right" style="color:#3a7bd5; font-weight:600;">0.00</td>
+                                        <td class="text-right" style="vertical-align:middle; font-weight:600; color:#9b59b6;"><?=number_format($_totalDisc, 2)?></td>
+                                        <td class="text-right" style="font-weight:600; vertical-align:middle;">0.00</td>
+                                        <td style="vertical-align:middle;"><span style="background:#f3e8ff; color:#7c3aed; border:1px solid #ddd6fe; border-radius:4px; padding:2px 8px; font-size:11px; font-weight:700;">Discount</span></td>
+                                        <td style="color:#a0aec0; vertical-align:middle;">—</td>
+                                        <td style="text-align:center; vertical-align:middle; color:#a0aec0;">—</td>
+                                    </tr>
+                            <?php endforeach; ?>
                             <?php if (!$has_history): ?>
                                 <tr>
                                     <td colspan="8" class="text-center" style="padding:24px; color:#a0aec0; font-style:italic;">

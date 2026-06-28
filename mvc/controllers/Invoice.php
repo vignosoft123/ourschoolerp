@@ -1711,6 +1711,141 @@ class Invoice extends Admin_Controller
         return TRUE;
     }
 
+    // AJAX: check if any of the given students already have the given fee type this year
+    public function check_duplicate_feetype()
+    {
+        if(!$_POST) { echo json_encode(['has_dup' => false, 'students' => []]); exit; }
+
+        $feetypeID    = (int)$this->input->post('feetypeID');
+        $studentIDs   = $this->input->post('studentIDs');
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+        if(!is_array($studentIDs)) {
+            $studentIDs = $studentIDs ? explode(',', $studentIDs) : [];
+        }
+        $studentIDs = array_values(array_filter(array_map('intval', $studentIDs), function($v){ return $v > 0; }));
+
+        if(empty($studentIDs) || !$feetypeID) {
+            echo json_encode(['has_dup' => false, 'students' => []]); exit;
+        }
+
+        $this->db->select('i.studentID, sr.srname')
+                 ->from('invoice i')
+                 ->join('studentrelation sr', 'sr.srstudentID = i.studentID AND sr.srschoolyearID = '.(int)$schoolyearID, 'left')
+                 ->where('i.feetypeID', $feetypeID)
+                 ->where('i.schoolyearID', $schoolyearID)
+                 ->where('i.deleted_at', 1)
+                 ->where_in('i.studentID', $studentIDs);
+        $rows = $this->db->get()->result();
+
+        $names = [];
+        foreach($rows as $r) { $names[] = $r->srname; }
+
+        echo json_encode(['has_dup' => !empty($names), 'students' => array_unique($names)]);
+        exit;
+    }
+
+    // AJAX: for bulk mode, find which students already have any of the given fee types
+    public function get_bulk_duplicate_students()
+    {
+        if(!$_POST) { echo json_encode(['status' => false]); exit; }
+
+        $classesID    = (int)$this->input->post('classesID');
+        $sectionID    = $this->input->post('sectionID');
+        $feetypeIDs   = $this->input->post('feetypeIDs');
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+        if(!is_array($feetypeIDs)) {
+            $feetypeIDs = $feetypeIDs ? explode(',', $feetypeIDs) : [];
+        }
+        $feetypeIDs = array_values(array_filter(array_map('intval', $feetypeIDs), function($v){ return $v > 0; }));
+
+        if(!$classesID || empty($feetypeIDs)) {
+            echo json_encode(['status' => true, 'duplicates' => [], 'clean_ids' => [], 'dup_count' => 0, 'clean_count' => 0]);
+            exit;
+        }
+
+        // Get all students in class/section
+        $srFilter = ['srclassesID' => $classesID, 'srschoolyearID' => $schoolyearID];
+        if((int)$sectionID > 0) { $srFilter['srsectionID'] = (int)$sectionID; }
+        $allStudents = $this->studentrelation_m->get_order_by_student($srFilter);
+
+        if(!customCompute($allStudents)) {
+            echo json_encode(['status' => true, 'duplicates' => [], 'clean_ids' => [], 'dup_count' => 0, 'clean_count' => 0]);
+            exit;
+        }
+
+        $allStudentIDs  = array_map(function($s){ return $s->srstudentID; }, $allStudents);
+        $studentNameMap = [];
+        foreach($allStudents as $s) { $studentNameMap[$s->srstudentID] = $s->srname; }
+
+        // Fetch fee type names for display
+        $feetypeNameMap = pluck($this->feetypes_m->get_feetypes(), 'feetypes', 'feetypesID');
+
+        // Find which student+feetypeID combos already exist this year
+        $this->db->select('studentID, feetypeID')
+                 ->from('invoice')
+                 ->where('schoolyearID', $schoolyearID)
+                 ->where('deleted_at', 1)
+                 ->where_in('studentID', $allStudentIDs)
+                 ->where_in('feetypeID', $feetypeIDs);
+        $existingRows = $this->db->get()->result();
+
+        // Build a set keyed by "studentID_feetypeID"
+        $existingCombo = [];
+        foreach($existingRows as $row) {
+            $existingCombo[$row->studentID . '_' . $row->feetypeID] = true;
+        }
+
+        $partialStudents  = []; // have SOME of the submitted fee types
+        $fullyDupStudents = []; // have ALL of the submitted fee types
+        $partialIDs       = [];
+        $fullyDupIDs      = [];
+        $cleanIDs         = [];
+
+        foreach($allStudents as $s) {
+            $sid        = $s->srstudentID;
+            $alreadyHas = [];
+            $willAdd    = [];
+
+            foreach($feetypeIDs as $ftid) {
+                $ftName = isset($feetypeNameMap[$ftid]) ? $feetypeNameMap[$ftid] : ('Fee #'.$ftid);
+                if(isset($existingCombo[$sid . '_' . $ftid])) {
+                    $alreadyHas[] = $ftName;
+                } else {
+                    $willAdd[] = $ftName;
+                }
+            }
+
+            if(empty($alreadyHas)) {
+                // No existing fee types — clean student
+                $cleanIDs[] = $sid;
+            } elseif(empty($willAdd)) {
+                // All fee types already exist — fully duplicate, nothing to add
+                $fullyDupStudents[] = ['studentID' => $sid, 'name' => $s->srname, 'already_has' => $alreadyHas];
+                $fullyDupIDs[]      = $sid;
+            } else {
+                // Some exist, some don't — partial, will add only the missing ones
+                $partialStudents[] = ['studentID' => $sid, 'name' => $s->srname, 'already_has' => $alreadyHas, 'will_add' => $willAdd];
+                $partialIDs[]      = $sid;
+            }
+        }
+
+        echo json_encode([
+            'status'           => true,
+            'partial_students' => $partialStudents,
+            'fully_duplicate'  => $fullyDupStudents,
+            'partial_ids'      => $partialIDs,
+            'fully_dup_ids'    => $fullyDupIDs,
+            'clean_ids'        => $cleanIDs,
+            'partial_count'    => count($partialStudents),
+            'fully_dup_count'  => count($fullyDupStudents),
+            'clean_count'      => count($cleanIDs),
+            'has_issues'       => !empty($partialStudents) || !empty($fullyDupStudents),
+        ]);
+        exit;
+    }
+
     public function getstudent()
     {
         $classesID    = $this->input->post('classesID');
@@ -1829,6 +1964,60 @@ class Invoice extends Admin_Controller
                                     $clearancetype = 'paid';
                                 }
 
+                                // Duplicate fee type guard: block for individual mode; skip per-combo for bulk confirmed mode
+                                $existingSet = [];
+                                if(customCompute($feetypeitems)) {
+                                    $feetypeIDsToCheck = array_map(function($item) { return (int)$item->feetypeID; }, $feetypeitems);
+                                    $studentIDsToCheck = array_map(function($s) { return $s->srstudentID; }, $getstudents);
+                                    $studentNameMap    = [];
+                                    foreach($getstudents as $gs) { $studentNameMap[$gs->srstudentID] = $gs->srname; }
+
+                                    $this->db->select('studentID, feetypeID, feetype')
+                                             ->from('invoice')
+                                             ->where('schoolyearID', $schoolyearID)
+                                             ->where('deleted_at', 1)
+                                             ->where_in('studentID', $studentIDsToCheck)
+                                             ->where_in('feetypeID', $feetypeIDsToCheck);
+                                    $dupRows = $this->db->get()->result();
+
+                                    if(!empty($dupRows)) {
+                                        $skipDuplicates = (bool)$this->input->post('skip_duplicates');
+
+                                        if(!$skipDuplicates) {
+                                            // Individual mode: block the entire operation with error
+                                            $dupMsgs = [];
+                                            foreach($dupRows as $dr) {
+                                                $sName = isset($studentNameMap[$dr->studentID]) ? $studentNameMap[$dr->studentID] : ('Student #'.$dr->studentID);
+                                                $dupMsgs[] = $sName . ' already has "' . $dr->feetype . '"';
+                                            }
+                                            $retArray['error']  = ['feetypeitems' => implode('; ', array_unique($dupMsgs))];
+                                            $retArray['status'] = false;
+                                            echo json_encode($retArray);
+                                            exit;
+                                        } else {
+                                            // Bulk confirmed mode: build skip set, remove fully-duplicate students
+                                            foreach($dupRows as $dr) {
+                                                $existingSet[$dr->studentID . '_' . $dr->feetypeID] = true;
+                                            }
+                                            // Remove students where ALL submitted fee types already exist
+                                            $getstudents = array_values(array_filter($getstudents, function($s) use($existingSet, $feetypeIDsToCheck) {
+                                                foreach($feetypeIDsToCheck as $ftid) {
+                                                    if(!isset($existingSet[$s->srstudentID . '_' . $ftid])) {
+                                                        return true; // at least one missing fee type → keep this student
+                                                    }
+                                                }
+                                                return false; // all fee types already exist → skip this student
+                                            }));
+                                            if(empty($getstudents)) {
+                                                $retArray['error']  = ['feetypeitems' => 'All selected students already have these fee types. Nothing to add.'];
+                                                $retArray['status'] = false;
+                                                echo json_encode($retArray);
+                                                exit;
+                                            }
+                                        }
+                                    }
+                                }
+
                                 foreach($getstudents as $key => $getstudent) {
                                     $invoiceMainArray[] = [
                                         'maininvoiceschoolyearID' => $schoolyearID,
@@ -1872,6 +2061,10 @@ class Invoice extends Admin_Controller
                                         for($i = $firstID; $i <= $lastID; $i++) {
                                             if(customCompute($feetypeitems)) {
                                                 foreach($feetypeitems as $feetypeitem) {
+                                                    // Skip combos that already exist (bulk confirmed mode with partial duplicates)
+                                                    $comboKey = $invoiceMainArray[$j]['maininvoicestudentID'] . '_' . (int)($feetypeitem->feetypeID ?? 0);
+                                                    if(!empty($existingSet) && isset($existingSet[$comboKey])) { continue; }
+
                                                     $invoiceArray[] = [
                                                         'schoolyearID'  => $invoiceMainArray[$j]['maininvoiceschoolyearID'],
                                                         'classesID'     => $invoiceMainArray[$j]['maininvoiceclassesID'],

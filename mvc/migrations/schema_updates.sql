@@ -1,8 +1,16 @@
 -- ============================================================
 -- schema_updates.sql
--- Generated from schema_updates.json
+-- Parallel file to schema_updates.json
 -- ALL queries have IF NOT EXISTS / WHERE NOT EXISTS guards.
 -- Safe to import multiple times without errors.
+-- ------------------------------------------------------------
+-- !! SYNC RULE !!
+-- Any query added to THIS file must also be added to
+-- schema_updates.json (with the appropriate type + check_column
+-- / check_row / check_table / check_index guard), and vice versa.
+-- Both files must always stay in sync.
+--   schema_updates.sql  → manual import via phpMyAdmin (new servers)
+--   schema_updates.json → auto-run by the PHP migration runner
 -- ============================================================
 
 -- ------------------------------------------------------------
@@ -361,22 +369,8 @@ INSERT INTO `setting` (`fieldoption`, `value`)
 
 
 -- ------------------------------------------------------------
--- CREATE TABLE: notification_event_config
--- ------------------------------------------------------------
-
-CREATE TABLE IF NOT EXISTS `notification_event_config` (
-    `id`                INT(11)      NOT NULL AUTO_INCREMENT,
-    `event_key`         VARCHAR(50)  NOT NULL,
-    `event_name`        VARCHAR(100) NOT NULL,
-    `sms_enabled`       TINYINT(1)   NOT NULL DEFAULT 1,
-    `whatsapp_enabled`  TINYINT(1)   NOT NULL DEFAULT 1,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_event_key` (`event_key`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
--- ------------------------------------------------------------
 -- INSERT: notification_event_config seed rows
+-- (Table definition moved to tables.sql)
 -- ------------------------------------------------------------
 
 INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
@@ -406,3 +400,74 @@ INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled
 INSERT INTO `notification_event_config` (`event_key`, `event_name`, `sms_enabled`, `whatsapp_enabled`)
     SELECT 'holiday_intimation', 'Holiday Intimation', 1, 1
     FROM dual WHERE NOT EXISTS (SELECT 1 FROM `notification_event_config` WHERE `event_key` = 'holiday_intimation');
+
+
+-- ------------------------------------------------------------
+-- ALTER TABLE: expense payment type + bank (Day Sheet)
+-- ------------------------------------------------------------
+
+ALTER TABLE `expense` ADD COLUMN IF NOT EXISTS `expense_payment_type`  VARCHAR(50)  NOT NULL DEFAULT 'Cash';
+ALTER TABLE `expense` ADD COLUMN IF NOT EXISTS `expense_bank_name`     VARCHAR(100) NULL DEFAULT NULL;
+
+
+-- ------------------------------------------------------------
+-- ALTER TABLE: make_payment salary bank name (Day Sheet)
+-- ------------------------------------------------------------
+
+ALTER TABLE `make_payment` ADD COLUMN IF NOT EXISTS `salary_bank_name` VARCHAR(100) NULL DEFAULT NULL;
+
+
+-- ------------------------------------------------------------
+-- ALTER TABLE: created_at timestamps (Daily Summary time column)
+-- ------------------------------------------------------------
+
+ALTER TABLE `payment` ADD COLUMN IF NOT EXISTS `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `expense` ADD COLUMN IF NOT EXISTS `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+ALTER TABLE `income`  ADD COLUMN IF NOT EXISTS `created_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE `classes`  ADD COLUMN IF NOT EXISTS `active_status` TINYINT(1) NOT NULL DEFAULT '1';
+ALTER TABLE `section`  ADD COLUMN IF NOT EXISTS `active_status` TINYINT(1) NOT NULL DEFAULT '1';
+ALTER TABLE `subject`   ADD COLUMN IF NOT EXISTS `active_status` TINYINT(1) NOT NULL DEFAULT '1';
+ALTER TABLE `syllabus`  ADD COLUMN IF NOT EXISTS `active_status` TINYINT(1) NOT NULL DEFAULT '1';
+
+
+-- ------------------------------------------------------------
+-- INSERT: menu — daysheetreport + daysummaryreport
+-- (daysheet_opening_balance table definition moved to tables.sql)
+-- ------------------------------------------------------------
+
+INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`)
+    SELECT 'daysheetreport', 'daysheetreport', 'fa-calendar-check-o', '1', '16', '238'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `menu` WHERE `menuName` = 'daysheetreport');
+
+INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`)
+    SELECT 'daysummaryreport', 'daysummaryreport', 'fa-table', '1', '16', '239'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `menu` WHERE `menuName` = 'daysummaryreport');
+
+
+-- ------------------------------------------------------------
+-- INSERT: permissions — daysheetreport + daysummaryreport
+-- ------------------------------------------------------------
+
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'daysheetreport', 'daysheetreport'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'daysheetreport');
+
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'daysummaryreport', 'daysummaryreport'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'daysummaryreport');
+
+
+-- ------------------------------------------------------------
+-- INSERT: permission_relationships — daysheetreport + daysummaryreport
+-- ------------------------------------------------------------
+
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'daysheetreport'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'daysheetreport'));
+
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'daysummaryreport'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'daysummaryreport'));

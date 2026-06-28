@@ -93,3 +93,25 @@ CREATE TABLE IF NOT EXISTS `delete_account_requests` (
   `requested_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `notification_event_config` (
+    `id`                INT(11)      NOT NULL AUTO_INCREMENT,
+    `event_key`         VARCHAR(50)  NOT NULL,
+    `event_name`        VARCHAR(100) NOT NULL,
+    `sms_enabled`       TINYINT(1)   NOT NULL DEFAULT 1,
+    `whatsapp_enabled`  TINYINT(1)   NOT NULL DEFAULT 1,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_event_key` (`event_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `daysheet_opening_balance` (
+    `id`             INT(11)      NOT NULL AUTO_INCREMENT,
+    `date`           DATE         NOT NULL,
+    `account_type`   VARCHAR(50)  NOT NULL,
+    `opening_amount` DOUBLE       NOT NULL DEFAULT '0',
+    `schoolyearID`   INT(11)      NOT NULL DEFAULT '0',
+    `created_by`     INT(11)      NOT NULL DEFAULT '0',
+    `created_on`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uniq_date_account_year` (`date`, `account_type`, `schoolyearID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

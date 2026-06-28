@@ -222,30 +222,19 @@ class Section extends Admin_Controller {
 		}
 	}
 
-	public function delete() {
+	public function toggle_status() {
+		header('Content-Type: application/json');
 		$id = htmlentities(escapeString($this->uri->segment(3)));
-		$url = htmlentities(escapeString($this->uri->segment(4)));
-		if((int)$id && (int)$url) {
-			$section = $this->section_m->get_single_section(array('sectionID' => $id));
-			$classes = $this->classes_m->get_single_classes(array('classesID' => $url));
-			if(customCompute($section) && customCompute($classes)) {
-				$this->section_m->delete_section($id);
-				$this->activity_log_m->add([
-					'module'      => 'section',
-					'action'      => 'delete',
-					'record_id'   => $id,
-					'record_type' => 'section',
-					'old_value'   => ['section' => $section->section ?? ''],
-					'description' => 'Section deleted: ' . ($section->section ?? 'ID ' . $id),
-				]);
-				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-				redirect(base_url("section/index/$url"));
-			} else {
-				redirect(base_url("section/index"));
+		if ((int)$id) {
+			$row = $this->section_m->general_get_single_section(array('sectionID' => $id));
+			if ($row) {
+				$new_status = ($row->active_status == 1) ? 0 : 1;
+				$this->section_m->update_section(array('active_status' => $new_status), $id);
+				echo json_encode(array('success' => true, 'active_status' => $new_status));
+				return;
 			}
-		} else {
-			redirect(base_url("section/index"));
 		}
+		echo json_encode(array('success' => false));
 	}
 
 	public function valid_number() {
