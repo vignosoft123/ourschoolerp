@@ -351,21 +351,21 @@
                     <div style="display:flex; justify-content:space-around; padding:8px 10px 4px; border-top:1px solid #f0f0f0; margin-top:4px;">
                         <div style="text-align:center;">
                             <div style="font-size:16px; font-weight:700; color:#2ecc71;">
-                                &#8377;<?= number_format($feeStatus['paid'] ?? 0, 0) ?>
+                                &#8377;<?= number_format($feeStatus['collected'] ?? 0, 0) ?>
                             </div>
-                            <div style="font-size:10px; color:#777;">Paid</div>
+                            <div style="font-size:10px; color:#777;">Collected</div>
                         </div>
                         <div style="text-align:center;">
                             <div style="font-size:16px; font-weight:700; color:#f39c12;">
-                                &#8377;<?= number_format($feeStatus['partial'] ?? 0, 0) ?>
+                                &#8377;<?= number_format($feeStatus['discount'] ?? 0, 0) ?>
                             </div>
-                            <div style="font-size:10px; color:#777;">Partial</div>
+                            <div style="font-size:10px; color:#777;">Discount/Waiver</div>
                         </div>
                         <div style="text-align:center;">
                             <div style="font-size:16px; font-weight:700; color:#e74c3c;">
                                 &#8377;<?= number_format($feeStatus['due'] ?? 0, 0) ?>
                             </div>
-                            <div style="font-size:10px; color:#777;">Due</div>
+                            <div style="font-size:10px; color:#777;">Outstanding</div>
                         </div>
                     </div>
                 </div>
@@ -447,25 +447,31 @@
                 </div>
                 <div class="box-body" style="padding:16px;">
                     <?php
-                        $totalInvoiced    = ($feeStatus['paid'] ?? 0) + ($feeStatus['partial'] ?? 0) + ($feeStatus['due'] ?? 0);
-                        $totalCollected   = ($feeStatus['paid'] ?? 0) + ($feeStatus['partial'] ?? 0);
-                        $collectionPct    = $totalInvoiced > 0 ? round(($feeStatus['paid'] / $totalInvoiced) * 100) : 0;
+                        $totalInvoiced  = $feeStatus['invoiced']  ?? 0;
+                        $totalCollected = $feeStatus['collected'] ?? 0;
+                        $totalDiscount  = $feeStatus['discount']  ?? 0;
+                        $totalDue       = $feeStatus['due']       ?? 0;
+                        $collectionPct  = $totalInvoiced > 0 ? round(($totalCollected / $totalInvoiced) * 100) : 0;
                     ?>
                     <div style="margin-bottom:10px;">
                         <div style="font-size:11px; color:#888; margin-bottom:2px;">Total Invoiced</div>
                         <div style="font-size:20px; font-weight:700; color:#333;">&#8377;<?= number_format($totalInvoiced, 0) ?></div>
                     </div>
-                    <div style="display:flex; gap:10px; margin-bottom:14px;">
-                        <div style="flex:1; background:#e8fdf1; border-radius:6px; padding:8px 10px; text-align:center;">
-                            <div style="font-size:13px; font-weight:700; color:#27ae60;">&#8377;<?= number_format($totalCollected, 0) ?></div>
+                    <div style="display:flex; gap:8px; margin-bottom:8px;">
+                        <div style="flex:1; background:#e8fdf1; border-radius:6px; padding:7px 8px; text-align:center;">
+                            <div style="font-size:12px; font-weight:700; color:#27ae60;">&#8377;<?= number_format($totalCollected, 0) ?></div>
                             <div style="font-size:10px; color:#777; margin-top:2px;">Collected</div>
                         </div>
-                        <div style="flex:1; background:#fef0f0; border-radius:6px; padding:8px 10px; text-align:center;">
-                            <div style="font-size:13px; font-weight:700; color:#e74c3c;">&#8377;<?= number_format($feeStatus['due'] ?? 0, 0) ?></div>
+                        <div style="flex:1; background:#fef6e8; border-radius:6px; padding:7px 8px; text-align:center;">
+                            <div style="font-size:12px; font-weight:700; color:#e67e22;">&#8377;<?= number_format($totalDiscount, 0) ?></div>
+                            <div style="font-size:10px; color:#777; margin-top:2px;">Discount/Waiver</div>
+                        </div>
+                        <div style="flex:1; background:#fef0f0; border-radius:6px; padding:7px 8px; text-align:center;">
+                            <div style="font-size:12px; font-weight:700; color:#e74c3c;">&#8377;<?= number_format($totalDue, 0) ?></div>
                             <div style="font-size:10px; color:#777; margin-top:2px;">Outstanding</div>
                         </div>
                     </div>
-                    <div style="font-size:11px; color:#888; margin-bottom:5px;">Full-payment Rate</div>
+                    <div style="font-size:11px; color:#888; margin-bottom:5px;">Collection Rate</div>
                     <div class="progress" style="height:16px; border-radius:8px; margin-bottom:4px;">
                         <div class="progress-bar progress-bar-success" style="width:<?= $collectionPct ?>%; border-radius:8px; line-height:16px; font-size:11px;">
                             <?php if($collectionPct >= 10): ?><?= $collectionPct ?>%<?php endif; ?>

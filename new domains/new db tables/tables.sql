@@ -44,6 +44,23 @@ CREATE TABLE IF NOT EXISTS `student_siblings` (
 
  
 
+CREATE TABLE IF NOT EXISTS `student_carry_forward` (
+  `id` int(11) NOT NULL,
+  `studentID` int(11) NOT NULL,
+  `from_schoolyearID` int(11) NOT NULL,
+  `to_schoolyearID` int(11) NOT NULL,
+  `from_year_name` varchar(128) NOT NULL DEFAULT '',
+  `total_fee` double NOT NULL DEFAULT '0',
+  `total_discount` double NOT NULL DEFAULT '0',
+  `total_paid_in_year` double NOT NULL DEFAULT '0',
+  `total_waiver` double NOT NULL DEFAULT '0',
+  `carry_forward_due` double NOT NULL DEFAULT '0',
+  `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
 CREATE TABLE  IF NOT EXISTS `youtube_links` (
   `id` int(11) NOT NULL,
   `link` text COLLATE utf8_unicode_ci NOT NULL,

@@ -887,20 +887,41 @@ if ( !defined('BASEPATH') ) {
         {
             $schoolyearID = $this->session->userdata('defaultschoolyearID');
 
-            // Fee paid/partial/due totals
-            $feeStatusRows = $this->db->select('paidstatus, COUNT(*) as cnt, COALESCE(SUM(amount), 0) as total')
-                ->from('invoice')
-                ->where('schoolyearID', $schoolyearID)
-                ->where('deleted_at', 1)
-                ->group_by('paidstatus')
-                ->get()->result();
+            // Fee collection totals — matches balance fees report logic:
+            // Total Invoiced - Discount - Waiver - Actual Payments = Outstanding
+            $sid = (int)$schoolyearID;
+            $sql_status = "
+                SELECT
+                    COALESCE(SUM(i.amount),       0) AS total_invoiced,
+                    COALESCE(SUM(i.discount),     0) AS total_discount,
+                    COALESCE(SUM(wf.wv),          0) AS total_waiver,
+                    COALESCE(SUM(p.paid),         0) AS total_paid
+                FROM invoice i
+                LEFT JOIN (
+                    SELECT invoiceID, SUM(weaver) AS wv
+                    FROM weaverandfine WHERE schoolyearID = $sid
+                    GROUP BY invoiceID
+                ) wf ON i.invoiceID = wf.invoiceID
+                LEFT JOIN (
+                    SELECT invoiceID, SUM(paymentamount) AS paid
+                    FROM payment WHERE schoolyearID = $sid
+                    GROUP BY invoiceID
+                ) p ON i.invoiceID = p.invoiceID
+                WHERE i.schoolyearID = $sid AND i.deleted_at = 1
+            ";
+            $fs = $this->db->query($sql_status)->row();
 
-            $feeStatus = ['paid' => 0.0, 'partial' => 0.0, 'due' => 0.0];
-            foreach ($feeStatusRows as $r) {
-                if ($r->paidstatus == 2)     $feeStatus['paid']    = (float)$r->total;
-                elseif ($r->paidstatus == 1) $feeStatus['partial'] = (float)$r->total;
-                else                         $feeStatus['due']     = (float)$r->total;
-            }
+            $fsInvoiced  = (float)($fs->total_invoiced ?? 0);
+            $fsDiscount  = (float)($fs->total_discount ?? 0) + (float)($fs->total_waiver ?? 0);
+            $fsCollected = (float)($fs->total_paid     ?? 0);
+            $fsDue       = max(0, $fsInvoiced - $fsDiscount - $fsCollected);
+
+            $feeStatus = [
+                'invoiced'  => $fsInvoiced,
+                'collected' => $fsCollected,
+                'discount'  => $fsDiscount,
+                'due'       => $fsDue,
+            ];
             $this->data['feeStatus'] = $feeStatus;
 
             // Class-wise invoiced vs collected

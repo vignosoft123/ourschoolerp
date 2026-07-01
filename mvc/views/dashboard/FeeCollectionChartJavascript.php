@@ -3,9 +3,9 @@ $(function () {
 
     /* ── 1. Fee Collection Status Donut ─────────────────────────── */
     var feeStatusData = [
-        { name: 'Fully Paid',    y: <?= (float)($feeStatus['paid']    ?? 0) ?>, color: '#2ecc71' },
-        { name: 'Partial',       y: <?= (float)($feeStatus['partial'] ?? 0) ?>, color: '#f39c12' },
-        { name: 'Due / Unpaid',  y: <?= (float)($feeStatus['due']     ?? 0) ?>, color: '#e74c3c' }
+        { name: 'Collected',       y: <?= (float)($feeStatus['collected'] ?? 0) ?>, color: '#2ecc71' },
+        { name: 'Discount/Waiver', y: <?= (float)($feeStatus['discount']  ?? 0) ?>, color: '#f39c12' },
+        { name: 'Outstanding',     y: <?= (float)($feeStatus['due']       ?? 0) ?>, color: '#e74c3c' }
     ];
     var hasStatusData = feeStatusData.some(function(d){ return d.y > 0; });
     if (hasStatusData) {
