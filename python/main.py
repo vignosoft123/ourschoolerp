@@ -1286,46 +1286,57 @@ async def create_cpanel_subdomain(request: Request):
     except Exception as e:
         results["privileges"] = f"error: {e}"
 
-    # ── Step 6: Import SQL file into new database ────────────────────────────
-    # Files are uploaded to the DUMMY server (not the new subdomain) because:
-    # 1. Dummy server is always live — no DNS propagation delay for new subdomains
-    # 2. Dummy server is on the same physical host, so 'localhost' MySQL = same DB server
-    # NOTE: dummy server is ALWAYS at {home}/{dummy_host} — NOT under public_html.
-    # Regular subdomains use public_html/ but dummy1 lives directly in the FTP home.
+    # ── Step 6: Import SQL file directly via Python mysql.connector ─────────
+    # Connects from localhost to the remote MySQL host using the newly created
+    # DB credentials — no PHP script, no dummy server, no HTTP call needed.
     dummy_host = DUMMY_SERVERS.get(server, "")
     if DB_IMPORT_SQL_PATH and os.path.exists(DB_IMPORT_SQL_PATH):
-        if not dummy_host:
-            results["sql_import"] = f"skipped — no dummy server configured for '{server}'"
+        db_host_for_import = REMOTE_DB_HOSTS.get(server, "")
+        if not db_host_for_import:
+            results["sql_import"] = f"skipped — no remote DB host configured for '{server}'"
         else:
             try:
-                with open(DB_IMPORT_SQL_PATH, "rb") as f:
-                    sql_bytes = f.read()
-                php_script = _build_sql_importer_php(db_name, db_user, db_password)
-                dummy_dir = f"{cp['home']}/{dummy_host}"
-                upload_result = _cpanel_fileman_upload_to_dir(cp, working_auth, dummy_dir, {
-                    "import_db.sql": sql_bytes,
-                    "import_db_run.php": php_script.encode("utf-8"),
-                })
-                if upload_result["failed"]:
-                    results["sql_import"] = f"upload failed: {'; '.join(upload_result['failed'])}"
-                else:
-                    importer_url = f"https://{dummy_host}/import_db_run.php"
-                    try:
-                        imp_resp = requests.get(importer_url, timeout=120, verify=False, headers=BROWSER_HEADERS)
-                        imp_data = imp_resp.json()
-                        if imp_data.get("success"):
-                            err_note = f" ({len(imp_data['errors'])} warnings)" if imp_data.get("errors") else ""
-                            results["sql_import"] = f"imported {imp_data.get('imported', 0)} statements{err_note}"
-                        else:
-                            results["sql_import"] = f"importer error: {imp_data.get('error', 'unknown')}"
-                    except requests.exceptions.Timeout:
-                        results["sql_import"] = "importer timed out (may still be running in background)"
-                    except Exception as e:
-                        results["sql_import"] = f"importer HTTP error: {e}"
+                with open(DB_IMPORT_SQL_PATH, "r", encoding="utf-8", errors="replace") as f:
+                    sql_content = f.read()
+                import_conn = mysql.connector.connect(
+                    host=db_host_for_import,
+                    user=db_user,
+                    password=db_password,
+                    database=db_name,
+                    connect_timeout=30,
+                    charset="utf8mb4",
+                )
+                import_cursor = import_conn.cursor()
+                import_cursor.execute("SET NAMES utf8mb4")
+                stmt = ""
+                count = 0
+                errors = []
+                for line in sql_content.split("\n"):
+                    line = line.rstrip()
+                    if not line or line.startswith("--"):
+                        continue
+                    stmt += line + "\n"
+                    if line.rstrip().endswith(";"):
+                        stmt = stmt.strip()
+                        upper = stmt.upper()
+                        if stmt and not (upper.startswith("USE ") or upper.startswith("CREATE DATABASE")):
+                            try:
+                                import_cursor.execute(stmt)
+                                import_conn.commit()
+                                count += 1
+                            except Error as sql_err:
+                                errors.append(str(sql_err)[:100])
+                        stmt = ""
+                import_cursor.close()
+                import_conn.close()
+                err_note = f" ({len(errors)} warnings)" if errors else ""
+                results["sql_import"] = f"imported {count} statements{err_note}"
+            except mysql.connector.Error as e:
+                results["sql_import"] = f"DB connect error: {e}"
             except Exception as e:
-                results["sql_import"] = f"sql import setup error: {e}"
+                results["sql_import"] = f"import error: {e}"
     else:
-        results["sql_import"] = "skipped (DB_IMPORT_SQL_PATH not set)"
+        results["sql_import"] = "skipped (DB_IMPORT_SQL_PATH not set or file not found)"
 
     # ── Step 7: Full Deploy — unzip all zip files via dummy server ───────────
     # Always push the latest full_deploy.php first so the dummy server definitely has

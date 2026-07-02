@@ -42,6 +42,9 @@
                             <button id="btn_stop_python" class="btn btn-sm btn-success" onclick="stopPythonServer()" title="Stop Python API server" style="display:none;">
                                 <i class="fa fa-stop"></i> Python Server Running
                             </button>
+                            <button id="btn_restart_python" class="btn btn-sm btn-warning" onclick="restartPythonServer()" title="Restart Python server — picks up latest code changes without opening terminal" style="display:none;">
+                                <i class="fa fa-refresh"></i> Restart
+                            </button>
                         </div>
                     </div>
                     <div class="col-sm-8" style="margin-top: 25px;">
@@ -755,8 +758,36 @@ function checkPythonServerStatus() {
 }
 
 function setPythonServerUI(isRunning) {
-    document.getElementById('btn_start_python').style.display = isRunning ? 'none' : '';
-    document.getElementById('btn_stop_python').style.display  = isRunning ? '' : 'none';
+    document.getElementById('btn_start_python').style.display   = isRunning ? 'none' : '';
+    document.getElementById('btn_stop_python').style.display    = isRunning ? '' : 'none';
+    document.getElementById('btn_restart_python').style.display = isRunning ? '' : 'none';
+}
+
+function restartPythonServer() {
+    var btn = document.getElementById('btn_restart_python');
+    btn.disabled  = true;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Restarting...';
+    $.ajax({
+        url: '<?php echo base_url("subdomains/restart_python_server"); ?>',
+        type: 'POST',
+        dataType: 'json',
+        timeout: 20000,
+        success: function(res) {
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fa fa-refresh"></i> Restart';
+            if (res.success) {
+                setPythonServerUI(true);
+                alert('✅ ' + res.message);
+            } else {
+                alert('⚠ ' + res.message);
+            }
+        },
+        error: function() {
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fa fa-refresh"></i> Restart';
+            alert('Restart request failed — server may still be coming up. Wait a few seconds and check status.');
+        }
+    });
 }
 
 function startPythonServer() {

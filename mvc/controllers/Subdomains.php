@@ -476,6 +476,54 @@ class Subdomains extends Admin_Controller {
 		}
 	}
 
+	public function restart_python_server() {
+		header('Content-Type: application/json');
+
+		// Step 1: Kill all processes on port 8000
+		$output = shell_exec('netstat -ano | findstr ":8000 "');
+		$pids   = [];
+		if ($output) {
+			foreach (explode("\n", $output) as $line) {
+				$line = trim($line);
+				if (!$line) continue;
+				$parts = preg_split('/\s+/', $line);
+				$pid   = intval(end($parts));
+				if ($pid > 4) $pids[$pid] = true;
+			}
+		}
+		foreach (array_keys($pids) as $pid) {
+			exec("taskkill /F /T /PID $pid 2>&1");
+		}
+		if (empty($pids)) {
+			exec('taskkill /F /IM python.exe 2>&1');
+		}
+
+		// Step 2: Wait for port to free up
+		sleep(2);
+
+		// Step 3: Start fresh via start_server.bat
+		$bat = 'C:\\xampp\\htdocs\\ourschoolerp\\python\\start_server.bat';
+		if (!file_exists($bat)) {
+			echo json_encode(['success' => false, 'message' => 'start_server.bat not found — cannot restart.']);
+			return;
+		}
+		pclose(popen('start /B "" "' . $bat . '" >NUL 2>&1', 'r'));
+
+		// Step 4: Wait up to 8s for server to respond
+		$started = false;
+		for ($i = 0; $i < 8; $i++) {
+			sleep(1);
+			$check = @fsockopen('127.0.0.1', 8000, $e, $s, 1);
+			if ($check) { fclose($check); $started = true; break; }
+		}
+
+		if ($started) {
+			echo json_encode(['success' => true, 'message' => 'Python server restarted successfully — running with latest code.']);
+		} else {
+			echo json_encode(['success' => false, 'message' => 'Server restarted but not yet responding on port 8000. Wait a few seconds and check.']);
+		}
+	}
+
 	/**
 	 * Deploy MVC to a HostGator or BigRock subdomain by calling bootstrap_copy.php on the dummy server.
 	 * mvc.zip must already be on the dummy server (uploaded via upload_mvc_zip_php).
