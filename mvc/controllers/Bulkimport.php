@@ -533,6 +533,10 @@ class Bulkimport extends Admin_Controller
                             $match = array_diff($column_headers, $csv_col);
                             if(customCompute($match) <= 0) {
                                 $array              = $this->arrayToPost($row);
+                                // 'ID Card Name' column becomes 'id_card_name' via arrayToPost; singlestudentCheck expects 'name'
+                                if (empty($array['name']) && !empty($array['id_card_name'])) {
+                                    $array['name'] = $array['id_card_name'];
+                                }
                                 $singlestudentCheck = $this->singlestudentCheck($array);
                                 if($singlestudentCheck['status']) {
                                     $classID         = $this->get_student_class($row['Class']);
@@ -728,6 +732,7 @@ class Bulkimport extends Admin_Controller
                                 }
                             } else {
                                 $this->session->set_flashdata('error', "Wrong csv file!!");
+                                @unlink($file_path);
                                 redirect(base_url("bulkimport/index"));
                             }
                             $i++;
@@ -736,13 +741,16 @@ class Bulkimport extends Admin_Controller
                             $this->session->set_flashdata('msg', $msg);
                         }
                         $this->session->set_flashdata('success', 'Success');
+                        @unlink($file_path);
                         redirect(base_url("bulkimport/index"));
                     } else {
                         $this->session->set_flashdata('error', $this->lang->line('bulkimport_data_not_found'));
+                        @unlink($file_path);
                         redirect(base_url("bulkimport/index"));
                     }
                 } else {//echo 'else';die;
                     $this->session->set_flashdata('error', "Wrong csv file..!");
+                    @unlink($file_path);
                     redirect(base_url("bulkimport/index"));
                 }
             }
@@ -1176,7 +1184,7 @@ class Bulkimport extends Admin_Controller
             // }
 
             if(!$name) {
-                $retArray['error']['name'] = 'Invalid Teacher Name';
+                $retArray['error']['name'] = 'Invalid Student Name';
             }
             if(!$dob) {
                 $retArray['error']['dob'] = 'Invalid Date Of Birth';

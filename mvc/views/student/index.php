@@ -532,10 +532,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <?php echo $student->srname; ?><?php if (!empty($student->srroll)) { echo ' (' . $student->srroll . ')'; } ?>
                                                         </td>
                                                         
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" class="phone_update"  parentID='<?php echo $student->parentID; ?>'   studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
-                                                        <td>
-                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
-                                                            <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <?php $waNum = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
+                                                        <td data-title="WhatsApp" style="white-space:nowrap;">
+                                                            <span style="color:green;font-weight:bold;border-bottom:1px dashed green;cursor:text;padding:2px 4px;" contenteditable="true" class="whatsapp_update" studentID="<?= $student->srstudentID ?>"><?= $waNum ?></span>
+                                                            <a href="https://wa.me/91<?= $waNum ?>" target="_blank" contenteditable="false" title="Open WhatsApp" style="display:inline-block;background:#25D366;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:13px;margin-left:5px;vertical-align:middle;text-decoration:none;"><i class="fa fa-external-link"></i></a>
                                                         </td>
                                                         
                                                         <td data-title="Address">
@@ -665,10 +666,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <?php echo $student->srname; ?><?php if (!empty($student->srroll)) { echo ' (' . $student->srroll . ')'; } ?>
                                                         </td>
                                                         
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true"  id="phone_update" studentID="<?= $student->srstudentID ?>" parentID='<?php echo $student->parentID; ?>' data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
-                                                        <td>
-                                                            <?php $waPhone = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
-                                                            <a href="tel:<?= $waPhone ?>" style="color: green; font-weight: bold; text-decoration: underline;" title="Call this number on WhatsApp"><?= $waPhone ?></a>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <?php $waNum = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
+                                                        <td data-title="WhatsApp" style="white-space:nowrap;">
+                                                            <span style="color:green;font-weight:bold;border-bottom:1px dashed green;cursor:text;padding:2px 4px;" contenteditable="true" class="whatsapp_update" studentID="<?= $student->srstudentID ?>"><?= $waNum ?></span>
+                                                            <a href="https://wa.me/91<?= $waNum ?>" target="_blank" contenteditable="false" title="Open WhatsApp" style="display:inline-block;background:#25D366;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:13px;margin-left:5px;vertical-align:middle;text-decoration:none;"><i class="fa fa-external-link"></i></a>
                                                         </td>
                                                         
                                                         <td data-title="Address">
@@ -1387,6 +1389,36 @@ $(document).on("focusout","#rollNo",function(){
         });
 })
 
+
+$(document).on("focusout",".whatsapp_update",function(){
+    var $span = $(this);
+    var $link = $span.closest('td').find('a');
+    var studentID = $span.attr('studentID');
+    var phone = $span.text().trim();
+
+    if (/\D/.test(phone)) {
+        alert('WhatsApp number should not contain characters');
+        $span.text('');
+        return false;
+    }
+
+    if (phone.length !== 10) {
+        alert('WhatsApp number should be 10 characters');
+        $span.text('');
+        return false;
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/whatsapp_update')?>",
+        data: {"phone":phone,"studentID":studentID},
+        dataType: "html",
+        success: function(data) {
+            $('.err').html(data);
+            $link.attr('href', 'https://wa.me/91' + phone);
+        }
+    });
+})
 
 $(document).on("focusout",".phone_update",function(){
   

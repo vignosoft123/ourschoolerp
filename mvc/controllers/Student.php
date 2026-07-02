@@ -4110,6 +4110,18 @@ public function phone_update(){
 	// echo $final;
 }
 
+public function whatsapp_update(){
+	$phone     = $_POST['phone'];
+	$studentID = $_POST['studentID'];
+
+	$data = array('alternative_phone1'=>$phone);
+
+	$this->db->where('studentID',$studentID);
+	$this->db->update('student',$data);
+
+	echo "WhatsApp Number updated successfully!";
+}
+
 public function uploadPhoto(){
 	// print_r($_POST);die;
 	$id = $_POST['studentID'];
