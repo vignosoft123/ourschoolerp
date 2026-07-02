@@ -476,6 +476,50 @@ class Subdomains extends Admin_Controller {
 		}
 	}
 
+	// ── Sticky Notes ────────────────────────────────────────────────────────────
+
+	public function sticky_notes_get() {
+		header('Content-Type: application/json');
+		$this->db->query("CREATE TABLE IF NOT EXISTS sticky_notes (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			user_id INT NOT NULL DEFAULT 0,
+			note TEXT,
+			color VARCHAR(20) DEFAULT '#fff9c4',
+			sort_order INT DEFAULT 0,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+		$user_id = intval($this->session->userdata('loginuserID'));
+		$notes   = $this->db->where('user_id', $user_id)->order_by('id', 'DESC')->get('sticky_notes')->result();
+		echo json_encode(['success' => true, 'notes' => $notes]);
+	}
+
+	public function sticky_notes_save() {
+		header('Content-Type: application/json');
+		$id      = intval($this->input->post('id'));
+		$note    = $this->input->post('note');
+		$color   = $this->input->post('color') ?: '#fff9c4';
+		$user_id = intval($this->session->userdata('loginuserID'));
+		if ($id) {
+			$this->db->where('id', $id)->where('user_id', $user_id)
+			         ->update('sticky_notes', ['note' => $note, 'color' => $color]);
+			echo json_encode(['success' => true, 'id' => $id]);
+		} else {
+			$this->db->insert('sticky_notes', ['user_id' => $user_id, 'note' => $note, 'color' => $color]);
+			echo json_encode(['success' => true, 'id' => $this->db->insert_id()]);
+		}
+	}
+
+	public function sticky_notes_delete() {
+		header('Content-Type: application/json');
+		$id      = intval($this->input->post('id'));
+		$user_id = intval($this->session->userdata('loginuserID'));
+		$this->db->where('id', $id)->where('user_id', $user_id)->delete('sticky_notes');
+		echo json_encode(['success' => true]);
+	}
+
+	// ────────────────────────────────────────────────────────────────────────────
+
 	public function restart_python_server() {
 		header('Content-Type: application/json');
 
