@@ -16,8 +16,9 @@
             <div class="col-sm-10">
                 <form class="form-horizontal" role="form" method="post">
 
+                <input type="hidden" id="pickup_id" name="pickup_id" value="">
 
-                <?php 
+                <?php
                         if(form_error('transportID')) 
                             echo "<div class='form-group has-error' >";
                         else     
@@ -172,7 +173,8 @@
 
                     <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-8">
-                            <input type="submit" class="btn btn-success" value="Add Pickup Points" >
+                            <input type="submit" id="submit-btn" class="btn btn-success" value="Add Pickup Points" >
+                            <button type="button" id="cancel-edit-btn" class="btn btn-default" style="display:none;">Cancel</button>
                         </div>
                     </div>
                 </form>
@@ -192,9 +194,7 @@
                                 <th class="col-sm-2">Drop Time</th>
                                 <th class="col-sm-2">Fare</th>
                                 <th class="col-sm-2">Crated Date</th>
-                                <?php //if(permissionChecker('transport_edit') || permissionChecker('transport_delete')) { ?>
-                                    <!-- <th class="col-sm-2"><?=$this->lang->line('action')?></th> -->
-                                <?php //} ?>
+                                <th class="col-sm-1"><?=$this->lang->line('action')?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -223,12 +223,19 @@
                                         <?php echo $transport->created_on; ?>
                                     </td>
 
-                                    <?php //if(permissionChecker('transport_edit') || permissionChecker('transport_delete')) { ?>
-                                        <!-- <td data-title="<?=$this->lang->line('action')?>">
-                                            <?php echo btn_edit('transport/edit/'.$transport->transportID, $this->lang->line('edit')) ?>
-                                            <?php echo btn_delete('transport/delete/'.$transport->transportID, $this->lang->line('delete')) ?>
-                                        </td> -->
-                                    <?php //} ?>
+                                    <td data-title="<?=$this->lang->line('action')?>">
+                                        <a href="javascript:void(0);" class="btn btn-warning btn-xs mrg edit-pickup-btn"
+                                            data-id="<?php echo $transport->id; ?>"
+                                            data-route="<?php echo $transport->route_id; ?>"
+                                            data-pickup="<?php echo htmlspecialchars($transport->pickupPoint); ?>"
+                                            data-pickuptime="<?php echo $transport->pickup_time; ?>"
+                                            data-droptime="<?php echo $transport->droping_time; ?>"
+                                            data-fare="<?php echo $transport->fare; ?>"
+                                            data-placement="top" data-toggle="tooltip" data-original-title="<?=$this->lang->line('edit')?>">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                        <?php echo btn_delete_show('transport/delete_pickup_point/'.$transport->id, $this->lang->line('delete')) ?>
+                                    </td>
                                 </tr>
                             <?php $i++; }} ?>
                         </tbody>
@@ -244,6 +251,34 @@ $(document).ready(function(){
 
 
 
+});
+
+$(document).ready(function () {
+    $('.edit-pickup-btn').on('click', function () {
+        $('#pickup_id').val($(this).data('id'));
+        $('#transportID').val($(this).data('route')).trigger('change');
+        $('#pickup_point').val($(this).data('pickup'));
+        $('#pickup_time').val($(this).data('pickuptime'));
+        $('#drop_time').val($(this).data('droptime'));
+        $('#fare').val($(this).data('fare'));
+
+        $('#submit-btn').val('Update Pickup Point');
+        $('#cancel-edit-btn').show();
+
+        $('html, body').animate({ scrollTop: $('#transportID').offset().top - 100 }, 300);
+    });
+
+    $('#cancel-edit-btn').on('click', function () {
+        $('#pickup_id').val('');
+        $('#transportID').val('0').trigger('change');
+        $('#pickup_point').val('');
+        $('#pickup_time').val('');
+        $('#drop_time').val('');
+        $('#fare').val('');
+
+        $('#submit-btn').val('Add Pickup Points');
+        $(this).hide();
+    });
 });
 
 $(document).ready(function () {

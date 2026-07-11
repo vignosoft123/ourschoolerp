@@ -2063,6 +2063,17 @@ function updateCss(btn, subdomainId, subdomainName) {
     color: #333;
     padding: 0;
     line-height: 1.5;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+    user-select: text !important;
+    pointer-events: auto !important;
+    cursor: text;
+}
+#sticky-drawer, #sticky-notes-list {
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    user-select: text !important;
 }
 .sticky-note-footer {
     display: flex;

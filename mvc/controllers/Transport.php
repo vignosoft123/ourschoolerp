@@ -133,30 +133,27 @@ class Transport extends Admin_Controller {
 		$this->data['pickup_points'] = $this->db->query($sql)->result();
 
 		if($_POST) {
-			 
+
 				$transportID = $this->input->post("transportID");
-				// $array = array(
-				// 	"capacity" => $this->input->post("capacity"),
-				// 	"fare" => $this->input->post("fare"),
-				// 	"pickupPoint" => $this->input->post("pickup_point"),
-				// 	"pickup_time" => $this->input->post("pickup_time"),
-				// 	"droping_time" => $this->input->post("drop_time"),
-				// );
-				// $this->db->where('transportID',$transportID);
-				// $this->db->update('transport',$array);
 
+				$pickup_id = (int) $this->input->post("pickup_id");
 
-			
-				$insert_array = array(
+				$array = array(
 					"fare" => $this->input->post("fare"),
 					"pickupPoint" => $this->input->post("pickup_point"),
 					"pickup_time" => $this->input->post("pickup_time"),
 					"droping_time" => $this->input->post("drop_time"),
-					"route_id" => $this->input->post("transportID"),
-					"year_id" => $year_id,
+					"route_id" => $transportID,
 				);
-				$this->db->insert('pickup_points',$insert_array);
- 
+
+				if($pickup_id > 0) {
+					$this->db->where('id', $pickup_id);
+					$this->db->update('pickup_points', $array);
+				} else {
+					$array["year_id"] = $year_id;
+					$this->db->insert('pickup_points', $array);
+				}
+
 				$this->session->set_flashdata('success', $this->lang->line('menu_success'));
 				redirect(base_url("transport/add_new"));
 			//}
@@ -164,6 +161,16 @@ class Transport extends Admin_Controller {
 			$this->data["subview"] = "transport/add_new";
 			$this->load->view('_layout_main', $this->data);
 		}
+	}
+
+	public function delete_pickup_point() {
+		$id = (int) $this->uri->segment(3);
+		if($id) {
+			$this->db->where('id', $id);
+			$this->db->delete('pickup_points');
+			$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+		}
+		redirect(base_url("transport/add_new"));
 	}
 
 	public function edit() {
