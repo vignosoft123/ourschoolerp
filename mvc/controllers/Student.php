@@ -2420,7 +2420,9 @@ class Student extends Admin_Controller
 
 				// echo "<pre>@@@@@@@@";print_r($objStudent);
 				 
+				$current_pickup_id = (int) ($objStudent->pickup_id ?? 0);
 				$this->db->where('route_id',$objStudent->villageID);
+				$this->db->where("(active_status = 1 OR id = $current_pickup_id)");
 				$this->data['pickup_points'] = $this->db->get('pickup_points')->result_array();
 
 				$this->data['parents']  = $this->parents_m->get_parents();
@@ -3981,6 +3983,7 @@ public function saveinvoice($inv_data)
 public function get_pickup_points(){
 	$transport_id = $_POST['id'];
 	$this->db->where('route_id',$transport_id);
+	$this->db->where('active_status',1);
 	$p_res = $this->db->get('pickup_points')->result_array();
 	$html = "<option value='0'>Select Pikcup point</option>";
 	foreach($p_res as $p){
@@ -4120,6 +4123,183 @@ public function whatsapp_update(){
 	$this->db->update('student',$data);
 
 	echo "WhatsApp Number updated successfully!";
+}
+
+public function address_update(){
+	$address   = $_POST['address'];
+	$studentID = $_POST['studentID'];
+
+	$data = array('address'=>$address);
+
+	$this->db->where('studentID',$studentID);
+	$this->db->update('student',$data);
+
+	echo "Address updated successfully!";
+}
+
+public function village_update(){
+	$villageID = $_POST['villageID'];
+	$studentID = $_POST['studentID'];
+
+	$data = array('villageID'=>$villageID);
+
+	$this->db->where('studentID',$studentID);
+	$this->db->update('student',$data);
+
+	echo "Village updated successfully!";
+}
+
+public function roll_update(){
+	header('Content-Type: application/json');
+
+	$studentID    = $_POST['studentID'];
+	$classesID    = $_POST['classesID'];
+	$sectionID    = $_POST['sectionID'];
+	$rollNo       = trim($_POST['rollNo']);
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+	if ($rollNo === '' || !ctype_digit((string)$rollNo)) {
+		echo json_encode(array('success' => false, 'message' => 'Roll number must be numeric.'));
+		return;
+	}
+
+	$this->db->where('classesID', $classesID);
+	$this->db->where('sectionID', $sectionID);
+	$this->db->where('roll', $rollNo);
+	$this->db->where('schoolyearID', $schoolyearID);
+	$this->db->where('studentID !=', $studentID);
+	$existing = $this->db->get('student')->result_array();
+
+	if (!empty($existing)) {
+		$names = array();
+		foreach ($existing as $r) {
+			$names[] = $r['name'];
+		}
+
+		$this->db->where('classesID', $classesID);
+		$this->db->where('sectionID', $sectionID);
+		$this->db->where('schoolyearID', $schoolyearID);
+		$cnt = $this->db->get('student')->num_rows();
+
+		echo json_encode(array(
+			'success' => false,
+			'message' => 'Roll Number already allocated to ' . implode(', ', $names) . '. Suggested Roll No: ' . ($cnt + 1),
+		));
+		return;
+	}
+
+	$this->db->where('studentID', $studentID);
+	$this->db->update('student', array('roll' => $rollNo));
+
+	$this->db->where('srstudentID', $studentID);
+	$this->db->update('studentrelation', array('srroll' => $rollNo));
+
+	echo json_encode(array('success' => true));
+}
+
+public function studenttype_update(){
+	$studentType = $_POST['studentType'];
+	$studentID   = $_POST['studentID'];
+
+	// Day scholar (or any non transport/hostel type) — clear any existing
+	// transport/hostel membership so stale records don't linger.
+	$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
+	if ($hmember) {
+		$this->hmember_m->delete_hmember($hmember->hmemberID);
+	}
+	$this->tmember_m->delete_tmember_sID($studentID);
+
+	$data = array('studentType' => $studentType, 'transport' => 0, 'hostel' => 0);
+
+	$this->db->where('studentID',$studentID);
+	$this->db->update('student',$data);
+
+	echo "Student Type updated successfully!";
+}
+
+public function assign_transport(){
+	$studentID   = $_POST['studentID'];
+	$transportID = $_POST['transportID'];
+	$pickup_id   = $_POST['pickup_id'];
+	$tbalance    = $_POST['tbalance'];
+
+	if (!$studentID || !$transportID || !$pickup_id) {
+		echo json_encode(array('success' => false, 'message' => 'Please select route and pickup point.'));
+		return;
+	}
+
+	$student = $this->student_m->get_single_student(array('studentID' => $studentID));
+
+	$transPortArray = array(
+		"studentID"   => $studentID,
+		"transportID" => $transportID,
+		"name"        => $student->name,
+		"email"       => $student->email,
+		"phone"       => $student->phone,
+		"tbalance"    => $tbalance,
+	);
+
+	$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
+	if ($hmember) {
+		$this->hmember_m->delete_hmember($hmember->hmemberID);
+	}
+
+	$existingTmember = $this->tmember_m->get_single_tmember(array('studentID' => $studentID));
+	if ($existingTmember) {
+		$this->tmember_m->update_tmember($transPortArray, $existingTmember->tmemberID);
+	} else {
+		$transPortArray["tjoindate"] = date("Y-m-d");
+		$this->tmember_m->insert_tmember($transPortArray);
+	}
+
+	$this->db->where('studentID', $studentID);
+	$this->db->update('student', array(
+		'studentType' => 1,
+		'pickup_id'   => $pickup_id,
+		'transport'   => 1,
+		'hostel'      => 0,
+	));
+
+	echo json_encode(array('success' => true));
+}
+
+public function assign_hostel(){
+	$studentID  = $_POST['studentID'];
+	$hostelID   = $_POST['hostelID'];
+	$categoryID = $_POST['categoryID'];
+
+	if (!$studentID || !$hostelID || !$categoryID) {
+		echo json_encode(array('success' => false, 'message' => 'Please select hostel and category.'));
+		return;
+	}
+
+	$category = $this->category_m->get_single_category(array('hostelID' => $hostelID, 'categoryID' => $categoryID));
+
+	$hostelArray = array(
+		"hostelID"   => $hostelID,
+		"categoryID" => $categoryID,
+		"studentID"  => $studentID,
+		"hbalance"   => $category ? $category->hbalance : 0,
+	);
+
+	$this->tmember_m->delete_tmember_sID($studentID);
+
+	$existingHmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
+	if ($existingHmember) {
+		$this->hmember_m->update_hmember($hostelArray, $existingHmember->hmemberID);
+	} else {
+		$hostelArray["hjoindate"] = date("Y-m-d");
+		$this->hmember_m->insert_hmember($hostelArray);
+	}
+
+	$this->db->where('studentID', $studentID);
+	$this->db->update('student', array(
+		'studentType' => 2,
+		'hostel'      => 1,
+		'transport'   => 0,
+	));
+
+	echo json_encode(array('success' => true));
 }
 
 public function uploadPhoto(){

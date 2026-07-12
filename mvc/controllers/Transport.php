@@ -24,7 +24,12 @@ class Transport extends Admin_Controller {
 	}
 
 	public function index() {
-		$this->data['transports'] = $this->transport_m->get_order_by_transport();
+		$sql = "select t.*, d.name as driver_name, a.name as attender_name
+				from transport t
+				left join user d on d.userID = t.driverID
+				left join user a on a.userID = t.attenderID
+				order by t.transportID asc";
+		$this->data['transports'] = $this->db->query($sql)->result();
 		$this->data["subview"] = "transport/index";
 		$this->load->view('_layout_main', $this->data);
 	}
@@ -163,25 +168,34 @@ class Transport extends Admin_Controller {
 		}
 	}
 
-	public function delete_pickup_point() {
+	public function toggle_status_pickup_point() {
+		header('Content-Type: application/json');
 		$id = (int) $this->uri->segment(3);
 		if($id) {
-			$this->db->where('id', $id);
-			$this->db->delete('pickup_points');
-			$this->session->set_flashdata('success', $this->lang->line('menu_success'));
+			$row = $this->db->where('id', $id)->get('pickup_points')->row();
+			if($row) {
+				$new_status = ($row->active_status == 1) ? 0 : 1;
+				$this->db->where('id', $id);
+				$this->db->update('pickup_points', array('active_status' => $new_status));
+				echo json_encode(array('success' => true, 'active_status' => $new_status));
+				return;
+			}
 		}
-		redirect(base_url("transport/add_new"));
+		echo json_encode(array('success' => false));
 	}
 
 	public function edit() {
 		$id = htmlentities(escapeString($this->uri->segment(3)));
 
-		$this->db->where('usertypeID',13);
+		$driver_user_type_id = $this->db->query("select usertypeID from usertype where usertype='Driver'")->row()->usertypeID;
+		$attender_user_type_id = $this->db->query("select usertypeID from usertype where usertype='Attender'")->row()->usertypeID;
+
+		$this->db->where('usertypeID',$driver_user_type_id);
 		$this->data["drivers"] = $this->db->get('user')->result();
 
-		$this->db->where('usertypeID',14);
+		$this->db->where('usertypeID',$attender_user_type_id);
 		$this->data["attenders"] = $this->db->get('user')->result();
-		
+
 		if((int)$id) {
 			$this->data['transport'] = $this->transport_m->get_transport($id);
 			if($this->data['transport']) {
@@ -201,6 +215,7 @@ class Transport extends Admin_Controller {
 							"driverID" => $this->input->post("driverID"),
 							"vehicle_type" => $this->input->post("vehicle_type"),
 							"attenderID" => $this->input->post("attenderID"),
+							"capacity" => $this->input->post("capacity"),
 						);
 
 						$this->transport_m->update_transport($array, $id);
@@ -221,20 +236,19 @@ class Transport extends Admin_Controller {
 		}	
 	}
 
-	public function delete() {
-		$id = htmlentities(escapeString($this->uri->segment(3)));
-		if((int)$id) {
-			$lmembers = $this->tmember_m->get_order_by_tmember(array("transportID" => $id));
-			foreach ($lmembers as $lmember) {
-				$this->student_m->update_student_classes(array("transport" => 0), array("studentID" => $lmember->studentID));
+	public function toggle_status() {
+		header('Content-Type: application/json');
+		$id = (int) $this->uri->segment(3);
+		if($id) {
+			$row = $this->transport_m->get_single_transport(array('transportID' => $id));
+			if($row) {
+				$new_status = ($row->active_status == 1) ? 0 : 1;
+				$this->transport_m->update_transport(array('active_status' => $new_status), $id);
+				echo json_encode(array('success' => true, 'active_status' => $new_status));
+				return;
 			}
-			$this->tmember_m->delete_tmember_tID($id);
-			$this->transport_m->delete_transport($id);
-			$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-			redirect(base_url("transport/index"));
-		} else {
-			redirect(base_url("transport/index"));
 		}
+		echo json_encode(array('success' => false));
 	}
 
 	function unique_route() {

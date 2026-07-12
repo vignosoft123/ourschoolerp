@@ -95,12 +95,13 @@
                         </label>
                         <div class="col-sm-6">
                             
+                        <?php $selectedVehicleType = set_value('vehicle_type', $transport->vehicle_type); ?>
                         <select name="vehicle_type" id="vehicle_type" class='form-control select2'>
-                            <option value=""> </otion>
-                            <option value="1">Mini Bus </otion>
-                            <option value="2">Van </otion>
-                            <option value="3">Bus </otion>
-                            <option value="4">Auto </otion>
+                            <option value="" <?=($selectedVehicleType == '') ? 'selected' : ''?>> </option>
+                            <option value="1" <?=($selectedVehicleType == '1') ? 'selected' : ''?>>Mini Bus </option>
+                            <option value="2" <?=($selectedVehicleType == '2') ? 'selected' : ''?>>Van </option>
+                            <option value="3" <?=($selectedVehicleType == '3') ? 'selected' : ''?>>Bus </option>
+                            <option value="4" <?=($selectedVehicleType == '4') ? 'selected' : ''?>>Auto </option>
                         </select>
                            
                         </div>
@@ -128,7 +129,7 @@
                                 foreach ($drivers as $driver) {
                                     $array[$driver->userID] = $driver->name;
                                 }
-                                echo form_dropdown("driverID", $array, set_value("userID"), "id='driverID' class='form-control select2'");
+                                echo form_dropdown("driverID", $array, set_value("driverID", $transport->driverID), "id='driverID' class='form-control select2'");
                             ?>
                         </div>
                         <span class="col-sm-4 control-label">
@@ -156,7 +157,7 @@
                                 foreach ($attenders as $attender) {
                                     $array[$attender->userID] = $attender->name;
                                 }
-                                echo form_dropdown("attenderID", $array, set_value("userID"), "id='attenderID' class='form-control select2'");
+                                echo form_dropdown("attenderID", $array, set_value("attenderID", $transport->attenderID), "id='attenderID' class='form-control select2'");
                             ?>
                         </div>
                         <span class="col-sm-4 control-label">
@@ -164,10 +165,27 @@
                         </span>
                     </div>
                     
-                    <?php 
-                        if(form_error('note')) 
+                    <?php
+                        if(form_error('capacity'))
                             echo "<div class='form-group has-error' >";
-                        else     
+                        else
+                            echo "<div class='form-group' >";
+                    ?>
+                        <label for="capacity" class="col-sm-2 control-label">
+                            capacity <span class="text-red">*</span>
+                        </label>
+                        <div class="col-sm-6">
+                            <input type="text" class="form-control" id="capacity" name="capacity" value="<?=set_value('capacity', $transport->capacity)?>" >
+                        </div>
+                        <span class="col-sm-4 control-label">
+                            <?php echo form_error('capacity'); ?>
+                        </span>
+                    </div>
+
+                    <?php
+                        if(form_error('note'))
+                            echo "<div class='form-group has-error' >";
+                        else
                             echo "<div class='form-group' >";
                     ?>
                         <label for="note" class="col-sm-2 control-label">

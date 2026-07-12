@@ -63,6 +63,8 @@ ALTER TABLE `feetypes`       ADD COLUMN IF NOT EXISTS `active_status`           
 ALTER TABLE `transport`      ADD COLUMN IF NOT EXISTS `year_id`                    INT             NULL DEFAULT '0';
 
 ALTER TABLE `pickup_points`  ADD COLUMN IF NOT EXISTS `year_id`                    INT             NULL DEFAULT '0';
+ALTER TABLE `pickup_points`  ADD COLUMN IF NOT EXISTS `active_status`              TINYINT(1)      NOT NULL DEFAULT '1';
+ALTER TABLE `transport`      ADD COLUMN IF NOT EXISTS `active_status`              TINYINT(1)      NOT NULL DEFAULT '1';
 
 ALTER TABLE `marksetting`    ADD COLUMN IF NOT EXISTS `schoolyear_id`              INT(11)         NOT NULL DEFAULT '0';
 

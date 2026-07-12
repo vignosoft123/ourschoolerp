@@ -101,6 +101,68 @@ class Village extends Admin_Controller {
 	}
 
 
+	public function ajax_add() {
+		header('Content-Type: application/json');
+		$villageName = trim($this->input->post('villageName'));
+
+		if (!$villageName) {
+			echo json_encode(array('success' => false, 'message' => 'Village name is required.'));
+			return;
+		}
+
+		$existing = $this->village_m->get_order_by_village(array('villageName' => $villageName));
+		if (customCompute($existing)) {
+			echo json_encode(array('success' => false, 'message' => 'Village already exists.'));
+			return;
+		}
+
+		$array = array(
+			"villageName" => $villageName,
+			"status" => 1,
+		);
+		$this->village_m->insert_village($array);
+		$villageID = $this->db->insert_id();
+
+		echo json_encode(array('success' => true, 'villageID' => $villageID, 'villageName' => $villageName));
+	}
+
+	public function ajax_update() {
+		header('Content-Type: application/json');
+		$id = (int) $this->input->post('villageID');
+		$villageName = trim($this->input->post('villageName'));
+		$status = (int) $this->input->post('status');
+
+		if (!$id || !$villageName) {
+			echo json_encode(array('success' => false, 'message' => 'Village name is required.'));
+			return;
+		}
+
+		$existing = $this->village_m->get_order_by_village(array('villageName' => $villageName, 'villageID !=' => $id));
+		if (customCompute($existing)) {
+			echo json_encode(array('success' => false, 'message' => 'Village already exists.'));
+			return;
+		}
+
+		$this->village_m->update_village(array('villageName' => $villageName, 'status' => $status), $id);
+
+		echo json_encode(array('success' => true, 'villageID' => $id, 'villageName' => $villageName, 'status' => $status));
+	}
+
+	public function toggle_status() {
+		header('Content-Type: application/json');
+		$id = (int) $this->uri->segment(3);
+		if ($id) {
+			$row = $this->village_m->get_single_village(array('villageID' => $id));
+			if ($row) {
+				$new_status = ($row->status == 1) ? 0 : 1;
+				$this->village_m->update_village(array('status' => $new_status), $id);
+				echo json_encode(array('success' => true, 'status' => $new_status));
+				return;
+			}
+		}
+		echo json_encode(array('success' => false));
+	}
+
 	public function unique_village() {
 		$id = htmlentities(escapeString($this->uri->segment(3)));
 		if((int)$id) {

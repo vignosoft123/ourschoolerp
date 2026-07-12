@@ -701,7 +701,7 @@ class Tmember extends Admin_Controller {
 	}
 public function pickup_points(){
 	$route_id = $_POST['id'];
-	$result = $this->db->query("select * from pickup_points where route_id = '".$route_id."'")->result_array();
+	$result = $this->db->query("select * from pickup_points where route_id = '".$route_id."' and active_status = 1")->result_array();
 	$html = "<option value=''>Select</option>";
 	foreach($result as $res){
 		$html .=  '<option value="'.$res["id"].'" >'.$res["pickupPoint"].'</option>';

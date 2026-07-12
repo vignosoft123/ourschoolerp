@@ -794,9 +794,9 @@
                 ?>
                 <label for="student_village" class="  control-label">
                     <?= $this->lang->line("student_village") ?> <span class="text-red">*</span>
-                    <a title="Add Villege" target="_blank" href="<?= base_url('Village');?>" taret="_blank"> <i class="fa fa-plus" ></i></a>
+                    <a title="Add Village" href="javascript:void(0);" data-toggle="modal" data-target="#addVillageModal"> <i class="fa fa-plus" ></i></a>
                 </label>
-                
+
                     <!-- <input type="text" class="form-control" id="village_name" name="village_name" value="<?= set_value('village_name') ?>"> -->
                     <select id="village_name" name="village_name" class='form-control select2' >
                         <?php foreach($villages as $v){?>
@@ -1464,5 +1464,72 @@ $('.student-form-info').on('submit', function(e) {
         var $first = $f.find('.has-error').first();
         if ($first.length) $('html,body').animate({scrollTop: $first.offset().top - 120}, 400);
     }
+});
+</script>
+
+<div class="modal fade" id="addVillageModal" tabindex="-1" role="dialog" aria-labelledby="addVillageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width:400px;margin-top:120px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#0cc035;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
+                <h4 class="modal-title" id="addVillageModalLabel" style="font-size:16px;font-weight:700;">
+                    <i class="fa fa-map-marker"></i> Add Village
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:20px 24px;">
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label style="font-weight:600;">Village Name <span class="text-red">*</span></label>
+                    <input type="text" id="newVillageName" class="form-control" placeholder="Enter village name">
+                    <span id="newVillageNameError" class="text-red" style="font-size:12px;"></span>
+                </div>
+                <button type="button" id="saveNewVillageBtn" class="btn btn-success btn-block" style="margin-top:10px;">Save Village</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(function () {
+    $('body').append($('#addVillageModal').detach());
+});
+
+$(document).on('shown.bs.modal', '#addVillageModal', function () {
+    $('#newVillageName').val('').focus();
+    $('#newVillageNameError').text('');
+});
+
+$(document).on('click', '#saveNewVillageBtn', function () {
+    var name = $.trim($('#newVillageName').val());
+    $('#newVillageNameError').text('');
+    if (!name) {
+        $('#newVillageNameError').text('Village name is required.');
+        return;
+    }
+
+    var $btn = $(this);
+    $btn.prop('disabled', true).text('Saving...');
+
+    $.ajax({
+        url: "<?php echo base_url('Village/ajax_add'); ?>",
+        type: 'POST',
+        data: { villageName: name },
+        dataType: 'json',
+        success: function (res) {
+            if (res.success) {
+                var $option = $('<option>', { value: res.villageID, text: res.villageName });
+                $('#village_name').append($option).val(res.villageID).trigger('change');
+                $('#addVillageModal').modal('hide');
+                toastr.success('Village added successfully.');
+            } else {
+                $('#newVillageNameError').text(res.message || 'Failed to add village.');
+            }
+        },
+        error: function () {
+            $('#newVillageNameError').text('Request failed. Please try again.');
+        },
+        complete: function () {
+            $btn.prop('disabled', false).text('Save Village');
+        }
+    });
 });
 </script>

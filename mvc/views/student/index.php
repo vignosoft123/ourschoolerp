@@ -71,6 +71,13 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         white-space: nowrap;
     }
 
+    /* Contain wide tables to a horizontal scrollbar instead of stretching the whole page */
+    #hide-table {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        position: relative;
+    }
+
     /* Enhanced Table Styling */
     #example1 {
         border-collapse: separate !important;
@@ -80,9 +87,34 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         border-radius: 8px !important;
         overflow: hidden !important;
         margin: 15px 0 !important;
-        width: 100% !important;
+        /* was width:100% !important, which forced columns to squeeze/wrap instead of
+           overflowing — that's why the scrollbar never appeared and Action icons got
+           clipped. A hard px min-width guarantees the table stays wide enough that it
+           overflows #hide-table on any normal screen, regardless of how DataTables'
+           own auto-width calculation sizes individual columns. */
+        width: auto !important;
+        min-width: 1900px !important;
         border: 1px solid #e0e0e0 !important;
     }
+
+    /* Sticky Action column — icons stay visible no matter how far the table scrolls */
+    #example1 th.sticky-col-action,
+    #example1 td.sticky-col-action {
+        position: sticky;
+        right: 0;
+        z-index: 2;
+        background: #fff !important;
+        box-shadow: -2px 0 5px rgba(0,0,0,0.12);
+    }
+    #example1 thead th.sticky-col-action {
+        background: #1558b0 !important;
+        z-index: 3;
+    }
+    #example1 tbody tr:nth-child(even) td.sticky-col-action { background: #f9f9f9 !important; }
+    #example1 tbody tr:hover td.sticky-col-action { background: #ffe0b2 !important; }
+
+    /* Force these two popups above any stray/leftover backdrop (backdrop z-index is set in JS) */
+    #assignTransportModal, #assignHostelModal { z-index: 10520 !important; }
 
     #example1 thead {
         background: linear-gradient(135deg, #1a73e8 0%, #1045a8 100%) !important;
@@ -471,6 +503,14 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
 
                 <?php if (customCompute($students) > 0) { ?>
+                    <div id="studentStatusFilterWrap" style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;">
+                        <label for="studentStatusFilter" style="margin:0;font-weight:600;font-size:12px;color:#333;white-space:nowrap;">Status:</label>
+                        <select id="studentStatusFilter" class="form-control" style="width:140px;height:34px;padding:4px 8px;display:inline-block;">
+                            <option value="all">All Students</option>
+                            <option value="active">Active Only</option>
+                            <option value="inactive">Inactive Only</option>
+                        </select>
+                    </div>
                     <div class="nav-tabs-custom">
                         <ul class="nav nav-tabs">
                             <li class="active"><a data-toggle="tab" href="#all" aria-expanded="true"><?= $this->lang->line("student_all_students") ?></a></li>
@@ -497,15 +537,17 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
                                                 <th class="col-sm-2">Address</th>
+                                                <th class="col-sm-1">Village</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                 <th>Class</th>
                                                 <th>Section</th>
+                                                <th>Roll No</th>
                                                 <th>RFID</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>
                                                 <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                    <th class="col-sm-2"><?= $this->lang->line('action') ?></th>
+                                                    <th class="col-sm-2 sticky-col-action"><?= $this->lang->line('action') ?></th>
                                                 <?php } ?>
                                             </tr>
                                         </thead>
@@ -539,14 +581,22 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <a href="https://wa.me/91<?= $waNum ?>" target="_blank" contenteditable="false" title="Open WhatsApp" style="display:inline-block;background:#25D366;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:13px;margin-left:5px;vertical-align:middle;text-decoration:none;"><i class="fa fa-external-link"></i></a>
                                                         </td>
                                                         
-                                                        <td data-title="Address">
-                                                            <?php echo htmlspecialchars($student->address ?? ''); ?>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="address_update" studentID="<?= $student->srstudentID ?>" data-title="Address"><?php echo htmlspecialchars($student->address ?? ''); ?></td>
+                                                        <td data-title="Village">
+                                                            <select class="village_update form-control" studentID="<?= $student->srstudentID ?>" style="min-width:110px;">
+                                                                <option value="0">--Select--</option>
+                                                                <?php foreach ($villages as $v) { ?>
+                                                                    <option value="<?= $v['villageID'] ?>" <?php if (isset($student->villageID) && $student->villageID == $v['villageID']) echo 'selected'; ?>><?= $v['villageName'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </td>
-                                                        <?php 
-                                                            $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR", 0 =>'')
-                                                        ?>
                                                         <td data-title="<?= $this->lang->line('studentType') ?>">
-                                                            <?php echo  ($studentType[$student->studentType]) ?  $studentType[$student->studentType] : 'DAY SCHOLAR'; ?>
+                                                            <?php $curType = $student->studentType ?: 3; ?>
+                                                            <select class="studenttype_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $curType ?>" style="min-width:130px;">
+                                                                <option value="3" <?php if ($curType == 3) echo 'selected'; ?>>DAY SCHOLAR</option>
+                                                                <option value="1" <?php if ($curType == 1) echo 'selected'; ?>>TRANSPORT</option>
+                                                                <option value="2" <?php if ($curType == 2) echo 'selected'; ?>>HOSTEL</option>
+                                                            </select>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_class') ?>">
                                                             <?php echo $student->srclasses; ?>
@@ -554,6 +604,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="<?= $this->lang->line('student_section') ?>">
                                                             <?php echo $student->srsection; ?>
                                                         </td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
@@ -574,7 +625,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 $set = $student->srclassesID;
                                                             }
                                                             ?>
-                                                            <td class="action-btns" data-title="<?= $this->lang->line('action') ?>">
+                                                            <td class="action-btns sticky-col-action" data-title="<?= $this->lang->line('action') ?>">
                                                                 <?php
                                                                 echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
                                                                 if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
@@ -627,16 +678,18 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                     <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                     <th>WhatsApp</th>
                                                     <th class="col-sm-2">Address</th>
+                                                    <th class="col-sm-1">Village</th>
                                                     <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
 
                                                      <th>Class</th>
                                                     <th>Section</th>
+                                                    <th>Roll No</th>
                                                     <th>RFID</th>
                                                     <?php if (permissionChecker('student_edit')) { ?>
                                                         <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                     <?php } ?>
                                                     <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                        <th class="col-sm-2"><?= $this->lang->line('action') ?></th>
+                                                        <th class="col-sm-2 sticky-col-action"><?= $this->lang->line('action') ?></th>
                                                     <?php } ?>
                                                     </tr>
                                             </thead>
@@ -644,7 +697,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <?php if (customCompute($allsection[$section->sectionID])) {
                                                     $i = 1;
                                                     foreach ($allsection[$section->sectionID] as $student) {
-                                                        if ($section->sectionID === $student->srsectionID) { ?>
+                                                        if ($section->sectionID == $student->srsectionID) { ?>
                                                             <tr>
                                                             <td style="text-align:center"><input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" /></td>
                                                             <td data-title="<?= $this->lang->line('slno') ?>">
@@ -673,14 +726,22 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <a href="https://wa.me/91<?= $waNum ?>" target="_blank" contenteditable="false" title="Open WhatsApp" style="display:inline-block;background:#25D366;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:13px;margin-left:5px;vertical-align:middle;text-decoration:none;"><i class="fa fa-external-link"></i></a>
                                                         </td>
                                                         
-                                                        <td data-title="Address">
-                                                            <?php echo htmlspecialchars($student->address ?? ''); ?>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="address_update" studentID="<?= $student->srstudentID ?>" data-title="Address"><?php echo htmlspecialchars($student->address ?? ''); ?></td>
+                                                        <td data-title="Village">
+                                                            <select class="village_update form-control" studentID="<?= $student->srstudentID ?>" style="min-width:110px;">
+                                                                <option value="0">--Select--</option>
+                                                                <?php foreach ($villages as $v) { ?>
+                                                                    <option value="<?= $v['villageID'] ?>" <?php if (isset($student->villageID) && $student->villageID == $v['villageID']) echo 'selected'; ?>><?= $v['villageName'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </td>
-                                                        <?php 
-                                                            $studentType = array('' => 'Select Student Type', 1 => "TRANSPORT", 2 => "HOSTEL" , 3 => "DAY SCHOLAR", 0 =>'')
-                                                        ?>
                                                         <td data-title="<?= $this->lang->line('studentType') ?>">
-                                                            <?php echo  ($studentType[$student->studentType]) ?  $studentType[$student->studentType] : 'DAY SCHOLAR'; ?>
+                                                            <?php $curType = $student->studentType ?: 3; ?>
+                                                            <select class="studenttype_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $curType ?>" style="min-width:130px;">
+                                                                <option value="3" <?php if ($curType == 3) echo 'selected'; ?>>DAY SCHOLAR</option>
+                                                                <option value="1" <?php if ($curType == 1) echo 'selected'; ?>>TRANSPORT</option>
+                                                                <option value="2" <?php if ($curType == 2) echo 'selected'; ?>>HOSTEL</option>
+                                                            </select>
                                                         </td>
                                                              <td data-title="<?= $this->lang->line('student_class') ?>">
                                                             <?php echo $student->srclasses; ?>
@@ -688,6 +749,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="<?= $this->lang->line('student_section') ?>">
                                                             <?php echo $student->srsection; ?>
                                                         </td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
@@ -708,7 +770,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 $set = $student->srclassesID;
                                                             }
                                                             ?>
-                                                            <td class="action-btns" data-title="<?= $this->lang->line('action') ?>">
+                                                            <td class="action-btns sticky-col-action" data-title="<?= $this->lang->line('action') ?>">
                                                                 <?php
                                                                 echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
                                                                 if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
@@ -769,15 +831,17 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
                                                 <th class="col-sm-2">Address</th>
+                                                <th class="col-sm-1">Village</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                  <th>Class</th>
                                                 <th>Section</th>
+                                                <th>Roll No</th>
                                                 <th>RFID</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>
                                                 <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                    <th class="col-sm-2"><?= $this->lang->line('action') ?></th>
+                                                    <th class="col-sm-2 sticky-col-action"><?= $this->lang->line('action') ?></th>
                                                 <?php } ?>
                                             </tr>
                                         </thead>
@@ -842,17 +906,27 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 </div>
 
 <!-- queck student popup start -->
+<style>
+/* Ensure this modal always renders above the AdminLTE left sidebar, regardless of stacking context */
+#quickStudentModal { z-index: 100000; }
+.modal-backdrop { z-index: 99990; }
+/* select2 dropdown panels default to z-index:9999 (select2.css) — raise above the modal so
+   Class/Section/Village/Refered By/Pickup Point option lists are visible instead of hidden behind it */
+.select2-drop-mask { z-index: 100010 !important; }
+.select2-drop { z-index: 100020 !important; }
+#qsAddVillageModal { z-index: 100030; }
+</style>
                          <div class="modal fade" id="quickStudentModal" tabindex="-1" role="dialog" aria-labelledby="quickStudentModalLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-xl" role="document">
+                            <div class="modal-dialog modal-xl" role="document" style="max-width: 1400px; width: 95%;">
                                 <form id="quickStudentForm" method="post" action="<?= base_url('student/add') ?>">
                                 <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 15px 60px rgba(0,0,0,0.25); overflow: hidden;">
 
                                     <!-- Header -->
-                                    <div class="modal-header" style="background: linear-gradient(135deg, #0cc035 0%, #0a9d2b 100%); color: white; border: none; padding: 25px 30px;">
-                                    <h5 class="modal-title" id="quickStudentModalLabel" style="font-weight: 600; font-size: 22px; display: flex; align-items: center; gap: 12px;">
-                                        <i class="fa fa-user-plus" style="font-size: 24px;"></i> Quick Student Creation
+                                    <div class="modal-header" style="background: linear-gradient(135deg, #0cc035 0%, #0a9d2b 100%); color: white; border: none; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
+                                    <h5 class="modal-title" id="quickStudentModalLabel" style="font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; margin: 0;">
+                                        <i class="fa fa-user-plus" style="font-size: 17px;"></i> Quick Student Creation
                                     </h5>
-                                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.9; font-size: 32px; font-weight: 300; text-shadow: none;">
+                                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="position: static; float: none; opacity: 0.9; font-size: 22px; font-weight: 300; line-height: 1; margin: 0; padding: 0; text-shadow: none; background: transparent; border: 0;">
                                         <span aria-hidden="true">&times;</span>
                                     </button>
                                     </div>
@@ -862,8 +936,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     <div class="container-fluid">
 
                                         <!-- Basic Info -->
-                                        <fieldset class="border p-4 mb-4 bg-white shadow-sm" style="border-radius: 15px; border: 2px solid #e0e0e0 !important;">
-                                        <legend class="w-auto font-weight-bold" style="color: #0cc035; font-size: 18px; padding: 0 10px;"><i class="fa fa-info-circle"></i> Basic Information</legend>
+                                        <div class="mb-4">
                                         <div class="row">
                                             
                                             <div class="col-md-3 form-group">
@@ -874,16 +947,17 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                             <label>Last Name</label>
                                             <input type="text" id="last_name" name="last_name" class="form-control id_card" placeholder="Last Name">
                                             </div>
-                                                            <div class="col-md-3 form-group">
-                                                                <label>ID Card Name</label>
-                                            <input type="text" id="name_id" name="name" class="form-control" placeholder="Name on ID Card">
-                                            </div>
 
                                             <div class="col-md-3 form-group">
                                             <label>Phone <span class="text-danger">*</span></label>
                                             <input type="text" name="phone" class="form-control" required>
                                             </div>
-                                        
+
+                                            <div class="col-md-3 form-group">
+                                            <label>Whatsapp</label>
+                                            <input type="text" id="alternative_phone1" name="alternative_phone1" class="form-control" placeholder="Whatsapp Number">
+                                            </div>
+
                                         </div>
 
                                         <div class="row">
@@ -932,8 +1006,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                             </select>
                                             </div>
                                             <div class="col-md-3 form-group">
-                                            <label>Village Name</label>
-                                            
+                                            <label>Village Name
+                                                <a title="Add Village" href="javascript:void(0);" data-toggle="modal" data-target="#qsAddVillageModal"> <i class="fa fa-plus-circle" style="color:#0cc035;"></i></a>
+                                            </label>
+
                                             <select id="village_name" name="village_name" class='form-control select2' >
                                                     <?php foreach($villages as $v){?>
                                                         <option value="<?= $v['villageID']?>"> <?= $v['villageName']?> </option>
@@ -968,9 +1044,14 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 </select>
                                             </div>
 
+                                            <div class="col-md-3 form-group">
+                                            <label>ID Card Name</label>
+                                            <input type="text" id="name_id" name="name" class="form-control" placeholder="Name on ID Card">
                                             </div>
 
-                                        </fieldset>
+                                            </div>
+
+                                        </div>
 
                                         <!-- Transport -->
                                         <div id="transport_div" class="border p-4 mb-4 bg-white shadow-sm" style="display: none; border-radius: 15px; border: 2px solid #e0e0e0 !important;">
@@ -1081,6 +1162,28 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                           </div>
                          
                         <!-- queck student popup end -->
+
+<!-- Quick modal: mini Add Village popup -->
+<div class="modal fade" id="qsAddVillageModal" tabindex="-1" role="dialog" aria-labelledby="qsAddVillageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width:400px;margin-top:120px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#0cc035;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
+                <h4 class="modal-title" id="qsAddVillageModalLabel" style="font-size:16px;font-weight:700;">
+                    <i class="fa fa-map-marker"></i> Add Village
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:20px 24px;">
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label style="font-weight:600;">Village Name <span class="text-red">*</span></label>
+                    <input type="text" id="qsNewVillageName" class="form-control" placeholder="Enter village name">
+                    <span id="qsNewVillageNameError" class="text-red" style="font-size:12px;"></span>
+                </div>
+                <button type="button" id="qsSaveNewVillageBtn" class="btn btn-success btn-block" style="margin-top:10px;">Save Village</button>
+            </div>
+        </div>
+    </div>
+</div>
 
                         
 
@@ -1455,12 +1558,386 @@ $(document).on("focusout",".phone_update",function(){
             }
         });
 
- 
+
 
 })
 
+$(document).on("focusout",".address_update",function(){
+    var studentID = $(this).attr('studentID');
+    var address = $(this).text().trim();
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/address_update')?>",
+        data: {"address":address,"studentID":studentID},
+        dataType: "html",
+        success: function(data) {
+            $('.err').html(data);
+        }
+    });
+})
+
+$(document).on("focus",".roll_update",function(){
+    $(this).attr('data-original', $(this).text().trim());
+})
+
+$(document).on("focusout",".roll_update",function(){
+    var $cell = $(this);
+    var studentID = $cell.attr('studentID');
+    var classesID = $cell.attr('data-classes');
+    var sectionID = $cell.attr('data-section');
+    var original = $cell.attr('data-original');
+    var rollNo = $cell.text().trim();
+
+    if (rollNo === original) return;
+
+    if (!rollNo || !/^\d+$/.test(rollNo)) {
+        toastr.error('Roll number must be numeric.');
+        $cell.text(original);
+        return;
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/roll_update')?>",
+        data: { studentID: studentID, classesID: classesID, sectionID: sectionID, rollNo: rollNo },
+        dataType: 'json',
+        success: function (res) {
+            if (res.success) {
+                toastr.success('Roll number updated successfully.');
+                $cell.attr('data-original', rollNo);
+            } else {
+                toastr.error(res.message || 'Roll number already exists.');
+                $cell.text(original);
+            }
+        },
+        error: function () {
+            toastr.error('Request failed. Please try again.');
+            $cell.text(original);
+        }
+    });
+})
+
+$(document).on("change",".village_update",function(){
+    var studentID = $(this).attr('studentID');
+    var villageID = $(this).val();
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/village_update')?>",
+        data: {"villageID":villageID,"studentID":studentID},
+        dataType: "html",
+        success: function(data) {
+            $('.err').html(data);
+        }
+    });
+})
+
+// Defensively clear any stray backdrop/body-lock left behind by a modal that
+// didn't close cleanly — otherwise a leftover translucent backdrop can sit on
+// top of (or steal clicks from) the modal we're about to open.
+function openStudentPopupModal($modal) {
+    $('.modal-backdrop').remove();
+    $('body').removeClass('modal-open').css('padding-right', '');
+    $modal.modal('show');
+}
+
+$(document).on("change",".studenttype_update",function(){
+    var $select = $(this);
+    var studentID = $select.attr('studentID');
+    var studentType = $select.val();
+
+    if (studentType == '1') {
+        window.pendingStudentTypeSelect = $select;
+        $('#atStudentID').val(studentID);
+        $('#atRouteID').val('0');
+        $('#atPickupID').html('<option value="0">Select Pickup Point</option>');
+        $('#atFee').val('0.00');
+        $('#atError').text('');
+        openStudentPopupModal($('#assignTransportModal').data('saved', false));
+        return;
+    }
+
+    if (studentType == '2') {
+        window.pendingStudentTypeSelect = $select;
+        $('#ahStudentID').val(studentID);
+        $('#ahHostelID').val('0');
+        $('#ahCategoryID').html('<option value="0">Select Category</option>');
+        $('#ahError').text('');
+        openStudentPopupModal($('#assignHostelModal').data('saved', false));
+        return;
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/studenttype_update')?>",
+        data: {"studentType":studentType,"studentID":studentID},
+        dataType: "html",
+        success: function(data) {
+            $('.err').html(data);
+            $select.data('current', studentType).attr('data-current', studentType);
+        }
+    });
+})
+
+$(document).on('hidden.bs.modal', '#assignTransportModal, #assignHostelModal', function () {
+    var $modal = $(this);
+    if (!$modal.data('saved') && window.pendingStudentTypeSelect) {
+        window.pendingStudentTypeSelect.val(window.pendingStudentTypeSelect.attr('data-current'));
+    }
+    window.pendingStudentTypeSelect = null;
+
+    // Belt-and-suspenders: make sure no orphaned backdrop is left dimming/blocking the page.
+    setTimeout(function () {
+        if ($('.modal.in').length === 0) {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open').css('padding-right', '');
+        }
+    }, 100);
+});
+
+$(document).on('change', '#atRouteID', function () {
+    var routeID = $(this).val();
+    $('#atFee').val('0.00');
+    if (!routeID || routeID == '0') {
+        $('#atPickupID').html('<option value="0">Select Pickup Point</option>');
+        return;
+    }
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('Student/get_pickup_points')?>",
+        data: { id: routeID },
+        dataType: 'html',
+        success: function (data) {
+            $('#atPickupID').html(data);
+        }
+    });
+});
+
+$(document).on('change', '#atPickupID', function () {
+    var pickupID = $(this).val();
+    if (!pickupID || pickupID == '0') {
+        $('#atFee').val('0.00');
+        return;
+    }
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('Student/transport_fare')?>",
+        data: { id: pickupID },
+        dataType: 'html',
+        success: function (data) {
+            $('#atFee').val(data || '0.00');
+        }
+    });
+});
+
+$(document).on('click', '#atSaveBtn', function () {
+    var routeID = $('#atRouteID').val();
+    var pickupID = $('#atPickupID').val();
+    var fee = $('#atFee').val();
+    var studentID = $('#atStudentID').val();
+
+    if (!routeID || routeID == '0' || !pickupID || pickupID == '0') {
+        $('#atError').text('Please select route and pickup point.');
+        return;
+    }
+
+    var $btn = $(this);
+    $btn.prop('disabled', true).text('Saving...');
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/assign_transport')?>",
+        data: { studentID: studentID, transportID: routeID, pickup_id: pickupID, tbalance: fee },
+        dataType: 'json',
+        success: function (res) {
+            if (res.success) {
+                $('#assignTransportModal').data('saved', true).modal('hide');
+                toastr.success('Transport assigned successfully.');
+            } else {
+                $('#atError').text(res.message || 'Failed to assign transport.');
+            }
+        },
+        error: function () {
+            $('#atError').text('Request failed. Please try again.');
+        },
+        complete: function () {
+            $btn.prop('disabled', false).text('Save');
+        }
+    });
+});
+
+$(document).on('change', '#ahHostelID', function () {
+    var hostelID = $(this).val();
+    if (!hostelID || hostelID == '0') {
+        $('#ahCategoryID').html('<option value="0">Select Category</option>');
+        return;
+    }
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('hmember/categorycall')?>",
+        data: { id: hostelID },
+        dataType: 'html',
+        success: function (data) {
+            $('#ahCategoryID').html(data);
+        }
+    });
+});
+
+$(document).on('click', '#ahSaveBtn', function () {
+    var hostelID = $('#ahHostelID').val();
+    var categoryID = $('#ahCategoryID').val();
+    var studentID = $('#ahStudentID').val();
+
+    if (!hostelID || hostelID == '0' || !categoryID || categoryID == '0') {
+        $('#ahError').text('Please select hostel and category.');
+        return;
+    }
+
+    var $btn = $(this);
+    $btn.prop('disabled', true).text('Saving...');
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/assign_hostel')?>",
+        data: { studentID: studentID, hostelID: hostelID, categoryID: categoryID },
+        dataType: 'json',
+        success: function (res) {
+            if (res.success) {
+                $('#assignHostelModal').data('saved', true).modal('hide');
+                toastr.success('Hostel assigned successfully.');
+            } else {
+                $('#ahError').text(res.message || 'Failed to assign hostel.');
+            }
+        },
+        error: function () {
+            $('#ahError').text('Request failed. Please try again.');
+        },
+        complete: function () {
+            $btn.prop('disabled', false).text('Save');
+        }
+    });
+});
+
+// Active/Inactive status filter — checks the row's on/off switch state.
+// Uses the DataTables Api wrapper (rather than settings.aoData[i].nTr directly)
+// so this keeps working regardless of the bundled DataTables version's internals.
+$.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+    var statusFilter = $('#studentStatusFilter').val();
+    if (!statusFilter || statusFilter === 'all') return true;
+
+    var row = new $.fn.dataTable.Api(settings).row(dataIndex).node();
+    if (!row) return true;
+
+    var isActive = $(row).find('.onoffswitch-small-checkbox').is(':checked');
+
+    if (statusFilter === 'active') return isActive;
+    if (statusFilter === 'inactive') return !isActive;
+    return true;
+});
+
+$(document).on('change', '#studentStatusFilter', function () {
+    // Redraw every currently-visible table (only the active tab's table matches ":visible",
+    // since Bootstrap tabs hide inactive panes with display:none).
+    $('table.dataTable:visible').each(function () {
+        $(this).DataTable().draw();
+    });
+});
+
+$(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function () {
+    var $tabPane = $($(this).attr('href'));
+    var $tbl = $tabPane.find('table.dataTable');
+    if ($tbl.length && $.fn.DataTable.isDataTable($tbl)) {
+        $tbl.DataTable().draw();
+    }
+    moveStudentStatusFilter($tabPane);
+});
+
+// Relocate the Status filter beside the Copy/Excel/CSV/PDF buttons (right after the
+// search box) of the currently visible table's own toolbar.
+function moveStudentStatusFilter($tabPane) {
+    var $wrap = $('#studentStatusFilterWrap');
+    if (!$wrap.length || !$tabPane || !$tabPane.length) return;
+
+    var $table = $tabPane.find('table.dataTable').first();
+    if (!$table.length) return;
+
+    var $dtRight = $table.closest('.dataTables_wrapper').find('.dt-top-right');
+    if ($dtRight.length) {
+        $dtRight.prepend($wrap.detach());
+    }
+}
+
+// DataTables fires "init.dt" on the table itself once its own initialization
+// (incl. building dt-top-left/dt-top-right) is complete. This is far more reliable
+// than window 'load', which can race with the shared initComplete in page_footer.php.
+var studentStatusFilterPlaced = false;
+$(document).on('init.dt', function () {
+    if (studentStatusFilterPlaced) return;
+    studentStatusFilterPlaced = true;
+    var $activeTab = $('.tab-pane.active');
+    moveStudentStatusFilter($activeTab.length ? $activeTab : $('#all'));
+});
+
+// Fallback in case init.dt never fires (e.g. tables already initialized before this ran)
+$(window).on('load', function () {
+    if (studentStatusFilterPlaced) return;
+    studentStatusFilterPlaced = true;
+    moveStudentStatusFilter($('#all'));
+});
+
+// Sticky bottom scrollbar — mirrors the active table's own horizontal scroll so it's
+// reachable from the bottom of the viewport without scrolling all the way down the page.
+function updateStickyHScrollbar() {
+    var $activeTab = $('.tab-pane.active');
+    var $table = $activeTab.find('table.dataTable').first();
+    var $hideTable = $table.closest('#hide-table');
+    var $bar = $('#stickyHScrollbar');
+
+    if (!$table.length || !$hideTable.length) { $bar.hide(); return; }
+
+    var el = $hideTable[0];
+    if (el.scrollWidth <= el.clientWidth + 5) { $bar.hide(); return; }
+
+    var rect = el.getBoundingClientRect();
+    $bar.data('target', el)
+        .css({ left: rect.left + 'px', width: rect.width + 'px' })
+        .show();
+    $('#stickyHScrollbarInner').css('width', el.scrollWidth + 'px');
+
+    // keep the mirror bar's current position in sync in case the table itself was
+    // scrolled directly (trackpad, shift+wheel, etc.)
+    if ($bar.scrollLeft() !== el.scrollLeft) {
+        $bar.scrollLeft(el.scrollLeft);
+    }
+}
+
+$(document).on('scroll', '#hide-table', function () {
+    var $bar = $('#stickyHScrollbar');
+    if ($bar.data('target') === this) {
+        $bar.scrollLeft(this.scrollLeft);
+    }
+});
+
+$('#stickyHScrollbar').on('scroll', function () {
+    var target = $(this).data('target');
+    if (target) target.scrollLeft = $(this).scrollLeft();
+});
+
+$(window).on('load resize', updateStickyHScrollbar);
+$(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function () {
+    setTimeout(updateStickyHScrollbar, 50);
+});
+$(document).on('change', '#studentStatusFilter', function () {
+    setTimeout(updateStickyHScrollbar, 50);
+});
+setInterval(updateStickyHScrollbar, 1500);
 
 </script>
+
+<div id="stickyHScrollbar" style="position:fixed;bottom:0;height:16px;overflow-x:auto;overflow-y:hidden;background:#f1f3f6;border-top:1px solid #d0d5de;z-index:1030;display:none;">
+    <div id="stickyHScrollbarInner" style="height:1px;"></div>
+</div>
 
 
 
@@ -1515,7 +1992,7 @@ function getStudentID(studentID){
 
     $('#sectionID').change(function(event) {
         var sectionID = $(this).val();
-        var classesID = $('select[name="classesID"] option:selected').val();
+        var classesID = $('#classesID_popup').val();
 
             $.ajax({
                 async: false,
@@ -1764,10 +2241,10 @@ $(document).ready(function(){
 });
 
 // ── Quick modal phone: digits only, max 10 ──
-$('#quickStudentModal').on('keypress', 'input[name="phone"]', function(e) {
+$('#quickStudentModal').on('keypress', 'input[name="phone"], input[name="alternative_phone1"]', function(e) {
     var c = e.which || e.keyCode; if (c < 48 || c > 57) e.preventDefault();
 });
-$('#quickStudentModal').on('input', 'input[name="phone"]', function() {
+$('#quickStudentModal').on('input', 'input[name="phone"], input[name="alternative_phone1"]', function() {
     $(this).val($(this).val().replace(/\D/g,'').slice(0,10));
 });
 
@@ -1959,6 +2436,51 @@ $(document).on('click', '#loginDetailsSendBtn', function() {
 
 // Move modal to body to avoid overflow/z-index clipping by parent containers
 $(function() { $('body').append($('#changeLoginModal').detach()); });
+$(function() { $('body').append($('#quickStudentModal').detach()); });
+$(function() { $('body').append($('#qsAddVillageModal').detach()); });
+$(function() { $('body').append($('#assignTransportModal').detach()); });
+$(function() { $('body').append($('#assignHostelModal').detach()); });
+
+// Quick modal: mini Add Village popup — save via AJAX and append to the village dropdown
+$(document).on('shown.bs.modal', '#qsAddVillageModal', function () {
+    $('#qsNewVillageName').val('').focus();
+    $('#qsNewVillageNameError').text('');
+});
+
+$(document).on('click', '#qsSaveNewVillageBtn', function () {
+    var name = $.trim($('#qsNewVillageName').val());
+    $('#qsNewVillageNameError').text('');
+    if (!name) {
+        $('#qsNewVillageNameError').text('Village name is required.');
+        return;
+    }
+
+    var $btn = $(this);
+    $btn.prop('disabled', true).text('Saving...');
+
+    $.ajax({
+        url: "<?= base_url('Village/ajax_add') ?>",
+        type: 'POST',
+        data: { villageName: name },
+        dataType: 'json',
+        success: function (res) {
+            if (res.success) {
+                var $option = $('<option>', { value: res.villageID, text: res.villageName });
+                $('#village_name').append($option).val(res.villageID).trigger('change');
+                $('#qsAddVillageModal').modal('hide');
+                toastr.success('Village added successfully.');
+            } else {
+                $('#qsNewVillageNameError').text(res.message || 'Failed to add village.');
+            }
+        },
+        error: function () {
+            $('#qsNewVillageNameError').text('Request failed. Please try again.');
+        },
+        complete: function () {
+            $btn.prop('disabled', false).text('Save Village');
+        }
+    });
+});
 
 // Change Login Details — open modal
 $(document).on('click', '.btn-change-login', function() {
@@ -2065,6 +2587,88 @@ $(document).on('click', '.cl-toggle-pw', function() {
             <div class="modal-footer" style="padding:12px 20px;background:#f8f9fa;">
                 <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
                 <button type="button" id="changeLoginSaveBtn" class="btn btn-info btn-sm">
+                    <i class="fa fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Transport modal — opened when Student Type is switched to TRANSPORT from the listing page -->
+<div class="modal fade" id="assignTransportModal" tabindex="-1" role="dialog" aria-labelledby="assignTransportModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width:380px;margin-top:120px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#17a2b8;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
+                <h4 class="modal-title" id="assignTransportModalLabel" style="font-size:15px;font-weight:700;">
+                    <i class="fa fa-bus"></i> Transport Details
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:20px 24px;">
+                <input type="hidden" id="atStudentID">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Route Name <span class="text-red">*</span></label>
+                    <select id="atRouteID" class="form-control" style="border-radius:6px;">
+                        <option value="0">Select Route</option>
+                        <?php foreach ($transports as $transport) { ?>
+                            <option value="<?= $transport->transportID ?>"><?= $transport->route ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Pickup Point <span class="text-red">*</span></label>
+                    <select id="atPickupID" class="form-control" style="border-radius:6px;">
+                        <option value="0">Select Pickup Point</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Transport Fee <span class="text-red">*</span></label>
+                    <input type="text" id="atFee" class="form-control" style="border-radius:6px;" value="0.00">
+                </div>
+                <span id="atError" style="color:#e53935;font-size:12px;"></span>
+            </div>
+            <div class="modal-footer" style="background:#f8f9fa;padding:12px 20px;">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" id="atSaveBtn" class="btn btn-info btn-sm">
+                    <i class="fa fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Hostel modal — opened when Student Type is switched to HOSTEL from the listing page -->
+<div class="modal fade" id="assignHostelModal" tabindex="-1" role="dialog" aria-labelledby="assignHostelModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width:380px;margin-top:120px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#17a2b8;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
+                <h4 class="modal-title" id="assignHostelModalLabel" style="font-size:15px;font-weight:700;">
+                    <i class="fa fa-home"></i> Hostel Details
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:20px 24px;">
+                <input type="hidden" id="ahStudentID">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Hostel Name <span class="text-red">*</span></label>
+                    <select id="ahHostelID" class="form-control" style="border-radius:6px;">
+                        <option value="0">Select Hostel</option>
+                        <?php foreach ($hostels as $hostel) { ?>
+                            <option value="<?= $hostel->hostelID ?>"><?= $hostel->name ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Class Type <span class="text-red">*</span></label>
+                    <select id="ahCategoryID" class="form-control" style="border-radius:6px;">
+                        <option value="0">Select Category</option>
+                    </select>
+                </div>
+                <span id="ahError" style="color:#e53935;font-size:12px;"></span>
+            </div>
+            <div class="modal-footer" style="background:#f8f9fa;padding:12px 20px;">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" id="ahSaveBtn" class="btn btn-info btn-sm">
                     <i class="fa fa-save"></i> Save
                 </button>
             </div>

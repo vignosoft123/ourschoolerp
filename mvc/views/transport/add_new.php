@@ -1,4 +1,43 @@
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<style>
+.ft-toggle-switch {
+    display: inline-flex;
+    align-items: center;
+    width: 58px;
+    height: 28px;
+    border-radius: 14px;
+    position: relative;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.3s;
+    padding: 0 6px;
+}
+.ft-toggle-on  { background: #4cd964; justify-content: flex-end; }
+.ft-toggle-off { background: #b0b0b0; justify-content: flex-start; }
+.ft-toggle-knob {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: left 0.3s;
+    top: 3px;
+}
+.ft-toggle-on  .ft-toggle-knob { right: 3px; left: auto; }
+.ft-toggle-off .ft-toggle-knob { left: 3px; }
+.ft-toggle-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+    user-select: none;
+}
+.ft-toggle-on  .ft-toggle-label { margin-right: 26px; }
+.ft-toggle-off .ft-toggle-label { margin-left: 26px; }
+</style>
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-sbus"></i> <?=$this->lang->line('panel_title')?></h3>
@@ -194,6 +233,7 @@
                                 <th class="col-sm-2">Drop Time</th>
                                 <th class="col-sm-2">Fare</th>
                                 <th class="col-sm-2">Crated Date</th>
+                                <th class="col-sm-1">Status</th>
                                 <th class="col-sm-1"><?=$this->lang->line('action')?></th>
                             </tr>
                         </thead>
@@ -223,6 +263,13 @@
                                         <?php echo $transport->created_on; ?>
                                     </td>
 
+                                    <td data-title="Status">
+                                        <span class="ft-toggle-switch <?=(isset($transport->active_status) && $transport->active_status == 1) ? 'ft-toggle-on' : 'ft-toggle-off'?>" data-id="<?php echo $transport->id; ?>" title="Click to toggle status">
+                                            <span class="ft-toggle-knob"></span>
+                                            <span class="ft-toggle-label"><?=(isset($transport->active_status) && $transport->active_status == 1) ? 'ON' : 'OFF'?></span>
+                                        </span>
+                                    </td>
+
                                     <td data-title="<?=$this->lang->line('action')?>">
                                         <a href="javascript:void(0);" class="btn btn-warning btn-xs mrg edit-pickup-btn"
                                             data-id="<?php echo $transport->id; ?>"
@@ -234,7 +281,6 @@
                                             data-placement="top" data-toggle="tooltip" data-original-title="<?=$this->lang->line('edit')?>">
                                             <i class="fa fa-edit"></i>
                                         </a>
-                                        <?php echo btn_delete_show('transport/delete_pickup_point/'.$transport->id, $this->lang->line('delete')) ?>
                                     </td>
                                 </tr>
                             <?php $i++; }} ?>
@@ -278,6 +324,55 @@ $(document).ready(function () {
 
         $('#submit-btn').val('Add Pickup Points');
         $(this).hide();
+    });
+});
+
+$(document).on('click', '.ft-toggle-switch', function () {
+    var $toggle   = $(this);
+    var id        = $toggle.data('id');
+    var isOn      = $toggle.hasClass('ft-toggle-on');
+    var actionLabel = isOn ? 'Deactivate' : 'Activate';
+    var btnColor    = isOn ? '#e53935'    : '#0cc035';
+
+    Swal.fire({
+        title: actionLabel + '?',
+        text: 'Are you sure you want to ' + actionLabel.toLowerCase() + ' this record?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: btnColor,
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, ' + actionLabel + '!',
+        cancelButtonText: 'Cancel'
+    }).then(function (result) {
+        if (!result.isConfirmed) return;
+
+        $toggle.css('opacity', '0.6').css('pointer-events', 'none');
+
+        $.ajax({
+            url: "<?php echo base_url('transport/toggle_status_pickup_point'); ?>" + '/' + id,
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+                if (res.success) {
+                    if (res.active_status == 1) {
+                        $toggle.removeClass('ft-toggle-off').addClass('ft-toggle-on');
+                        $toggle.find('.ft-toggle-label').text('ON');
+                    } else {
+                        $toggle.removeClass('ft-toggle-on').addClass('ft-toggle-off');
+                        $toggle.find('.ft-toggle-label').text('OFF');
+                    }
+                    toastr.success('Status updated successfully.');
+                } else {
+                    toastr.error('Failed to update status. Please try again.');
+                }
+            },
+            error: function () {
+                toastr.error('Request failed. Please try again.');
+            },
+            complete: function () {
+                $toggle.css('opacity', '1').css('pointer-events', 'auto');
+            }
+        });
     });
 });
 

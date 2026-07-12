@@ -929,5 +929,15 @@
         "query": "ALTER TABLE `syllabus` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
         "type": "alter",
         "check_column": { "table": "syllabus", "column": "active_status" }
+    },
+    {
+        "query": "ALTER TABLE `pickup_points` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
+        "type": "alter",
+        "check_column": { "table": "pickup_points", "column": "active_status" }
+    },
+    {
+        "query": "ALTER TABLE `transport` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
+        "type": "alter",
+        "check_column": { "table": "transport", "column": "active_status" }
     }
 ]
