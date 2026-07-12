@@ -44,9 +44,11 @@
                                     <thead>
                                         <tr>
                                             <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
-                                            <th class="col-sm-1">Signature</th>
+                                            <th class="col-sm-1">Photo</th>
                                             <th class="col-sm-2"><?=$this->lang->line('teacher_name')?></th>
                                             <th class="col-sm-2">Designation</th>
+                                            <th class="col-sm-1">RFID</th>
+                                            <th class="col-sm-1">Username</th>
                                             <th class="col-sm-2"><?=$this->lang->line('teacher_email')?></th>
                                             <th class="col-sm-2"><?=$this->lang->line('teacher_phone')?></th>
                                             <th class="col-sm-2">Default Login Time</th>
@@ -69,6 +71,8 @@
                                             </td>
                                             <td><?=$teacher->name?></td>
                                             <td><?=$teacher->designation?></td>
+                                            <td><?=$teacher->rfid?></td>
+                                            <td><?=$teacher->username?></td>
                                             <td><?=$teacher->email?></td>
                                             <td><?=$teacher->phone?></td>
                                             <td><?=$teacher->default_login_time?></td>
@@ -107,9 +111,11 @@
                                     <thead>
                                         <tr>
                                             <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
-                                            <th class="col-sm-1">Signature</th>
+                                            <th class="col-sm-1">Photo</th>
                                             <th class="col-sm-2"><?=$this->lang->line('teacher_name')?></th>
                                             <th class="col-sm-2">Designation</th>
+                                            <th class="col-sm-1">RFID</th>
+                                            <th class="col-sm-1">Username</th>
                                             <th class="col-sm-2"><?=$this->lang->line('teacher_email')?></th>
                                             <th class="col-sm-2"><?=$this->lang->line('teacher_phone')?></th>
                                             <th class="col-sm-2">Default Login Time</th>
@@ -132,6 +138,8 @@
                                             </td>
                                             <td><?=$teacher->name?></td>
                                             <td><?=$teacher->designation?></td>
+                                            <td><?=$teacher->rfid?></td>
+                                            <td><?=$teacher->username?></td>
                                             <td><?=$teacher->email?></td>
                                             <td><?=$teacher->phone?></td>
                                             <td><?=$teacher->default_login_time?></td>

@@ -98,6 +98,19 @@
         color: white;
     }
 
+    /* Toolbar grouping Print Sheet / Upload Marks / Download CSV */
+    .mark-actions-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .mark-actions-toolbar .btn {
+        flex: 1 1 auto;
+        min-width: 150px;
+        white-space: nowrap;
+    }
+
     /* Default Button */
     .btn-default {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -807,27 +820,19 @@
             <br/>
             <br/>
            
-            <div class="form-group">
-                <button class="btn btn-black col-md-3" id="printBtn"><span class="fa fa-print"> &nbsp;</span>Print Sheet</button>
+            <div class="mark-actions-toolbar">
+                <button type="button" class="btn btn-black" id="printBtn">
+                    <i class="fa fa-print"></i> Print Sheet
+                </button>
 
-            
-                <button id="exportButton" class="btn btn-info col-md-3"><i class="fa fa-download"></i>  Download Sample</button>
+                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#uploadMarksModal">
+                    <i class="fa fa-upload"></i> Upload Marks
+                </button>
 
-                <form enctype="multipart/form-data" style="padding:1%" action="<?=base_url('Mark/marks_bulkimport');?>" class="form-horizontal" role="form" method="post">
-                    
-                    <div class="col-sm-4 col-xs-6 col-md-3">
-                        <div class="fileUpload btn btn-success form-control">
-                            <span class="fa fa-repeat"></span>
-                            <span>Upload Excel Marks</span>
-                            <input id="uploadBtn" type="file" class="upload questionUpload" name="csvMarks" />
-                        </div>
-                    </div>
-
-                    <div class="col-md-1 rep-mar">
-                        <input type="submit" class="btn btn-success" value="Save Marks">
-                    </div>
-                </form>
-            </div>       
+                <button type="button" class="btn btn-primary" onclick="exportTableToCSV('myTable','table_data.csv')">
+                    <i class="fa fa-download"></i> Download CSV
+                </button>
+            </div>
         </div>
     </div>
 
@@ -848,6 +853,193 @@
     </div>
 </div>
 
+<!-- Upload Marks Modal -->
+<div class="modal fade" id="uploadMarksModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content upload-marks-modal">
+            <div class="upload-marks-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-cloud-upload"></i> Upload Marks</h4>
+                <p class="upload-marks-subtitle">Download, fill in marks and upload back &mdash; all in one place</p>
+            </div>
+            <div class="modal-body">
+                <div id="uploadMarksAlert" class="alert" style="display:none;"></div>
+
+                <div class="upload-step">
+                    <span class="upload-step-num">1</span>
+                    <div class="upload-step-content">
+                        <strong>Download the sample sheet</strong>
+                        <p>Export the current mark sheet to edit offline.</p>
+                        <button type="button" id="exportButton" class="btn btn-info btn-sm">
+                            <i class="fa fa-download"></i> Download Sample
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-step">
+                    <span class="upload-step-num">2</span>
+                    <div class="upload-step-content">
+                        <strong>Choose the edited file</strong>
+                        <p>Select the file after filling in the marks (keep it in CSV format).</p>
+                        <div class="upload-choose-row">
+                            <div class="fileUpload btn btn-success form-control btn-sm">
+                                <span class="fa fa-repeat"></span>
+                                <span id="uploadFileLabel">Choose Excel File</span>
+                                <input id="uploadBtn" type="file" class="upload questionUpload" accept=".csv" />
+                            </div>
+                            <button type="button" id="previewMarksBtn" class="btn btn-default btn-sm upload-preview-btn" title="Preview marks in this file" disabled>
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        </div>
+                        <div id="uploadMarksPreview" class="upload-marks-preview" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <div class="upload-step upload-step-last">
+                    <span class="upload-step-num">3</span>
+                    <div class="upload-step-content">
+                        <strong>Save the marks</strong>
+                        <p>The list refreshes instantly &mdash; no page reload needed.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" id="saveMarksBtn" class="btn btn-success">
+                    <span class="save-text"><i class="fa fa-save"></i> Save Marks</span>
+                    <span class="save-loading" style="display:none;"><i class="fa fa-spinner fa-spin"></i> Saving...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .upload-marks-modal {
+        border-radius: 12px;
+        overflow: hidden;
+        border: none;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+    }
+    .upload-marks-header {
+        background: linear-gradient(135deg, #17a2b8 0%, #0d6b7a 100%);
+        color: #fff;
+        padding: 20px 25px;
+        position: relative;
+    }
+    .upload-marks-header .modal-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+    }
+    .upload-marks-header .close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        color: #fff;
+        opacity: 0.8;
+        text-shadow: none;
+    }
+    .upload-marks-header .close:hover {
+        opacity: 1;
+    }
+    .upload-marks-subtitle {
+        margin: 6px 0 0;
+        font-size: 13px;
+        opacity: 0.9;
+    }
+    .upload-marks-modal .modal-body {
+        padding: 25px;
+    }
+    .upload-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px dashed #e0e0e0;
+    }
+    .upload-step-last {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    .upload-step-num {
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+        text-align: center;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #17a2b8 0%, #0d6b7a 100%);
+        color: #fff;
+        font-weight: 700;
+        font-size: 14px;
+    }
+    .upload-step-content {
+        flex: 1;
+    }
+    .upload-step-content strong {
+        display: block;
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 3px;
+    }
+    .upload-step-content p {
+        color: #888;
+        font-size: 13px;
+        margin-bottom: 10px;
+    }
+    .upload-marks-modal .fileUpload {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        max-width: 260px;
+    }
+    .upload-choose-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .upload-preview-btn {
+        flex: 0 0 auto;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        line-height: 1;
+    }
+    .upload-preview-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .upload-marks-preview {
+        margin-top: 12px;
+        max-height: 220px;
+        overflow: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+    }
+    .upload-marks-preview table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+    }
+    .upload-marks-preview th,
+    .upload-marks-preview td {
+        padding: 5px 8px;
+        border-bottom: 1px solid #eee;
+        white-space: nowrap;
+        text-align: center;
+    }
+    .upload-marks-preview thead th {
+        background: #f4f6f7;
+        position: sticky;
+        top: 0;
+    }
+</style>
+
 
             </div>
 
@@ -856,8 +1048,6 @@
             <div class="col-sm-12">
                 <div id="hide-table" style="display:none;">
                     <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
-                        <button onclick="exportTableToCSV('myTable','table_data.csv')" class="btn btn-primary">📥 Download CSV</button>
-                        
                         <div style="flex: 1; max-width: 400px;">
                             <input type="text" id="studentSearchBox" class="form-control" placeholder="🔍 Search student by name or roll number..." style="border-radius: 20px; padding-left: 15px;">
                         </div>
@@ -1236,6 +1426,75 @@
                                         loading.hide();
                                     }
                                 });
+                            });
+
+                            // Handle Save Marks (upload) inside the Upload Marks modal
+                            $('#saveMarksBtn').on('click', function() {
+                                var fileInput = document.getElementById('uploadBtn');
+                                var alertBox = $('#uploadMarksAlert');
+                                alertBox.hide();
+
+                                if (!fileInput.files || !fileInput.files.length) {
+                                    toastr["warning"]("Please choose a file to upload.");
+                                    return;
+                                }
+
+                                var formData = new FormData();
+                                formData.append('csvMarks', fileInput.files[0]);
+
+                                var btn = $(this);
+                                btn.prop('disabled', true);
+                                btn.find('.save-text').hide();
+                                btn.find('.save-loading').show();
+
+                                $.ajax({
+                                    type: 'POST',
+                                    url: "<?= base_url('Mark/marks_bulkimport') ?>",
+                                    data: formData,
+                                    contentType: false,
+                                    processData: false,
+                                    dataType: 'json',
+                                    success: function(response) {
+                                        if (response.status) {
+                                            toastr["success"](response.message || "Marks updated successfully!");
+
+                                            // Reset the file input for next time
+                                            fileInput.value = '';
+                                            $('#uploadFileLabel').text('Choose Excel File');
+                                            $('#previewMarksBtn').prop('disabled', true);
+                                            $('#uploadMarksPreview').hide().empty();
+
+                                            $('#uploadMarksModal').modal('hide');
+
+                                            // Refresh the listing in place, no page reload
+                                            currentOffset = 0;
+                                            hasMoreData = true;
+                                            $('#studentsTableBody').empty();
+                                            loadStudentsData(true);
+                                        } else {
+                                            alertBox.removeClass('alert-success').addClass('alert-danger')
+                                                .text(response.message || "Failed to update marks").show();
+                                        }
+                                    },
+                                    error: function(xhr, status, error) {
+                                        alertBox.removeClass('alert-success').addClass('alert-danger')
+                                            .text("Error uploading marks: " + error).show();
+                                    },
+                                    complete: function() {
+                                        btn.prop('disabled', false);
+                                        btn.find('.save-text').show();
+                                        btn.find('.save-loading').hide();
+                                    }
+                                });
+                            });
+
+                            // Reset the modal state whenever it is closed
+                            $('#uploadMarksModal').on('hidden.bs.modal', function() {
+                                $('#uploadMarksAlert').hide();
+                                $('#uploadFileLabel').text('Choose Excel File');
+                                $('#uploadBtn').val('');
+                                $('#previewMarksBtn').prop('disabled', true);
+                                $('#uploadMarksPreview').hide().empty();
                             });
 
                             function loadStudentsData(isInitialLoad) {
@@ -2003,6 +2262,71 @@
 
     $('.markUpload').on('change', function() {
         $('.markImport').val($(this).val());
+    });
+
+    $('.questionUpload').on('change', function() {
+        var fileName = $(this).val().split('\\').pop();
+        if (fileName) {
+            $('#uploadFileLabel').text(fileName);
+        }
+        $('#previewMarksBtn').prop('disabled', !this.files || !this.files.length);
+        $('#uploadMarksPreview').hide().empty();
+    });
+
+    // Preview the chosen file's marks right inside the Upload Marks popup
+    $('#previewMarksBtn').on('click', function() {
+        var fileInput = document.getElementById('uploadBtn');
+        var previewBox = $('#uploadMarksPreview');
+
+        if (!fileInput.files || !fileInput.files.length) {
+            return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var rows;
+            try {
+                // Use the same SheetJS parser the Download Sample export relies on, so
+                // quoted/multi-line cells (e.g. the hidden "All Subjects Absent" text
+                // tucked into the Name column) are parsed correctly instead of naive
+                // line-splitting, which breaks on embedded newlines.
+                var wb = XLSX.read(e.target.result, { type: 'string' });
+                var sheet = wb.Sheets[wb.SheetNames[0]];
+                rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, blankrows: false });
+            } catch (err) {
+                rows = null;
+            }
+
+            if (!rows || rows.length < 2) {
+                previewBox.html('<p class="text-muted" style="padding:10px;">Could not read any rows from this file.</p>').show();
+                return;
+            }
+
+            var headers = rows[1] || [];
+            var firstLine = function(val) {
+                return String(val === undefined || val === null ? '' : val).split(/\r?\n/)[0];
+            };
+
+            var html = '<table><thead><tr>';
+            headers.forEach(function(h) {
+                html += '<th>' + $('<div>').text(firstLine(h).replace(/\^\d+$/, '')).html() + '</th>';
+            });
+            html += '</tr></thead><tbody>';
+
+            for (var i = 2; i < rows.length; i++) {
+                var cols = rows[i];
+                if (!cols || !cols.length) continue;
+                html += '<tr>';
+                for (var j = 0; j < headers.length; j++) {
+                    html += '<td>' + $('<div>').text(firstLine(cols[j])).html() + '</td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table>';
+
+            previewBox.html(html).show();
+        };
+        reader.readAsText(fileInput.files[0]);
     });
 
     $(document).ready(function() {

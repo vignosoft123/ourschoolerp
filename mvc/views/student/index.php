@@ -71,12 +71,35 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         white-space: nowrap;
     }
 
-    /* Contain wide tables to a horizontal scrollbar instead of stretching the whole page */
-    #hide-table {
-        overflow-x: auto;
+    /* Contain wide tables to their own horizontal scrollbar instead of stretching the
+       whole page.
+       ROOT CAUSE of the scrollbar never showing: assets/css/custom_table.css defines
+       `.responsive { overflow: hidden !important; }`, and the "All Students" tab's
+       #hide-table has class="responsive" — that !important was clipping every column
+       past the visible width instead of scrolling them. Must out-specificity it here. */
+    /* max-height bounds the box to the viewport so BOTH the sticky header (below)
+       and this horizontal scrollbar stay on-screen at all times — no need to scroll
+       the whole page down to reach the scrollbar or to lose the header. */
+    #hide-table,
+    #hide-table.responsive {
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        /* Fill nearly the whole viewport height below the fixed topbar/toolbar/tabs,
+           leaving just enough room for the page footer. */
+        max-height: calc(100vh - 160px) !important;
         -webkit-overflow-scrolling: touch;
         position: relative;
     }
+    /* Green, clearly visible scrollbar (Chrome/Edge/Safari) */
+    #hide-table::-webkit-scrollbar { height: 14px; }
+    #hide-table::-webkit-scrollbar-track { background: #eef1f4; border-radius: 7px; }
+    #hide-table::-webkit-scrollbar-thumb { background: #0cc035; border-radius: 7px; border: 2px solid #eef1f4; }
+    #hide-table::-webkit-scrollbar-thumb:hover { background: #0a9d2b; }
+    /* Firefox */
+    #hide-table { scrollbar-color: #0cc035 #eef1f4; scrollbar-width: auto; }
+
+    /* Serial number (#) column — narrower than the default col-sm-1 width */
+    #example1 .col-slno { width: 40px !important; min-width: 40px !important; max-width: 40px !important; }
 
     /* Enhanced Table Styling */
     #example1 {
@@ -108,13 +131,15 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     }
     #example1 thead th.sticky-col-action {
         background: #1558b0 !important;
-        z-index: 3;
+        z-index: 5;
     }
     #example1 tbody tr:nth-child(even) td.sticky-col-action { background: #f9f9f9 !important; }
     #example1 tbody tr:hover td.sticky-col-action { background: #ffe0b2 !important; }
 
-    /* Force these two popups above any stray/leftover backdrop (backdrop z-index is set in JS) */
-    #assignTransportModal, #assignHostelModal { z-index: 10520 !important; }
+    /* This file already sets a global .modal-backdrop { z-index: 99990 } for the
+       Quick Student modal (see near #quickStudentModal below) — these two must sit
+       above that same backdrop, or the backdrop intercepts every click. */
+    #assignTransportModal, #assignHostelModal { z-index: 100000 !important; }
 
     #example1 thead {
         background: linear-gradient(135deg, #1a73e8 0%, #1045a8 100%) !important;
@@ -130,7 +155,12 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         border: none !important;
         border-right: 1px solid rgba(255,255,255,0.2) !important;
         color: white !important;
-        position: relative !important;
+        /* sticky (not just relative) so the header stays visible while scrolling
+           vertically inside #hide-table's bounded height */
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 4 !important;
+        background: #1558b0 !important;
     }
 
     #example1 thead th:last-child {
@@ -530,9 +560,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         <thead>
                                             <tr>
                                                 <th style="width:30px; text-align:center"><input type="checkbox" id="select_all_students" /></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
+                                                <th class="col-sm-1 col-slno"><?= $this->lang->line('slno') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
                                                 <th class="col-sm-1">Adm No</th>
+                                                <th class="col-sm-1">Roll No</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
@@ -541,7 +572,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                 <th>Class</th>
                                                 <th>Section</th>
-                                                <th>Roll No</th>
                                                 <th>RFID</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
@@ -558,7 +588,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 foreach ($students as $student) { ?>
                                                     <tr>
                                                         <td style="text-align:center"><input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" /></td>
-                                                        <td data-title="<?= $this->lang->line('slno') ?>">
+                                                        <td class="col-slno" data-title="<?= $this->lang->line('slno') ?>">
                                                             <?php echo $i; ?>
                                                         </td>
                                                         <td class="student-photo-cell" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
@@ -570,8 +600,9 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="Adm No">
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
-                                                            <?php echo $student->srname; ?><?php if (!empty($student->srroll)) { echo ' (' . $student->srroll . ')'; } ?>
+                                                            <?php echo $student->srname; ?>
                                                         </td>
                                                         
                                                         <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
@@ -604,7 +635,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="<?= $this->lang->line('student_section') ?>">
                                                             <?php echo $student->srsection; ?>
                                                         </td>
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
@@ -671,9 +701,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                             <thead>
                                                 <tr>
                                                     <th style="width:30px; text-align:center"><input type="checkbox" class="select_all_section" /></th>
-                                                    <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
+                                                    <th class="col-sm-1 col-slno"><?= $this->lang->line('slno') ?></th>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
                                                     <th class="col-sm-1">Adm No</th>
+                                                <th class="col-sm-1">Roll No</th>
                                                     <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                     <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                     <th>WhatsApp</th>
@@ -683,7 +714,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
                                                      <th>Class</th>
                                                     <th>Section</th>
-                                                    <th>Roll No</th>
                                                     <th>RFID</th>
                                                     <?php if (permissionChecker('student_edit')) { ?>
                                                         <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
@@ -700,10 +730,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         if ($section->sectionID == $student->srsectionID) { ?>
                                                             <tr>
                                                             <td style="text-align:center"><input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" /></td>
-                                                            <td data-title="<?= $this->lang->line('slno') ?>">
+                                                            <td class="col-slno" data-title="<?= $this->lang->line('slno') ?>">
                                                             <?php echo $i; ?>
                                                         </td>
-                                                       
+
 
                                                         <td class="student-photo-cell" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
                                                             <?= profileimage($student->photo); ?>
@@ -715,8 +745,9 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="Adm No">
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_name') ?>">
-                                                            <?php echo $student->srname; ?><?php if (!empty($student->srroll)) { echo ' (' . $student->srroll . ')'; } ?>
+                                                            <?php echo $student->srname; ?>
                                                         </td>
                                                         
                                                         <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
@@ -749,7 +780,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                         <td data-title="<?= $this->lang->line('student_section') ?>">
                                                             <?php echo $student->srsection; ?>
                                                         </td>
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
@@ -824,9 +854,10 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
                                         <thead>
                                             <tr>
-                                            <th class="col-sm-1"><?= $this->lang->line('slno') ?></th>
+                                            <th class="col-sm-1 col-slno"><?= $this->lang->line('slno') ?></th>
                                                 <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
                                                 <th class="col-sm-1">Adm No</th>
+                                                <th class="col-sm-1">Roll No</th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
                                                 <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
                                                 <th>WhatsApp</th>
@@ -835,7 +866,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
                                                  <th>Class</th>
                                                 <th>Section</th>
-                                                <th>Roll No</th>
                                                 <th>RFID</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
                                                     <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
@@ -1886,58 +1916,8 @@ $(window).on('load', function () {
     moveStudentStatusFilter($('#all'));
 });
 
-// Sticky bottom scrollbar — mirrors the active table's own horizontal scroll so it's
-// reachable from the bottom of the viewport without scrolling all the way down the page.
-function updateStickyHScrollbar() {
-    var $activeTab = $('.tab-pane.active');
-    var $table = $activeTab.find('table.dataTable').first();
-    var $hideTable = $table.closest('#hide-table');
-    var $bar = $('#stickyHScrollbar');
-
-    if (!$table.length || !$hideTable.length) { $bar.hide(); return; }
-
-    var el = $hideTable[0];
-    if (el.scrollWidth <= el.clientWidth + 5) { $bar.hide(); return; }
-
-    var rect = el.getBoundingClientRect();
-    $bar.data('target', el)
-        .css({ left: rect.left + 'px', width: rect.width + 'px' })
-        .show();
-    $('#stickyHScrollbarInner').css('width', el.scrollWidth + 'px');
-
-    // keep the mirror bar's current position in sync in case the table itself was
-    // scrolled directly (trackpad, shift+wheel, etc.)
-    if ($bar.scrollLeft() !== el.scrollLeft) {
-        $bar.scrollLeft(el.scrollLeft);
-    }
-}
-
-$(document).on('scroll', '#hide-table', function () {
-    var $bar = $('#stickyHScrollbar');
-    if ($bar.data('target') === this) {
-        $bar.scrollLeft(this.scrollLeft);
-    }
-});
-
-$('#stickyHScrollbar').on('scroll', function () {
-    var target = $(this).data('target');
-    if (target) target.scrollLeft = $(this).scrollLeft();
-});
-
-$(window).on('load resize', updateStickyHScrollbar);
-$(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function () {
-    setTimeout(updateStickyHScrollbar, 50);
-});
-$(document).on('change', '#studentStatusFilter', function () {
-    setTimeout(updateStickyHScrollbar, 50);
-});
-setInterval(updateStickyHScrollbar, 1500);
 
 </script>
-
-<div id="stickyHScrollbar" style="position:fixed;bottom:0;height:16px;overflow-x:auto;overflow-y:hidden;background:#f1f3f6;border-top:1px solid #d0d5de;z-index:1030;display:none;">
-    <div id="stickyHScrollbarInner" style="height:1px;"></div>
-</div>
 
 
 
