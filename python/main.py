@@ -1875,15 +1875,40 @@ def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
             }
 
     # ── Step 3: Deploy MVC ──────────────────────────────────────────────────
-    # FTP-configured servers (HostGator/BigRock): upload via FTP then trigger extraction.
-    # This bypasses mod_security entirely and uses correct subdomain paths.
+    # FTP servers (HostGator/BigRock): upload via FTP then call bootstrap_copy.php.
     if server in FTP_CONFIGS:
         result = _deploy_mvc_via_ftp(subdomain, zip_bytes)
         if not controller_exists and result.get("success"):
             result["message"] += " (Mvcdeploy.php was auto-uploaded first)"
         return result
 
-    # Other servers (e.g. GoDaddy): direct HTTP POST to receive()
+    # cPanel servers (GoDaddy): assume mvc.zip is already on dummy (uploaded once via
+    # "Upload MVC to Dummy" button) — just call bootstrap_copy.php to extract it.
+    # This is the same pattern as HostGator: upload once, deploy to many.
+    if server in CPANEL_CONFIGS:
+        dummy_host    = DUMMY_SERVERS.get(server, "")
+        domain_suffix = SERVER_DOMAINS.get(server, "")
+        if not dummy_host:
+            return {"success": False, "message": f"No dummy server for '{server}'. Cannot deploy."}
+        try:
+            r = requests.get(
+                f"https://{dummy_host}/bootstrap_copy.php",
+                params={"k": CSS_UPDATE_API_KEY, "s": sub_name, "d": f".{domain_suffix}"},
+                headers=BROWSER_HEADERS,
+                timeout=120,
+                verify=False,
+            )
+            try:
+                result = r.json()
+                if "mvc.zip" in result.get("message", "").lower() and not result.get("success"):
+                    result["message"] = "mvc.zip not on dummy server — click 'Upload MVC to Dummy' first."
+                return result
+            except ValueError:
+                return {"success": False, "message": f"bootstrap_copy HTTP {r.status_code}: {r.text[:200]}"}
+        except Exception as e:
+            return {"success": False, "message": f"bootstrap_copy error: {e}"}
+
+    # Fallback: direct HTTP POST to receive() — only for servers with no cPanel/FTP config
     try:
         resp = requests.post(
             deploy_url,
@@ -1898,7 +1923,7 @@ def _deploy_mvc_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
                 result["message"] += " (Mvcdeploy.php was auto-uploaded first)"
             return result
         except ValueError:
-            return {"success": False, "message": f"HTTP {resp.status_code}: unexpected response from live server"}
+            return {"success": False, "message": f"HTTP {resp.status_code}: {resp.text[:400] or 'empty response'}"}
     except requests.exceptions.ConnectionError:
         return {"success": False, "message": f"Cannot connect to {deploy_url}"}
     except requests.exceptions.Timeout:
@@ -1978,13 +2003,9 @@ def _deploy_mvc_via_cpanel(subdomain: dict, zip_bytes: bytes) -> dict:
 @app.post("/upload-mvc-zip/{server}")
 async def upload_mvc_zip(server: str):
     """
-    Upload local mvc.zip to the dummy server for HostGator or BigRock (myschools).
-    Call this ONCE before clicking Rocket on multiple subdomains — Rocket will then
-    just call bootstrap_copy.php without re-uploading the zip each time.
-    GoDaddy does not use this endpoint (direct HTTP POST per subdomain).
+    Upload local mvc.zip to the dummy server — works for FTP servers (HostGator/BigRock)
+    AND cPanel servers (GoDaddy). Call once before deploying to multiple subdomains.
     """
-    if server not in FTP_CONFIGS:
-        raise HTTPException(status_code=400, detail=f"No FTP config for server '{server}'. Valid: {list(FTP_CONFIGS.keys())}")
     if server not in DUMMY_SERVERS:
         raise HTTPException(status_code=400, detail=f"No dummy server configured for '{server}'")
     if not os.path.exists(MVC_ZIP_PATH):
@@ -1993,8 +2014,52 @@ async def upload_mvc_zip(server: str):
     with open(MVC_ZIP_PATH, "rb") as f:
         zip_bytes = f.read()
 
-    result = _upload_mvc_zip_to_dummy(server, zip_bytes)
-    return result
+    # FTP servers: upload via FTP
+    if server in FTP_CONFIGS:
+        return _upload_mvc_zip_to_dummy(server, zip_bytes)
+
+    # cPanel servers (GoDaddy): upload mvc.zip + latest bootstrap_copy.php via cPanel Fileman API
+    if server in CPANEL_CONFIGS:
+        cp         = CPANEL_CONFIGS[server]
+        dummy_host = DUMMY_SERVERS[server]
+        dummy_dir  = f"{cp['home']}/public_html/{dummy_host}"
+        cp_headers = {"Authorization": f"cpanel {cp['user']}:{cp['token']}"}
+        bootstrap_local = os.path.normpath(
+            os.path.join(os.path.dirname(__file__), "..", "bootstrap_copy.php")
+        )
+        try:
+            # Upload mvc.zip
+            resp = requests.post(
+                f"https://{cp['host']}:{cp['port']}/execute/Fileman/upload_files",
+                headers=cp_headers,
+                data={"dir": dummy_dir, "overwrite": 1},
+                files={"file-0": ("mvc.zip", zip_bytes, "application/zip")},
+                verify=False,
+                timeout=120,
+            )
+            ur = resp.json()
+            if ur.get("status") != 1:
+                return {"success": False, "message": f"cPanel upload failed: {ur.get('errors', ur)}"}
+            # Also push latest bootstrap_copy.php so GET section is available
+            notes = []
+            if os.path.exists(bootstrap_local):
+                with open(bootstrap_local, "rb") as bf:
+                    bp_bytes = bf.read()
+                bp_resp = requests.post(
+                    f"https://{cp['host']}:{cp['port']}/execute/Fileman/upload_files",
+                    headers=cp_headers,
+                    data={"dir": dummy_dir, "overwrite": 1},
+                    files={"file-0": ("bootstrap_copy.php", bp_bytes, "text/plain")},
+                    verify=False,
+                    timeout=60,
+                )
+                bp_ur = bp_resp.json()
+                notes.append("bootstrap_copy.php updated" if bp_ur.get("status") == 1 else "bootstrap_copy.php update failed")
+            return {"success": True, "message": f"mvc.zip uploaded to {dummy_host}" + (f" | {notes[0]}" if notes else "")}
+        except Exception as e:
+            return {"success": False, "message": f"cPanel upload error: {e}"}
+
+    raise HTTPException(status_code=400, detail=f"No upload method for '{server}'")
 
 
 @app.post("/upload-assets-zip/{server}")

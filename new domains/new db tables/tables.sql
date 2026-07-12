@@ -132,3 +132,20 @@ CREATE TABLE IF NOT EXISTS `daysheet_opening_balance` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uniq_date_account_year` (`date`, `account_type`, `schoolyearID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `voice_messages` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `voice_name` varchar(255) NOT NULL DEFAULT '',
+  `class_id` int(11) NOT NULL DEFAULT '0',
+  `section_id` int(11) NOT NULL DEFAULT '0',
+  `file_name` varchar(255) NOT NULL DEFAULT '',
+  `file_original_name` varchar(255) NOT NULL DEFAULT '',
+  `file_size` int(11) NOT NULL DEFAULT '0',
+  `school_year_id` int(11) NOT NULL DEFAULT '0',
+  `created_by` int(11) NOT NULL DEFAULT '0',
+  `created_by_usertype` int(11) NOT NULL DEFAULT '0',
+  `status` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

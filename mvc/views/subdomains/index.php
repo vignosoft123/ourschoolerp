@@ -76,7 +76,7 @@
                             <!-- MVC row -->
                             <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
                                 <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">MVC</span>
-                                <button id="upload_mvc_zip_btn" class="btn btn-warning btn-sm" onclick="uploadMvcZipToServer()" disabled title="HostGator/MySchools/Schoolhour/Collegehour: Upload local mvc.zip to dummy server ONCE — then click Rocket">
+                                <button id="upload_mvc_zip_btn" class="btn btn-warning btn-sm" onclick="uploadMvcZipToServer()" disabled title="Upload local mvc.zip to dummy server ONCE — then click Deploy MVC. Works for HostGator, MySchools, Schoolhour, Collegehour, GoDaddy">
                                     <i class="fa fa-upload"></i> Upload MVC to Dummy
                                 </button>
                                 <button id="bulk_deploy_btn" class="btn btn-deploy-mvc btn-sm" onclick="bulkDeployMvc()" disabled title="Deploy MVC to subdomains. FTP servers: click Upload MVC to Dummy first">
@@ -521,11 +521,12 @@ function updateBulkCssBtn() {
 function updateBulkDeployBtn() {
     var count  = selectedIds.size;
     var server = $('#server_filter').val();
-    // "Upload MVC to Dummy" only relevant for FTP servers (hostgator, myschools, schoolhour, collegehour)
+    // "Upload MVC to Dummy" — FTP servers + GoDaddy (cPanel upload)
     var serverLower   = server.toLowerCase();
     var ftpServers    = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
     var cpanelServers = ['hostgator', 'myschools', 'godaddy'];
-    var showUploadBtn  = ftpServers.indexOf(serverLower) !== -1;
+    var dummyServers  = ['hostgator', 'myschools', 'schoolhour', 'collegehour', 'godaddy'];
+    var showUploadBtn  = dummyServers.indexOf(serverLower) !== -1;
     var showCpanelBtn  = cpanelServers.indexOf(serverLower) !== -1;
     if (count > 0) {
         $('#cpanel_create_btn').prop('disabled', !showCpanelBtn);
@@ -1132,10 +1133,9 @@ function deployMvc(btn, subdomainId, subdomainName, server) {
     btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
     $(btn).addClass('disabled');
 
-    // HostGator, BigRock, Schoolhour, Collegehour: use PHP endpoint (bootstrap_copy.php on dummy server)
-    // mvc.zip must already be uploaded via "Upload MVC to Dummy" button
-    // GoDaddy: use Python endpoint (direct HTTP POST)
-    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
+    // All dummy-based servers use PHP bootstrap_copy.php path.
+    // mvc.zip must already be on the dummy server (click "Upload MVC to Dummy" first).
+    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour', 'godaddy'];
     var usePhp = ftpServers.indexOf(server) !== -1;
 
     $.ajax({
@@ -1164,33 +1164,38 @@ function deployMvc(btn, subdomainId, subdomainName, server) {
 
 // ── Upload MVC Zip to Dummy Server ───────────────────────────────────────────
 function uploadMvcZipToServer() {
-    var server = $('#server_filter').val();
-    if (!server) {
-        alert('Please select a server first.');
-        return;
-    }
-    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
-    if (ftpServers.indexOf(server) === -1) {
-        alert(server + ' does not use a dummy server. Only Hostgator, Myschools, Schoolhour and Collegehour need this step.');
+    var server = ($('#server_filter').val() || '').toLowerCase();
+    if (!server) { alert('Please select a server first.'); return; }
+    var dummyServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour', 'godaddy'];
+    if (dummyServers.indexOf(server) === -1) {
+        alert(server + ' does not use a dummy server.');
         return;
     }
 
     var btn = $('#upload_mvc_zip_btn');
     btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading mvc.zip...');
 
+    // GoDaddy: cPanel upload — call Python directly (no FTP)
+    // FTP servers: call PHP which uses FTP credentials
+    var isCpanel = (server === 'godaddy');
+    var ajaxUrl  = isCpanel
+        ? 'http://localhost:8000/upload-mvc-zip/' + server
+        : '<?=base_url("subdomains/upload_mvc_zip_php")?>/' + server;
+
     $.ajax({
-        url: '<?=base_url("subdomains/upload_mvc_zip_php")?>/' + server,
-        type: 'POST',
-        dataType: 'json',
+        url:         ajaxUrl,
+        type:        'POST',
+        dataType:    'json',
+        contentType: isCpanel ? 'application/json' : 'application/x-www-form-urlencoded',
         success: function(res) {
             if (res && res.success) {
                 alert('✅ mvc.zip uploaded to dummy server (' + server + ')!\n\n' + res.message);
             } else {
-                alert('❌ Upload failed: ' + (res ? res.message : 'Unknown error'));
+                alert('❌ Upload failed: ' + (res ? (res.message || res.detail) : 'Unknown error'));
             }
         },
         error: function(xhr) {
-            alert('❌ Request failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : xhr.statusText));
+            alert('❌ Request failed: ' + (xhr.responseJSON ? (xhr.responseJSON.detail || xhr.responseJSON.message) : xhr.statusText));
         },
         complete: function() {
             btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
