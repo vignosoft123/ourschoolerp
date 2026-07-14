@@ -9,8 +9,9 @@
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
-        <div class="row">
-            <div class="col-sm-12">
+        <div class="rpt-filter-card">
+            <div class="rpt-filter-title"><i class="fa fa-filter"></i>&nbsp; Filter Options</div>
+            <div class="row">
                 <div class="form-group col-sm-4" id="classesDiv">
                     <label><?=$this->lang->line("progresscardreport_class")?><span class="text-red"> * </span></label>
                     <?php
@@ -44,15 +45,18 @@
                         echo form_dropdown("examID", $examsArray, set_value("examID"), "id='examID' class='form-control select2'");
                      ?>
                 </div>
-                <div class="col-sm-4">
-                    <button id="get_progresscardreport" class="btn btn-success" style="margin-top:23px;"> <?=$this->lang->line("progresscardreport_submit")?></button>
-                </div>
+            </div><!-- row -->
+
+            <div class="rpt-filter-actions">
+                <button id="get_progresscardreport" class="btn btn-success rpt-filter-btn"><i class="fa fa-search"></i> <?=$this->lang->line("progresscardreport_submit")?></button>
+                <button id="get_progresscardreport_new" class="btn btn-primary rpt-filter-btn"><i class="fa fa-search"></i> GET REPORT NEW</button>
             </div>
-        </div><!-- row -->
+        </div><!-- /.rpt-filter-card -->
     </div><!-- Body -->
 </div><!-- /.box -->
 
 <div id="load_progresscardreport"></div>
+<div id="load_progresscardreport_new"></div>
 
 <script type="text/javascript">
 
@@ -203,6 +207,70 @@
                 }
             }
 
+            for (var key in response) {
+                if (response.hasOwnProperty(key)) {
+                    $('#'+key).parent().addClass('has-error');
+                }
+            }
+        }
+    }
+
+    $(document).on('click','#get_progresscardreport_new', function() {
+        $('#load_progresscardreport_new').html("");
+        var error = 0;
+        var field = {
+            'examID'      : $('#examID').val(),
+            'classesID'   : $('#classesID').val(),
+            'sectionID'   : $('#sectionID').val(),
+            'studentID'   : $('#studentID').val(),
+        };
+
+        if (field['classesID'] == 0) {
+            $('#classesDiv').addClass('has-error');
+            error++;
+        } else {
+            $('#classesDiv').removeClass('has-error');
+        }
+
+        if (field['sectionID'] == '0') {
+            $('#sectionDiv').addClass('has-error');
+            error++;
+        } else {
+            $('#sectionDiv').removeClass('has-error');
+        }
+
+        if (error == 0) {
+            ajaxCallNew(field);
+        }
+    });
+
+    function ajaxCallNew(passData) {
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('progresscardreport/getProgresscardreportNew')?>",
+            data: passData,
+            dataType: "html",
+            success: function(data) {
+                var response = JSON.parse(data);
+                renderLoderNew(response, passData);
+            }
+        });
+    }
+
+    function renderLoderNew(response, passData) {
+        if(response.status) {
+            $('#load_progresscardreport_new').html(response.render);
+            for (var key in passData) {
+                if (passData.hasOwnProperty(key)) {
+                    $('#'+key).parent().removeClass('has-error');
+                }
+            }
+        } else {
+            for (var key in passData) {
+                if (passData.hasOwnProperty(key)) {
+                    $('#'+key).parent().removeClass('has-error');
+                }
+            }
             for (var key in response) {
                 if (response.hasOwnProperty(key)) {
                     $('#'+key).parent().addClass('has-error');

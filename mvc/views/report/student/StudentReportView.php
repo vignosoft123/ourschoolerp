@@ -13,9 +13,9 @@
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
-        <div class="row">
-
-            <div class="col-sm-12">
+        <div class="rpt-filter-card">
+            <div class="rpt-filter-title"><i class="fa fa-filter"></i>&nbsp; Filter Options</div>
+            <div class="row">
                 <div class="form-group col-sm-4" id="reportDiv">
                     <label><?=$this->lang->line("studentreport_report_for")?></label>
                     <?php
@@ -147,13 +147,12 @@
                     </select>
                 </div>
 
-                <div class="col-sm-4">
-                    <button id="get_classreport" class="btn btn-success" style="margin-top:23px;"> <?=$this->lang->line("studentreport_submit")?></button>
-                </div>
+            </div><!-- row -->
 
+            <div class="rpt-filter-actions">
+                <button id="get_classreport" class="btn btn-success rpt-filter-btn"><i class="fa fa-search"></i> <?=$this->lang->line("studentreport_submit")?></button>
             </div>
-
-        </div><!-- row -->
+        </div><!-- /.rpt-filter-card -->
     </div><!-- Body -->
 </div><!-- /.box -->
 

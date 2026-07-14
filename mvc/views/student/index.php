@@ -633,7 +633,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <?php echo $student->srclasses; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_section') ?>">
-                                                            <?php echo $student->srsection; ?>
+                                                            <select class="section_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $student->srsectionID ?>" style="min-width:110px;">
+                                                                <?php foreach ($sections as $sec) { ?>
+                                                                    <option value="<?= $sec->sectionID ?>" <?php if ($student->srsectionID == $sec->sectionID) echo 'selected'; ?>><?= $sec->section ?></option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
@@ -778,7 +782,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                             <?php echo $student->srclasses; ?>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_section') ?>">
-                                                            <?php echo $student->srsection; ?>
+                                                            <select class="section_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $student->srsectionID ?>" style="min-width:110px;">
+                                                                <?php foreach ($sections as $sec) { ?>
+                                                                    <option value="<?= $sec->sectionID ?>" <?php if ($student->srsectionID == $sec->sectionID) echo 'selected'; ?>><?= $sec->section ?></option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </td>
                                                         <td data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
@@ -1659,6 +1667,28 @@ $(document).on("change",".village_update",function(){
         dataType: "html",
         success: function(data) {
             $('.err').html(data);
+        }
+    });
+})
+
+$(document).on("change",".section_update",function(){
+    var $select = $(this);
+    var studentID = $select.attr('studentID');
+    var sectionID = $select.val();
+
+    $.ajax({
+        type: 'POST',
+        url: "<?=base_url('student/section_update')?>",
+        data: {"sectionID":sectionID,"studentID":studentID},
+        dataType: "html",
+        success: function(data) {
+            $('.err').html(data);
+            toastr.success('Section updated successfully.');
+            $select.attr('data-current', sectionID);
+        },
+        error: function() {
+            toastr.error('Request failed. Please try again.');
+            $select.val($select.attr('data-current'));
         }
     });
 })

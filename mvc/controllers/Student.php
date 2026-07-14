@@ -4149,6 +4149,25 @@ public function village_update(){
 	echo "Village updated successfully!";
 }
 
+public function section_update(){
+	$sectionID    = $_POST['sectionID'];
+	$studentID    = $_POST['studentID'];
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+	$section     = $this->section_m->general_get_single_section(array('sectionID' => $sectionID));
+	$sectionName = $section ? $section->section : '';
+
+	$this->db->where('studentID', $studentID);
+	$this->db->update('student', array('sectionID' => $sectionID));
+
+	$this->studentrelation_m->update_studentrelation_with_multicondition(
+		array('srsectionID' => $sectionID, 'srsection' => $sectionName),
+		array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID)
+	);
+
+	echo "Section updated successfully!";
+}
+
 public function roll_update(){
 	header('Content-Type: application/json');
 

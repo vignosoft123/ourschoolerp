@@ -1,21 +1,21 @@
 <link rel="stylesheet" href="/assets/css/report-buttons.css">
-<div class="row">
-    <div class="col-sm-12" style="margin:10px 0px">
-        <?php
-            $birthdaydatetime = ($birthdaydate != '') ? strtotime($birthdaydate) : '0';
-            $pdf_preview_uri = base_url('studentreport/pdf/'.$reportfor.'/'.$bloodID.'/'.$country.'/'.$transport.'/'.$hostel.'/'.$gender.'/'.$birthdaydatetime.'/'.$classesID.'/'.$sectionID);
-            $xml_preview_uri = base_url('studentreport/xlsx/'.$reportfor.'/'.$bloodID.'/'.$country.'/'.$transport.'/'.$hostel.'/'.$gender.'/'.$birthdaydatetime.'/'.$classesID.'/'.$sectionID);
-            echo btn_printReport('studentreport', $this->lang->line('report_print'), 'printablediv');
-            echo btn_pdfPreviewReport('studentreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            echo btn_xmlReport('studentreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
-            echo btn_sentToMailReport('studentreport', $this->lang->line('report_send_pdf_to_mail'));
-        ?>
-    </div>
+<?php
+    $birthdaydatetime = ($birthdaydate != '') ? strtotime($birthdaydate) : '0';
+    $pdf_preview_uri = base_url('studentreport/pdf/'.$reportfor.'/'.$bloodID.'/'.$country.'/'.$transport.'/'.$hostel.'/'.$gender.'/'.$birthdaydatetime.'/'.$classesID.'/'.$sectionID);
+    $xml_preview_uri = base_url('studentreport/xlsx/'.$reportfor.'/'.$bloodID.'/'.$country.'/'.$transport.'/'.$hostel.'/'.$gender.'/'.$birthdaydatetime.'/'.$classesID.'/'.$sectionID);
+?>
+<div class="rpt-action-bar no-print">
+    <?php
+        echo btn_printReport('studentreport', $this->lang->line('report_print'), 'printablediv');
+        echo btn_pdfPreviewReport('studentreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+        echo btn_xmlReport('studentreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
+        echo btn_sentToMailReport('studentreport', $this->lang->line('report_send_pdf_to_mail'));
+    ?>
 </div>
 <div class="box">
-    <div class="box-header bg-gray">
+    <div class="rpt-box-header">
         <?php if($reportfor==0){ $reportfor = 'All Classes';$reportTitle='All Students';}?>
-        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> <?=$this->lang->line('studentreport_report_for')?> - <?=ucwords($reportfor)?> ( <?=$reportTitle?> ) </h3>
+        <h3><i class="fa fa-clipboard"></i> <?=$this->lang->line('studentreport_report_for')?> - <?=ucwords($reportfor)?> ( <?=$reportTitle?> ) </h3>
     </div><!-- /.box-header -->
 
     <div id="printablediv">
@@ -26,17 +26,15 @@
                     <?=reportheader($siteinfos, $schoolyearsessionobj)?>
                 </div>
                 <div class="col-sm-12">
-                    <h5 class="pull-left">
-                        <?=$this->lang->line('studentreport_class')?> : <?=isset($classes[$classesID]) ? $classes[$classesID]->classes : $this->lang->line('studentreport_select_all_class')?>
-                    </h5>  
-                    <h5 class="pull-right">
-                        <?=$this->lang->line('studentreport_section')?> : <?=isset($sections[$sectionID]) ? $sections[$sectionID]->section : $this->lang->line('studentreport_select_all_section')?>
-                    </h5>  
+                    <div class="rpt-class-info">
+                        <span><i class="fa fa-graduation-cap"></i> <?=$this->lang->line('studentreport_class')?>: <strong><?=isset($classes[$classesID]) ? $classes[$classesID]->classes : $this->lang->line('studentreport_select_all_class')?></strong></span>
+                        <span><i class="fa fa-users"></i> <?=$this->lang->line('studentreport_section')?>: <strong><?=isset($sections[$sectionID]) ? $sections[$sectionID]->section : $this->lang->line('studentreport_select_all_section')?></strong></span>
+                    </div>
                 </div>
                 <div class="col-sm-12">
                     <?php if(customCompute($students)) { ?>
-                    <div id="hide-table">
-                        <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                    <div id="rpt-wrap-studentreport" class="rpt-table-wrap rpt-table-wrap--compact">
+                        <table id="example1" class="table table-bordered table-hover rpt-table dataTable no-footer">
                             <thead>
                                 <tr>
                                     <th><?=$this->lang->line('studentreport_slno')?></th>
@@ -119,6 +117,16 @@
         </div><!-- Body -->
     </div>
 </div>
+
+<button class="rpt-scroll-top-btn" id="scroll-to-top-btn" title="Back to top">&#8679;</button>
+<script>
+$(window).on('scroll', function () {
+    $(this).scrollTop() > 200 ? $('#scroll-to-top-btn').fadeIn(300) : $('#scroll-to-top-btn').fadeOut(300);
+});
+$('#scroll-to-top-btn').on('click', function () {
+    $('html, body').animate({ scrollTop: 0 }, 400);
+});
+</script>
 
 <!-- email modal starts here -->
 <form class="form-horizontal" role="form" action="<?=base_url('studentreport/send_pdf_to_mail');?>" method="post">

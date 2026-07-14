@@ -128,20 +128,20 @@ font-size: 13px;
             
 </style>
 <div class="row">
-    <div class="col-sm-12" style="margin:10px 0px">
+    <div class="col-sm-12 rpt-action-bar no-print">
         <?php
             $pdf_preview_uri = base_url('progresscardreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID);
 
             echo btn_printReport('progresscardreport', $this->lang->line('report_print'), 'printablediv');
-            
+
             // echo btn_pdfPreviewReport('progresscardreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
             // echo btn_sentToMailReport('progresscardreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
-        <button class="btn btn-default sendSms"><span class="fa fa-send"></span> Send SMS</button>
+        <button class="btn btn-default rpt-action-btn sendSms"><i class="fa fa-send"></i> Send SMS</button>
 
-        <button class="btn btn-default sendWhatsapp_btn"></span> Send Whatsapp</button>
+        <button class="btn btn-default rpt-action-btn sendWhatsapp_btn"><i class="fa fa-whatsapp"></i> Send Whatsapp</button>
     </div>
-     
+
     <div class="form-group col-sm-12" id="students_div" style="margin-top: 20px;">
     <label style="font-weight: 600; font-size: 15px; color: #333;">
         <?=$this->lang->line("progresscardreport_student")?>
@@ -208,8 +208,8 @@ font-size: 13px;
 
 </div>
 <div class="box">
-    <div class="box-header bg-gray">
-        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> 
+    <div class="rpt-box-header">
+        <h3><i class="fa fa-clipboard"></i>
         <?=$this->lang->line('progresscardreport_report_for')?> - <?=$this->lang->line('progresscardreport_progresscard')?></h3>
     </div><!-- /.box-header -->
     <div id="printablediv">

@@ -109,6 +109,7 @@ class Progresscardreport extends Admin_Controller {
 			'js' => array(
 				'assets/select2/select2.js',
 				'assets/custom-scrollbar/jquery.mCustomScrollbar.concat.min.js',
+				'assets/highcharts/highcharts.js',
 			)
 		);
 		$this->data['classes'] = $this->classes_m->general_get_classes();
@@ -920,7 +921,7 @@ foreach($months_array as $mkey => $v) {
 						$phonesMap = array();
 					}
 
-					$phone = isset($students[0]->phone) ? $students[0]->phone : '';
+					$phone = isset($students[0]->alternative_phone1) ? $students[0]->alternative_phone1 : $students[0]->phone;
 					$student_name = isset($students[0]->srname) ? $students[0]->srname : (isset($students[0]->name) ? $students[0]->name : '');
 					$exam_name = isset($this->data['exams'][$examID]) ? $this->data['exams'][$examID] : '';
 
@@ -976,6 +977,484 @@ foreach($months_array as $mkey => $v) {
 					$retArray['sent'] = isset($sentCount) ? $sentCount : 0;
 					echo json_encode($retArray);
 				}
+			} else {
+				$retArray['message'] = $this->lang->line('progresscardreport_permissionmethod');
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['message'] = $this->lang->line('progresscardreport_permission');
+			echo json_encode($retArray);
+			exit;
+		}
+	}
+
+	/* =====================================================================
+	 * NEW-DESIGN PROGRESS CARD — additive, parallel to the flow above.
+	 * Nothing above this point is touched by the methods/helpers below.
+	 * ===================================================================== */
+
+	// Whole class+section roster's class-average % and grade-distribution histogram
+	// for one exam — independent of whatever subset of students is actually being
+	// displayed/sent, so "class average" always reflects the real class, not just
+	// the filtered selection.
+	private function _computeClassPerformance($classesID, $sectionID, $examID, $schoolyearID, $mandatorySubjects, $markpercentagesclassArr, $settingmarktypeID) {
+		$rosterQueryArray = array('srschoolyearID' => $schoolyearID);
+		if((int)$classesID > 0) { $rosterQueryArray['srclassesID'] = $classesID; }
+		if((int)$sectionID > 0) { $rosterQueryArray['srsectionID'] = $sectionID; }
+
+		$rosterStudents = $this->studentrelation_m->general_get_order_by_student($rosterQueryArray);
+
+		$mArrayRoster = array('schoolyearID' => $schoolyearID, 'examID' => $examID);
+		if((int)$classesID > 0) { $mArrayRoster['classesID'] = $classesID; }
+		$rosterMarks = $this->mark_m->student_all_mark_array($mArrayRoster);
+
+		$retMarkRoster = array();
+		if(customCompute($rosterMarks)) {
+			foreach($rosterMarks as $mark) {
+				$retMarkRoster[$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+				$retMarkRoster[$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
+			}
+		}
+
+		$totalMaxMarks = 0;
+		if(customCompute($mandatorySubjects)) {
+			foreach($mandatorySubjects as $mandatorySubject) {
+				$totalMaxMarks += $mandatorySubject->max_mark;
+			}
+		}
+
+		$studentPct     = array();
+		$gradeHistogram = array();
+
+		if(customCompute($rosterStudents) && $totalMaxMarks > 0) {
+			foreach($rosterStudents as $rosterStudent) {
+				$studentTotal = 0;
+				if(customCompute($mandatorySubjects)) {
+					foreach($mandatorySubjects as $mandatorySubject) {
+						$uniquepercentageArr = isset($markpercentagesclassArr[$examID][$mandatorySubject->subjectID]) ? $markpercentagesclassArr[$examID][$mandatorySubject->subjectID] : [];
+						$markpercentages     = [];
+						if(customCompute($uniquepercentageArr)) {
+							$markpercentages = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
+						}
+						if(customCompute($markpercentages)) {
+							foreach($markpercentages as $markpercentageID) {
+								if(isset($retMarkRoster[$rosterStudent->srstudentID][$mandatorySubject->subjectID][$markpercentageID])) {
+									$studentTotal += $retMarkRoster[$rosterStudent->srstudentID][$mandatorySubject->subjectID][$markpercentageID];
+								} elseif(isset($retMarkRoster[$rosterStudent->srstudentID][$mandatorySubject->subjectID]['default'])) {
+									$studentTotal += $retMarkRoster[$rosterStudent->srstudentID][$mandatorySubject->subjectID]['default'];
+								}
+							}
+						}
+					}
+				}
+
+				$pct = ($studentTotal / $totalMaxMarks) * 100;
+				$studentPct[$rosterStudent->srstudentID] = $pct;
+
+				$resolved = progresscard_resolve_grade($pct);
+				if(!isset($gradeHistogram[$resolved['grade']])) { $gradeHistogram[$resolved['grade']] = 0; }
+				$gradeHistogram[$resolved['grade']]++;
+			}
+		}
+
+		return array(
+			'classAveragePct' => customCompute($studentPct) ? array_sum($studentPct) / count($studentPct) : 0,
+			'studentPct'      => $studentPct,
+			'gradeHistogram'  => $gradeHistogram,
+			'totalStudents'   => customCompute($rosterStudents),
+		);
+	}
+
+	// Month-by-month (Jun-May academic year) attendance + working-days for one student.
+	// Same underlying query/columns as the inline block in getProgresscardreport()/
+	// send_pdf_to_whatsapp() (left untouched there) — factored out here for the new flow only.
+	private function _buildAttendanceByMonth($schoolyearID, $studentID) {
+		$months = array('6'=>'Jun','7'=>'Jul','8'=>'Aug','9'=>'Sep','10'=>'Oct','11'=>'Nov','12'=>'Dec','1'=>'Jan','2'=>'Feb','3'=>'Mar','4'=>'Apr','5'=>'May');
+
+		$this->db->where('schoolyearID', $schoolyearID);
+		$schoolyearRow = $this->db->get('schoolyear')->row();
+		$schoolyear    = $schoolyearRow ? $schoolyearRow->schoolyear : '';
+		$parts         = explode('-', $schoolyear);
+		$startYear     = isset($parts[0]) ? (int)$parts[0] : (int)date('Y');
+		if(isset($parts[1])) {
+			$endYear = (strlen(trim($parts[1])) == 2) ? (int)('20'.trim($parts[1])) : (int)$parts[1];
+		} else {
+			$endYear = $startYear + 1;
+		}
+
+		$getHolidays    = explode('","', $this->getHolidaysSession());
+		$getWeekendDays = $this->getWeekendDaysSession();
+
+		$monthly          = array();
+		$totalWorkingDays = 0;
+		$totalPresent     = 0;
+		$totalAbsent      = 0;
+
+		foreach($months as $mkey => $label) {
+			$d_m  = str_pad($mkey, 2, '0', STR_PAD_LEFT);
+			$year = ($mkey <= 5) ? $endYear : $startYear;
+			$monthyear = $d_m.'-'.$year;
+
+			$this->db->where('monthyear', $monthyear);
+			$this->db->where('studentID', $studentID);
+			$rows = $this->db->get('attendance')->result_array();
+
+			$present = 0; $absent = 0;
+			foreach($rows as $row) {
+				for($d = 1; $d <= 31; $d++) {
+					$col = 'a'.$d;
+					if(isset($row[$col])) {
+						$status = trim($row[$col]);
+						if($status === 'P') { $present++; }
+						elseif($status === 'A') { $absent++; }
+					}
+				}
+			}
+
+			$totalDaysInMonth = cal_days_in_month(CAL_GREGORIAN, (int)$d_m, (int)$year);
+
+			$holidayCount = 0;
+			foreach($getHolidays as $day) {
+				$dparts = explode('-', $day);
+				if(count($dparts) == 3 && (int)$dparts[1] == (int)$d_m && (int)$dparts[2] == (int)$year) {
+					$holidayCount++;
+				}
+			}
+			$weekendCount = 0;
+			foreach($getWeekendDays as $day) {
+				$dparts = explode('-', $day);
+				if(count($dparts) == 3 && (int)$dparts[1] == (int)$d_m && (int)$dparts[2] == (int)$year) {
+					$weekendCount++;
+				}
+			}
+
+			$workingDays = $totalDaysInMonth - ($holidayCount + $weekendCount);
+			if($workingDays < 0) { $workingDays = 0; }
+
+			$monthly[$mkey] = array(
+				'label'       => $label,
+				'workingDays' => $workingDays,
+				'present'     => $present,
+				'absent'      => $absent,
+			);
+
+			$totalWorkingDays += $workingDays;
+			$totalPresent     += $present;
+			$totalAbsent      += $absent;
+		}
+
+		return array(
+			'months'            => $monthly,
+			'schoolyear'        => $schoolyear,
+			'totalWorkingDays'  => $totalWorkingDays,
+			'totalPresent'      => $totalPresent,
+			'totalAbsent'       => $totalAbsent,
+			'yearlyPercentage'  => $totalWorkingDays > 0 ? round(($totalPresent / $totalWorkingDays) * 100, 2) : 0,
+		);
+	}
+
+	// Class teacher name for the section shown in the Academic Year box header.
+	private function _getClassTeacherName($sectionID) {
+		if(!(int)$sectionID) { return ''; }
+		$this->db->select('teacher.name as teacherName');
+		$this->db->from('section');
+		$this->db->join('teacher', 'section.teacherID = teacher.teacherID', 'LEFT');
+		$this->db->where('section.sectionID', $sectionID);
+		$row = $this->db->get()->row();
+		return ($row && $row->teacherName) ? $row->teacherName : '';
+	}
+
+	public function getProgresscardreportNew() {
+		$retArray['status'] = FALSE;
+		$retArray['render'] = '';
+		if(permissionChecker('progresscardreport')) {
+			if($_POST) {
+				$classesID    = $this->input->post('classesID');
+				$sectionID    = $this->input->post('sectionID');
+				$studentID    = $this->input->post('studentID');
+				$examID       = $this->input->post('examID');
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+				$rules = $this->rules();
+				$this->form_validation->set_rules($rules);
+				if($this->form_validation->run() == FALSE) {
+					$retArray = $this->form_validation->error_array();
+					$retArray['status'] = FALSE;
+					echo json_encode($retArray);
+					exit;
+				}
+
+				$this->data['classesID'] = $classesID;
+				$this->data['sectionID'] = $sectionID;
+				$this->data['studentID'] = $studentID;
+				$this->data['examID']    = $examID;
+
+				$mArray     = [];
+				$queryArray = [];
+				$mArray['schoolyearID']       = $schoolyearID;
+				$queryArray['srschoolyearID'] = $schoolyearID;
+				if((int)$classesID > 0) {
+					$mArray['classesID']       = $classesID;
+					$queryArray['srclassesID'] = $classesID;
+				}
+				if((int)$sectionID > 0) {
+					$mArray['sectionID']       = $sectionID;
+					$queryArray['srsectionID'] = $sectionID;
+				}
+				if((int)$studentID > 0) {
+					$mArray['studentID']       = $studentID;
+					$queryArray['srstudentID'] = $studentID;
+				}
+
+				$this->data['classes']       = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+				$this->data['sections']      = pluck($this->section_m->general_get_section(),'section','sectionID');
+				$this->data['classTeacher']  = $this->_getClassTeacherName($sectionID);
+
+				$students          = $this->studentrelation_m->general_get_order_by_student($queryArray);
+				$marks             = $this->mark_m->student_all_mark_array($mArray);
+				$mandatorySubjects = $this->subject_m->general_get_order_by_subject_left_examschedule($classesID, $type = 1, $examID, $sectionID);
+				$optionalSubjects  = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID, 'type' => 0));
+
+				$settingmarktypeID       = $this->data['siteinfos']->marktypeID;
+				$markpercentagesmainArr  = $this->marksetting_m->get_marksetting_markpercentages();
+				$markpercentagesclassArr = isset($markpercentagesmainArr[$classesID]) ? $markpercentagesmainArr[$classesID] : [];
+				$settingExam             = array_keys($markpercentagesclassArr);
+				$percentageArr           = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
+
+				$this->data['markpercentagesclassArr'] = $markpercentagesclassArr;
+				$this->data['settingmarktypeID']        = $settingmarktypeID;
+
+				// Same mark reshaping as the old flow, plus eattendance captured here
+				// (already present in the same result set) instead of a per-cell query later.
+				$retMark   = [];
+				$retStatus = [];
+				if(customCompute($marks)) {
+					foreach($marks as $mark) {
+						$retMark[$mark->examID][$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+						$retMark[$mark->examID][$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
+						$retStatus[$mark->examID][$mark->studentID][$mark->subjectID] = $mark->eattendance;
+					}
+				}
+
+				$markArray      = [];
+				$studentChecker = [];
+				if(customCompute($settingExam)) {
+					foreach($settingExam as $seExamID) {
+						if(customCompute($students)) {
+							foreach($students as $student) {
+								$opuniquepercentageArr = [];
+								if($student->sroptionalsubjectID > 0) {
+									$opuniquepercentageArr = isset($markpercentagesclassArr[$seExamID][$student->sroptionalsubjectID]) ? $markpercentagesclassArr[$seExamID][$student->sroptionalsubjectID] : [];
+								}
+								if(customCompute($mandatorySubjects)) {
+									foreach($mandatorySubjects as $mandatorySubject) {
+										$uniquepercentageArr = isset($markpercentagesclassArr[$seExamID][$mandatorySubject->subjectID]) ? $markpercentagesclassArr[$seExamID][$mandatorySubject->subjectID] : [];
+										$markpercentages     = [];
+										if(customCompute($uniquepercentageArr)) {
+											$markpercentages = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
+										}
+										if(customCompute($markpercentages)) {
+											foreach($markpercentages as $markpercentageID) {
+												$f = false;
+												if(isset($uniquepercentageArr['own']) && in_array($markpercentageID, $uniquepercentageArr['own'])) { $f = true; }
+
+												if(isset($retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID]) && $f) {
+													$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID];
+												} elseif(isset($retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID]['default']) && $f) {
+													$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID]['default'];
+												}
+
+												$f = false;
+												if(customCompute($opuniquepercentageArr)) {
+													if(isset($opuniquepercentageArr['own']) && in_array($markpercentageID, $opuniquepercentageArr['own'])) { $f = true; }
+												}
+												if(!isset($studentChecker['subject'][$seExamID][$student->srstudentID][$markpercentageID]) && $f) {
+													if($student->sroptionalsubjectID > 0) {
+														if(isset($retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID])) {
+															$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID];
+														} elseif(isset($retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID]['default'])) {
+															$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID]['default'];
+														}
+													}
+													$studentChecker['subject'][$seExamID][$student->srstudentID][$markpercentageID] = TRUE;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				$classPerf = $this->_computeClassPerformance($classesID, $sectionID, $examID, $schoolyearID, $mandatorySubjects, $markpercentagesclassArr, $settingmarktypeID);
+
+				$attendanceByStudent = [];
+				$qrByStudent         = [];
+				if(customCompute($students)) {
+					foreach($students as $student) {
+						$attendanceByStudent[$student->srstudentID] = $this->_buildAttendanceByMonth($schoolyearID, $student->srstudentID);
+					}
+				}
+
+				$this->data['optionalSubjects']  = pluck($optionalSubjects,'obj','subjectID');
+				$this->data['mandatorySubjects'] = $mandatorySubjects;
+				$this->data['exams']             = pluck($this->exam_m->get_exam(),'exam','examID');
+				$this->data['students']          = $students;
+				$this->data['markArray']         = $markArray;
+				$this->data['eattendanceArray']  = $retStatus;
+				$this->data['settingExam']       = $settingExam;
+				$this->data['classPerf']         = $classPerf;
+				$this->data['attendanceByStudent'] = $attendanceByStudent;
+
+				$retArray['render'] = $this->load->view('report/progresscard/ProgresscardReportNew', $this->data, true);
+				$retArray['status'] = TRUE;
+				echo json_encode($retArray);
+				exit();
+			} else {
+				echo json_encode($retArray);
+				exit;
+			}
+		} else {
+			$retArray['render'] = $this->load->view('report/reporterror', $this->data, true);
+			$retArray['status'] = TRUE;
+			echo json_encode($retArray);
+			exit;
+		}
+	}
+
+	public function send_pdf_to_whatsapp_new() {
+		$retArray['status']  = FALSE;
+		$retArray['message'] = '';
+		if(permissionChecker('progresscardreport')) {
+			if($_POST) {
+				$classesID    = $this->input->post('classesID');
+				$sectionID    = $this->input->post('sectionID');
+				$studentID    = $this->input->post('studentID');
+				$examID       = $this->input->post('examID');
+				$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+				$this->data['classesID'] = $classesID;
+				$this->data['sectionID'] = $sectionID;
+				$this->data['examID']    = $examID;
+
+				$mandatorySubjects = $this->subject_m->general_get_order_by_subject_left_examschedule($classesID, $type = 1, $examID, $sectionID);
+				$optionalSubjects  = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID, 'type' => 0));
+
+				$settingmarktypeID       = $this->data['siteinfos']->marktypeID;
+				$markpercentagesmainArr  = $this->marksetting_m->get_marksetting_markpercentages();
+				$markpercentagesclassArr = isset($markpercentagesmainArr[$classesID]) ? $markpercentagesmainArr[$classesID] : [];
+				$settingExam             = array_keys($markpercentagesclassArr);
+				$percentageArr           = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
+
+				$this->data['markpercentagesclassArr'] = $markpercentagesclassArr;
+				$this->data['settingmarktypeID']        = $settingmarktypeID;
+				$this->data['optionalSubjects']  = pluck($optionalSubjects,'obj','subjectID');
+				$this->data['mandatorySubjects'] = $mandatorySubjects;
+				$this->data['exams']             = pluck($this->exam_m->get_exam(),'exam','examID');
+				$this->data['classes']       = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+				$this->data['sections']      = pluck($this->section_m->general_get_section(),'section','sectionID');
+				$this->data['classTeacher']  = $this->_getClassTeacherName($sectionID);
+				$this->data['settingExam']   = $settingExam;
+
+				// Class average / grade histogram computed ONCE — every selected student
+				// in this request shares the same classesID/sectionID/examID.
+				$classPerf = $this->_computeClassPerformance($classesID, $sectionID, $examID, $schoolyearID, $mandatorySubjects, $markpercentagesclassArr, $settingmarktypeID);
+				$this->data['classPerf'] = $classPerf;
+
+				$bulkMessages = array();
+
+				for($i = 0; $i < count($studentID); $i++) {
+					$mArray     = array('schoolyearID' => $schoolyearID);
+					$queryArray = array('srschoolyearID' => $schoolyearID);
+					if((int)$classesID > 0) { $mArray['classesID'] = $classesID; $queryArray['srclassesID'] = $classesID; }
+					if((int)$sectionID > 0) { $mArray['sectionID'] = $sectionID; $queryArray['srsectionID'] = $sectionID; }
+					if((int)$studentID[$i] > 0) { $mArray['studentID'] = $studentID[$i]; $queryArray['srstudentID'] = $studentID[$i]; }
+
+					$students = $this->studentrelation_m->general_get_order_by_student($queryArray);
+					$marks    = $this->mark_m->student_all_mark_array($mArray);
+
+					$retMark   = [];
+					$retStatus = [];
+					if(customCompute($marks)) {
+						foreach($marks as $mark) {
+							$retMark[$mark->examID][$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+							$retMark[$mark->examID][$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
+							$retStatus[$mark->examID][$mark->studentID][$mark->subjectID] = $mark->eattendance;
+						}
+					}
+
+					$markArray      = [];
+					$studentChecker = [];
+					if(customCompute($settingExam)) {
+						foreach($settingExam as $seExamID) {
+							if(customCompute($mandatorySubjects)) {
+								foreach($mandatorySubjects as $mandatorySubject) {
+									$uniquepercentageArr = isset($markpercentagesclassArr[$seExamID][$mandatorySubject->subjectID]) ? $markpercentagesclassArr[$seExamID][$mandatorySubject->subjectID] : [];
+									$markpercentages     = [];
+									if(customCompute($uniquepercentageArr)) {
+										$markpercentages = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
+									}
+									if(customCompute($markpercentages)) {
+										foreach($markpercentages as $markpercentageID) {
+											$f = false;
+											if(isset($uniquepercentageArr['own']) && in_array($markpercentageID, $uniquepercentageArr['own'])) { $f = true; }
+
+											if(isset($retMark[$seExamID][$studentID[$i]][$mandatorySubject->subjectID][$markpercentageID]) && $f) {
+												$markArray[$seExamID][$studentID[$i]]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$seExamID][$studentID[$i]][$mandatorySubject->subjectID][$markpercentageID];
+											} elseif(isset($retMark[$seExamID][$studentID[$i]][$mandatorySubject->subjectID]['default']) && $f) {
+												$markArray[$seExamID][$studentID[$i]]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$seExamID][$studentID[$i]][$mandatorySubject->subjectID]['default'];
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+
+					$this->data['students']          = $students;
+					$this->data['markArray']         = $markArray;
+					$this->data['eattendanceArray']  = $retStatus;
+					$this->data['attendanceByStudent'] = array(
+						$studentID[$i] => $this->_buildAttendanceByMonth($schoolyearID, $studentID[$i]),
+					);
+
+					$attachment = $this->generateAttachment('progresscardreportnew.css', $this->data, 'report/progresscard/ProgresscardReportPDFNew');
+					$media_path = base_url().$attachment;
+
+					$phone = isset($students[0]->alternative_phone1) ? $students[0]->alternative_phone1 : $students[0]->phone;
+					$student_name = isset($students[0]->srname) ? $students[0]->srname : '';
+					$exam_name    = isset($this->data['exams'][$examID]) ? $this->data['exams'][$examID] : '';
+					$params       = "{$student_name},{$exam_name}";
+
+					$bulkMessages[] = array(
+						'phone'   => $phone,
+						'message' => $params,
+						'url'     => $media_path,
+						'htype'   => 'document',
+						'fname'   => 'Progress_Card_New_'.$student_name.'.pdf',
+					);
+				}
+
+				if(customCompute($bulkMessages)) {
+					$template_sql = "select params,template_name from whatapp_templates where short_name like 'PROGRESS_CARD'";
+					$template     = $this->db->query($template_sql)->row_array();
+					if($template && !empty($template['template_name'])) {
+						$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media_progresscard($bulkMessages, $template['template_name']);
+					} else {
+						$sentCount = 0;
+					}
+
+					$retArray['status'] = TRUE;
+					$retArray['sent']   = $sentCount;
+					echo json_encode($retArray);
+					exit;
+				}
+
+				$retArray['status']  = FALSE;
+				$retArray['message'] = 'No students selected.';
+				echo json_encode($retArray);
+				exit;
 			} else {
 				$retArray['message'] = $this->lang->line('progresscardreport_permissionmethod');
 				echo json_encode($retArray);

@@ -156,6 +156,8 @@ A plain SQL counterpart to `schema_updates.json`. Contains the same schema chang
 - **2026-06-17**: Implemented **Activity Logging System** (Section 11) — common `Activity_log_m` model with `add()` method, `activity_logs` table, admin Logs UI with filters/pagination, wired into Teacher/User/Student/Exam/Delete Account Request controllers.
 - **2026-06-25**: Implemented **Notification Event Config System** (Section 12) — central SMS/WhatsApp on/off toggle per event. New table `notification_event_config`, model `Notification_event_config_m`, 3rd tab at `/mailandsmstemplate/notification_config`. Global helper `notification_enabled($event_key, $type)` in `action_helper.php` guards all sends. Wired into: Fee Payment (both Global_payment controllers), Attendance (Sattendance), Student Login (Student, 4 methods), Exam Marks + Fee Reminder (Progresscardreport). WhatsApp `{{paid_amount}}` param format also fixed: now sends 3 params (`name`, `amount and Balance: X`, `date`) instead of 4.
 - **2026-06-29**: Documented **`index` migration type** (Section 5) — `check_index: { table, index }` guard using `SHOW INDEX`. Documented **`schema_updates.sql`** parallel SQL file (Section 5) — MySQL 8.0+ `ADD COLUMN IF NOT EXISTS` guards, for direct DB import on new servers. Added **Section 8.5** HTML blob Excel export pattern (used by Day Summary Report). Implemented **Day Summary Report** (Section 13) — `/Daysummaryreport`, running-balance ledger for fee/income/expense/salary, tabbed by payment mode, AJAX pattern, native Excel export via HTML blob.
+- **2026-07-14**: Added **Section 8.6** — Server-Side PhpSpreadsheet Excel Export (direct download link), the preferred default export pattern, plus a decision guide comparing it against SheetJS (8.3) and HTML blob (8.5). Fixed `Studentreport::generateXML()` to use this fixed-column, no-merge-cells style (reference alongside `Student::export_comprehensive_excel()`). Flagged `mvc/views/report/balancefees/BalanceFeesReport.php`'s `#exportButton` handler as a cautionary example of fragile client-side SheetJS (hard-coded column removal, fixed filename).
+- **2026-07-14**: Added **Section 8.3.1** — `table_to_book()` one-liner, the simplest client-side SheetJS form for a plain data table with no photo/tooltip/action-button cleanup needed. Documented when to escalate to the full 8.3 cleaned pattern vs. this quick variant, and updated the Section 8.6 decision guide table to list both SheetJS variants separately.
 - **2026-06-29**: Documented **Day Sheet Report** (Section 14) — `/Daysheetreport`, 8-section daily financial snapshot, `daysheet_opening_balance` table for per-account opening balance chain, `dsCards` JS object for card-click popups, colored Excel export via HTML blob. Established **`tables.sql` separation rule** (Section 5) — CREATE TABLE DDL goes to `new domains/new db tables/tables.sql`, NOT to migration JSON/SQL files.
 
 ## 8. Reusable UI Patterns
@@ -304,6 +306,39 @@ $('#your-excel-btn').on('click', function () {
 
 ---
 
+### 8.3.1 Simplest Form — `table_to_book()` One-Liner (Quick Reference)
+
+For a plain data table with **no photo/image cells, no tooltip attributes, no action-button column** to strip, skip the cleanup steps in 8.3 entirely and export directly:
+
+```html
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+<script>
+$(document).on('click', '#your-excel-btn', function () {
+    var table = document.getElementById('your-table-id');
+    if (!table) { return; } // guard: table may not be rendered yet (AJAX-loaded reports)
+
+    var wb = XLSX.utils.table_to_book(table, { sheet: 'Sheet1' });
+
+    var today = new Date();
+    var dateStr = today.getFullYear() + '-' +
+                  String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                  String(today.getDate()).padStart(2, '0');
+    XLSX.writeFile(wb, 'ReportName_' + dateStr + '.xlsx');
+});
+</script>
+```
+
+**Key rules**:
+- `table_to_book()` reads the live table directly — **only use this on a table with no photo/action columns**, since it exports every visible cell (including `<img>` and `<button>` markup) as-is with no cleanup pass.
+- Still bind with `$(document).on('click', ...)` (delegated), not a direct selector — the button may sit above the table in DOM order, especially on AJAX-rendered reports (see 8.4's timing gotcha).
+- Still guard with `if (!table) return;` if the table is only rendered after an AJAX call (e.g. a report that starts empty until a filter is submitted).
+- Build a real filename (`ReportName_YYYY-MM-DD.xlsx`) — do not ship a hard-coded generic name like `"table_data.xlsx"` for every report (see the Balance Fees cautionary example in 8.6).
+- **Escalate to the full 8.3 pattern** (clone + strip `data-toggle`/`title` + em-dash cleanup) as soon as the table has a photo column, action buttons, or Bootstrap tooltips — this one-liner will otherwise export garbage cells.
+
+**When to use**: A quick, no-frills export button for a simple filtered list (name/number/date columns only) where you don't want to wire up a server-side controller method just to download what's already on screen.
+
+---
+
 ### 8.4 Bootstrap Modal — AdminLTE Gotcha and Correct Pattern
 
 AdminLTE 2.x places all page content inside `<aside class="right-side"> … <section class="content"> … <div class="col-xs-12">`. Any Bootstrap modal placed inside this container (i.e., in a sub-view file) **may silently fail to open** due to two compounding bugs:
@@ -420,6 +455,67 @@ URL.revokeObjectURL(url);
 - **Guard the export button** — check that the data variable exists first (`if (typeof dsmData === 'undefined') { alert(...); return; }`), since the button is rendered before the report loads.
 - **Use this pattern when**: the exported data comes from a JS object, not from a DOM table.
 - **Use SheetJS (8.3) when**: the data is already in a visible `<table>` in the DOM.
+
+---
+
+### 8.6 Server-Side PhpSpreadsheet Excel Export (Direct Download Link) — Preferred Default
+
+The most robust export pattern in this project. A plain `<a href="...">` link (or `btn_xmlReport()` helper) points at a controller method that builds the file entirely in PHP with the `phpspreadsheet` library and streams it as a download — no client-side JS library involved.
+
+**Reference implementations**:
+- `Student::export_comprehensive_excel()` (`mvc/controllers/Student.php`) — the "Export Excel" button on the Student list page (`mvc/views/student/index.php`), a plain anchor: `<a href="<?=base_url('student/export_comprehensive_excel/'.$set)?>">`.
+- `Studentreport::xlsx()` / `Studentreport::generateXML()` (`mvc/controllers/Studentreport.php`) — the `XLSX` button on Student Report, wired via `btn_xmlReport('studentreport', $xml_preview_uri, ...)`.
+
+**Pattern**:
+```php
+public function export_excel() {
+    if (!permissionChecker('your_permission')) { /* show error view */ return; }
+
+    $this->load->library('phpspreadsheet');
+    $sheet = $this->phpspreadsheet->spreadsheet->getActiveSheet();
+    $sheet->getDefaultColumnDimension()->setWidth(18);
+
+    // Fixed header row — one cell per column, no conditional column counting
+    $headers = ['A1' => 'Sl No', 'B1' => 'Name', /* ... */];
+    foreach ($headers as $cell => $value) { $sheet->setCellValue($cell, $value); }
+    $sheet->getStyle('A1:J1')->applyFromArray([
+        'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFF']],
+        'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => '366092']],
+        'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
+    ]);
+
+    $row = 2;
+    foreach ($data as $item) {
+        $sheet->setCellValue('A'.$row, $item->field1);
+        // ... one setCellValue per column, straight line, no merged cells
+        $row++;
+    }
+
+    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    header('Content-Disposition: attachment;filename="report.xlsx"');
+    header('Cache-Control: max-age=0');
+    $this->phpspreadsheet->output($this->phpspreadsheet->spreadsheet);
+}
+```
+
+**Key rules**:
+- **Fixed header cells (`'A1' => ...`), not conditional column counting.** The old `Studentreport::generateXML()` used to compute `$countColumn` from `$classesID`/`$sectionID` and merge cells for a title band — this was fragile and broke silently across filter combinations. Always write a flat, fixed set of column letters instead.
+- **Never embed photo/image columns.** Skip the photo column entirely in server-side exports — PhpSpreadsheet requires explicit drawing objects for images (slow, adds complexity for no real value in a data export). Both reference implementations omit photos.
+- **Autosize columns** with `foreach (range('A','J') as $col) { $sheet->getColumnDimension($col)->setAutoSize(true); }` instead of hand-picking widths per column.
+- **The button is a plain anchor/href**, not an AJAX call — `btn_xmlReport($permission, $uri, $label)` (in `action_helper.php`) or a raw `<a>` tag, same as PDF preview. The browser handles the file download natively.
+
+#### Which Excel Export Pattern to Use — Decision Guide
+
+| Pattern | Section | Use when |
+|---|---|---|
+| **Server-side PhpSpreadsheet (direct download link)** | 8.6 | **Default choice.** A dedicated controller method/route already exists or is easy to add; data has any conditional/dynamic columns; you want a reliable, dependency-free export. |
+| Client-side SheetJS, cleaned (`table_to_sheet` + strip tooltips/em-dash) | 8.3 | The table is already fully rendered in the DOM and has tooltip attributes, `&mdash;` placeholders, or colspan/rowspan headers to preserve correctly. |
+| Client-side SheetJS, simplest form (`table_to_book` one-liner) | 8.3.1 | Same DOM-table situation as 8.3, but the table is plain data only — no photo column, no action buttons, no tooltips. Fastest to wire up for a quick "download what's on screen" button. |
+| HTML blob (`.xls`, no library) | 8.5 | Data exists only as a JS object (`dsmData`-style) built from an AJAX response, not as a DOM table. |
+
+**Cautionary example — client-side SheetJS done wrong**: `mvc/views/report/balancefees/BalanceFeesReport.php` (`#exportButton` handler) clones `#myTable` and hard-codes `deleteCell(clonedTable.rows[i].cells.length - 1)` to strip the last column, with a fixed `"table_data.xlsx"` filename. This breaks silently if the table's column layout ever changes, and depends on an external CDN (`cdnjs.cloudflare.com`) at runtime. Prefer 8.6 over this style for any new export button.
+
+**Decision log (2026-07-14)**: For `Studentreport::xlsx()`, we tried a client-side SheetJS button first (8.3 style) but reverted it in favor of fixing the existing server-side `generateXML()` method (8.6 style), since a working download endpoint already existed and the server-side approach avoids the photo-column and CDN-dependency issues entirely.
 
 ---
 

@@ -1158,6 +1158,59 @@
         return $numPadded;
     }
 
+    // Overall/subject grade for the "new design" Progress Card — matches the same
+    // hardcoded percentage scheme already used by the old progress card
+    // (ProgresscardReport.php / ProgresscardReportPDF.php: 95/90/80/70/60/50, percent-only,
+    // no zero-mark rule) so old and new designs never disagree for the same student/exam.
+    function progresscard_resolve_grade( $percent )
+    {
+        if ($percent >= 95) return array('grade' => 'A+', 'label' => 'Outstanding',      'bg' => '#c8e6c9', 'color' => '#2e7d32');
+        if ($percent >= 90) return array('grade' => 'A',  'label' => 'Excellent',        'bg' => '#dcedc8', 'color' => '#388e3c');
+        if ($percent >= 80) return array('grade' => 'B+', 'label' => 'Very Good',        'bg' => '#bbdefb', 'color' => '#0288d1');
+        if ($percent >= 70) return array('grade' => 'B',  'label' => 'Good',             'bg' => '#b3e5fc', 'color' => '#039be5');
+        if ($percent >= 60) return array('grade' => 'C+', 'label' => 'Above Average',    'bg' => '#fff9c4', 'color' => '#fbc02d');
+        if ($percent >= 50) return array('grade' => 'C',  'label' => 'Average',          'bg' => '#ffe0b2', 'color' => '#f57c00');
+        return array('grade' => 'D', 'label' => 'Need Improvement', 'bg' => '#ffcdd2', 'color' => '#d32f2f');
+    }
+
+    // Full legend for the Grade Scale table — same thresholds as progresscard_resolve_grade().
+    function progresscard_grade_scale()
+    {
+        return array(
+            array('range' => '95 - 100', 'grade' => 'A+', 'label' => 'Outstanding'),
+            array('range' => '90 - 94',  'grade' => 'A',  'label' => 'Excellent'),
+            array('range' => '80 - 89',  'grade' => 'B+', 'label' => 'Very Good'),
+            array('range' => '70 - 79',  'grade' => 'B',  'label' => 'Good'),
+            array('range' => '60 - 69',  'grade' => 'C+', 'label' => 'Above Average'),
+            array('range' => '50 - 59',  'grade' => 'C',  'label' => 'Average'),
+            array('range' => 'Below 50', 'grade' => 'D',  'label' => 'Need Improvement'),
+        );
+    }
+
+    // Deterministic 2-letter subject badge (abbreviation + color) — no per-subject icon
+    // data exists, so this derives a stable badge purely from the subject name.
+    function subject_badge( $subjectName )
+    {
+        $palette = array('#3949ab','#00897b','#e53935','#8e24aa','#fb8c00','#43a047','#00acc1','#6d4c41');
+        $words   = preg_split('/\s+/', trim((string)$subjectName));
+        $words   = array_filter($words, function($w) { return $w !== ''; });
+        $words   = array_values($words);
+
+        if (count($words) >= 2) {
+            $abbr = mb_strtoupper(mb_substr($words[0], 0, 1) . mb_substr($words[1], 0, 1));
+        } elseif (count($words) == 1 && mb_strlen($words[0]) >= 2) {
+            $abbr = mb_strtoupper(mb_substr($words[0], 0, 2));
+        } elseif (count($words) == 1) {
+            $abbr = mb_strtoupper($words[0] . $words[0]);
+        } else {
+            $abbr = '--';
+        }
+
+        $color = $palette[crc32((string)$subjectName) % count($palette)];
+
+        return array('abbr' => $abbr, 'color' => $color);
+    }
+
     // function reportheader( $setting, $schoolyear, $pdf = false )
     // {
     //     $data = '';
