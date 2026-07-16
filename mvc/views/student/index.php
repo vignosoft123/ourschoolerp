@@ -139,7 +139,11 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     /* This file already sets a global .modal-backdrop { z-index: 99990 } for the
        Quick Student modal (see near #quickStudentModal below) — these two must sit
        above that same backdrop, or the backdrop intercepts every click. */
-    #assignTransportModal, #assignHostelModal { z-index: 100000 !important; }
+    #assignTransportModal, #assignHostelModal, #autoRollModal, #bulkRollModal { z-index: 100000 !important; }
+
+    /* SweetAlert2's own z-index (~1060) sits below the 100000 modals above, so its
+       confirm dialogs would render behind an already-open modal — push it above both. */
+    .swal2-container { z-index: 100001 !important; }
 
     #example1 thead {
         background: linear-gradient(135deg, #1a73e8 0%, #1045a8 100%) !important;
@@ -447,6 +451,14 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     style="background:#25D366;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
                                     <i class="fa fa-whatsapp"></i> Fill WhatsApp from Phone
                                 </button>
+                                <button type="button" onclick="openAutoRollModal()" id="autoRollBtn"
+                                    style="background:#2196F3;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
+                                    <i class="fa fa-sort-numeric-asc"></i> Auto Adjust Roll No
+                                </button>
+                                <button type="button" onclick="openBulkRollModal()" id="bulkRollBtn"
+                                    style="background:#ff9800;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
+                                    <i class="fa fa-table"></i> Bulk Roll No Edit
+                                </button>
                             </div>
                         </div>
                         <script>
@@ -488,6 +500,219 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                 });
                             });
                         }
+
+                        function openAutoRollModal() {
+                            $('#rollClassID').val('0');
+                            $('#rollSectionID').html('<option value="0">Select class first</option>');
+                            $('#autoRollError').text('');
+                            openStudentPopupModal($('#autoRollModal'));
+                        }
+
+                        $(document).on('change', '#rollClassID', function () {
+                            var classesID = $(this).val();
+                            $('#autoRollError').text('');
+                            if (!classesID || classesID == '0') {
+                                $('#rollSectionID').html('<option value="0">Select class first</option>');
+                                return;
+                            }
+                            $.ajax({
+                                type: 'POST',
+                                url: "<?= base_url('student/sectioncall') ?>",
+                                data: { id: classesID },
+                                dataType: 'html',
+                                success: function (data) {
+                                    $('#rollSectionID').html(data);
+                                }
+                            });
+                        });
+
+                        $(document).on('click', '#autoRollGenerateBtn', function () {
+                            var classesID = $('#rollClassID').val();
+                            var sectionID = $('#rollSectionID').val();
+                            var classText = $('#rollClassID option:selected').text();
+                            var sectionText = $('#rollSectionID option:selected').text();
+
+                            if (!classesID || classesID == '0' || !sectionID || sectionID == '0') {
+                                $('#autoRollError').text('Please select both class and section.');
+                                return;
+                            }
+                            $('#autoRollError').text('');
+
+                            // Hide the modal before showing Swal — Swal and this modal fight
+                            // over stacking order if both are visible at once, so only one
+                            // is ever on screen at a time. Reopen the modal if cancelled/failed.
+                            $('#autoRollModal').data('saved', true).modal('hide');
+
+                            Swal.fire({
+                                title: 'Adjust Roll Numbers?',
+                                text: 'This will renumber active students in ' + classText + ' - ' + sectionText + ' sequentially, closing any gaps left by inactive students. Inactive students are not affected.',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonColor: '#2196F3',
+                                confirmButtonText: 'Yes, Adjust Roll Numbers',
+                                cancelButtonText: 'Cancel'
+                            }).then(function (result) {
+                                if (!result.isConfirmed) {
+                                    openStudentPopupModal($('#autoRollModal'));
+                                    return;
+                                }
+                                var $btn = $('#autoRollGenerateBtn');
+                                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Running...');
+                                $.ajax({
+                                    type: 'POST',
+                                    url: "<?= base_url('student/auto_adjust_roll') ?>",
+                                    data: { classesID: classesID, sectionID: sectionID },
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        if (data.success) {
+                                            Swal.fire('Done!', data.message, 'success').then(function () {
+                                                location.reload();
+                                            });
+                                        } else {
+                                            openStudentPopupModal($('#autoRollModal'));
+                                            $('#autoRollError').text(data.message || 'Something went wrong.');
+                                        }
+                                    },
+                                    error: function () {
+                                        openStudentPopupModal($('#autoRollModal'));
+                                        $('#autoRollError').text('Request failed. Please try again.');
+                                    },
+                                    complete: function () {
+                                        $btn.prop('disabled', false).html('<i class="fa fa-sort-numeric-asc"></i> Generate');
+                                    }
+                                });
+                            });
+                        });
+
+                        function openBulkRollModal() {
+                            $('#bulkRollClassID').val('0');
+                            $('#bulkRollSectionID').html('<option value="0">Select class first</option>');
+                            $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>');
+                            $('#bulkRollError').text('');
+                            openStudentPopupModal($('#bulkRollModal'));
+                        }
+
+                        $(document).on('change', '#bulkRollClassID', function () {
+                            var classesID = $(this).val();
+                            $('#bulkRollError').text('');
+                            $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>');
+                            if (!classesID || classesID == '0') {
+                                $('#bulkRollSectionID').html('<option value="0">Select class first</option>');
+                                return;
+                            }
+                            $.ajax({
+                                type: 'POST',
+                                url: "<?= base_url('student/sectioncall') ?>",
+                                data: { id: classesID },
+                                dataType: 'html',
+                                success: function (data) {
+                                    $('#bulkRollSectionID').html(data);
+                                }
+                            });
+                        });
+
+                        $(document).on('change', '#bulkRollSectionID', function () {
+                            var classesID = $('#bulkRollClassID').val();
+                            var sectionID = $(this).val();
+                            $('#bulkRollError').text('');
+
+                            if (!sectionID || sectionID == '0') {
+                                $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>');
+                                return;
+                            }
+
+                            $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>');
+                            $.ajax({
+                                type: 'POST',
+                                url: "<?= base_url('student/get_students_for_roll_edit') ?>",
+                                data: { classesID: classesID, sectionID: sectionID },
+                                dataType: 'json',
+                                success: function (data) {
+                                    if (!data.success) {
+                                        $('#bulkRollError').text(data.message || 'Failed to load students.');
+                                        $('#bulkRollTableBody').html('');
+                                        return;
+                                    }
+                                    if (!data.students.length) {
+                                        $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;">No active students found for this class/section.</td></tr>');
+                                        return;
+                                    }
+                                    var rows = '';
+                                    $.each(data.students, function (i, s) {
+                                        rows += '<tr>' +
+                                            '<td>' + (s.name || '') + '</td>' +
+                                            '<td>' + (s.phone || '') + '</td>' +
+                                            '<td>' + (s.registerNO || '') + '</td>' +
+                                            '<td><input type="text" class="form-control bulk-roll-input" data-studentid="' + s.studentID + '" value="' + (s.roll || '') + '" style="max-width:100px;"></td>' +
+                                            '</tr>';
+                                    });
+                                    $('#bulkRollTableBody').html(rows);
+                                },
+                                error: function () {
+                                    $('#bulkRollError').text('Request failed. Please try again.');
+                                    $('#bulkRollTableBody').html('');
+                                }
+                            });
+                        });
+
+                        $(document).on('click', '#bulkRollSaveBtn', function () {
+                            var rows = [];
+                            $('.bulk-roll-input').each(function () {
+                                rows.push({ studentID: $(this).data('studentid'), roll: $(this).val() });
+                            });
+
+                            if (!rows.length) {
+                                $('#bulkRollError').text('No students loaded to save.');
+                                return;
+                            }
+                            $('#bulkRollError').text('');
+
+                            // Hide the modal before showing Swal — Swal and this modal fight
+                            // over stacking order if both are visible at once, so only one
+                            // is ever on screen at a time. Reopen the modal if cancelled/failed.
+                            $('#bulkRollModal').data('saved', true).modal('hide');
+
+                            Swal.fire({
+                                title: 'Duplicate roll numbers are not my responsibility.',
+                                text: 'Roll numbers are saved exactly as entered, with no duplicate or format checking. Click OK to save.',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonColor: '#ff9800',
+                                confirmButtonText: 'OK',
+                                cancelButtonText: 'Cancel'
+                            }).then(function (result) {
+                                if (!result.isConfirmed) {
+                                    openStudentPopupModal($('#bulkRollModal'));
+                                    return;
+                                }
+                                var $btn = $('#bulkRollSaveBtn');
+                                $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+                                $.ajax({
+                                    type: 'POST',
+                                    url: "<?= base_url('student/bulk_roll_update') ?>",
+                                    data: { rows: rows },
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        if (data.success) {
+                                            Swal.fire('Saved!', data.message, 'success').then(function () {
+                                                openStudentPopupModal($('#bulkRollModal'));
+                                                $('#bulkRollSectionID').trigger('change');
+                                            });
+                                        } else {
+                                            openStudentPopupModal($('#bulkRollModal'));
+                                            $('#bulkRollError').text(data.message || 'Something went wrong.');
+                                        }
+                                    },
+                                    error: function () {
+                                        openStudentPopupModal($('#bulkRollModal'));
+                                        $('#bulkRollError').text('Request failed. Please try again.');
+                                    },
+                                    complete: function () {
+                                        $btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save');
+                                    }
+                                });
+                            });
+                        });
                         </script>
                         <?php } ?>
 
@@ -2450,6 +2675,8 @@ $(function() { $('body').append($('#quickStudentModal').detach()); });
 $(function() { $('body').append($('#qsAddVillageModal').detach()); });
 $(function() { $('body').append($('#assignTransportModal').detach()); });
 $(function() { $('body').append($('#assignHostelModal').detach()); });
+$(function() { $('body').append($('#autoRollModal').detach()); });
+$(function() { $('body').append($('#bulkRollModal').detach()); });
 
 // Quick modal: mini Add Village popup — save via AJAX and append to the village dropdown
 $(document).on('shown.bs.modal', '#qsAddVillageModal', function () {
@@ -2679,6 +2906,99 @@ $(document).on('click', '.cl-toggle-pw', function() {
             <div class="modal-footer" style="background:#f8f9fa;padding:12px 20px;">
                 <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
                 <button type="button" id="ahSaveBtn" class="btn btn-info btn-sm">
+                    <i class="fa fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto Adjust Roll No modal — opened from the Advanced panel on the student listing page -->
+<div class="modal fade" id="autoRollModal" tabindex="-1" role="dialog" aria-labelledby="autoRollModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width:380px;margin-top:120px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#2196F3;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
+                <h4 class="modal-title" id="autoRollModalLabel" style="font-size:15px;font-weight:700;">
+                    <i class="fa fa-sort-numeric-asc"></i> Auto Adjust Roll No
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:20px 24px;">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Class <span class="text-red">*</span></label>
+                    <select id="rollClassID" class="form-control" style="border-radius:6px;">
+                        <option value="0">Select Class</option>
+                        <?php if (customCompute($classes)) { foreach ($classes as $classa) { ?>
+                            <option value="<?= $classa->classesID ?>"><?= $classa->classes ?></option>
+                        <?php } } ?>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:6px;">
+                    <label style="font-size:13px;font-weight:600;color:#333;">Section <span class="text-red">*</span></label>
+                    <select id="rollSectionID" class="form-control" style="border-radius:6px;">
+                        <option value="0">Select class first</option>
+                    </select>
+                </div>
+                <span id="autoRollError" style="color:#e53935;font-size:12px;"></span>
+            </div>
+            <div class="modal-footer" style="background:#f8f9fa;padding:12px 20px;">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" id="autoRollGenerateBtn" class="btn btn-sm" style="background:#2196F3;color:#fff;">
+                    <i class="fa fa-sort-numeric-asc"></i> Generate
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Roll No Edit modal — opened from the Advanced panel on the student listing page -->
+<div class="modal fade" id="bulkRollModal" tabindex="-1" role="dialog" aria-labelledby="bulkRollModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width:720px;margin-top:60px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#ff9800;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
+                <h4 class="modal-title" id="bulkRollModalLabel" style="font-size:15px;font-weight:700;">
+                    <i class="fa fa-table"></i> Bulk Roll No Edit
+                </h4>
+            </div>
+            <div class="modal-body" style="padding:20px 24px;">
+                <div class="row">
+                    <div class="col-sm-6" style="margin-bottom:14px;">
+                        <label style="font-size:13px;font-weight:600;color:#333;">Class <span class="text-red">*</span></label>
+                        <select id="bulkRollClassID" class="form-control" style="border-radius:6px;">
+                            <option value="0">Select Class</option>
+                            <?php if (customCompute($classes)) { foreach ($classes as $classa) { ?>
+                                <option value="<?= $classa->classesID ?>"><?= $classa->classes ?></option>
+                            <?php } } ?>
+                        </select>
+                    </div>
+                    <div class="col-sm-6" style="margin-bottom:14px;">
+                        <label style="font-size:13px;font-weight:600;color:#333;">Section <span class="text-red">*</span></label>
+                        <select id="bulkRollSectionID" class="form-control" style="border-radius:6px;">
+                            <option value="0">Select class first</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="max-height:360px;overflow-y:auto;">
+                    <table class="table table-bordered table-condensed" style="margin-bottom:0;">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Admission No</th>
+                                <th style="width:120px;">Roll No</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bulkRollTableBody">
+                            <tr><td colspan="4" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <span id="bulkRollError" style="color:#e53935;font-size:12px;"></span>
+            </div>
+            <div class="modal-footer" style="background:#f8f9fa;padding:12px 20px;">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+                <button type="button" id="bulkRollSaveBtn" class="btn btn-sm" style="background:#ff9800;color:#fff;">
                     <i class="fa fa-save"></i> Save
                 </button>
             </div>

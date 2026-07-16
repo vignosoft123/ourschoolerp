@@ -4216,6 +4216,130 @@ public function roll_update(){
 	echo json_encode(array('success' => true));
 }
 
+public function auto_adjust_roll(){
+	header('Content-Type: application/json');
+
+	if ($this->session->userdata('usertypeID') != 1) {
+		echo json_encode(array('success' => false, 'message' => 'Permission denied.'));
+		return;
+	}
+
+	$classesID    = (int)$this->input->post('classesID');
+	$sectionID    = (int)$this->input->post('sectionID');
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+	if (!$classesID || !$sectionID) {
+		echo json_encode(array('success' => false, 'message' => 'Please select both class and section.'));
+		return;
+	}
+
+	// Active students in this class/section/year, ordered by current roll
+	// (blank/zero rolls sorted last), to preserve relative order while closing gaps.
+	$this->db->select('studentID, roll');
+	$this->db->from('student');
+	$this->db->where('classesID', $classesID);
+	$this->db->where('sectionID', $sectionID);
+	$this->db->where('schoolyearID', $schoolyearID);
+	$this->db->where('active', 1);
+	$this->db->order_by("(roll IS NULL OR roll = '' OR roll = '0')", 'ASC', FALSE);
+	$this->db->order_by('roll + 0', 'ASC', FALSE);
+	$this->db->order_by('studentID', 'ASC');
+	$activeStudents = $this->db->get()->result();
+
+	if (empty($activeStudents)) {
+		echo json_encode(array('success' => false, 'message' => 'No active students found for this class/section.'));
+		return;
+	}
+
+	$this->db->where('classesID', $classesID);
+	$this->db->where('sectionID', $sectionID);
+	$this->db->where('schoolyearID', $schoolyearID);
+	$this->db->where('active !=', 1);
+	$inactiveCount = $this->db->count_all_results('student');
+
+	$newRoll = 1;
+	foreach ($activeStudents as $student) {
+		$this->db->where('studentID', $student->studentID);
+		$this->db->update('student', array('roll' => $newRoll));
+
+		$this->db->where('srstudentID', $student->studentID);
+		$this->db->where('srschoolyearID', $schoolyearID);
+		$this->db->update('studentrelation', array('srroll' => $newRoll));
+
+		$newRoll++;
+	}
+
+	echo json_encode(array(
+		'success' => true,
+		'message' => 'Renumbered ' . count($activeStudents) . ' active student(s). ' .
+		              $inactiveCount . ' inactive student(s) left unchanged.',
+	));
+}
+
+public function get_students_for_roll_edit(){
+	header('Content-Type: application/json');
+
+	if ($this->session->userdata('usertypeID') != 1) {
+		echo json_encode(array('success' => false, 'message' => 'Permission denied.'));
+		return;
+	}
+
+	$classesID    = (int)$this->input->post('classesID');
+	$sectionID    = (int)$this->input->post('sectionID');
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+	if (!$classesID || !$sectionID) {
+		echo json_encode(array('success' => false, 'message' => 'Please select both class and section.'));
+		return;
+	}
+
+	$this->db->select('studentID, name, phone, registerNO, roll');
+	$this->db->from('student');
+	$this->db->where('classesID', $classesID);
+	$this->db->where('sectionID', $sectionID);
+	$this->db->where('schoolyearID', $schoolyearID);
+	$this->db->where('active', 1);
+	$this->db->order_by("(roll IS NULL OR roll = '' OR roll = '0')", 'ASC', FALSE);
+	$this->db->order_by('roll + 0', 'ASC', FALSE);
+	$students = $this->db->get()->result();
+
+	echo json_encode(array('success' => true, 'students' => $students));
+}
+
+public function bulk_roll_update(){
+	header('Content-Type: application/json');
+
+	if ($this->session->userdata('usertypeID') != 1) {
+		echo json_encode(array('success' => false, 'message' => 'Permission denied.'));
+		return;
+	}
+
+	$rows         = $this->input->post('rows');
+	$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+	if (empty($rows)) {
+		echo json_encode(array('success' => false, 'message' => 'No rows received.'));
+		return;
+	}
+
+	$updated = 0;
+	foreach ($rows as $row) {
+		$studentID = (int)$row['studentID'];
+		$roll      = trim($row['roll']); // no numeric/duplicate validation, by design
+
+		$this->db->where('studentID', $studentID);
+		$this->db->update('student', array('roll' => $roll));
+
+		$this->db->where('srstudentID', $studentID);
+		$this->db->where('srschoolyearID', $schoolyearID);
+		$this->db->update('studentrelation', array('srroll' => $roll));
+
+		$updated++;
+	}
+
+	echo json_encode(array('success' => true, 'message' => $updated . ' student roll number(s) updated.'));
+}
+
 public function studenttype_update(){
 	$studentType = $_POST['studentType'];
 	$studentID   = $_POST['studentID'];
