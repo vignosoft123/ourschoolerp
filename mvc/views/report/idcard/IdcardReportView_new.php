@@ -8,9 +8,9 @@
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
-        <div class="row">
-
-            <div class="col-sm-12">
+        <div class="rpt-filter-card">
+            <div class="rpt-filter-title"><i class="fa fa-filter"></i>&nbsp; Filter Options</div>
+            <div class="row">
                 <div class="form-group col-sm-4" id="usertypeIDDiv">
                     <label for="usertypeID"><?=$this->lang->line("idcardreport_idcard_for")?> <span class="text-red">*</span></label>
                     <?php
@@ -60,7 +60,7 @@
                 </div>
 
                  <div class="form-group col-sm-4" id="typeDiv">
-                   With or without photo <span class="text-red">*</span></label>
+                    <label for="photo_type">With or without photo <span class="text-red">*</span></label>
                     <?php
                         $typeArray = array(
                           
@@ -98,14 +98,13 @@
                      ?>
                 </div> -->
 
+            </div><!-- row -->
 
-                <div class="col-sm-4">
-                    <button id="get_idcardreport" class="btn btn-success" style="margin-top:23px;"> <?=$this->lang->line("idcardreport_submit")?></button>
-                </div>
-
+            <div class="rpt-filter-actions">
+                <button id="get_idcardreport" class="btn btn-success rpt-filter-btn"><i class="fa fa-search"></i> <?=$this->lang->line("idcardreport_submit")?></button>
             </div>
 
-        </div><!-- row -->
+        </div><!-- /.rpt-filter-card -->
     </div><!-- Body -->
 </div><!-- /.box -->
 

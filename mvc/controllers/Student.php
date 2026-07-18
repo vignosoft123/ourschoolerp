@@ -4371,6 +4371,12 @@ public function assign_transport(){
 		return;
 	}
 
+	$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
+	if ($hmember) {
+		echo json_encode(array('success' => false, 'message' => 'This student is already assigned to a Hostel. Please remove the Hostel assignment first before adding to Transport.'));
+		return;
+	}
+
 	$student = $this->student_m->get_single_student(array('studentID' => $studentID));
 
 	$transPortArray = array(
@@ -4382,17 +4388,38 @@ public function assign_transport(){
 		"tbalance"    => $tbalance,
 	);
 
-	$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
-	if ($hmember) {
-		$this->hmember_m->delete_hmember($hmember->hmemberID);
-	}
-
 	$existingTmember = $this->tmember_m->get_single_tmember(array('studentID' => $studentID));
 	if ($existingTmember) {
 		$this->tmember_m->update_tmember($transPortArray, $existingTmember->tmemberID);
 	} else {
 		$transPortArray["tjoindate"] = date("Y-m-d");
 		$this->tmember_m->insert_tmember($transPortArray);
+
+		// auto invoice generation (new assignment only, mirrors Tmember::add())
+		$fee_type_transport = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%TRANSPORT FEE%' ")->row_array();
+		$fee_types = [
+			array(
+				'feetypeID'  => $fee_type_transport['feetypesID'],
+				'amount'     => $tbalance,
+				'discount'   => "",
+				'subtotal'   => $tbalance,
+				'paidamount' => "",
+			)
+		];
+		$invoice_data = array(
+			'classesID'       => $student->classesID,
+			'sectionID'       => $student->sectionID,
+			'studentID'       => $studentID,
+			'date'            => date('d-m-Y'),
+			'statusID'        => 0,
+			'payment_method'  => 0,
+			'feetypeitems'    => json_encode($fee_types),
+			'totalsubtotal'   => $tbalance,
+			'totalpaidamount' => 0,
+			'editID'          => 0,
+		);
+		$invoice_error = $this->saveinvoice($invoice_data);
+		$this->db->update('student', array('invoice_error' => $invoice_error), array('studentID' => $studentID));
 	}
 
 	$this->db->where('studentID', $studentID);
@@ -4416,16 +4443,22 @@ public function assign_hostel(){
 		return;
 	}
 
+	$existingTmember = $this->tmember_m->get_single_tmember(array('studentID' => $studentID));
+	if ($existingTmember) {
+		echo json_encode(array('success' => false, 'message' => 'This student is already assigned to Transport. Please remove the Transport assignment first before adding to Hostel.'));
+		return;
+	}
+
+	$student  = $this->student_m->get_single_student(array('studentID' => $studentID));
 	$category = $this->category_m->get_single_category(array('hostelID' => $hostelID, 'categoryID' => $categoryID));
+	$hbalance = $category ? $category->hbalance : 0;
 
 	$hostelArray = array(
 		"hostelID"   => $hostelID,
 		"categoryID" => $categoryID,
 		"studentID"  => $studentID,
-		"hbalance"   => $category ? $category->hbalance : 0,
+		"hbalance"   => $hbalance,
 	);
-
-	$this->tmember_m->delete_tmember_sID($studentID);
 
 	$existingHmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
 	if ($existingHmember) {
@@ -4433,6 +4466,32 @@ public function assign_hostel(){
 	} else {
 		$hostelArray["hjoindate"] = date("Y-m-d");
 		$this->hmember_m->insert_hmember($hostelArray);
+
+		// auto invoice generation (new assignment only, mirrors Hmember::add())
+		$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();
+		$fee_types = [
+			array(
+				'feetypeID'  => $fee_type_hostel['feetypesID'],
+				'amount'     => $hbalance,
+				'discount'   => "",
+				'subtotal'   => $hbalance,
+				'paidamount' => "",
+			)
+		];
+		$invoice_data = array(
+			'classesID'       => $student->classesID,
+			'sectionID'       => $student->sectionID,
+			'studentID'       => $studentID,
+			'date'            => date('d-m-Y'),
+			'statusID'        => 0,
+			'payment_method'  => 0,
+			'feetypeitems'    => json_encode($fee_types),
+			'totalsubtotal'   => $hbalance,
+			'totalpaidamount' => 0,
+			'editID'          => 0,
+		);
+		$invoice_error = $this->saveinvoice($invoice_data);
+		$this->db->update('student', array('invoice_error' => $invoice_error), array('studentID' => $studentID));
 	}
 
 	$this->db->where('studentID', $studentID);

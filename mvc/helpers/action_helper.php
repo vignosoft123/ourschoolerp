@@ -1187,6 +1187,84 @@
         );
     }
 
+    // Builds the REAL, per-school grade scale from the `grade` table (Grade_m::get_grade(),
+    // same data the old ProgresscardReport.php design already reads directly). Falls back to
+    // the same default 7-tier scale as progresscard_grade_scale() only when a school hasn't
+    // configured any grades at all, so the New-design report never renders a blank Grade
+    // Scale/grade chips. Sorted best-to-worst by 'from' and given a deterministic color per
+    // rank position (works for however many tiers a school configures, not just 7).
+    function progresscard_effective_grades($grades)
+    {
+        $rows = array();
+        if (customCompute($grades)) {
+            foreach ($grades as $g) {
+                $rows[] = array(
+                    'grade' => $g->grade,
+                    'from'  => (float)$g->gradefrom,
+                    'upto'  => (float)$g->gradeupto,
+                    'note'  => $g->note,
+                );
+            }
+            usort($rows, function($a, $b) { return $b['from'] <=> $a['from']; });
+        }
+
+        if (!$rows) {
+            $rows = array(
+                array('grade' => 'A+', 'from' => 95, 'upto' => 100, 'note' => 'Outstanding'),
+                array('grade' => 'A',  'from' => 90, 'upto' => 94,  'note' => 'Excellent'),
+                array('grade' => 'B+', 'from' => 80, 'upto' => 89,  'note' => 'Very Good'),
+                array('grade' => 'B',  'from' => 70, 'upto' => 79,  'note' => 'Good'),
+                array('grade' => 'C+', 'from' => 60, 'upto' => 69,  'note' => 'Above Average'),
+                array('grade' => 'C',  'from' => 50, 'upto' => 59,  'note' => 'Average'),
+                array('grade' => 'D',  'from' => 0,  'upto' => 49,  'note' => 'Need Improvement'),
+            );
+        }
+
+        $palette = array(
+            array('bg' => '#c8e6c9', 'color' => '#2e7d32'),
+            array('bg' => '#dcedc8', 'color' => '#388e3c'),
+            array('bg' => '#bbdefb', 'color' => '#0288d1'),
+            array('bg' => '#b3e5fc', 'color' => '#039be5'),
+            array('bg' => '#fff9c4', 'color' => '#fbc02d'),
+            array('bg' => '#ffe0b2', 'color' => '#f57c00'),
+            array('bg' => '#ffcdd2', 'color' => '#d32f2f'),
+            array('bg' => '#ef9a9a', 'color' => '#c62828'),
+            array('bg' => '#e0e0e0', 'color' => '#616161'),
+        );
+        foreach ($rows as $i => &$r) {
+            $p = $palette[$i % count($palette)];
+            $r['bg']    = $p['bg'];
+            $r['color'] = $p['color'];
+        }
+        unset($r);
+
+        return $rows;
+    }
+
+    // Resolves a percent against an effective grade list built by progresscard_effective_grades().
+    // Closed-interval match (gradefrom <= floor(percent) <= gradeupto) — same semantics the old
+    // design already uses against the real `grade` table.
+    function progresscard_resolve_grade_from($effectiveGrades, $percent)
+    {
+        $p = floor($percent);
+        foreach ($effectiveGrades as $tier) {
+            if ($tier['from'] <= $p && $tier['upto'] >= $p) {
+                return array('grade' => $tier['grade'], 'label' => $tier['note'], 'bg' => $tier['bg'], 'color' => $tier['color']);
+            }
+        }
+        // Percent falls outside every configured tier (gaps in config) — clamp to the
+        // nearest edge tier rather than showing nothing.
+        if ($effectiveGrades) {
+            $best  = $effectiveGrades[0];
+            $worst = end($effectiveGrades);
+            if ($p > $best['from']) {
+                return array('grade' => $best['grade'], 'label' => $best['note'], 'bg' => $best['bg'], 'color' => $best['color']);
+            }
+            return array('grade' => $worst['grade'], 'label' => $worst['note'], 'bg' => $worst['bg'], 'color' => $worst['color']);
+        }
+        return array('grade' => '-', 'label' => '-', 'bg' => '#eee', 'color' => '#999');
+    }
+
     // Deterministic 2-letter subject badge (abbreviation + color) — no per-subject icon
     // data exists, so this derives a stable badge purely from the subject name.
     function subject_badge( $subjectName )

@@ -2,7 +2,7 @@
 <style>
 #printablediv_new, #students_div_new { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
-.pcn-card { max-width: 980px; margin: 0 auto 32px; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 4px 22px rgba(20,30,70,0.10); border: 1px solid #e7eaf3; }
+.pcn-card { max-width: 980px; margin: 0 auto 32px; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 4px 22px rgba(20,30,70,0.10); border: 3px solid #1a237e; }
 
 /* ---- Header band ---- */
 .pcn-header { display: flex; align-items: center; gap: 18px; padding: 20px 24px; background: linear-gradient(135deg,#eef1fb 0%,#e3e8fb 100%); border-bottom: 4px solid #1a237e; }
@@ -13,21 +13,22 @@
 .pcn-header-photo { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); flex-shrink: 0; }
 .pcn-year-box { background: linear-gradient(160deg,#1a237e,#0d1550); color: #fff; border-radius: 10px; padding: 10px 16px; font-size: 11px; min-width: 200px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(26,35,126,0.35); }
 .pcn-year-box .pcn-year-label { opacity: 0.75; letter-spacing: 0.6px; font-size: 10px; }
-.pcn-year-box .pcn-year-big { font-size: 18px; font-weight: 800; margin: 2px 0 8px; letter-spacing: 0.3px; }
+.pcn-year-box .pcn-year-big { font-size: 20px; font-weight: 800; margin: 2px 0 8px; letter-spacing: 0.3px; color: #ffb300 !important; }
 .pcn-year-box div { margin: 3px 0; opacity: 0.95; }
 
-.pcn-title-band { background: linear-gradient(90deg,#fff3e0,#ffe9c7); color: #b45300; text-align: center; font-weight: 800; font-size: 13px; padding: 9px; letter-spacing: 0.6px; }
+.pcn-title-band { background: linear-gradient(90deg,#1a237e,#283593); color: #fff !important; text-align: center; font-weight: 800; font-size: 13px; padding: 10px; letter-spacing: 0.8px; }
 
 .pcn-body { padding: 22px 24px 26px; background: #fbfcff; }
 .pcn-row { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 18px; }
 
 /* ---- Section cards ---- */
-.pcn-box { flex: 1; min-width: 260px; border: 1px solid #e6e9f2; border-radius: 12px; padding: 0 0 14px; background: #fff; box-shadow: 0 2px 8px rgba(20,30,70,0.05); overflow: hidden; }
+.pcn-box { position: relative; flex: 1; min-width: 260px; border: 1px solid #e6e9f2; border-radius: 12px; padding: 26px 0 16px; background: #fff; box-shadow: 0 2px 8px rgba(20,30,70,0.05); }
 .pcn-box-body { padding: 0 18px; }
 
-.pcn-box h4 { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; padding: 11px 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #fff !important; font-weight: 700; }
+/* Floating pill-style section header, overlapping the card's top edge */
+.pcn-box h4 { position: absolute; top: -14px; left: 16px; z-index: 2; display: inline-flex; align-items: center; gap: 8px; margin: 0; padding: 7px 16px; border-radius: 20px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; color: #fff !important; font-weight: 700; white-space: nowrap; box-shadow: 0 3px 9px rgba(0,0,0,0.22); }
 .pcn-box h4 span.pcn-h-text { color: #fff !important; }
-.pcn-h-icon { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,255,255,0.22); flex-shrink: 0; font-size: 12px; }
+.pcn-h-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.28); flex-shrink: 0; font-size: 11px; }
 
 .pcn-h--navy   { background: linear-gradient(90deg,#1a237e,#283593); }
 .pcn-h--purple { background: linear-gradient(90deg,#4a148c,#6a1b9a); }
@@ -36,18 +37,50 @@
 .pcn-h--slate  { background: linear-gradient(90deg,#37474f,#546e7a); }
 .pcn-h--orange { background: linear-gradient(90deg,#c2410c,#e65100); }
 
-.pcn-info-line { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px dashed #eef0f6; }
-.pcn-info-line:last-child { border-bottom: none; }
-.pcn-info-line span:first-child { color: #8792a8 !important; font-weight: 500; }
-.pcn-info-line span:last-child { font-weight: 700; color: #263238 !important; }
+/* ---- Colored top border per box, matching its header accent (the "legend" framing) ---- */
+.pcn-box.pcn-b--navy   { border-top: 4px solid #1a237e; }
+.pcn-box.pcn-b--purple { border-top: 4px solid #6a1b9a; }
+.pcn-box.pcn-b--teal   { border-top: 4px solid #00897b; }
+.pcn-box.pcn-b--green  { border-top: 4px solid #2e7d32; }
+.pcn-box.pcn-b--slate  { border-top: 4px solid #546e7a; }
+.pcn-box.pcn-b--orange { border-top: 4px solid #e65100; }
 
-/* ---- Stat tiles ---- */
-.pcn-stats-grid { display: flex; flex-wrap: wrap; gap: 10px; }
-.pcn-stat { flex: 1; min-width: 108px; background: linear-gradient(160deg,#f4f6fc,#eceffa); border: 1px solid #e6e9f5; border-radius: 10px; padding: 12px 8px; text-align: center; }
+.pcn-info-line { display: flex; align-items: center; justify-content: space-between; font-size: 13px; padding: 7px 0; border-bottom: 1px dashed #eef0f6; }
+.pcn-info-line:last-child { border-bottom: none; }
+.pcn-info-line > span:first-child { color: #37474f !important; font-weight: 700; display: flex; align-items: center; }
+.pcn-info-line > span:last-child { font-weight: 700; color: #1a237e !important; }
+.pcn-info-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: #1a237e; color: #fff !important; font-size: 12px; margin-right: 9px; flex-shrink: 0; box-shadow: 0 2px 5px rgba(26,35,126,0.3); }
+
+/* ---- Stat tiles: each is its own elevated mini-card ---- */
+.pcn-stats-grid { display: flex; flex-wrap: wrap; gap: 14px; }
+.pcn-stat { flex: 1; min-width: 108px; background: #fff; border: 1px solid #e6e9f5; border-radius: 12px; padding: 14px 8px; text-align: center; box-shadow: 0 3px 10px rgba(20,30,70,0.10); }
 .pcn-stat .pcn-stat-label { font-size: 10px; text-transform: uppercase; color: #8792a8 !important; letter-spacing: 0.5px; font-weight: 700; }
 .pcn-stat .pcn-stat-value { font-size: 19px; font-weight: 800; color: #1a237e !important; margin-top: 4px; }
+
+/* ---- Result Summary: 2x2 stat grid beside the Attendance donut (matches static layout) ---- */
+.pcn-result-layout { display: flex; gap: 14px; align-items: stretch; flex-wrap: wrap; }
+.pcn-stats-grid-2x2 { flex: 1.5; min-width: 220px; display: flex; flex-wrap: wrap; gap: 14px; }
+.pcn-stats-grid-2x2 .pcn-stat { flex: 1 1 calc(50% - 7px); min-width: 110px; }
+
+/* Standalone Attendance panel, sits beside the 2x2 grid */
+.pcn-att-panel { flex: 1; min-width: 160px; background: #fff; border: 1px solid #e6e9f5; border-radius: 12px; padding: 16px 8px; text-align: center; box-shadow: 0 3px 10px rgba(20,30,70,0.10); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pcn-att-panel .pcn-stat-label { font-size: 11px; text-transform: uppercase; color: #8792a8 !important; letter-spacing: 0.6px; font-weight: 700; }
+
 .pcn-ring { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 4px auto 2px; }
 .pcn-ring span { background: #fff; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #1a237e !important; }
+.pcn-ring--lg { width: 108px; height: 108px; margin: 8px auto 2px; box-shadow: 0 2px 10px rgba(20,30,70,0.12); }
+.pcn-ring--lg span { width: 82px; height: 82px; font-size: 19px; }
+
+.pcn-stat-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 6px; color: #fff !important; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.18); }
+
+/* ---- Per-month attendance % mini bar ---- */
+.pcn-att-bar-wrap { width: 100%; height: 5px; background: #eef0f6; border-radius: 3px; margin-top: 5px; overflow: hidden; }
+.pcn-att-bar { height: 100%; border-radius: 3px; }
+
+/* ---- Grade Scale legend dot ---- */
+.pcn-legend-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+.pcn-remark-sub { font-size: 12px; color: #5c6b8a !important; margin-top: 6px; line-height: 1.5; }
 
 /* ---- Tables ---- */
 .pcn-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -83,6 +116,44 @@
 
 <?php
     $pdf_preview_uri = base_url('progresscardreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID);
+
+    // Display-only helper: pick a representative FontAwesome icon for a subject name,
+    // falling back to null (2-letter abbreviation badge) when nothing matches.
+    // Purely cosmetic — does not affect subject_badge()'s color or any other logic.
+    if (!function_exists('pcn_subject_icon')) {
+        function pcn_subject_icon($subjectName) {
+            $name = mb_strtolower(trim((string)$subjectName));
+            $map  = array(
+                'english'  => 'fa-book',
+                'hindi'    => 'fa-font',
+                'telugu'   => 'fa-font',
+                'sanskrit' => 'fa-font',
+                'math'     => 'fa-calculator',
+                'science'  => 'fa-flask',
+                'social'   => 'fa-globe',
+                'evs'      => 'fa-leaf',
+                'computer' => 'fa-laptop',
+                'art'      => 'fa-paint-brush',
+                'music'    => 'fa-music',
+                'physical' => 'fa-futbol-o',
+                'games'    => 'fa-futbol-o',
+                'moral'    => 'fa-heart',
+                'g.k'      => 'fa-lightbulb-o',
+                'gk'       => 'fa-lightbulb-o',
+            );
+            foreach ($map as $needle => $icon) {
+                if (strpos($name, $needle) !== false) return $icon;
+            }
+            return null;
+        }
+    }
+
+    // Display-only legend colors for the static Grade Scale ranges — mirrors the exact
+    // thresholds/colors already used by progresscard_resolve_grade() for a given percent.
+    $pcnGradeLegendColors = array(
+        'A+' => '#2e7d32', 'A' => '#388e3c', 'B+' => '#0288d1', 'B' => '#039be5',
+        'C+' => '#fbc02d', 'C' => '#f57c00', 'D' => '#d32f2f',
+    );
 ?>
 <div class="rpt-action-bar no-print">
     <button type="button" class="btn btn-default rpt-action-btn" onclick="printDivNew()"><i class="fa fa-print"></i> Print</button>
@@ -218,41 +289,47 @@
 
                     <div class="pcn-body">
                         <div class="pcn-row">
-                            <div class="pcn-box">
+                            <div class="pcn-box pcn-b--navy">
                                 <h4 class="pcn-h--navy"><span class="pcn-h-icon"><i class="fa fa-user"></i></span><span class="pcn-h-text">Student Information</span></h4>
                                 <div class="pcn-box-body">
-                                <div class="pcn-info-line"><span>Student Name</span><span><?=$student->srname?></span></div>
-                                <div class="pcn-info-line"><span>Reg. No.</span><span><?=$student->srregisterNO?></span></div>
-                                <div class="pcn-info-line"><span>Class</span><span><?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?></span></div>
-                                <div class="pcn-info-line"><span>Section</span><span><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></span></div>
-                                <div class="pcn-info-line"><span>Roll No.</span><span><?=$student->srroll?></span></div>
-                                <div class="pcn-info-line"><span>Father Name</span><span><?=$student->father_name?></span></div>
+                                <div class="pcn-info-line"><span><span class="pcn-info-icon"><i class="fa fa-user"></i></span>Student Name</span><span><?=$student->srname?></span></div>
+                                <div class="pcn-info-line"><span><span class="pcn-info-icon"><i class="fa fa-bookmark"></i></span>Reg. No.</span><span><?=$student->srregisterNO?></span></div>
+                                <div class="pcn-info-line"><span><span class="pcn-info-icon"><i class="fa fa-graduation-cap"></i></span>Class</span><span><?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?></span></div>
+                                <div class="pcn-info-line"><span><span class="pcn-info-icon"><i class="fa fa-users"></i></span>Section</span><span><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></span></div>
+                                <div class="pcn-info-line"><span><span class="pcn-info-icon"><i class="fa fa-list-ol"></i></span>Roll No.</span><span><?=$student->srroll?></span></div>
+                                <div class="pcn-info-line"><span><span class="pcn-info-icon"><i class="fa fa-male"></i></span>Father Name</span><span><?=$student->father_name?></span></div>
                                 </div>
                             </div>
 
-                            <div class="pcn-box" style="flex:1.4;">
+                            <div class="pcn-box pcn-b--navy" style="flex:1.4;">
                                 <h4 class="pcn-h--navy"><span class="pcn-h-icon"><i class="fa fa-bar-chart"></i></span><span class="pcn-h-text">Result Summary</span></h4>
                                 <div class="pcn-box-body">
-                                <div class="pcn-stats-grid">
-                                    <div class="pcn-stat">
-                                        <div class="pcn-stat-label">Total Marks</div>
-                                        <div class="pcn-stat-value"><?=ini_round($totalObtained)?>/<?=ini_round($totalMaxMarks)?></div>
+                                <div class="pcn-result-layout">
+                                    <div class="pcn-stats-grid-2x2">
+                                        <div class="pcn-stat">
+                                            <div class="pcn-stat-icon" style="background:#3949ab;"><i class="fa fa-clipboard"></i></div>
+                                            <div class="pcn-stat-label">Total Marks</div>
+                                            <div class="pcn-stat-value"><?=ini_round($totalObtained)?>/<?=ini_round($totalMaxMarks)?></div>
+                                        </div>
+                                        <div class="pcn-stat">
+                                            <div class="pcn-stat-icon" style="background:#2e7d32;"><i class="fa fa-pie-chart"></i></div>
+                                            <div class="pcn-stat-label">Percentage</div>
+                                            <div class="pcn-stat-value"><?=$percent?>%</div>
+                                        </div>
+                                        <div class="pcn-stat">
+                                            <div class="pcn-stat-icon" style="background:<?=$gradeInfo['color']?>;"><i class="fa fa-certificate"></i></div>
+                                            <div class="pcn-stat-label">Grade</div>
+                                            <div class="pcn-stat-value"><span class="pcn-grade-chip" style="background:<?=$gradeInfo['bg']?>;color:<?=$gradeInfo['color']?>;"><?=$gradeInfo['grade']?></span></div>
+                                        </div>
+                                        <div class="pcn-stat">
+                                            <div class="pcn-stat-icon" style="background:#8e24aa;"><i class="fa fa-trophy"></i></div>
+                                            <div class="pcn-stat-label">Rank (Class)</div>
+                                            <div class="pcn-stat-value"><?=($student->rank !== null && $student->rank !== '') ? $student->rank : '-'?></div>
+                                        </div>
                                     </div>
-                                    <div class="pcn-stat">
-                                        <div class="pcn-stat-label">Percentage</div>
-                                        <div class="pcn-stat-value"><?=$percent?>%</div>
-                                    </div>
-                                    <div class="pcn-stat">
-                                        <div class="pcn-stat-label">Grade</div>
-                                        <div class="pcn-stat-value"><span class="pcn-grade-chip" style="background:<?=$gradeInfo['bg']?>;color:<?=$gradeInfo['color']?>;"><?=$gradeInfo['grade']?></span></div>
-                                    </div>
-                                    <div class="pcn-stat">
-                                        <div class="pcn-stat-label">Rank (Class)</div>
-                                        <div class="pcn-stat-value"><?=($student->rank !== null && $student->rank !== '') ? $student->rank : '-'?></div>
-                                    </div>
-                                    <div class="pcn-stat">
-                                        <div class="pcn-stat-label">Attendance</div>
-                                        <div class="pcn-ring" style="background:conic-gradient(#1a237e <?=$attInfo['yearlyPercentage']?>%, #e3e6f0 0);"><span><?=$attInfo['yearlyPercentage']?>%</span></div>
+                                    <div class="pcn-att-panel">
+                                        <div class="pcn-stat-label">Overall Attendance</div>
+                                        <div class="pcn-ring pcn-ring--lg" style="background:conic-gradient(#1a237e <?=$attInfo['yearlyPercentage']?>%, #e3e6f0 0);"><span><?=$attInfo['yearlyPercentage']?>%</span></div>
                                     </div>
                                 </div>
                                 </div>
@@ -260,7 +337,7 @@
                         </div>
 
                         <div class="pcn-row">
-                            <div class="pcn-box" style="flex:2; min-width:400px;">
+                            <div class="pcn-box pcn-b--purple" style="flex:2; min-width:400px;">
                                 <h4 class="pcn-h--purple"><span class="pcn-h-icon"><i class="fa fa-book"></i></span><span class="pcn-h-text">Subject Wise Performance</span></h4>
                                 <div class="pcn-box-body">
                                 <table class="pcn-table">
@@ -270,12 +347,13 @@
                                     <tbody>
                                         <?php foreach($subjectRows as $row) {
                                             $badge      = subject_badge($row['subject']);
+                                            $subjIcon   = pcn_subject_icon($row['subject']);
                                             $subjPct    = $row['max'] > 0 ? ($row['obtained'] / $row['max']) * 100 : 0;
                                             $subjGrade  = progresscard_resolve_grade($subjPct);
                                         ?>
                                         <tr>
                                             <td style="text-align:left;">
-                                                <span class="pcn-subject-badge" style="background:<?=$badge['color']?>;"><?=$badge['abbr']?></span>
+                                                <span class="pcn-subject-badge" style="background:<?=$badge['color']?>;"><?=$subjIcon ? '<i class="fa '.$subjIcon.'"></i>' : $badge['abbr']?></span>
                                                 <?=$row['subject']?>
                                             </td>
                                             <td><?=$row['max']?></td>
@@ -289,14 +367,16 @@
                                 </div>
                             </div>
 
-                            <div class="pcn-box">
+                            <div class="pcn-box pcn-b--slate">
                                 <h4 class="pcn-h--slate"><span class="pcn-h-icon"><i class="fa fa-list"></i></span><span class="pcn-h-text">Grade Scale</span></h4>
                                 <div class="pcn-box-body">
                                 <table class="pcn-table">
                                     <thead><tr><th>Range</th><th>Grade</th><th>Remark</th></tr></thead>
                                     <tbody>
-                                        <?php foreach(progresscard_grade_scale() as $gs) { ?>
-                                        <tr><td><?=$gs['range']?></td><td><?=$gs['grade']?></td><td><?=$gs['label']?></td></tr>
+                                        <?php foreach(progresscard_grade_scale() as $gs) {
+                                            $legendColor = isset($pcnGradeLegendColors[$gs['grade']]) ? $pcnGradeLegendColors[$gs['grade']] : '#90a4ae';
+                                        ?>
+                                        <tr><td><span class="pcn-legend-dot" style="background:<?=$legendColor?>;"></span><?=$gs['range']?></td><td><?=$gs['grade']?></td><td><?=$gs['label']?></td></tr>
                                         <?php } ?>
                                     </tbody>
                                 </table>
@@ -305,7 +385,7 @@
                         </div>
 
                         <div class="pcn-row">
-                            <div class="pcn-box">
+                            <div class="pcn-box pcn-b--teal">
                                 <h4 class="pcn-h--teal"><span class="pcn-h-icon"><i class="fa fa-users"></i></span><span class="pcn-h-text">Class Performance</span></h4>
                                 <div class="pcn-box-body">
                                 <div class="pcn-stats-grid">
@@ -325,7 +405,7 @@
                                 </div>
                             </div>
 
-                            <div class="pcn-box" style="flex:2;">
+                            <div class="pcn-box pcn-b--green" style="flex:2;">
                                 <h4 class="pcn-h--green"><span class="pcn-h-icon"><i class="fa fa-calendar-check-o"></i></span><span class="pcn-h-text">Attendance Summary (Academic Year: <?=isset($attInfo['schoolyear']) ? $attInfo['schoolyear'] : ''?>)</span></h4>
                                 <div class="pcn-box-body">
                                 <div style="overflow-x:auto;">
@@ -353,6 +433,19 @@
                                             <?php foreach($attInfo['months'] as $m) { ?><td><?=$m['absent']?></td><?php } ?>
                                             <td><b><?=$attInfo['totalAbsent']?></b></td>
                                         </tr>
+                                        <tr>
+                                            <td style="text-align:left;">Attendance %</td>
+                                            <?php foreach($attInfo['months'] as $m) {
+                                                $mPct = $m['workingDays'] > 0 ? round(($m['present'] / $m['workingDays']) * 100) : 0;
+                                                $barColor = $mPct >= 90 ? '#2e7d32' : ($mPct >= 75 ? '#fbc02d' : '#e53935');
+                                            ?>
+                                            <td>
+                                                <?=$mPct?>%
+                                                <div class="pcn-att-bar-wrap"><div class="pcn-att-bar" style="width:<?=$mPct?>%; background:<?=$barColor?>;"></div></div>
+                                            </td>
+                                            <?php } ?>
+                                            <td><b><?=$attInfo['yearlyPercentage']?>%</b></td>
+                                        </tr>
                                     </tbody>
                                 </table>
                                 </div>
@@ -362,7 +455,7 @@
                         </div>
 
                         <div class="pcn-row no-print">
-                            <div class="pcn-box" style="flex:1;">
+                            <div class="pcn-box pcn-b--navy" style="flex:1;">
                                 <h4 class="pcn-h--navy"><span class="pcn-h-icon"><i class="fa fa-line-chart"></i></span><span class="pcn-h-text">Performance Overview</span></h4>
                                 <div class="pcn-box-body">
                                 <div class="pcn-charts-row">
@@ -374,18 +467,31 @@
                             </div>
                         </div>
 
+                        <?php
+                            $remarkSuggestions = array(
+                                'Excellent'          => 'Keep up the outstanding work — maintain this consistency.',
+                                'Very Good'          => 'Great progress — a little more focus can take you to the top.',
+                                'Good'               => 'Solid effort — keep practicing regularly to improve further.',
+                                'Fair'               => 'Focus on regular study and revision to strengthen your basics.',
+                                'Average'            => 'Focus on regular study and revision. Participate more in class activities.',
+                                'Need Improvement'   => 'Needs regular attention — please consult subject teachers for extra support.',
+                            );
+                            $remarkSuggestion = isset($remarkSuggestions[$remarkText]) ? $remarkSuggestions[$remarkText] : '';
+                        ?>
                         <div class="pcn-row">
-                            <div class="pcn-box" style="flex:2;">
+                            <div class="pcn-box pcn-b--orange" style="flex:2;">
                                 <h4 class="pcn-h--orange"><span class="pcn-h-icon"><i class="fa fa-comment"></i></span><span class="pcn-h-text">Teacher's Remarks</span></h4>
                                 <div class="pcn-box-body">
                                 <p class="pcn-remark-text" style="color:<?=$remarkColor?> !important;"><?=$remarkText?></p>
+                                <?php if ($remarkSuggestion) { ?><p class="pcn-remark-sub"><?=$remarkSuggestion?></p><?php } ?>
                                 </div>
                             </div>
-                            <div class="pcn-box pcn-qr-box">
+                            <div class="pcn-box pcn-b--navy pcn-qr-box">
                                 <h4 class="pcn-h--navy"><span class="pcn-h-icon"><i class="fa fa-qrcode"></i></span><span class="pcn-h-text">Scan to Verify</span></h4>
                                 <div class="pcn-box-body">
                                 <img src="<?=$qrUrl?>" alt="QR">
                                 <p class="pcn-qr-caption">Student ID: <?=$student->srregisterNO?></p>
+                                <p class="pcn-qr-caption">Verify at: <?=$qrText?></p>
                                 </div>
                             </div>
                         </div>

@@ -1,92 +1,59 @@
 <?php if(count($idcards)) { ?>
-    <style>
-        .idcard-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        .idcard-box {
-            width: 400px;
-            height: 600px;
-            background: url('<?=base_url("uploads/idcard_templates/".$id_card_template["value"])?>') no-repeat center center;
-            background-size: cover;
-            position: relative;
-            padding: 30px;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-            border: 1px solid #ccc;
-        }
-        .idcard-photo {
-            width: 150px;
-            height: 180px;
-            border: 2px solid #000;
-            margin: 0 auto;
-            margin-top: 140px;
-        }
-        .idcard-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .idcard-name {
-            text-align: center;
-            margin-top: 6px;
-            font-size: 20px;
-            font-weight: bold;
-            color: #c70039;
-        }
-        .idcard-details {
-            margin-top: 0px;
-            font-size: 15px;
-            line-height: 2.0;
-        }
-        .idcard-details b {
-            width: 120px;
-            display: inline-block;
-        }
-    </style>
 
-<button onclick="window.print()" class="btn btn-primary">
-    <i class="fa fa-print"></i> Print
-</button>
-<button id="downloadPDF" class="btn btn-danger">
-    <i class="fa fa-file-pdf-o"></i> Download PDF
-</button>
-
-<button id="downloadJPEGs" class="btn btn-primary">Download All as JPEG</button>
-
-<button id="downloadZIP" class="btn btn-info">Download All as JPEG ZIP</button>
-
-
-
-    <div class="idcard-container" id="idCardArea" >
-        <?php foreach($idcards as $student) { ?>
-            <div class="idcard-box">
-
-                <!-- Student Photo -->
-                <div class="idcard-photo" style="margin-top : 40%;width:40% ; height:30%">
-                    <img src="<?=imagelink($student->photo)?>" alt="Student Photo">
-                </div>
-
-                <!-- Student Name -->
-                <div class="idcard-name">
-                    <?=strtoupper($student->name)?>
-                </div>
-
-                <!-- Student Details -->
-                 <?php //echo "<pre>"; print_r($student);die;?>
-               <b> <div class="idcard-details text-black" style="">
-                    <b class="text-black">Medium</b>: <?=$student->medium ?? 'English'?><br>
-                    <b class="text-black">Class/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
-                    <b class="text-black">F'Name</b>: <?=$student->father_name ?? ''?><br>
-                    <b class="text-black" >Contact No.</b>: <?=$student->phone ?? ''?><br>
-                    <b class="text-black">Village</b>: <?=$student->address ?? ''?><br>
-
-                </div></b>
-
-            </div>
-        <?php } ?>
+<div class="box" style="border-top: 3px solid #388e3c;">
+    <div class="rpt-box-header">
+        <h3><i class="fa fa-id-card"></i> ID Card Report</h3>
     </div>
+
+    <div class="box-body">
+        <div class="rpt-action-bar">
+            <button onclick="window.print()" class="btn btn-primary rpt-action-btn">
+                <i class="fa fa-print"></i> Print
+            </button>
+            <button id="downloadPDF" class="btn btn-danger rpt-action-btn">
+                <i class="fa fa-file-pdf-o"></i> Download PDF
+            </button>
+            <button id="downloadJPEGs" class="btn btn-primary rpt-action-btn">
+                <i class="fa fa-file-image-o"></i> Download All as JPEG
+            </button>
+            <button id="downloadZIP" class="btn btn-info rpt-action-btn">
+                <i class="fa fa-file-zip-o"></i> Download All as JPEG ZIP
+            </button>
+        </div>
+
+        <div class="idcard-container" id="idCardArea" >
+            <?php foreach($idcards as $student) { ?>
+                <div class="idcard-box" style="background-image:url('<?=base_url("uploads/idcard_templates/".$id_card_template["value"])?>');">
+
+                    <!-- Student Photo -->
+                    <div class="idcard-photo" style="margin-top : 40%;width:40% ; height:30%">
+                        <img src="<?=imagelink($student->photo)?>" alt="Student Photo">
+                    </div>
+
+                    <!-- Student Name -->
+                    <div class="idcard-name">
+                        <?=strtoupper($student->name)?>
+                    </div>
+
+                    <!-- Student Details -->
+                     <?php //echo "<pre>"; print_r($student);die;?>
+                   <b> <div class="idcard-details text-black" style="">
+                        <b class="text-black">Medium</b>: <?=$student->medium ?? 'English'?><br>
+                        <b class="text-black">Class/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
+                        <b class="text-black">F'Name</b>: <?=$student->father_name ?? ''?><br>
+                        <b class="text-black" >Contact No.</b>: <?=$student->phone ?? ''?><br>
+                        <b class="text-black">Village</b>: <?=$student->village_name ?? ''?><br>
+
+                    </div></b>
+
+                </div>
+            <?php } ?>
+        </div>
+    </div>
+</div>
+
+<button class="rpt-scroll-top-btn" id="idcard-scroll-top-btn" title="Back to top">&#8679;</button>
+
 <?php } else { ?>
     <p>No students found for this class/section.</p>
 <?php } ?>
@@ -279,5 +246,16 @@ document.getElementById("downloadZIP").addEventListener("click", async function 
 
   btn.disabled = false;
   btn.innerText = originalText;
+});
+</script>
+
+<script>
+$(window).on('scroll', function() {
+    $(this).scrollTop() > 200
+        ? $('#idcard-scroll-top-btn').fadeIn(300)
+        : $('#idcard-scroll-top-btn').fadeOut(300);
+});
+$('#idcard-scroll-top-btn').on('click', function() {
+    $('html, body').animate({ scrollTop: 0 }, 400);
 });
 </script>

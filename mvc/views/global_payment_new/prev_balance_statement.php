@@ -41,12 +41,12 @@ foreach ($prev_balances as $yIdx => $year) {
 }
 .cf-modal-header-orange .close { color: #fff; opacity: 1; font-size: 22px; margin-top: -2px; }
 .cf-summary-table thead th {
-    background: #f1f5f9;
-    color: #374151;
+    background: #c97a2a;
+    color: #fff;
     font-size: 12px;
     font-weight: 700;
     padding: 9px 10px;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #c97a2a !important;
     white-space: nowrap;
 }
 .cf-summary-table td { vertical-align: middle !important; font-size:13px; border: 1px solid #e9eef5 !important; }

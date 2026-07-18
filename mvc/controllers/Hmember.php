@@ -197,6 +197,13 @@ class Hmember extends Admin_Controller
 								$category_main_id = $this->category_m->get_single_category(array("hostelID" => $hostel_main_id->hostelID, "categoryID" =>  $this->input->post("categoryID")));
 								if ($hostel_main_id) {
 									if ($category_main_id) {
+										$existingTmember = $this->tmember_m->get_single_tmember(array('studentID' => $student->srstudentID), TRUE);
+										if ($existingTmember) {
+											$this->session->set_flashdata('error', 'This student is already assigned to Transport. Please remove the Transport assignment first before adding to Hostel.');
+											redirect(base_url("hmember/add/$id/$url"));
+											return;
+										}
+
 										$array = array(
 											"hostelID" => $this->input->post("hostelID"),
 											"categoryID" => $this->input->post("categoryID"),
@@ -204,16 +211,12 @@ class Hmember extends Admin_Controller
 											"hbalance" => $category_main_id->hbalance,
 											"hjoindate" => date("Y-m-d")
 										);
-										
+
 										$this->hmember_m->insert_hmember($array);
 										$this->student_m->update_student(array("hostel" => 1,"transport"=> 0, 'studentType' => 2), $id);
-										$this->data['studntTransportDetails'] = $this->tmember_m->get_single_tmember(array('studentID' => $student->srstudentID), TRUE);
-										if ($this->data['studntTransportDetails']) {
-											$this->tmember_m->delete_tmember_sID($student->srstudentID);
-										}
 
 
-										//code for auto invoice generation 
+										//code for auto invoice generation
 						$studentID = $student->srstudentID;
 						 
 						$class_id = $student->classesID;
@@ -334,6 +337,8 @@ class Hmember extends Admin_Controller
 			if(!$studentID) { $failCount++; continue; }
 			$student = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
 			if(!customCompute($student) || $student->hostel != 0) { $failCount++; continue; }
+			$existingTmember = $this->tmember_m->get_single_tmember(array('studentID' => $student->srstudentID), TRUE);
+			if($existingTmember) { $failCount++; continue; }
 			$this->hmember_m->insert_hmember(array(
 				"hostelID"   => $hostelID,
 				"categoryID" => $categoryID,
@@ -342,8 +347,6 @@ class Hmember extends Admin_Controller
 				"hjoindate"  => date("Y-m-d")
 			));
 			$this->student_m->update_student(array("hostel" => 1, "transport" => 0, 'studentType' => 2), $studentID);
-			$transport = $this->tmember_m->get_single_tmember(array('studentID' => $student->srstudentID), TRUE);
-			if($transport) { $this->tmember_m->delete_tmember_sID($student->srstudentID); }
 			$fee_items = array();
 			if($fee_type_hostel) {
 				$fee_items[] = array('feetypeID' => $fee_type_hostel['feetypesID'], 'amount' => $h_amount, 'discount' => '', 'subtotal' => $h_amount, 'paidamount' => '');

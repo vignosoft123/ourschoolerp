@@ -40,6 +40,11 @@
                                 <th><?=$this->lang->line('studentreport_roll')?></th>
                                 <th><?=$this->lang->line('studentreport_phone')?></th>
                                 <th><?php echo "Village";?></th>
+                                <?php if($reportfor == 'transport') { ?>
+                                <th>Transport Fee</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <?php } ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -78,6 +83,11 @@
                                     <td>
                                         <?php echo $student->address; ?>
                                     </td>
+                                    <?php if($reportfor == 'transport') { ?>
+                                    <td><?php echo number_format($student->transport_fee_amount, 2); ?></td>
+                                    <td><?php echo number_format($student->transport_fee_paid, 2); ?></td>
+                                    <td><?php echo number_format($student->transport_fee_balance, 2); ?></td>
+                                    <?php } ?>
                                </tr>
                             <?php $i++; } ?>
                         </tbody>

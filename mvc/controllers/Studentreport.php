@@ -286,7 +286,7 @@ class Studentreport extends Admin_Controller {
 								}
 							}
 						}
-						$this->data['students'] = $students;
+						$this->data['students'] = $this->attachTransportFeeSummary($students, $this->session->userdata('defaultschoolyearID'));
 					} elseif($reportfor == 'hostel') {
 						$hostels = $this->hmember_m->get_order_by_hmember(array('hostelID' => $hostel));
 						$getstudents = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srstudentID');
@@ -316,6 +316,65 @@ class Studentreport extends Admin_Controller {
 			echo json_encode($retArray);
 		    exit;
 		}
+	}
+
+	private function attachTransportFeeSummary($students, $schoolyearID) {
+		if (!$students) {
+			return $students;
+		}
+		$studentIDs = [];
+		foreach ($students as $student) {
+			$studentIDs[] = $student->srstudentID;
+		}
+		if (!$studentIDs) {
+			return $students;
+		}
+
+		$feetype = $this->db->query("SELECT feetypesID FROM feetypes WHERE feetypes LIKE '%TRANSPORT FEE%' LIMIT 1")->row();
+		if (!$feetype) {
+			return $students;
+		}
+
+		$placeholders = implode(',', array_fill(0, count($studentIDs), '?'));
+		$params = array_merge([$schoolyearID, $feetype->feetypesID], $studentIDs);
+
+		$sql = "
+			SELECT
+				i.studentID,
+				SUM(i.amount) AS total_amount,
+				SUM(COALESCE(i.discount, 0) + COALESCE(wagg.weaver_sum, 0)) AS total_discount,
+				COALESCE(SUM(pagg.paid_sum), 0) AS total_paid
+			FROM maininvoice mi
+			JOIN invoice i ON i.maininvoiceID = mi.maininvoiceID
+			LEFT JOIN (
+				SELECT invoiceID, SUM(paymentamount) AS paid_sum FROM payment GROUP BY invoiceID
+			) pagg ON pagg.invoiceID = i.invoiceID
+			LEFT JOIN (
+				SELECT invoiceID, SUM(weaver) AS weaver_sum FROM weaverandfine GROUP BY invoiceID
+			) wagg ON wagg.invoiceID = i.invoiceID
+			WHERE mi.maininvoiceschoolyearID = ?
+			  AND mi.maininvoicedeleted_at = 1
+			  AND i.feetypeID = ?
+			  AND i.studentID IN ($placeholders)
+			GROUP BY i.studentID
+		";
+
+		$summary = [];
+		foreach ($this->db->query($sql, $params)->result() as $row) {
+			$summary[$row->studentID] = $row;
+		}
+
+		foreach ($students as $student) {
+			$row      = isset($summary[$student->srstudentID]) ? $summary[$student->srstudentID] : null;
+			$amount   = $row ? (float)$row->total_amount   : 0;
+			$discount = $row ? (float)$row->total_discount : 0;
+			$paid     = $row ? (float)$row->total_paid     : 0;
+			$student->transport_fee_amount  = $amount;
+			$student->transport_fee_paid    = $paid;
+			$student->transport_fee_balance = $amount - $discount - $paid;
+		}
+
+		return $students;
 	}
 
 	private function getArray(&$queryArray, $post) {
@@ -449,7 +508,7 @@ class Studentreport extends Admin_Controller {
 																$students[] = $getstudents[$transport->studentID];
 															}
 														}
-														$this->data['students'] = $students;
+														$this->data['students'] = $this->attachTransportFeeSummary($students, $this->session->userdata('defaultschoolyearID'));
 													} elseif($reportfor == 'hostel') {
 														$hostels = $this->hmember_m->get_order_by_hmember(array('hostelID' => $hostel));
 														$getstudents = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srstudentID');
@@ -461,7 +520,7 @@ class Studentreport extends Admin_Controller {
 														}
 														$this->data['students'] = $students;
 													} else {
-														$this->data['students'] = $this->studentrelation_m->general_get_order_by_student($queryArray);	
+														$this->data['students'] = $this->studentrelation_m->general_get_order_by_student($queryArray);
 													}
 													$this->reportPDF('studentreport.css', $this->data, 'report/student/StudentReportPDF');
 												} else {
@@ -615,7 +674,7 @@ class Studentreport extends Admin_Controller {
 														$students[] = $getstudents[$transport->studentID];
 													}
 												}
-												$this->data['students'] = $students;
+												$this->data['students'] = $this->attachTransportFeeSummary($students, $this->session->userdata('defaultschoolyearID'));
 											} elseif($reportfor == 'hostel') {
 												$hostels = $this->hmember_m->get_order_by_hmember(array('hostelID' => $hostel));
 												$getstudents = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srstudentID');
@@ -627,9 +686,9 @@ class Studentreport extends Admin_Controller {
 												}
 												$this->data['students'] = $students;
 											} else {
-												$this->data['students'] = $this->studentrelation_m->general_get_order_by_student($queryArray);	
+												$this->data['students'] = $this->studentrelation_m->general_get_order_by_student($queryArray);
 											}
-											
+
 											return $this->generateXML($this->data);
 
 										} else {
@@ -822,6 +881,9 @@ class Studentreport extends Admin_Controller {
 		$sheet->getDefaultColumnDimension()->setWidth(18);
 		$sheet->getDefaultRowDimension()->setRowHeight(20);
 
+		$isTransport = ($reportfor == 'transport');
+		$lastCol = $isTransport ? 'M' : 'J';
+
 		// ===== HEADERS =====
 		$headers = [
 			'A1' => $this->lang->line('studentreport_slno'),
@@ -835,6 +897,11 @@ class Studentreport extends Admin_Controller {
 			'I1' => $this->lang->line('studentreport_phone'),
 			'J1' => 'Village',
 		];
+		if ($isTransport) {
+			$headers['K1'] = 'Transport Fee';
+			$headers['L1'] = 'Paid';
+			$headers['M1'] = 'Balance';
+		}
 		foreach ($headers as $cell => $value) {
 			$sheet->setCellValue($cell, $value);
 		}
@@ -845,7 +912,7 @@ class Studentreport extends Admin_Controller {
 			'alignment' => ['horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER],
 			'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
 		];
-		$sheet->getStyle('A1:J1')->applyFromArray($headerStyle);
+		$sheet->getStyle('A1:' . $lastCol . '1')->applyFromArray($headerStyle);
 
 		// ===== BODY =====
 		$row = 2;
@@ -861,17 +928,22 @@ class Studentreport extends Admin_Controller {
 			$sheet->setCellValue('H' . $row, $student->roll);
 			$sheet->setCellValue('I' . $row, $student->phone);
 			$sheet->setCellValue('J' . $row, $student->village_name);
+			if ($isTransport) {
+				$sheet->setCellValue('K' . $row, $student->transport_fee_amount);
+				$sheet->setCellValue('L' . $row, $student->transport_fee_paid);
+				$sheet->setCellValue('M' . $row, $student->transport_fee_balance);
+			}
 			$row++;
 			$i++;
 		}
 
 		if ($row > 2) {
-			$sheet->getStyle('A1:J' . ($row - 1))->applyFromArray([
+			$sheet->getStyle('A1:' . $lastCol . ($row - 1))->applyFromArray([
 				'borders' => ['allBorders' => ['borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN]],
 			]);
 		}
 
-		foreach (range('A', 'J') as $column) {
+		foreach (range('A', $lastCol) as $column) {
 			$sheet->getColumnDimension($column)->setAutoSize(true);
 		}
 	}
@@ -990,7 +1062,7 @@ class Studentreport extends Admin_Controller {
 																		$students[] = $getstudents[$transport->studentID];
 																	}
 																}
-																$this->data['students'] = $students;
+																$this->data['students'] = $this->attachTransportFeeSummary($students, $this->session->userdata('defaultschoolyearID'));
 															} elseif($reportfor == 'hostel') {
 																$hostels = $this->hmember_m->get_order_by_hmember(array('hostelID' => $hostel));
 																$getstudents = pluck($this->studentrelation_m->general_get_order_by_student($queryArray), 'obj', 'srstudentID');
@@ -1002,7 +1074,7 @@ class Studentreport extends Admin_Controller {
 																}
 																$this->data['students'] = $students;
 															} else {
-																$this->data['students'] = $this->studentrelation_m->general_get_order_by_student($queryArray);	
+																$this->data['students'] = $this->studentrelation_m->general_get_order_by_student($queryArray);
 															}
 															$this->reportSendToMail('studentreport.css', $this->data, 'report/student/StudentReportPDF',$to,$subject,$message);
 															$retArray['status'] = TRUE;

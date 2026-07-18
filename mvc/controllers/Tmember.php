@@ -184,6 +184,13 @@ class Tmember extends Admin_Controller {
 								$this->data["subview"] = "tmember/add";
 								$this->load->view('_layout_main', $this->data);			
 							} else {
+								$existingHmember = $this->hmember_m->get_single_hmember(array("studentID" => $student->srstudentID));
+								if ($existingHmember) {
+									$this->session->set_flashdata('error', 'This student is already assigned to a Hostel. Please remove the Hostel assignment first before adding to Transport.');
+									redirect(base_url("tmember/add/$id/$url"));
+									return;
+								}
+
 								$array = array(
 									"studentID" => $student->srstudentID,
 									"transportID" => $this->input->post("transportID"),
@@ -195,13 +202,9 @@ class Tmember extends Admin_Controller {
 								);
 								$this->tmember_m->insert_tmember($array);
 								$this->student_m->update_student(array("transport" => 1,"studentType" =>  1,'hostel' => 0), $id);
-								$this->data["hmember"] = $this->hmember_m->get_single_hmember(array("studentID" => $student->srstudentID));
-								if ($this->data["hmember"]) {
-									$this->hmember_m->delete_hmember($this->data['hmember']->hmemberID);
-								}
 
 
-					//code for auto invoice generation 
+					//code for auto invoice generation
 						$studentID = $student->srstudentID;
 						$is_auto_invoice = $this->setting_m->get_setting_where('is_student_auto_invoice');
 
@@ -307,6 +310,8 @@ class Tmember extends Admin_Controller {
 			if(!$studentID) { $failCount++; continue; }
 			$student = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
 			if(!customCompute($student) || $student->transport != 0) { $failCount++; continue; }
+			$existingHmember = $this->hmember_m->get_single_hmember(array("studentID" => $student->srstudentID));
+			if($existingHmember) { $failCount++; continue; }
 			$this->tmember_m->insert_tmember(array(
 				"studentID"   => $student->srstudentID,
 				"transportID" => $transportID,
@@ -317,8 +322,6 @@ class Tmember extends Admin_Controller {
 				"tjoindate"   => date("Y-m-d")
 			));
 			$this->student_m->update_student(array("transport" => 1, "studentType" => 1, 'hostel' => 0), $studentID);
-			$hmember = $this->hmember_m->get_single_hmember(array("studentID" => $student->srstudentID));
-			if($hmember) { $this->hmember_m->delete_hmember($hmember->hmemberID); }
 			$fee_items = array();
 			if($fee_type_transport) {
 				$fee_items[] = array('feetypeID' => $fee_type_transport['feetypesID'], 'amount' => $tbalance, 'discount' => '', 'subtotal' => $tbalance, 'paidamount' => '');

@@ -371,6 +371,7 @@ class Progresscardreport extends Admin_Controller {
 
 					$this->data['percentageArr']     = $percentageArr;
 					$this->data['grades']            = $this->grade_m->get_grade();
+					$this->data['effectiveGrades']    = progresscard_effective_grades($this->data['grades']);
 					$this->data['optionalSubjects']  = pluck($optionalSubjects,'obj','subjectID');
 					$this->data['mandatorySubjects'] = $mandatorySubjects;
 					$this->data['totalSubject']      = customCompute($mandatorySubjects);
@@ -517,6 +518,7 @@ class Progresscardreport extends Admin_Controller {
 
 				$this->data['percentageArr']     = $percentageArr;
 				$this->data['grades']            = $this->grade_m->get_grade();
+				$this->data['effectiveGrades']    = progresscard_effective_grades($this->data['grades']);
 				$this->data['optionalSubjects']  = pluck($optionalSubjects,'obj','subjectID');
 				$this->data['mandatorySubjects'] = $mandatorySubjects;
 				$this->data['totalSubject']      = customCompute($mandatorySubjects);
@@ -676,6 +678,7 @@ class Progresscardreport extends Admin_Controller {
 
 					$this->data['percentageArr']     = $percentageArr;
 					$this->data['grades']            = $this->grade_m->get_grade();
+					$this->data['effectiveGrades']    = progresscard_effective_grades($this->data['grades']);
 					$this->data['optionalSubjects']  = pluck($optionalSubjects,'obj','subjectID');
 					$this->data['mandatorySubjects'] = $mandatorySubjects;
 					$this->data['totalSubject']      = customCompute($mandatorySubjects);
@@ -889,6 +892,7 @@ foreach($months_array as $mkey => $v) {
 
 					$this->data['percentageArr']     = $percentageArr;
 					$this->data['grades']            = $this->grade_m->get_grade();
+					$this->data['effectiveGrades']    = progresscard_effective_grades($this->data['grades']);
 					$this->data['optionalSubjects']  = pluck($optionalSubjects,'obj','subjectID');
 					$this->data['mandatorySubjects'] = $mandatorySubjects;
 					$this->data['totalSubject']      = customCompute($mandatorySubjects);

@@ -74,10 +74,21 @@ class Global_payment_new extends Admin_Controller
     // Carry-forward computation — flat-amount discount (consistent with reports)
     // -------------------------------------------------------------------------
     private function computeCarryForward($studentID, $currentSchoolyearID) {
+        // Resolve the current year's start date so "previous years" are determined
+        // chronologically, not by schoolyearID (rows aren't always inserted in date
+        // order — e.g. a tenant's first-created year can get a lower ID than a
+        // later-inserted / back-filled historical year).
+        $currentYear = $this->db->select('startingdate')
+                                ->where('schoolyearID', $currentSchoolyearID)
+                                ->get('schoolyear')->row();
+        if (!$currentYear) {
+            return ['prev_balances' => [], 'total_carry_forward_due' => 0];
+        }
+
         // All school years older than current, newest first
         $allYears = $this->db->select('schoolyearID, schoolyear')
-                             ->where('schoolyearID <', $currentSchoolyearID)
-                             ->order_by('schoolyearID', 'DESC')
+                             ->where('startingdate <', $currentYear->startingdate)
+                             ->order_by('startingdate', 'DESC')
                              ->get('schoolyear')->result();
 
         $prevBalances         = [];

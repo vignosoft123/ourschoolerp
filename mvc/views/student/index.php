@@ -1173,6 +1173,9 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 /* Ensure this modal always renders above the AdminLTE left sidebar, regardless of stacking context */
 #quickStudentModal { z-index: 100000; }
 .modal-backdrop { z-index: 99990; }
+/* fileUploadModal/photoZoomModal default to Bootstrap's z-index:1050 — well below the
+   99990 backdrop above, so their contents were unclickable/appeared dimmed behind it. */
+#fileUploadModal, #photoZoomModal { z-index: 100000 !important; }
 /* select2 dropdown panels default to z-index:9999 (select2.css) — raise above the modal so
    Class/Section/Village/Refered By/Pickup Point option lists are visible instead of hidden behind it */
 .select2-drop-mask { z-index: 100010 !important; }
@@ -1931,6 +1934,19 @@ $(document).on("change",".studenttype_update",function(){
     var $select = $(this);
     var studentID = $select.attr('studentID');
     var studentType = $select.val();
+    var currentType = $select.attr('data-current');
+
+    if (studentType == '1' && currentType == '2') {
+        toastr.error('This student is already assigned to a Hostel with an invoice. Please remove the Hostel assignment first before changing to Transport.');
+        $select.val(currentType);
+        return;
+    }
+
+    if (studentType == '2' && currentType == '1') {
+        toastr.error('This student is already assigned to Transport with an invoice. Please remove the Transport assignment first before changing to Hostel.');
+        $select.val(currentType);
+        return;
+    }
 
     if (studentType == '1') {
         window.pendingStudentTypeSelect = $select;
@@ -1965,7 +1981,7 @@ $(document).on("change",".studenttype_update",function(){
     });
 })
 
-$(document).on('hidden.bs.modal', '#assignTransportModal, #assignHostelModal', function () {
+$(document).on('hidden.bs.modal', '#assignTransportModal, #assignHostelModal, #autoRollModal, #bulkRollModal', function () {
     var $modal = $(this);
     if (!$modal.data('saved') && window.pendingStudentTypeSelect) {
         window.pendingStudentTypeSelect.val(window.pendingStudentTypeSelect.attr('data-current'));

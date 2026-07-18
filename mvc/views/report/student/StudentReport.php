@@ -14,7 +14,7 @@
 </div>
 <div class="box">
     <div class="rpt-box-header">
-        <?php if($reportfor==0){ $reportfor = 'All Classes';$reportTitle='All Students';}?>
+        <?php if($reportfor==='0' || $reportfor===0 || $reportfor===''){ $reportfor = 'All Classes';$reportTitle='All Students';}?>
         <h3><i class="fa fa-clipboard"></i> <?=$this->lang->line('studentreport_report_for')?> - <?=ucwords($reportfor)?> ( <?=$reportTitle?> ) </h3>
     </div><!-- /.box-header -->
 
@@ -51,6 +51,11 @@
                                     <th><?=$this->lang->line('studentreport_roll')?></th>
                                     <th><?=$this->lang->line('studentreport_phone')?></th>
                                     <th><?php echo "Vilage";?></th>
+                                    <?php if($reportfor == 'transport') { ?>
+                                    <th>Transport Fee</th>
+                                    <th>Paid</th>
+                                    <th>Balance</th>
+                                    <?php } ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -99,6 +104,17 @@
                                         <td data-title="<?=$this->lang->line('studentreport_phone')?>">
                                             <?php echo $student->village_name; ?>
                                         </td>
+                                        <?php if($reportfor == 'transport') { ?>
+                                        <td data-title="Transport Fee">
+                                            <?php echo number_format($student->transport_fee_amount, 2); ?>
+                                        </td>
+                                        <td data-title="Paid">
+                                            <?php echo number_format($student->transport_fee_paid, 2); ?>
+                                        </td>
+                                        <td data-title="Balance">
+                                            <?php echo number_format($student->transport_fee_balance, 2); ?>
+                                        </td>
+                                        <?php } ?>
                                    </tr>
                                 <?php $i++; } ?>
                             </tbody>
