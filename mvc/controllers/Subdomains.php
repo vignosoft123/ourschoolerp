@@ -478,6 +478,23 @@ class Subdomains extends Admin_Controller {
 
 	// ── Sticky Notes ────────────────────────────────────────────────────────────
 
+	public function ajax_subdomains_for_server() {
+		header('Content-Type: application/json');
+		$server = strtolower(trim($this->input->get('server')));
+		if (!$server) { echo json_encode([]); return; }
+		$rows = $this->db
+			->select('id, subdomain')
+			->where('server', $server)
+			->where('status', 'active')
+			->order_by('subdomain', 'ASC')
+			->get('subdomain_settings')->result();
+		$list = [];
+		foreach ($rows as $r) {
+			$list[] = ['id' => (int)$r->id, 'subdomain' => $r->subdomain];
+		}
+		echo json_encode($list);
+	}
+
 	public function sticky_notes_get() {
 		header('Content-Type: application/json');
 		$this->db->query("CREATE TABLE IF NOT EXISTS sticky_notes (

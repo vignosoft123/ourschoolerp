@@ -20,8 +20,9 @@
                 
                 <div class="row" style="margin-bottom: 20px;">
                     <div class="col-sm-4">
+                        <div class="sd-control-panel">
                         <div class="form-group">
-                            <label>Filter by Server</label>
+                            <label class="sd-filter-label"><i class="fa fa-server" style="margin-right:5px;color:#1565c0;"></i>Filter by Server</label>
                             <select id="server_filter" class="form-control select2">
                                 <option value="">Select Server</option>
                                 <?php if(customCompute($servers)) {
@@ -33,9 +34,34 @@
                                 } ?>
                             </select>
                         </div>
+                        <!-- ── Quick Subdomain Multi-Select ─────────────────── -->
+                        <div class="form-group" id="subdomain_ms_wrap" style="display:none;margin-top:10px;background:#f0f5ff;border:1px solid #bbdefb;border-radius:6px;padding:10px 10px 8px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                                <label style="margin:0;font-size:12px;color:#555;font-weight:600;">
+                                    <i class="fa fa-list-ul" style="color:#1565c0;"></i>
+                                    Quick Select Subdomains
+                                    <span id="subdomain_ms_count" style="color:#1565c0;font-weight:700;"></span>
+                                </label>
+                                <div style="display:flex;gap:4px;">
+                                    <button type="button" class="btn btn-xs btn-primary" onclick="msSelectAll()" title="Select all visible subdomains">All</button>
+                                    <button type="button" class="btn btn-xs btn-default" onclick="msClearAll()" title="Clear selection">Clear</button>
+                                </div>
+                            </div>
+                            <div style="position:relative;margin-bottom:3px;">
+                                <i class="fa fa-search" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#aaa;font-size:11px;pointer-events:none;"></i>
+                                <input type="text" id="subdomain_ms_search" placeholder="Search subdomains..."
+                                    class="form-control" autocomplete="off"
+                                    style="font-size:12px;height:28px;padding:2px 8px 2px 24px;border-radius:3px;">
+                            </div>
+                            <select id="subdomain_ms" multiple class="form-control"
+                                style="height:120px;font-size:12px;padding:2px 4px;border:1px solid #1565c0;border-radius:4px;background:#f9fbff;">
+                            </select>
+                            <div style="font-size:10px;color:#999;margin-top:2px;">Hold Ctrl / Cmd to select multiple</div>
+                        </div>
+
                         <!-- ── Python Server Status ──────────────────────────── -->
-                        <div class="form-group" style="margin-top:2px;">
-                            <div style="font-size:11px;color:#888;margin-bottom:4px;"><i class="fa fa-play-circle" style="color:#c62828;"></i> PYTHON SERVER</div>
+                        <div class="sd-python-section">
+                            <span class="sd-python-title"><i class="fa fa-play-circle" style="color:#c62828;margin-right:4px;"></i>PYTHON SERVER</span>
                             <button id="btn_start_python" class="btn btn-sm btn-danger" onclick="startPythonServer()" title="Start Python API server (required for GoDaddy &amp; Bootstrap/Full Deploy)" style="display:none;">
                                 <i class="fa fa-play"></i> Start Python Server
                             </button>
@@ -45,13 +71,15 @@
                             <button id="btn_restart_python" class="btn btn-sm btn-warning" onclick="restartPythonServer()" title="Restart Python server — picks up latest code changes without opening terminal" style="display:none;">
                                 <i class="fa fa-refresh"></i> Restart
                             </button>
-                        </div>
+                        </div><!-- /.sd-python-section -->
+                        </div><!-- /.sd-control-panel -->
                     </div>
                     <div class="col-sm-8" style="margin-top: 25px;">
 
                         <!-- ── GROUP 1: One-Time Setup (per new subdomain) ────────────── -->
-                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:4px;display:block;"><i class="fa fa-wrench"></i> ONE-TIME SETUP</div>
-                        <div style="margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
+                        <div class="sd-section-card">
+                        <div class="btn-group-label sd-label-setup"><i class="fa fa-wrench"></i> ONE-TIME SETUP</div>
+                        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
                             <button id="cpanel_create_btn" class="btn btn-info btn-sm" onclick="openCpanelCreateModal()" disabled title="Create a new subdomain folder in cPanel directly from localhost — no manual login needed (HostGator / MySchools / GoDaddy)">
                                 <i class="fa fa-server"></i> Create in cPanel
                             </button>
@@ -68,14 +96,16 @@
                                 <i class="fa fa-archive"></i> Full Deploy All
                             </button>
                         </div>
+                        </div><!-- /.sd-section-card setup -->
 
                         <!-- ── GROUP 2: Regular Updates (run each time you make changes) ─ -->
-                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:4px;display:block;"><i class="fa fa-refresh"></i> REGULAR UPDATES</div>
-                        <div style="margin-bottom:8px;">
+                        <div class="sd-section-card">
+                        <div class="btn-group-label sd-label-updates"><i class="fa fa-refresh"></i> REGULAR UPDATES</div>
+                        <div style="margin-bottom:4px;">
 
                             <!-- MVC row -->
-                            <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
-                                <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">MVC</span>
+                            <div class="sd-update-row">
+                                <span class="sd-row-tag mvc">MVC</span>
                                 <button id="upload_mvc_zip_btn" class="btn btn-warning btn-sm" onclick="uploadMvcZipToServer()" disabled title="Upload local mvc.zip to dummy server ONCE — then click Deploy MVC. Works for HostGator, MySchools, Schoolhour, Collegehour, GoDaddy">
                                     <i class="fa fa-upload"></i> Upload MVC to Dummy
                                 </button>
@@ -88,8 +118,8 @@
                             </div>
 
                             <!-- Assets row -->
-                            <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
-                                <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">Assets</span>
+                            <div class="sd-update-row">
+                                <span class="sd-row-tag assets">Assets</span>
                                 <button id="upload_assets_zip_btn" class="btn btn-assets-upload btn-sm" onclick="uploadAssetsZipToServer()" disabled
                                     title="FTP servers only: Upload local assets.zip to dummy server ONCE — then click Deploy Assets">
                                     <i class="fa fa-image"></i> Upload Assets to Dummy
@@ -101,8 +131,8 @@
                             </div>
 
                             <!-- Frontend row -->
-                            <div style="display:flex;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:3px;">
-                                <span style="font-size:10px;color:#fff;background:#37474f;padding:2px 6px;border-radius:3px;min-width:58px;text-align:center;font-weight:bold;letter-spacing:.3px;">Frontend</span>
+                            <div class="sd-update-row">
+                                <span class="sd-row-tag frontend">Frontend</span>
                                 <button id="upload_frontend_zip_btn" class="btn btn-frontend-upload btn-sm" onclick="uploadFrontendZipToServer()" disabled
                                     title="FTP servers only: Upload local frontend.zip to dummy server ONCE — then click Deploy Frontend">
                                     <i class="fa fa-code"></i> Upload Frontend to Dummy
@@ -123,9 +153,11 @@
                             -->
 
                         </div>
+                        </div><!-- /.sd-section-card updates -->
 
                         <!-- ── GROUP 3: Info / Admin ────────────────────────────────────── -->
-                        <div class="btn-group-label" style="font-size:11px;color:#888;margin-bottom:4px;display:block;"><i class="fa fa-info-circle"></i> INFO / ADMIN</div>
+                        <div class="sd-section-card">
+                        <div class="btn-group-label sd-label-info"><i class="fa fa-info-circle"></i> INFO / ADMIN</div>
                         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px;">
                             <button id="refresh_age_btn" class="btn btn-refresh-age btn-sm" onclick="refreshSchoolsAge()" disabled title="Refresh school age data for all subdomains on selected server">
                                 <i class="fa fa-refresh"></i> Refresh Schools Age
@@ -135,6 +167,7 @@
                                 <i class="fa fa-database"></i> Run Schema Updates
                             </button>
                         </div>
+                        </div><!-- /.sd-section-card info -->
 
                     </div>
                 </div>
@@ -637,13 +670,14 @@ $(document).ready(function() {
         updateBulkDeployBtn();
     });
 
-    // Individual checkbox change
+    // Individual checkbox change — also sync multi-select
     $('#subdomains-table tbody').on('change', '.row-checkbox', function() {
         var id = parseInt($(this).data('id'));
         if ($(this).is(':checked')) { selectedIds.add(id); } else { selectedIds.delete(id); }
         var total   = $('#subdomains-table tbody .row-checkbox').length;
         var checked = $('#subdomains-table tbody .row-checkbox:checked').length;
         $('#select-all-checkbox').prop('checked', total > 0 && checked === total);
+        syncMsFromSelectedIds();
         updateBulkCssBtn();
         updateBulkDeployBtn();
     });
@@ -661,6 +695,7 @@ $(document).ready(function() {
             var id = parseInt($(this).data('id'));
             if (checked) { selectedIds.add(id); } else { selectedIds.delete(id); }
         });
+        syncMsFromSelectedIds();
         updateBulkCssBtn();
         updateBulkDeployBtn();
     });
@@ -703,10 +738,112 @@ $(document).ready(function() {
             $('#refresh_age_btn').prop('disabled', true);
             $('#refresh_age_btn').html('<i class="fa fa-refresh"></i> Refresh Schools Age');
         }
+        loadSubdomainMultiselect(selectedServer);
+        updateBulkCssBtn();
+        updateBulkDeployBtn();
+    });
+
+    // Multi-select change → sync selectedIds and table checkboxes
+    $('#subdomain_ms').on('change', function() {
+        var allMsIds = new Set();
+        $(this).find('option').each(function() { allMsIds.add(parseInt($(this).val())); });
+        allMsIds.forEach(function(id) { selectedIds.delete(id); });
+        $(this).find('option:selected').each(function() { selectedIds.add(parseInt($(this).val())); });
+        updateMsCount();
+        syncTableCheckboxesFromSelectedIds();
         updateBulkCssBtn();
         updateBulkDeployBtn();
     });
 });
+
+// ── Multi-Select Subdomain Functions ─────────────────────────────────────────
+
+var allSubdomainOptions = []; // full list for search filtering
+
+function loadSubdomainMultiselect(server) {
+    var wrap = $('#subdomain_ms_wrap');
+    var ms   = $('#subdomain_ms');
+    if (!server) {
+        wrap.hide(); ms.empty();
+        allSubdomainOptions = [];
+        $('#subdomain_ms_search').val('');
+        return;
+    }
+    ms.html('<option disabled>Loading...</option>');
+    $('#subdomain_ms_search').val('');
+    wrap.show();
+    $.getJSON('<?=base_url("subdomains/ajax_subdomains_for_server")?>', { server: server }, function(list) {
+        allSubdomainOptions = list || [];
+        renderMsOptions('');
+    });
+}
+
+function renderMsOptions(filter) {
+    var ms     = $('#subdomain_ms');
+    var q      = (filter || '').toLowerCase().trim();
+    var matched = allSubdomainOptions.filter(function(s) {
+        return !q || s.subdomain.toLowerCase().indexOf(q) !== -1;
+    });
+    ms.empty();
+    if (allSubdomainOptions.length === 0) {
+        ms.html('<option disabled>No active subdomains found</option>');
+        updateMsCount(); return;
+    }
+    if (matched.length === 0) {
+        ms.html('<option disabled>No matches for "' + filter + '"</option>');
+        updateMsCount(); return;
+    }
+    matched.forEach(function(sub) {
+        var opt = $('<option>').val(sub.id).text(sub.subdomain);
+        if (selectedIds.has(sub.id)) opt.prop('selected', true);
+        ms.append(opt);
+    });
+    updateMsCount();
+}
+
+// Search input handler
+$(document).on('input', '#subdomain_ms_search', function() {
+    renderMsOptions($(this).val());
+});
+
+function updateMsCount() {
+    var selected = selectedIds.size;
+    var total    = allSubdomainOptions.length;
+    $('#subdomain_ms_count').text(selected > 0 ? '(' + selected + ' / ' + total + ')' : '');
+}
+
+function syncMsFromSelectedIds() {
+    $('#subdomain_ms option').each(function() {
+        $(this).prop('selected', selectedIds.has(parseInt($(this).val())));
+    });
+    updateMsCount();
+}
+
+function syncTableCheckboxesFromSelectedIds() {
+    $('#subdomains-table tbody .row-checkbox').each(function() {
+        $(this).prop('checked', selectedIds.has(parseInt($(this).data('id'))));
+    });
+    var total   = $('#subdomains-table tbody .row-checkbox').length;
+    var checked = $('#subdomains-table tbody .row-checkbox:checked').length;
+    $('#select-all-checkbox').prop('checked', total > 0 && checked === total);
+}
+
+function msSelectAll() {
+    // Select all from the FULL list (not just visible filtered ones)
+    allSubdomainOptions.forEach(function(sub) { selectedIds.add(sub.id); });
+    syncMsFromSelectedIds();
+    syncTableCheckboxesFromSelectedIds();
+    updateBulkCssBtn();
+    updateBulkDeployBtn();
+}
+
+function msClearAll() {
+    allSubdomainOptions.forEach(function(sub) { selectedIds.delete(sub.id); });
+    syncMsFromSelectedIds();
+    syncTableCheckboxesFromSelectedIds();
+    updateBulkCssBtn();
+    updateBulkDeployBtn();
+}
 
 function migrationAll() {
     var server = $('#server_filter').val();
@@ -2100,6 +2237,106 @@ function updateCss(btn, subdomainId, subdomainName) {
     cursor: pointer; padding: 0 2px; line-height: 1;
 }
 .sticky-note-del:hover { color: #b71c1c; }
+
+/* ══ SubDomain Page Layout ═════════════════════════════════════ */
+
+/* Left control panel card */
+.sd-control-panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 14px 16px 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
+/* Filter label */
+.sd-filter-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    color: #455a64;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* Python server status bar */
+.sd-python-section {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: #f5f7fa;
+    border: 1px solid #dde3ea;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 12px;
+}
+.sd-python-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #546e7a;
+    letter-spacing: .5px;
+    white-space: nowrap;
+    margin-right: 2px;
+}
+
+/* Section group labels (overrides inline styles) */
+.btn-group-label {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    color: #fff !important;
+    padding: 5px 11px !important;
+    border-radius: 4px !important;
+    margin-bottom: 9px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    line-height: 1.4 !important;
+}
+.sd-label-setup   { background: linear-gradient(90deg, #1565c0, #1976d2); }
+.sd-label-updates { background: linear-gradient(90deg, #00695c, #00796b); }
+.sd-label-info    { background: linear-gradient(90deg, #6a1b9a, #7b1fa2); }
+
+/* Section card containers */
+.sd-section-card {
+    background: #f8faff;
+    border: 1px solid #e5eaf4;
+    border-radius: 7px;
+    padding: 10px 12px 9px;
+    margin-bottom: 10px;
+}
+
+/* Update row (MVC / Assets / Frontend) */
+.sd-update-row {
+    background: #fff;
+    border: 1px solid #efefef;
+    border-radius: 5px;
+    padding: 6px 8px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+.sd-update-row:last-child { margin-bottom: 0; }
+
+/* Row type tags */
+.sd-row-tag {
+    font-size: 10px;
+    color: #fff;
+    padding: 3px 7px;
+    border-radius: 3px;
+    min-width: 60px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: .5px;
+    flex-shrink: 0;
+}
+.sd-row-tag.mvc      { background: #37474f; }
+.sd-row-tag.assets   { background: #e65100; }
+.sd-row-tag.frontend { background: #1565c0; }
 </style>
 
 <script type="text/javascript">

@@ -69,7 +69,14 @@ class Schema_runner extends CI_Controller {
                     }
                     $exists = false;
                     if ($where !== null) {
-                        $res    = $this->db->get_where($table, $where);
+                        // Use raw parameterized query — avoids CI Active Record state leaks
+                        // when a previous query failed mid-execution (e.g. missing column).
+                        $cols = []; $vals = [];
+                        foreach ($where as $c => $v) { $cols[] = "`$c` = ?"; $vals[] = $v; }
+                        $res    = $this->db->query(
+                            "SELECT 1 FROM `$table` WHERE " . implode(' AND ', $cols) . " LIMIT 1",
+                            $vals
+                        );
                         $exists = $res && $res->num_rows() > 0;
                     }
                     if (!$exists) {

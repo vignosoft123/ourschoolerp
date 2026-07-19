@@ -574,6 +574,14 @@
         }
     },
     {
+        "query": "ALTER TABLE `whatapp_templates` ADD `short_name` VARCHAR(100) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "whatapp_templates",
+            "column": "short_name"
+        }
+    },
+    {
         "query": "INSERT INTO `whatapp_templates` (`template_name`, `usertypeID`, `type`, `template`, `params`, `short_name`) VALUES ('student_registration', 3, 'whats app', 'Dear {{1}}, welcome to {{2}}. Your login details: Username: {{3}}, Password: {{4}}, Login URL: {{5}}. Please keep these credentials safe.', '{{student_name}},{{school_name}},{{username}},{{password}},{{url}}', 'STUDENT_REGISTRATION')",
         "type": "insert",
         "check_row": {
