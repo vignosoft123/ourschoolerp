@@ -4233,17 +4233,18 @@ public function auto_adjust_roll(){
 		return;
 	}
 
-	// Active students in this class/section/year, ordered by current roll
-	// (blank/zero rolls sorted last), to preserve relative order while closing gaps.
-	$this->db->select('studentID, roll');
-	$this->db->from('student');
-	$this->db->where('classesID', $classesID);
-	$this->db->where('sectionID', $sectionID);
-	$this->db->where('schoolyearID', $schoolyearID);
-	$this->db->where('active', 1);
-	$this->db->order_by("(roll IS NULL OR roll = '' OR roll = '0')", 'ASC', FALSE);
-	$this->db->order_by('roll + 0', 'ASC', FALSE);
-	$this->db->order_by('studentID', 'ASC');
+	// Use studentrelation (same source as the student listing) so only students
+	// actually enrolled in this class/section/year are renumbered.
+	$this->db->select('student.studentID, studentrelation.srroll AS roll');
+	$this->db->from('studentrelation');
+	$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'INNER');
+	$this->db->where('studentrelation.srclassesID', $classesID);
+	$this->db->where('studentrelation.srsectionID', $sectionID);
+	$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+	$this->db->where('student.active', 1);
+	$this->db->order_by("(studentrelation.srroll IS NULL OR studentrelation.srroll = '' OR studentrelation.srroll = '0')", 'ASC', FALSE);
+	$this->db->order_by('studentrelation.srroll + 0', 'ASC', FALSE);
+	$this->db->order_by('student.studentID', 'ASC');
 	$activeStudents = $this->db->get()->result();
 
 	if (empty($activeStudents)) {
@@ -4251,11 +4252,14 @@ public function auto_adjust_roll(){
 		return;
 	}
 
-	$this->db->where('classesID', $classesID);
-	$this->db->where('sectionID', $sectionID);
-	$this->db->where('schoolyearID', $schoolyearID);
-	$this->db->where('active !=', 1);
-	$inactiveCount = $this->db->count_all_results('student');
+	$this->db->select('COUNT(*) AS cnt');
+	$this->db->from('studentrelation');
+	$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'INNER');
+	$this->db->where('studentrelation.srclassesID', $classesID);
+	$this->db->where('studentrelation.srsectionID', $sectionID);
+	$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+	$this->db->where('student.active !=', 1);
+	$inactiveCount = (int)$this->db->get()->row()->cnt;
 
 	$newRoll = 1;
 	foreach ($activeStudents as $student) {
@@ -4293,14 +4297,18 @@ public function get_students_for_roll_edit(){
 		return;
 	}
 
-	$this->db->select('studentID, name, phone, registerNO, roll');
-	$this->db->from('student');
-	$this->db->where('classesID', $classesID);
-	$this->db->where('sectionID', $sectionID);
-	$this->db->where('schoolyearID', $schoolyearID);
-	$this->db->where('active', 1);
-	$this->db->order_by("(roll IS NULL OR roll = '' OR roll = '0')", 'ASC', FALSE);
-	$this->db->order_by('roll + 0', 'ASC', FALSE);
+	// Query through studentrelation (same source as the student listing) so the
+	// class/section/year filter matches exactly what the listing shows.
+	$this->db->select('student.studentID, student.name, student.phone, student.registerNO, studentrelation.srroll AS roll');
+	$this->db->from('studentrelation');
+	$this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'INNER');
+	$this->db->where('studentrelation.srclassesID', $classesID);
+	$this->db->where('studentrelation.srsectionID', $sectionID);
+	$this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+	$this->db->where('student.active', 1);
+	$this->db->order_by("(studentrelation.srroll IS NULL OR studentrelation.srroll = '' OR studentrelation.srroll = '0')", 'ASC', FALSE);
+	$this->db->order_by('studentrelation.srroll + 0', 'ASC', FALSE);
+	$this->db->order_by('student.studentID', 'ASC');
 	$students = $this->db->get()->result();
 
 	echo json_encode(array('success' => true, 'students' => $students));

@@ -1,5 +1,6 @@
 <?php
 
+$lang['panel_title']                 = "Invoice Report";
 $lang['invoicereport_panel_title']   = "Invoice Report";
 $lang['invoicereport_class']         = "Class";
 $lang['invoicereport_section']       = "Section";

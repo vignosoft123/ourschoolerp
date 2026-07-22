@@ -617,11 +617,13 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                             $('#bulkRollError').text('');
 
                             if (!sectionID || sectionID == '0') {
-                                $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>');
+                                $('#bulkRollTableBody').html('<tr><td colspan="5" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>');
+                                $('#bulkRollSearch').val('');
                                 return;
                             }
 
-                            $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>');
+                            $('#bulkRollSearch').val('');
+                            $('#bulkRollTableBody').html('<tr><td colspan="5" style="text-align:center;color:#999;"><i class="fa fa-spinner fa-spin"></i> Loading...</td></tr>');
                             $.ajax({
                                 type: 'POST',
                                 url: "<?= base_url('student/get_students_for_roll_edit') ?>",
@@ -634,12 +636,13 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         return;
                                     }
                                     if (!data.students.length) {
-                                        $('#bulkRollTableBody').html('<tr><td colspan="4" style="text-align:center;color:#999;">No active students found for this class/section.</td></tr>');
+                                        $('#bulkRollTableBody').html('<tr><td colspan="5" style="text-align:center;color:#999;">No active students found for this class/section.</td></tr>');
                                         return;
                                     }
                                     var rows = '';
                                     $.each(data.students, function (i, s) {
                                         rows += '<tr>' +
+                                            '<td style="text-align:center;color:#888;font-size:12px;">' + (i + 1) + '</td>' +
                                             '<td>' + (s.name || '') + '</td>' +
                                             '<td>' + (s.phone || '') + '</td>' +
                                             '<td>' + (s.registerNO || '') + '</td>' +
@@ -652,6 +655,15 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                     $('#bulkRollError').text('Request failed. Please try again.');
                                     $('#bulkRollTableBody').html('');
                                 }
+                            });
+                        });
+
+                        $(document).on('input', '#bulkRollSearch', function () {
+                            var q = $(this).val().toLowerCase().trim();
+                            $('#bulkRollTableBody tr').each(function () {
+                                if (!$(this).find('.bulk-roll-input').length) return; // skip empty/loading rows
+                                var text = $(this).text().toLowerCase();
+                                $(this).toggle(q === '' || text.indexOf(q) !== -1);
                             });
                         });
 
@@ -1146,7 +1158,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                         <button type="button" class="btn btn-secondary" id="cropImageBtn">Crop & Compress</button>
                     </div>
                     <div class="mb-3">
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="submit" id="photoSubmitBtn" class="btn btn-primary">Submit</button>
                     </div>
                 </form>
             </div>
@@ -1592,6 +1604,11 @@ document.getElementById('fileUploadForm').addEventListener('submit', function(ev
         }
         formData.append('file', fileInput.files[0]);
     }
+
+    var submitBtn = document.getElementById('photoSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Uploading...';
+
     fetch('<?php echo base_url('Student/uploadPhoto')?>', {
         method: 'POST',
         body: formData
@@ -1603,6 +1620,9 @@ document.getElementById('fileUploadForm').addEventListener('submit', function(ev
     })
     .catch(error => {
         console.error('Error:', error);
+        alert('Upload failed. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Submit';
     });
 });
 </script>
@@ -2995,10 +3015,14 @@ $(document).on('click', '.cl-toggle-pw', function() {
                         </select>
                     </div>
                 </div>
+                <div style="margin-bottom:10px;">
+                    <input type="text" id="bulkRollSearch" class="form-control" placeholder="&#128269; Search by name, phone or admission no..." style="border-radius:6px;font-size:13px;">
+                </div>
                 <div style="max-height:360px;overflow-y:auto;">
                     <table class="table table-bordered table-condensed" style="margin-bottom:0;">
                         <thead>
                             <tr>
+                                <th style="width:40px;text-align:center;">#</th>
                                 <th>Name</th>
                                 <th>Phone</th>
                                 <th>Admission No</th>
@@ -3006,7 +3030,7 @@ $(document).on('click', '.cl-toggle-pw', function() {
                             </tr>
                         </thead>
                         <tbody id="bulkRollTableBody">
-                            <tr><td colspan="4" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>
+                            <tr><td colspan="5" style="text-align:center;color:#999;">Select class and section to load students.</td></tr>
                         </tbody>
                     </table>
                 </div>

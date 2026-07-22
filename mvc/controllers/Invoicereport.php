@@ -88,7 +88,7 @@ class Invoicereport extends Admin_Controller
         // ── Query 1: All students matching filters (regardless of invoices) ──
         // JOIN student table to exclude inactive students (student.active = 1),
         // matching the same filter applied in the Student module listing.
-        $stuSql    = "SELECT sr.srstudentID, sr.srname, sr.srclassesID, sr.srsectionID
+        $stuSql    = "SELECT sr.srstudentID, sr.srname, sr.srclassesID, sr.srsectionID, s.phone
                       FROM studentrelation sr
                       JOIN student s ON s.studentID = sr.srstudentID AND s.active = 1
                       WHERE sr.srschoolyearID = ?";

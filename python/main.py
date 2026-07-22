@@ -4,7 +4,9 @@ import json
 import socket
 import ftplib
 import base64
+import zipfile
 import requests
+from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -1346,7 +1348,10 @@ async def create_cpanel_subdomain(request: Request):
         try:
             with open(full_deploy_local, "rb") as f:
                 fd_bytes = f.read()
-            dummy_dir2 = f"{cp['home']}/{dummy_host}"
+            if server == "godaddy":
+                dummy_dir2 = f"{cp['home']}/public_html/{dummy_host}"
+            else:
+                dummy_dir2 = f"{cp['home']}/{dummy_host}"
             _cpanel_fileman_upload_to_dir(cp, working_auth, dummy_dir2, {"full_deploy.php": fd_bytes})
         except Exception:
             pass  # non-fatal — proceed with whatever is already on dummy server
@@ -2000,6 +2005,52 @@ def _deploy_mvc_via_cpanel(subdomain: dict, zip_bytes: bytes) -> dict:
         return {"success": False, "message": f"cPanel MVC deploy error: {e}"}
 
 
+@app.post("/generate-mvc-zip")
+async def generate_mvc_zip():
+    """
+    ZIP the local mvc/ folder into mvc.zip.
+    If mvc.zip already exists, rename it to mvc_YYYY-MM-DD.zip before creating a fresh one.
+    """
+    mvc_dir  = os.path.join(os.path.dirname(MVC_ZIP_PATH), "mvc")
+    zip_path = MVC_ZIP_PATH
+
+    if not os.path.isdir(mvc_dir):
+        raise HTTPException(status_code=500, detail=f"mvc folder not found: {mvc_dir}")
+
+    # Rename existing mvc.zip with today's date
+    if os.path.exists(zip_path):
+        date_str  = datetime.now().strftime("%Y-%m-%d")
+        base      = os.path.splitext(zip_path)[0]
+        renamed   = f"{base}_{date_str}.zip"
+        # If a same-day backup already exists, add a counter
+        counter = 1
+        while os.path.exists(renamed):
+            renamed = f"{base}_{date_str}_{counter}.zip"
+            counter += 1
+        os.rename(zip_path, renamed)
+        backup_name = os.path.basename(renamed)
+    else:
+        backup_name = None
+
+    # Create fresh mvc.zip
+    try:
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+            for root, dirs, files in os.walk(mvc_dir):
+                # Skip common large/unneeded directories
+                dirs[:] = [d for d in dirs if d not in ("__pycache__", ".git")]
+                for file in files:
+                    abs_path = os.path.join(root, file)
+                    arc_path = os.path.relpath(abs_path, os.path.dirname(mvc_dir))
+                    zf.write(abs_path, arc_path)
+        size_mb = round(os.path.getsize(zip_path) / (1024 * 1024), 2)
+        msg = f"mvc.zip created ({size_mb} MB)"
+        if backup_name:
+            msg += f". Old zip renamed to {backup_name}"
+        return {"success": True, "message": msg, "size_mb": size_mb, "backup": backup_name}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"ZIP failed: {e}")
+
+
 @app.post("/upload-mvc-zip/{server}")
 async def upload_mvc_zip(server: str):
     """
@@ -2065,19 +2116,43 @@ async def upload_mvc_zip(server: str):
 @app.post("/upload-assets-zip/{server}")
 async def upload_assets_zip(server: str):
     """
-    Upload local assets.zip to the dummy server for HostGator / MySchools / Schoolhour / Collegehour.
-    Call this ONCE before clicking Deploy Assets on multiple subdomains.
-    GoDaddy does not use this endpoint (direct POST per subdomain).
+    Upload local assets.zip to the dummy server.
+    FTP servers (HostGator/MySchools/Schoolhour/Collegehour): upload via FTP.
+    cPanel servers (GoDaddy): upload via cPanel Fileman API.
+    Call once before deploying assets to multiple subdomains.
     """
-    if server not in FTP_CONFIGS:
-        raise HTTPException(status_code=400, detail=f"No FTP config for '{server}'. FTP servers only.")
     if server not in DUMMY_SERVERS:
         raise HTTPException(status_code=400, detail=f"No dummy server configured for '{server}'")
     if not os.path.exists(ASSETS_ZIP_PATH):
         raise HTTPException(status_code=500, detail=f"Local assets.zip not found: {ASSETS_ZIP_PATH}")
     with open(ASSETS_ZIP_PATH, "rb") as f:
         zip_bytes = f.read()
-    return _upload_assets_zip_to_dummy(server, zip_bytes)
+
+    if server in FTP_CONFIGS:
+        return _upload_assets_zip_to_dummy(server, zip_bytes)
+
+    if server in CPANEL_CONFIGS:
+        cp         = CPANEL_CONFIGS[server]
+        dummy_host = DUMMY_SERVERS[server]
+        dummy_dir  = f"{cp['home']}/public_html/{dummy_host}"
+        cp_headers = {"Authorization": f"cpanel {cp['user']}:{cp['token']}"}
+        try:
+            resp = requests.post(
+                f"https://{cp['host']}:{cp['port']}/execute/Fileman/upload_files",
+                headers=cp_headers,
+                data={"dir": dummy_dir, "overwrite": 1},
+                files={"file-0": ("assets.zip", zip_bytes, "application/zip")},
+                verify=False,
+                timeout=180,
+            )
+            ur = resp.json()
+            if ur.get("status") != 1:
+                return {"success": False, "message": f"cPanel upload failed: {ur.get('errors', ur)}"}
+            return {"success": True, "message": f"assets.zip uploaded to {dummy_host}"}
+        except Exception as e:
+            return {"success": False, "message": f"cPanel upload error: {e}"}
+
+    raise HTTPException(status_code=400, detail=f"No upload method for '{server}'")
 
 
 @app.post("/upload-frontend-zip/{server}")
@@ -2131,81 +2206,33 @@ def _deploy_assets_to_subdomain(subdomain: dict, zip_bytes: bytes) -> dict:
         except requests.exceptions.RequestException as e:
             return {"success": False, "message": f"bootstrap_copy GET failed: {e}"}
 
-    # GoDaddy: upload assets.zip via cPanel Fileman API (avoids PHP post_max_size limit),
-    # then GET /assetsdeploy/trigger to extract (same pattern as Mvcdeploy.trigger).
-    cp = CPANEL_CONFIGS.get(server)
-    if not cp:
-        return {"success": False, "message": f"No cPanel config for: {server}"}
-
-    sub_root = f"{cp['home']}/public_html/{sub_name}.{base_domain}"
-    api_base = f"https://{cp['host']}:{cp['port']}"
-    cpanel_headers = {"Authorization": f"cpanel {cp['user']}:{cp['token']}"}
-
-    # ── Step 1: Upload assets.zip to live subdomain webroot via cPanel Fileman ──
-    try:
-        up = requests.post(
-            f"{api_base}/execute/Fileman/upload_files",
-            headers=cpanel_headers,
-            data={"dir": sub_root, "overwrite": 1},
-            files={"file-0": ("assets.zip", zip_bytes, "application/zip")},
-            verify=False,
-            timeout=180,
-        )
-        ur = up.json()
-        if ur.get("status") != 1:
-            return {"success": False, "message": f"cPanel Fileman upload failed: {ur.get('errors', ur)}"}
-    except Exception as e:
-        return {"success": False, "message": f"cPanel upload error: {e}"}
-
-    # ── Step 2: Auto-upload Assetsdeploy.php if missing ────────────────────────
-    check_url   = f"https://{sub_name}.{base_domain}/assetsdeploy/check"
-    trigger_url = f"https://{sub_name}.{base_domain}/assetsdeploy/trigger"
-
-    controller_exists = False
-    try:
-        check = requests.get(check_url, timeout=10, verify=False, headers=BROWSER_HEADERS)
-        controller_exists = check.status_code in [200, 406]
-    except requests.exceptions.RequestException:
-        pass
-
-    if not controller_exists:
-        local_ctrl = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "..", "mvc", "controllers", "Assetsdeploy.php")
-        )
-        if not os.path.exists(local_ctrl):
-            return {"success": False, "message": "Assetsdeploy.php not found locally. Cannot auto-upload."}
-        with open(local_ctrl, "r", encoding="utf-8") as f:
-            ctrl_content = f.read()
-        upload_result = _upload_controller_to_subdomain(subdomain, "Assetsdeploy.php", ctrl_content)
-        if not upload_result.get("success"):
-            return {
-                "success": False,
-                "message": f"Assetsdeploy controller missing. Auto-upload failed: {upload_result.get('message')}. "
-                           f"Ensure Cssupdate.php is deployed on {sub_name}.{base_domain} first.",
-            }
-
-    # ── Step 3: GET trigger to extract assets.zip on live server ───────────────
-    try:
-        r = requests.get(
-            trigger_url,
-            params={"api_key": CSS_UPDATE_API_KEY},
-            headers=BROWSER_HEADERS,
-            timeout=180,
-            verify=False,
-        )
+    # cPanel servers (GoDaddy): call bootstrap_copy.php?type=assets on dummy server.
+    # assets.zip must be uploaded to dummy first via /upload-assets-zip/{server}.
+    if server in CPANEL_CONFIGS:
+        dummy_host = DUMMY_SERVERS.get(server, "")
+        if not dummy_host:
+            return {"success": False, "message": f"No dummy server configured for: {server}"}
         try:
-            result = r.json()
-            if not controller_exists and result.get("success"):
-                result["message"] += " (Assetsdeploy.php was auto-uploaded first)"
-            return result
-        except ValueError:
-            return {"success": False, "message": f"trigger GET {r.status_code}: {r.text[:200]}"}
-    except requests.exceptions.ConnectionError:
-        return {"success": False, "message": f"Cannot connect to {trigger_url}"}
-    except requests.exceptions.Timeout:
-        return {"success": False, "message": "Trigger request timed out — server may still be processing"}
-    except requests.exceptions.RequestException as e:
-        return {"success": False, "message": str(e)}
+            r = requests.get(
+                f"https://{dummy_host}/bootstrap_copy.php",
+                params={"k": CSS_UPDATE_API_KEY, "s": sub_name, "d": f".{base_domain}", "type": "assets"},
+                headers=BROWSER_HEADERS,
+                timeout=120,
+                verify=False,
+            )
+            try:
+                result = r.json()
+                if not result.get("success") and "assets.zip" in result.get("message", "").lower():
+                    result["message"] = (
+                        "assets.zip not on dummy server — click 'Upload Assets to Dummy' button first, then retry."
+                    )
+                return result
+            except ValueError:
+                return {"success": False, "message": f"bootstrap_copy GET {r.status_code}: {r.text[:200]}"}
+        except requests.exceptions.RequestException as e:
+            return {"success": False, "message": f"bootstrap_copy GET failed: {e}"}
+
+    return {"success": False, "message": f"No deploy method for server: {server}"}
 
 
 @app.post("/ftp-upload-file")

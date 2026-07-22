@@ -60,6 +60,20 @@ This document serves as a technical blueprint for the **OurSchoolERP** project. 
   - **Gotcha**: If you add a new menu entry (in `schema_updates.json` or directly in DB) and the label does not appear in the sidebar, the fix is always to add the key to `topbar_menu_lang.php`. Adding it only to the controller's own language file (e.g. `youtube_lang.php`) will NOT work for the sidebar because that file is only loaded when that specific controller runs.
   - **Example**: `$lang['menu_youtube_links'] = 'YouTube Links';` added to `topbar_menu_lang.php` after the sidebar showed no label for the YouTube Links menu item.
 - **Subdomain/Licensing**: The system contains logic in `Admin_Controller` (`_my_settings`, `check_aapi`) that performs site-key verification and potential remote checks.
+- **`student` table vs `studentrelation` — Class/Section Source of Truth (CRITICAL)**: The `student` table has `classesID`, `sectionID`, and `schoolyearID` columns directly on it, but these can be **stale**. When a student is promoted, transferred between sections, or re-enrolled, only the `studentrelation` table gets the authoritative updated record for the current year. The `student` table's direct columns may still hold old data.
+  - **Rule**: For any query that must match the students visible in the student listing page, always query via `studentrelation` (using `srclassesID`, `srsectionID`, `srschoolyearID`) JOINed to `student`, never query `student.classesID`/`student.sectionID` directly.
+  - **Symptom of the bug**: A query on `student` table for a section/class shows MORE students than the listing page (e.g. 92 vs 54 for the same section). The extra students were previously in that section but their `student.classesID`/`student.sectionID` was never updated when they moved.
+  - **Reference fix (2026-07-23)**: `Student::get_students_for_roll_edit()` and `Student::auto_adjust_roll()` were both changed from querying `student` directly to querying `studentrelation JOIN student`. Both use `srroll` as the roll number, not `student.roll`.
+  - **Correct query pattern**:
+    ```php
+    $this->db->select('student.studentID, student.name, studentrelation.srroll AS roll');
+    $this->db->from('studentrelation');
+    $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'INNER');
+    $this->db->where('studentrelation.srclassesID', $classesID);
+    $this->db->where('studentrelation.srsectionID', $sectionID);
+    $this->db->where('studentrelation.srschoolyearID', $schoolyearID);
+    $this->db->where('student.active', 1);
+    ```
 
 ## 5. Database Migration System
 
@@ -159,6 +173,10 @@ A plain SQL counterpart to `schema_updates.json`. Contains the same schema chang
 - **2026-07-14**: Added **Section 8.6** — Server-Side PhpSpreadsheet Excel Export (direct download link), the preferred default export pattern, plus a decision guide comparing it against SheetJS (8.3) and HTML blob (8.5). Fixed `Studentreport::generateXML()` to use this fixed-column, no-merge-cells style (reference alongside `Student::export_comprehensive_excel()`). Flagged `mvc/views/report/balancefees/BalanceFeesReport.php`'s `#exportButton` handler as a cautionary example of fragile client-side SheetJS (hard-coded column removal, fixed filename).
 - **2026-07-14**: Added **Section 8.3.1** — `table_to_book()` one-liner, the simplest client-side SheetJS form for a plain data table with no photo/tooltip/action-button cleanup needed. Documented when to escalate to the full 8.3 cleaned pattern vs. this quick variant, and updated the Section 8.6 decision guide table to list both SheetJS variants separately.
 - **2026-06-29**: Documented **Day Sheet Report** (Section 14) — `/Daysheetreport`, 8-section daily financial snapshot, `daysheet_opening_balance` table for per-account opening balance chain, `dsCards` JS object for card-click popups, colored Excel export via HTML blob. Established **`tables.sql` separation rule** (Section 5) — CREATE TABLE DDL goes to `new domains/new db tables/tables.sql`, NOT to migration JSON/SQL files.
+- **2026-07-23**: Documented **`student` vs `studentrelation` class/section data discrepancy** (Section 4 Gotcha) — root cause of student count mismatch (92 vs 54 for same section). Fixed `Student::get_students_for_roll_edit()` and `Student::auto_adjust_roll()` to query via `studentrelation JOIN student` using `srclassesID`/`srsectionID`/`srschoolyearID` instead of stale `student.classesID`/`student.sectionID`. Both now show same student count as the listing page.
+- **2026-07-23**: **ID Card Report village fallback** — `IdcardReport_new.php` and `IdcardReport_low_dimensions.php` now show `address` field when `village_name` is empty: `<?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?>`. Both `village_name` and `address` exist on the student object.
+- **2026-07-23**: **Bulk Roll No Edit popup** — added serial number (`#`) column and live search bar (filters by name/phone/admission no). Search clears automatically on class/section change. JS: `$(document).on('input', '#bulkRollSearch', ...)` filters `#bulkRollTableBody tr` by `.text().toLowerCase()`.
+- **2026-07-23**: **GoDaddy assets.zip two-step deploy** — `/upload-assets-zip/{server}` in `python/main.py` extended to support GoDaddy via cPanel Fileman API (same pattern as MVC zip). `_deploy_assets_to_subdomain()` GoDaddy branch replaced direct per-subdomain cPanel upload with `bootstrap_copy.php?type=assets` call on dummy server. JS `uploadAssetsZipToServer()` routes GoDaddy through Python (`localhost:8000`) while FTP servers continue through PHP endpoint. `bootstrap_copy.php` already supported `type=assets`.
 
 ## 8. Reusable UI Patterns
 

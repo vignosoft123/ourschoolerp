@@ -111,6 +111,7 @@
                         <th class="col-fixed col-name" rowspan="2">Student</th>
                         <th class="col-fixed col-class" rowspan="2">Class</th>
                         <th class="col-fixed col-section" rowspan="2">Section</th>
+                        <th class="col-fixed" rowspan="2">Phone</th>
                         <?php foreach ($feetypesList as $fid => $fname): ?>
                             <th colspan="2"><?= htmlspecialchars($fname) ?></th>
                         <?php endforeach; ?>
@@ -156,6 +157,7 @@
                         <td class="col-fixed col-name"><strong><?= htmlspecialchars($student->srname) ?></strong></td>
                         <td class="col-fixed col-class"><?= isset($classes[$student->srclassesID])  ? htmlspecialchars($classes[$student->srclassesID])  : '' ?></td>
                         <td class="col-fixed col-section"><?= isset($sections[$student->srsectionID]) ? htmlspecialchars($sections[$student->srsectionID]) : '' ?></td>
+                        <td class="col-fixed"><?= htmlspecialchars($student->phone ?? '') ?></td>
 
                         <?php foreach ($feetypesList as $fid => $fname):
                             if (isset($pivot[$sid][$fid])) {
@@ -218,7 +220,7 @@
                 <tfoot>
                     <tr>
                         <td class="col-fixed col-sno"></td>
-                        <td class="col-fixed" colspan="3" style="position:sticky; left:36px; text-align:right; border-right:2px solid #adb5bd;">TOTAL</td>
+                        <td class="col-fixed" colspan="4" style="position:sticky; left:36px; text-align:right; border-right:2px solid #adb5bd;">TOTAL</td>
                         <?php foreach ($feetypesList as $fid => $fname): ?>
                             <td><?= number_format($colTotals[$fid]['amount'],   2) ?></td>
                             <td><?= number_format($colTotals[$fid]['discount'], 2) ?></td>
@@ -257,13 +259,17 @@ $(function () {
         var ws = XLSX.utils.table_to_sheet(tbl, { raw: false });
         XLSX.utils.book_append_sheet(wb, ws, 'Invoice Report');
 
-        // Build filename: InvoiceReport_ClassName_Date.xlsx
-        var className = $('#classesID option:selected').text().trim().replace(/\s+/g, '_');
-        var today = new Date();
+        var className   = $('#classesID option:selected').text().trim();
+        var sectionName = $('#sectionID option:selected').text().trim();
+        var today   = new Date();
         var dateStr = today.getFullYear() + '-' +
                       String(today.getMonth() + 1).padStart(2, '0') + '-' +
                       String(today.getDate()).padStart(2, '0');
-        XLSX.writeFile(wb, 'InvoiceReport_' + className + '_' + dateStr + '.xlsx');
+        var parts = ['Invoice Report'];
+        if (className && className !== 'Select Class')   parts.push(className);
+        if (sectionName && sectionName !== 'Select Section') parts.push(sectionName);
+        parts.push(dateStr);
+        XLSX.writeFile(wb, parts.join(' - ') + '.xlsx');
     });
 });
 </script>

@@ -42,7 +42,7 @@
                         <b class="text-black">Class/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
                         <b class="text-black">F'Name</b>: <?=$student->father_name ?? ''?><br>
                         <b class="text-black" >Contact No.</b>: <?=$student->phone ?? ''?><br>
-                        <b class="text-black">Village</b>: <?=$student->village_name ?? ''?><br>
+                        <b class="text-black">Village</b>: <?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?><br>
 
                     </div></b>
 

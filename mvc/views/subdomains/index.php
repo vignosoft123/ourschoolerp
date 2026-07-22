@@ -11,11 +11,15 @@
     <div class="box-body">
         <div class="row">
             <div class="col-sm-12">
-                <h5 class="page-header">
+                <h5 class="page-header" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     <a class="ose-btn create-btn" href="<?php echo base_url('subdomains/add') ?>">
-                        <i class="fa fa-plus"></i> 
+                        <i class="fa fa-plus"></i>
                         Add SubDomain
                     </a>
+                    <button id="generateMvcZipBtn" type="button"
+                        style="background:linear-gradient(135deg,#1565c0,#1976d2);color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.18);">
+                        <i class="fa fa-file-archive-o"></i> Generate MVC.zip
+                    </button>
                 </h5>
                 
                 <div class="row" style="margin-bottom: 20px;">
@@ -1299,6 +1303,32 @@ function deployMvc(btn, subdomainId, subdomainName, server) {
     });
 }
 
+// ── Generate MVC.zip from local mvc/ folder ───────────────────────────────────
+$('#generateMvcZipBtn').on('click', function () {
+    var btn = $(this);
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Zipping...');
+    $.ajax({
+        url:         'http://localhost:8000/generate-mvc-zip',
+        type:        'POST',
+        dataType:    'json',
+        contentType: 'application/json',
+        success: function (res) {
+            if (res && res.success) {
+                alert('✅ ' + res.message);
+            } else {
+                alert('❌ Failed: ' + (res ? (res.message || res.detail) : 'Unknown error'));
+            }
+        },
+        error: function (xhr) {
+            var msg = xhr.responseJSON ? (xhr.responseJSON.detail || xhr.responseJSON.message) : xhr.statusText;
+            alert('❌ Request failed: ' + msg);
+        },
+        complete: function () {
+            btn.prop('disabled', false).html('<i class="fa fa-file-archive-o"></i> Generate MVC.zip');
+        }
+    });
+});
+
 // ── Upload MVC Zip to Dummy Server ───────────────────────────────────────────
 function uploadMvcZipToServer() {
     var server = ($('#server_filter').val() || '').toLowerCase();
@@ -1537,28 +1567,35 @@ function bulkDeployMvc() {
 // ── Deploy Assets ────────────────────────────────────────────────────────────
 
 function uploadAssetsZipToServer() {
-    var server = $('#server_filter').val();
+    var server = ($('#server_filter').val() || '').toLowerCase();
     if (!server) { alert('Please select a server first.'); return; }
-    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
-    if (ftpServers.indexOf(server) === -1) {
-        alert(server + ' uses direct deploy — assets.zip goes straight to each live subdomain.\nOnly HostGator/Myschools/Schoolhour/Collegehour need this dummy upload step.');
+    var dummyServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour', 'godaddy'];
+    if (dummyServers.indexOf(server) === -1) {
+        alert(server + ' does not use a dummy server for assets.');
         return;
     }
     var btn = $('#upload_assets_zip_btn');
     btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading assets.zip...');
+
+    var isCpanel = (server === 'godaddy');
+    var ajaxUrl  = isCpanel
+        ? 'http://localhost:8000/upload-assets-zip/' + server
+        : '<?=base_url("subdomains/upload_assets_zip_php")?>/' + server;
+
     $.ajax({
-        url: '<?=base_url("subdomains/upload_assets_zip_php")?>/' + server,
-        type: 'POST',
-        dataType: 'json',
+        url:         ajaxUrl,
+        type:        'POST',
+        dataType:    'json',
+        contentType: isCpanel ? 'application/json' : 'application/x-www-form-urlencoded',
         success: function(res) {
             if (res && res.success) {
                 alert('✅ assets.zip uploaded to dummy server (' + server + ')!\n\n' + res.message);
             } else {
-                alert('❌ Upload failed: ' + (res ? res.message : 'Unknown error'));
+                alert('❌ Upload failed: ' + (res ? (res.message || res.detail) : 'Unknown error'));
             }
         },
         error: function(xhr) {
-            alert('❌ Request failed: ' + (xhr.responseJSON ? xhr.responseJSON.detail : xhr.statusText));
+            alert('❌ Request failed: ' + (xhr.responseJSON ? (xhr.responseJSON.detail || xhr.responseJSON.message) : xhr.statusText));
         },
         complete: function() {
             btn.prop('disabled', false).html('<i class="fa fa-image"></i> Upload Assets to Dummy (' + server + ')');

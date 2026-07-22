@@ -75,7 +75,7 @@
                     <b>Class/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
                     <b>F'Name</b>: <?=$student->father_name ?? ''?><br>
                     <b>Contact No.</b>: <?=$student->phone ?? ''?><br>
-                    <b>Village</b>: <?=$student->village_name ?? ''?><br>
+                    <b>Village</b>: <?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?><br>
                 </div>
             </div>
         <?php } ?>

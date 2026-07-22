@@ -1,6 +1,6 @@
 <?php $this->load->view("components/page_header"); ?>
-<link rel="stylesheet" href="/assets/css/report-buttons.css">
-<link rel="stylesheet" href="/assets/css/reports.css">
+<link rel="stylesheet" href="/assets/css/report-buttons.css?v=<?=CSSVERSION?>">
+<link rel="stylesheet" href="/assets/css/reports.css?v=<?=CSSVERSION?>">
 <?php $this->load->view("components/page_topbar"); ?>
 <?php $this->load->view("components/page_menu"); ?>
 
