@@ -1327,6 +1327,133 @@ foreach($months_array as $mkey => $v) {
 		}
 	}
 
+	// Browser-facing PDF for the New Design report's Print button — reuses the same
+	// ProgresscardReportPDFNew view/CSS that send_pdf_to_whatsapp_new() already proved
+	// renders one page per student, instead of trying to print the live on-screen HTML.
+	public function pdf_new() {
+		if(permissionChecker('progresscardreport')) {
+			$classesID    = htmlentities(escapeString($this->uri->segment(3)));
+			$sectionID    = htmlentities(escapeString($this->uri->segment(4)));
+			$studentID    = htmlentities(escapeString($this->uri->segment(5)));
+			$examID       = htmlentities(escapeString($this->uri->segment(6)));
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
+
+			$this->data['classesID'] = $classesID;
+			$this->data['sectionID'] = $sectionID;
+			$this->data['examID']    = $examID;
+
+			$mArray     = [];
+			$queryArray = [];
+			$mArray['schoolyearID']       = $schoolyearID;
+			$queryArray['srschoolyearID'] = $schoolyearID;
+			if((int)$classesID > 0) { $mArray['classesID'] = $classesID; $queryArray['srclassesID'] = $classesID; }
+			if((int)$sectionID > 0) { $mArray['sectionID'] = $sectionID; $queryArray['srsectionID'] = $sectionID; }
+			if((int)$studentID > 0) { $mArray['studentID'] = $studentID; $queryArray['srstudentID'] = $studentID; }
+
+			$this->data['classes']      = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+			$this->data['sections']     = pluck($this->section_m->general_get_section(),'section','sectionID');
+			$this->data['classTeacher'] = $this->_getClassTeacherName($sectionID);
+
+			$students          = $this->studentrelation_m->general_get_order_by_student($queryArray);
+			$marks             = $this->mark_m->student_all_mark_array($mArray);
+			$mandatorySubjects = $this->subject_m->general_get_order_by_subject_left_examschedule($classesID, $type = 1, $examID, $sectionID);
+			$optionalSubjects  = $this->subject_m->general_get_order_by_subject(array('classesID' => $classesID, 'type' => 0));
+
+			$settingmarktypeID       = $this->data['siteinfos']->marktypeID;
+			$markpercentagesmainArr  = $this->marksetting_m->get_marksetting_markpercentages();
+			$markpercentagesclassArr = isset($markpercentagesmainArr[$classesID]) ? $markpercentagesmainArr[$classesID] : [];
+			$settingExam             = array_keys($markpercentagesclassArr);
+
+			$this->data['markpercentagesclassArr'] = $markpercentagesclassArr;
+			$this->data['settingmarktypeID']       = $settingmarktypeID;
+
+			$retMark   = [];
+			$retStatus = [];
+			if(customCompute($marks)) {
+				foreach($marks as $mark) {
+					$retMark[$mark->examID][$mark->studentID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+					$retMark[$mark->examID][$mark->studentID][$mark->subjectID]['default'] = $mark->mark;
+					$retStatus[$mark->examID][$mark->studentID][$mark->subjectID] = $mark->eattendance;
+				}
+			}
+
+			$markArray      = [];
+			$studentChecker = [];
+			if(customCompute($settingExam)) {
+				foreach($settingExam as $seExamID) {
+					if(customCompute($students)) {
+						foreach($students as $student) {
+							$opuniquepercentageArr = [];
+							if($student->sroptionalsubjectID > 0) {
+								$opuniquepercentageArr = isset($markpercentagesclassArr[$seExamID][$student->sroptionalsubjectID]) ? $markpercentagesclassArr[$seExamID][$student->sroptionalsubjectID] : [];
+							}
+							if(customCompute($mandatorySubjects)) {
+								foreach($mandatorySubjects as $mandatorySubject) {
+									$uniquepercentageArr = isset($markpercentagesclassArr[$seExamID][$mandatorySubject->subjectID]) ? $markpercentagesclassArr[$seExamID][$mandatorySubject->subjectID] : [];
+									$markpercentages     = [];
+									if(customCompute($uniquepercentageArr)) {
+										$markpercentages = $uniquepercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'];
+									}
+									if(customCompute($markpercentages)) {
+										foreach($markpercentages as $markpercentageID) {
+											$f = false;
+											if(isset($uniquepercentageArr['own']) && in_array($markpercentageID, $uniquepercentageArr['own'])) { $f = true; }
+
+											if(isset($retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID]) && $f) {
+												$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID][$markpercentageID];
+											} elseif(isset($retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID]['default']) && $f) {
+												$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$mandatorySubject->subjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$mandatorySubject->subjectID]['default'];
+											}
+
+											$f = false;
+											if(customCompute($opuniquepercentageArr)) {
+												if(isset($opuniquepercentageArr['own']) && in_array($markpercentageID, $opuniquepercentageArr['own'])) { $f = true; }
+											}
+											if(!isset($studentChecker['subject'][$seExamID][$student->srstudentID][$markpercentageID]) && $f) {
+												if($student->sroptionalsubjectID > 0) {
+													if(isset($retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID])) {
+														$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID][$markpercentageID];
+													} elseif(isset($retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID]['default'])) {
+														$markArray[$seExamID][$student->srstudentID]['markpercentageMark'][$student->sroptionalsubjectID][$markpercentageID] = $retMark[$seExamID][$student->srstudentID][$student->sroptionalsubjectID]['default'];
+													}
+												}
+												$studentChecker['subject'][$seExamID][$student->srstudentID][$markpercentageID] = TRUE;
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			$classPerf = $this->_computeClassPerformance($classesID, $sectionID, $examID, $schoolyearID, $mandatorySubjects, $markpercentagesclassArr, $settingmarktypeID);
+
+			$attendanceByStudent = [];
+			if(customCompute($students)) {
+				foreach($students as $student) {
+					$attendanceByStudent[$student->srstudentID] = $this->_buildAttendanceByMonth($schoolyearID, $student->srstudentID);
+				}
+			}
+
+			$this->data['optionalSubjects']    = pluck($optionalSubjects,'obj','subjectID');
+			$this->data['mandatorySubjects']   = $mandatorySubjects;
+			$this->data['exams']               = pluck($this->exam_m->get_exam(),'exam','examID');
+			$this->data['students']            = $students;
+			$this->data['markArray']           = $markArray;
+			$this->data['eattendanceArray']    = $retStatus;
+			$this->data['settingExam']         = $settingExam;
+			$this->data['classPerf']           = $classPerf;
+			$this->data['attendanceByStudent'] = $attendanceByStudent;
+
+			$this->reportPDF('progresscardreportnew.css', $this->data, 'report/progresscard/ProgresscardReportPDFNew', 'view');
+		} else {
+			$this->data["subview"] = "errorpermission";
+			$this->load->view('_layout_main', $this->data);
+		}
+	}
+
 	public function send_pdf_to_whatsapp_new() {
 		$retArray['status']  = FALSE;
 		$retArray['message'] = '';

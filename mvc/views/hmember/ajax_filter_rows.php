@@ -22,7 +22,7 @@
             echo btn_view('hmember/view/'.$student->studentID.'/'.$set, $this->lang->line('view')).' ';
             if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                 echo btn_edit('hmember/edit/'.$student->studentID.'/'.$set, $this->lang->line('edit')).' ';
-                echo btn_delete('hmember/delete/'.$student->studentID.'/'.$set, $this->lang->line('delete'));
+                echo btn_unmember($student->studentID, $this->lang->line('unmember'));
             }
         } ?>
     </td>

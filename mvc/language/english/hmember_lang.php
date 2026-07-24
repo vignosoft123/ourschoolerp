@@ -45,6 +45,7 @@ $lang['view'] = 'View';
 $lang['edit'] = 'Edit';
 $lang['hmember'] = 'Add Hostel';
 $lang['delete'] = 'Delete';
+$lang['unmember'] = 'Un-Member';
 $lang['pdf_preview'] = 'PDF Preview';
 $lang['print'] = 'Print';
 $lang["mail"] = "Send Pdf to Mail";

@@ -4,6 +4,8 @@ This document serves as a technical blueprint for the **OurSchoolERP** project. 
 
 > [!IMPORTANT]
 > **To the AI Assistant:** Read this file entirely before starting any maintenance or new feature development to understand the project's specific patterns and constraints.
+>
+> **Also read `srinivas_issues.md`** (same directory) before investigating any bug — it's a running log of past issues (date, root cause, fix, files changed). A similar bug, or the same root cause in another module, may already be documented there. After fixing any issue, add a new dated entry to that file.
 
 ## 1. Project Environment
 - **Product Base**: Inilabs School Management System (Customized).
@@ -60,6 +62,10 @@ This document serves as a technical blueprint for the **OurSchoolERP** project. 
   - **Gotcha**: If you add a new menu entry (in `schema_updates.json` or directly in DB) and the label does not appear in the sidebar, the fix is always to add the key to `topbar_menu_lang.php`. Adding it only to the controller's own language file (e.g. `youtube_lang.php`) will NOT work for the sidebar because that file is only loaded when that specific controller runs.
   - **Example**: `$lang['menu_youtube_links'] = 'YouTube Links';` added to `topbar_menu_lang.php` after the sidebar showed no label for the YouTube Links menu item.
 - **Subdomain/Licensing**: The system contains logic in `Admin_Controller` (`_my_settings`, `check_aapi`) that performs site-key verification and potential remote checks.
+- **Web ↔ Mobile API Parity (MANDATORY)**: This project has parallel API controllers under `mvc/controllers/api/v10/` (e.g. `api/v10/Student.php`, `api/v10/Profile.php`) that mirror admin-panel controllers (e.g. `Student.php`) for the Ionic mobile app. The two sides **duplicate logic instead of sharing it** — the same private method (e.g. `getMark()`) is copy-pasted in both places.
+  - **Rule**: Any bug fix or logic change made in a web controller/model that affects data shown to students/parents/teachers MUST be checked against, and mirrored in, the corresponding mobile API controller. Fixing only the web side silently leaves the same bug live on mobile.
+  - **How to check**: Before considering a fix complete, grep for the same method name or query pattern under `mvc/controllers/api/v10/` to find the mobile equivalent.
+  - **Reference fix (2026-07-24)**: A student Marks-tab bug — `Student::getMark()` showed exam sections from **all** academic years instead of just the currently selected one (root cause: `$this->exam_m->get_exam()` and `Marksetting_m::get_marksetting_markpercentages()` are both unfiltered by year) — was fixed in the admin panel (`mvc/controllers/Student.php`), then the identical fix had to be separately re-applied in `mvc/controllers/api/v10/Student.php::getMark()` and `mvc/controllers/api/v10/Profile.php::getMark()`.
 - **`student` table vs `studentrelation` — Class/Section Source of Truth (CRITICAL)**: The `student` table has `classesID`, `sectionID`, and `schoolyearID` columns directly on it, but these can be **stale**. When a student is promoted, transferred between sections, or re-enrolled, only the `studentrelation` table gets the authoritative updated record for the current year. The `student` table's direct columns may still hold old data.
   - **Rule**: For any query that must match the students visible in the student listing page, always query via `studentrelation` (using `srclassesID`, `srsectionID`, `srschoolyearID`) JOINed to `student`, never query `student.classesID`/`student.sectionID` directly.
   - **Symptom of the bug**: A query on `student` table for a section/class shows MORE students than the listing page (e.g. 92 vs 54 for the same section). The extra students were previously in that section but their `student.classesID`/`student.sectionID` was never updated when they moved.
@@ -177,6 +183,7 @@ A plain SQL counterpart to `schema_updates.json`. Contains the same schema chang
 - **2026-07-23**: **ID Card Report village fallback** — `IdcardReport_new.php` and `IdcardReport_low_dimensions.php` now show `address` field when `village_name` is empty: `<?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?>`. Both `village_name` and `address` exist on the student object.
 - **2026-07-23**: **Bulk Roll No Edit popup** — added serial number (`#`) column and live search bar (filters by name/phone/admission no). Search clears automatically on class/section change. JS: `$(document).on('input', '#bulkRollSearch', ...)` filters `#bulkRollTableBody tr` by `.text().toLowerCase()`.
 - **2026-07-23**: **GoDaddy assets.zip two-step deploy** — `/upload-assets-zip/{server}` in `python/main.py` extended to support GoDaddy via cPanel Fileman API (same pattern as MVC zip). `_deploy_assets_to_subdomain()` GoDaddy branch replaced direct per-subdomain cPanel upload with `bootstrap_copy.php?type=assets` call on dummy server. JS `uploadAssetsZipToServer()` routes GoDaddy through Python (`localhost:8000`) while FTP servers continue through PHP endpoint. `bootstrap_copy.php` already supported `type=assets`.
+- **2026-07-24**: Documented **Web ↔ Mobile API Parity rule** (Section 4, MANDATORY) — `mvc/controllers/api/v10/` controllers duplicate web controller logic instead of sharing it, so any web-side fix must be checked/mirrored on the mobile API side. Triggered by fixing the student Marks-tab year-leak bug in `Student::getMark()` and then finding/fixing the identical copy-pasted bug in `api/v10/Student.php` and `api/v10/Profile.php`.
 
 ## 8. Reusable UI Patterns
 

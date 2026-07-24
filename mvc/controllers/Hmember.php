@@ -476,82 +476,200 @@ class Hmember extends Admin_Controller
 		}
 	}
 
-	public function delete()
-	{
-		if (($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
-			$id = htmlentities(escapeString($this->uri->segment(3)));
-			$url = htmlentities(escapeString($this->uri->segment(4)));
-			$schoolyearID = $this->session->userdata('defaultschoolyearID');
-			if ((int)$id && (int)$url) {
-				$student = $this->studentrelation_m->get_single_student(array('srstudentID' => $id, 'srschoolyearID' => $schoolyearID));
-				if ($student) {
-					$this->data["hmember"] = $this->hmember_m->get_single_hmember(array("studentID" => $id));
-					if ($this->data["hmember"]) {
-						// Delete hostel member invoice records with payment validation
-						$this->deleteHostelInvoices($id, $schoolyearID);
-						
-						$this->hmember_m->delete_hmember($this->data['hmember']->hmemberID);
-						$this->student_m->update_student(array("hostel" => 0), $id);
-						$this->session->set_flashdata('success', $this->lang->line('menu_success'));
-						redirect(base_url("hmember/index/$url"));
-					} else {
-						redirect(base_url("hmember/index"));
-					}
-				} else {
-					redirect(base_url("hmember/index"));
-				}
-			} else {
-				redirect(base_url("hmember/index"));
-			}
-		} else {
-			redirect(base_url("hmember/index"));
-		}
-	}
-
 	/**
-	 * Delete hostel fee invoices with proper validation
-	 * Checks payment records before deletion
-	 * Handles maininvoice deletion based on invoice count
+	 * Delete hostel fee invoices with proper validation.
+	 * Checks BOTH payment and weaverandfine (waiver/fine) records before deletion —
+	 * an invoice linked to either is money-in-motion and must never be silently deleted,
+	 * since that would orphan the payment/waiver row (they point back at invoiceID).
+	 * Handles maininvoice deletion based on invoice count.
+	 *
+	 * @param bool $forceDeleteAll  When true, invoices WITH a payment/waiver are deleted anyway
+	 *                              (their payment/weaverandfine rows are deleted first). Only
+	 *                              unmember() passes true, and only when the admin explicitly
+	 *                              opted in via the confirmation modal's checkbox.
+	 * @return array summary: removed/removedAmount (auto-cleaned, no money attached),
+	 *               kept/keptAmount/keptPaid (preserved because a payment/waiver exists).
 	 */
-	private function deleteHostelInvoices($studentID, $schoolyearID) {
-		// Get all hostel fee invoice records for this student
+	private function _removeHostelInvoices($studentID, $schoolyearID, $forceDeleteAll = false) {
 		$this->db->where('studentID', $studentID);
 		$this->db->where('schoolyearID', $schoolyearID);
 		$this->db->like('feetype', 'Hostel Fee');
 		$invoices = $this->db->get('invoice')->result();
-		
+
+		$summary = array('removed' => 0, 'removedAmount' => 0, 'kept' => 0, 'keptAmount' => 0, 'keptPaid' => 0);
+
 		if(customCompute($invoices)) {
 			foreach($invoices as $invoice) {
-				// Check if payment exists for this invoice
 				$this->db->where('invoiceID', $invoice->invoiceID);
 				$this->db->where('studentID', $studentID);
 				$this->db->where('schoolyearID', $schoolyearID);
 				$paymentCount = $this->db->count_all_results('payment');
-				
-				// Only proceed with deletion if no payment records found
-				if($paymentCount == 0) {
+
+				$this->db->where('invoiceID', $invoice->invoiceID);
+				$paymentSumRow = $this->db->select_sum('paymentamount')->get('payment')->row();
+				$paymentSum    = $paymentSumRow ? (float)$paymentSumRow->paymentamount : 0;
+
+				$this->db->where('invoiceID', $invoice->invoiceID);
+				$waiverCount = $this->db->count_all_results('weaverandfine');
+
+				$hasMoney = ($paymentCount > 0) || ($waiverCount > 0);
+
+				if(!$hasMoney || $forceDeleteAll) {
+					if($hasMoney && $forceDeleteAll) {
+						$this->db->where('invoiceID', $invoice->invoiceID);
+						$this->db->delete('payment');
+						$this->db->where('invoiceID', $invoice->invoiceID);
+						$this->db->delete('weaverandfine');
+					}
+
 					$maininvoiceID = $invoice->maininvoiceID;
-					
-					// Check how many invoice records have this maininvoiceID
+
+					// Only delete maininvoice if this is the only invoice record with this maininvoiceID
 					if($maininvoiceID > 0) {
 						$this->db->where('maininvoiceID', $maininvoiceID);
 						$invoiceCount = $this->db->count_all_results('invoice');
-						
-						// Only delete maininvoice if this is the only invoice record with this maininvoiceID
+
 						if($invoiceCount == 1) {
 							$this->db->where('maininvoiceID', $maininvoiceID);
 							$this->db->delete('maininvoice');
 						}
 					}
-					
-					// Delete the invoice record
+
 					$this->db->where('invoiceID', $invoice->invoiceID);
 					$this->db->where('studentID', $studentID);
 					$this->db->like('feetype', 'Hostel Fee');
 					$this->db->delete('invoice');
+
+					$summary['removed']++;
+					$summary['removedAmount'] += (float)$invoice->amount;
+				} else {
+					$summary['kept']++;
+					$summary['keptAmount'] += (float)$invoice->amount;
+					$summary['keptPaid']   += $paymentSum;
 				}
 			}
 		}
+
+		return $summary;
+	}
+
+	/**
+	 * AJAX precheck for the Un-Member confirmation modal — reports every hostel invoice
+	 * for this student and whether it has a payment/waiver attached, so the admin can see
+	 * exactly what will be auto-removed vs preserved before confirming.
+	 */
+	public function unmember_precheck() {
+		header('Content-Type: application/json');
+		if(!permissionChecker('hmember_delete')) {
+			echo json_encode(array('status' => false, 'message' => $this->lang->line('hmember_permission')));
+			return;
+		}
+
+		$studentID    = (int)$this->input->post('studentID');
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		if(!$studentID) {
+			echo json_encode(array('status' => false, 'message' => 'Invalid student.'));
+			return;
+		}
+
+		$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
+		if(!$hmember) {
+			echo json_encode(array('status' => false, 'message' => 'This student is not currently a hostel member.'));
+			return;
+		}
+
+		$hostel   = $this->hostel_m->get_hostel($hmember->hostelID);
+		$category = $this->category_m->get_category($hmember->categoryID);
+
+		$this->db->where('studentID', $studentID);
+		$this->db->where('schoolyearID', $schoolyearID);
+		$this->db->like('feetype', 'Hostel Fee');
+		$invoices = $this->db->get('invoice')->result();
+
+		$invoiceRows = array();
+		$hasBlocking = false;
+		if(customCompute($invoices)) {
+			foreach($invoices as $invoice) {
+				$this->db->where('invoiceID', $invoice->invoiceID);
+				$paymentSumRow = $this->db->select_sum('paymentamount')->get('payment')->row();
+				$paymentSum    = $paymentSumRow ? (float)$paymentSumRow->paymentamount : 0;
+
+				$this->db->where('invoiceID', $invoice->invoiceID);
+				$waiverCount = $this->db->count_all_results('weaverandfine');
+
+				$blocking = ($paymentSum > 0) || ($waiverCount > 0);
+				if($blocking) { $hasBlocking = true; }
+
+				$invoiceRows[] = array(
+					'invoiceID' => $invoice->invoiceID,
+					'amount'    => (float)$invoice->amount,
+					'paid'      => $paymentSum,
+					'hasWaiver' => $waiverCount > 0,
+					'blocking'  => $blocking,
+				);
+			}
+		}
+
+		echo json_encode(array(
+			'status'      => true,
+			'hostel'      => $hostel ? $hostel->name : '',
+			'category'    => $category ? $category->class_type : '',
+			'invoices'    => $invoiceRows,
+			'hasBlocking' => $hasBlocking,
+		));
+	}
+
+	/**
+	 * AJAX un-member action, driven by the confirmation modal on the listing page.
+	 * force_delete_invoices is only honoured when explicitly sent as "1" — the admin's
+	 * opt-in checkbox for permanently deleting invoices/payments/waivers, not a default.
+	 */
+	public function unmember() {
+		header('Content-Type: application/json');
+		if(!permissionChecker('hmember_delete')) {
+			echo json_encode(array('status' => false, 'message' => $this->lang->line('hmember_permission')));
+			return;
+		}
+		if(!(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1))) {
+			echo json_encode(array('status' => false, 'message' => 'Hostel membership can only be changed for the active academic year.'));
+			return;
+		}
+
+		$studentID       = (int)$this->input->post('studentID');
+		$forceDeleteAll  = ((int)$this->input->post('force_delete_invoices') === 1);
+		$schoolyearID    = $this->session->userdata('defaultschoolyearID');
+
+		if(!$studentID) {
+			echo json_encode(array('status' => false, 'message' => 'Invalid student.'));
+			return;
+		}
+
+		$student = $this->studentrelation_m->get_single_student(array('srstudentID' => $studentID, 'srschoolyearID' => $schoolyearID));
+		if(!$student) {
+			echo json_encode(array('status' => false, 'message' => 'Student not found.'));
+			return;
+		}
+
+		$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
+		if(!$hmember) {
+			echo json_encode(array('status' => false, 'message' => 'This student is not currently a hostel member.'));
+			return;
+		}
+
+		$summary = $this->_removeHostelInvoices($studentID, $schoolyearID, $forceDeleteAll);
+
+		$this->hmember_m->delete_hmember($hmember->hmemberID);
+		$this->student_m->update_student(array('hostel' => 0), $studentID);
+
+		$msgParts = array('Student removed from the hostel.');
+		if($summary['removed'] > 0) {
+			$msgParts[] = $summary['removed'] . ' unpaid invoice(s) totalling ' . number_format($summary['removedAmount'], 2) . ' removed.';
+		}
+		if($summary['kept'] > 0) {
+			$msgParts[] = $summary['kept'] . ' invoice(s) with ' . number_format($summary['keptPaid'], 2) . ' already collected were kept for your accounting records.';
+		}
+
+		echo json_encode(array('status' => true, 'message' => implode(' ', $msgParts)));
 	}
 
 	public function view($id = null, $url = null)

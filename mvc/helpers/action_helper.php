@@ -131,6 +131,15 @@
         );
     }
 
+    // Minus-icon counterpart to btn_add()'s plus icon — for un-linking a record from a
+    // membership-style list (e.g. Hostel Member) rather than deleting the underlying record.
+    // Not a link: opens the confirmation modal (see .unmember-btn click handler) so the
+    // caller can inspect/preserve any linked invoice or payment records before proceeding.
+    function btn_unmember( $studentID, $name )
+    {
+        return "<button type='button' class='btn btn-danger btn-xs mrg unmember-btn' data-student-id='" . $studentID . "' data-placement='top' data-toggle='tooltip' data-original-title='" . $name . "'><i class='fa fa-minus'></i></button>";
+    }
+
     function btn_cancel( $uri, $name )
     {
         return anchor($uri, "<i class='fa fa-close'></i>",

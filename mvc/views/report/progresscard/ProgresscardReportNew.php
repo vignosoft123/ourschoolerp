@@ -156,7 +156,7 @@
     );
 ?>
 <div class="rpt-action-bar no-print">
-    <button type="button" class="btn btn-default rpt-action-btn" onclick="printDivNew()"><i class="fa fa-print"></i> Print</button>
+    <a class="btn btn-default rpt-action-btn" target="_blank" href="<?=base_url('progresscardreport/pdf_new/'.$classesID.'/'.$sectionID.'/'.(isset($studentID) ? $studentID : 0).'/'.$examID)?>"><i class="fa fa-print"></i> Print</a>
     <button type="button" class="btn btn-default rpt-action-btn sendSms_new"><i class="fa fa-send"></i> Send SMS</button>
     <button type="button" class="btn btn-default rpt-action-btn sendWhatsapp_btn_new"><i class="fa fa-whatsapp"></i> Send Whatsapp New</button>
 </div>
@@ -568,15 +568,6 @@
 </div>
 
 <script>
-function printDivNew() {
-    var oldPage = document.body.innerHTML;
-    var divElements = document.getElementById('printablediv_new').innerHTML;
-    document.body.innerHTML = "<html><head><title></title></head><body>" + divElements + "</body>";
-    window.print();
-    document.body.innerHTML = oldPage;
-    window.location.reload();
-}
-
 $(document).on('click', '.sendSms_new', function() {
     var formDt = $('#marksForm_new').serialize();
     $.ajax({

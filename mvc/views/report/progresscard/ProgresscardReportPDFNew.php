@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<body style="font-family: DejaVu Sans, Arial, sans-serif; font-size:12px; color:#000; margin:0; padding:0;">
+<body style="font-family: DejaVu Sans, Arial, sans-serif; font-size:11px; color:#000; margin:0; padding:0;">
 
-<?php if(customCompute($students)) { foreach($students as $student) { ?>
-<div style="width:750px; margin:15px auto; padding:20px; border:1px solid #1a237e; border-radius:8px;">
+<?php if(customCompute($students)) { $pcnCount = count($students); $pcnSeen = 0; foreach($students as $student) { $pcnSeen++; ?>
+<div style="width:750px; margin:6px auto; padding:10px; border:1px solid #1a237e; border-radius:8px;">
 
     <!-- ===== Header ===== -->
     <table width="100%" style="border:none;">
@@ -34,14 +34,14 @@
         </tr>
     </table>
 
-    <table width="100%" style="border:none; background:#fff3e0; margin-top:6px;">
-        <tr><td style="border:none; text-align:center; color:#e65100; font-weight:bold; padding:6px;">
+    <table width="100%" style="border:none; background:#fff3e0; margin-top:4px;">
+        <tr><td style="border:none; text-align:center; color:#e65100; font-weight:bold; padding:4px;">
             <?=isset($exams[$examID]) ? strtoupper($exams[$examID]) : ''?> PROGRESS CARD REPORT
         </td></tr>
     </table>
 
     <!-- ===== Student Info + Result Summary ===== -->
-    <table width="100%" cellpadding="5" cellspacing="0" style="border-collapse:collapse; margin-top:8px;">
+    <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse; margin-top:5px;">
         <tr>
             <th align="left" style="width:20%; background:#f4f4f4; border:1px solid #ddd;">Name :</th>
             <td style="width:30%; border:1px solid #ddd;"><?= $student->srname ?></td>
@@ -109,17 +109,10 @@
         elseif ($percent >= 50) { $remarkText = 'Average'; $remarkColor = '#fb8c00'; }
         else { $remarkText = 'Need Improvement'; $remarkColor = '#e53935'; }
 
-        $qrFilename = 'pc-'.$student->srstudentID.'-'.$examID;
-        $qrText     = base_url('progresscardreport/verify/'.$student->srregisterNO);
-        $qrFilepath = FCPATH.'uploads/progresscardQRcode/'.$qrFilename.'.png';
-        if(!file_exists($qrFilepath)) {
-            generate_qrcode($qrText, $qrFilename, 'progresscardQRcode');
-        }
-        $qrUrl = base_url('uploads/progresscardQRcode/'.$qrFilename.'.png');
     ?>
 
     <!-- ===== Result Summary ===== -->
-    <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse; margin-top:8px; text-align:center;">
+    <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse; margin-top:5px; text-align:center;">
         <tr style="background:#1a237e; color:#fff;">
             <th style="border:1px solid #ddd;">Total Marks</th>
             <th style="border:1px solid #ddd;">Percentage</th>
@@ -137,8 +130,8 @@
     </table>
 
     <!-- ===== Subject Wise Performance ===== -->
-    <h4 style="margin:12px 0 4px; color:#1a237e;">Subject Wise Performance</h4>
-    <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse; text-align:center;">
+    <h4 style="margin:6px 0 3px; color:#1a237e;">Subject Wise Performance</h4>
+    <table width="100%" cellpadding="3" cellspacing="0" style="border-collapse:collapse; text-align:center;">
         <tr style="background:#ea893b; color:#fff;">
             <th style="border:1px solid #ddd;">Subject</th>
             <th style="border:1px solid #ddd;">Max Marks</th>
@@ -159,11 +152,11 @@
     </table>
 
     <!-- ===== Grade Scale + Class Performance ===== -->
-    <table width="100%" style="border:none; margin-top:10px;">
+    <table width="100%" style="border:none; margin-top:5px;">
         <tr>
             <td style="width:55%; vertical-align:top; border:none;">
-                <h4 style="margin:0 0 4px; color:#1a237e;">Grade Scale</h4>
-                <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse; text-align:center;">
+                <h4 style="margin:0 0 3px; color:#1a237e;">Grade Scale</h4>
+                <table width="100%" cellpadding="2" cellspacing="0" style="border-collapse:collapse; text-align:center; font-size:10px;">
                     <tr style="background:#eceff1;"><th style="border:1px solid #ddd;">Range</th><th style="border:1px solid #ddd;">Grade</th><th style="border:1px solid #ddd;">Remark</th></tr>
                     <?php foreach(progresscard_grade_scale() as $gs) { ?>
                     <tr><td style="border:1px solid #ddd;"><?=$gs['range']?></td><td style="border:1px solid #ddd;"><?=$gs['grade']?></td><td style="border:1px solid #ddd;"><?=$gs['label']?></td></tr>
@@ -171,8 +164,8 @@
                 </table>
             </td>
             <td style="width:45%; vertical-align:top; border:none; padding-left:10px;">
-                <h4 style="margin:0 0 4px; color:#1a237e;">Class Performance</h4>
-                <table width="100%" cellpadding="6" cellspacing="0" style="border-collapse:collapse; text-align:center;">
+                <h4 style="margin:0 0 3px; color:#1a237e;">Class Performance</h4>
+                <table width="100%" cellpadding="3" cellspacing="0" style="border-collapse:collapse; text-align:center;">
                     <tr style="background:#eceff1;"><th style="border:1px solid #ddd;">Your %</th><th style="border:1px solid #ddd;">Class Avg</th><th style="border:1px solid #ddd;">Strength</th></tr>
                     <tr>
                         <td style="border:1px solid #ddd;"><?=$percent?>%</td>
@@ -185,8 +178,8 @@
     </table>
 
     <!-- ===== Attendance Summary ===== -->
-    <h4 style="margin:12px 0 4px; color:#1a237e;">Attendance Summary (Academic Year: <?=isset($attInfo['schoolyear']) ? $attInfo['schoolyear'] : ''?>)</h4>
-    <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse; text-align:center; font-size:10px;">
+    <h4 style="margin:6px 0 3px; color:#1a237e;">Attendance Summary (Academic Year: <?=isset($attInfo['schoolyear']) ? $attInfo['schoolyear'] : ''?>)</h4>
+    <table width="100%" cellpadding="2" cellspacing="0" style="border-collapse:collapse; text-align:center; font-size:9px;">
         <tr style="background:#eceff1;">
             <th style="border:1px solid #ddd; text-align:left;">Month</th>
             <?php foreach($attInfo['months'] as $m) { ?><th style="border:1px solid #ddd;"><?=$m['label']?></th><?php } ?>
@@ -208,31 +201,97 @@
             <td style="border:1px solid #ddd;"><b><?=$attInfo['totalAbsent']?></b></td>
         </tr>
     </table>
-    <p style="text-align:right; font-weight:bold; color:#1a237e; margin:4px 0;">Yearly Attendance : <?=$attInfo['yearlyPercentage']?>%</p>
+    <p style="text-align:right; font-weight:bold; color:#1a237e; margin:2px 0; font-size:10px;">Yearly Attendance : <?=$attInfo['yearlyPercentage']?>%</p>
 
-    <!-- ===== Remarks + QR ===== -->
-    <table width="100%" style="border:none; margin-top:10px;">
+    <!-- ===== Performance Overview (plain HTML/CSS bars — mPDF can't run the on-screen Highcharts JS) ===== -->
+    <h4 style="margin:6px 0 3px; color:#1a237e;">Performance Overview</h4>
+    <table width="100%" style="border:none;">
         <tr>
-            <td style="width:70%; vertical-align:top; border:none;">
-                <h4 style="margin:0 0 4px; color:#1a237e;">Teacher's Remarks</h4>
-                <p style="font-weight:bold; color:<?=$remarkColor?>; font-size:14px;"><?=$remarkText?></p>
+            <!-- Subject Wise Marks -->
+            <td style="width:38%; vertical-align:top; border:none; padding-right:6px;">
+                <p style="margin:0 0 3px; font-size:9px; font-weight:bold; color:#37474f;">Subject Wise Marks</p>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:9px;">
+                <?php foreach($subjectRows as $row):
+                    $barPct = $row['max'] > 0 ? min(100, round(($row['obtained'] / $row['max']) * 100)) : 0;
+                ?>
+                    <tr>
+                        <td style="width:28px; border:none; padding:2px 3px 2px 0;"><?=$row['subject']?></td>
+                        <td style="border:none; padding:2px 0;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                                <td style="background:#e0e0e0; height:8px; font-size:1px;">
+                                    <table width="<?=$barPct?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                                        <td style="background:#3949ab; height:8px; font-size:1px;">&nbsp;</td>
+                                    </tr></table>
+                                </td>
+                            </tr></table>
+                        </td>
+                        <td style="width:22px; text-align:right; border:none; padding:2px 0 2px 3px;"><?=$row['absent'] ? '-' : ini_round($row['obtained'])?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </table>
             </td>
-            <td style="width:30%; text-align:center; vertical-align:top; border:none;">
-                <h4 style="margin:0 0 4px; color:#1a237e;">Scan to Verify</h4>
-                <img src="<?=$qrUrl?>" style="width:80px; height:80px;">
+            <!-- Marks Distribution -->
+            <td style="width:26%; vertical-align:top; border:none; padding:0 6px;">
+                <p style="margin:0 0 3px; font-size:9px; font-weight:bold; color:#37474f;">Marks Distribution</p>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                    <td style="background:#e0e0e0; height:12px; font-size:1px;">
+                        <table width="<?=$totalMaxMarks > 0 ? round(($totalObtained / $totalMaxMarks) * 100) : 0?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                            <td style="background:#1a73e8; height:12px; font-size:1px;">&nbsp;</td>
+                        </tr></table>
+                    </td>
+                </tr></table>
+                <p style="margin:3px 0 0; font-size:8px; color:#555;">Obtained <?=ini_round($totalObtained)?> / <?=ini_round($totalMaxMarks)?></p>
+            </td>
+            <!-- Grade Distribution (Class) -->
+            <td style="width:36%; vertical-align:top; border:none; padding-left:6px;">
+                <p style="margin:0 0 3px; font-size:9px; font-weight:bold; color:#37474f;">Grade Distribution (Class)</p>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:9px;">
+                <?php
+                    $gradeOrder = array('A+','A','B+','B','C+','C','D');
+                    $maxCount   = !empty($classPerf['gradeHistogram']) ? max($classPerf['gradeHistogram']) : 0;
+                    $maxCount   = $maxCount > 0 ? $maxCount : 1;
+                    foreach($gradeOrder as $g):
+                        $cnt = isset($classPerf['gradeHistogram'][$g]) ? $classPerf['gradeHistogram'][$g] : 0;
+                        $gp  = round(($cnt / $maxCount) * 100);
+                ?>
+                    <tr>
+                        <td style="width:18px; border:none; padding:1px 3px 1px 0;"><?=$g?></td>
+                        <td style="border:none; padding:1px 0;">
+                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                                <td style="background:#e0e0e0; height:7px; font-size:1px;">
+                                    <table width="<?=$gp?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                                        <td style="background:#00897b; height:7px; font-size:1px;">&nbsp;</td>
+                                    </tr></table>
+                                </td>
+                            </tr></table>
+                        </td>
+                        <td style="width:14px; text-align:right; border:none; padding:1px 0 1px 3px;"><?=$cnt?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <!-- ===== Teacher's Remarks ===== -->
+    <table width="100%" style="border:none; margin-top:4px;">
+        <tr>
+            <td style="border:none;">
+                <h4 style="margin:0 0 2px; color:#1a237e;">Teacher's Remarks</h4>
+                <p style="font-weight:bold; color:<?=$remarkColor?>; font-size:12px; margin:0;"><?=$remarkText?></p>
             </td>
         </tr>
     </table>
 
     <!-- ===== Signatures ===== -->
-    <div style="margin-top:30px; display:flex; justify-content:space-between; text-align:center; font-size:11px;">
+    <div style="margin-top:8px; display:flex; justify-content:space-between; text-align:center; font-size:10px;">
         <span>Parent's Signature</span>
         <span>Class Teacher's Signature</span>
         <span>Principal's Signature</span>
     </div>
 </div>
 
-<p style="page-break-after: always;">&nbsp;</p>
+<?php if($pcnSeen < $pcnCount) { ?><p style="page-break-after: always;">&nbsp;</p><?php } ?>
 <?php } } else { ?>
 <div style="text-align:center; color:red; padding:20px;">No Data Found</div>
 <?php } ?>

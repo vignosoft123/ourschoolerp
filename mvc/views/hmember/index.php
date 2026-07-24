@@ -94,7 +94,7 @@
                                                                 echo btn_view('hmember/view/'.$student->studentID."/".$set, $this->lang->line('view')). " ";
                                                                 if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                                                                     echo btn_edit('hmember/edit/'.$student->studentID."/".$set, $this->lang->line('edit')). " ";
-                                                                    echo btn_delete('hmember/delete/'.$student->studentID."/".$set, $this->lang->line('delete'));
+                                                                    echo btn_unmember($student->studentID, $this->lang->line('unmember'));
                                                                 }
                                                             }
                                                         ?>
@@ -152,7 +152,7 @@
                                                                     echo btn_view('hmember/view/'.$student->studentID."/".$set, $this->lang->line('view')). " ";
                                                                     if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                                                                         echo btn_edit('hmember/edit/'.$student->studentID."/".$set, $this->lang->line('edit')). " ";
-                                                                        echo btn_delete('hmember/delete/'.$student->studentID."/".$set, $this->lang->line('delete'));
+                                                                        echo btn_unmember($student->studentID, $this->lang->line('unmember'));
                                                                     }
                                                                 }
                                                             ?>
@@ -213,7 +213,7 @@
                                                             } else {
                                                                 echo btn_view('hmember/view/'.$student->studentID."/".$set, $this->lang->line('view')). " ";
                                                                 echo btn_edit('hmember/edit/'.$student->studentID."/".$set, $this->lang->line('edit')). " ";
-                                                                echo btn_delete('hmember/delete/'.$student->studentID."/".$set, $this->lang->line('delete'));
+                                                                echo btn_unmember($student->studentID, $this->lang->line('unmember'));
                                                             }
                                                         ?>
                                                     </td>
@@ -274,6 +274,145 @@
 </div>
 <?php } ?>
 
+<!-- Un-Member Confirmation Modal -->
+<div class="modal fade" id="unmemberModal" tabindex="-1" role="dialog" aria-labelledby="unmemberModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background:#d9534f; color:#fff; border-radius:3px 3px 0 0;">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#fff; opacity:1;"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="unmemberModalLabel"><i class="fa fa-minus-circle"></i> Un-Member from Hostel</h4>
+            </div>
+            <div class="modal-body">
+                <div id="unmemberLoading" class="text-center" style="padding:20px;"><i class="fa fa-spinner fa-spin"></i> Loading hostel/invoice details...</div>
+                <div id="unmemberContent" style="display:none;">
+                    <p>Remove <strong id="unmemberStudentInfo"></strong> from the hostel?</p>
+
+                    <div id="unmemberNoInvoice" class="alert alert-info" style="display:none;">
+                        No hostel invoices found for this student — un-membering will not affect any invoice or payment record.
+                    </div>
+
+                    <div id="unmemberSafeInvoice" class="alert alert-warning" style="display:none;">
+                        This student has <span id="unmemberSafeCount"></span> unpaid hostel invoice(s) with no payment or waiver against them. They will be automatically removed along with the hostel membership.
+                    </div>
+
+                    <div id="unmemberBlockingBox" style="display:none;">
+                        <div class="alert alert-danger">
+                            <strong><i class="fa fa-exclamation-triangle"></i> This student has hostel invoice(s) with a payment or a waiver/fine already recorded:</strong>
+                            <div style="overflow-x:auto; margin-top:8px;">
+                                <table class="table table-condensed table-bordered" style="background:#fff; margin-bottom:0;">
+                                    <thead><tr><th>Invoice #</th><th>Amount</th><th>Paid</th><th>Waiver/Fine</th></tr></thead>
+                                    <tbody id="unmemberInvoiceRows"></tbody>
+                                </table>
+                            </div>
+                            <p style="margin:8px 0 0;">By default these invoice(s) and their payment/waiver records are <strong>kept</strong> for your accounting records — only the hostel membership itself will be removed.</p>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="unmemberForceDelete">
+                                Also permanently delete these invoice(s) along with their payment and waiver/fine records (cannot be undone)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="unmemberConfirmBtn" disabled>
+                    <i class="fa fa-minus-circle"></i> Un-Member
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // Move the modal to <body> on DOM ready — this page nests it inside AdminLTE's
+    // right-side/content wrapper, which can otherwise clip a fixed-position modal.
+    $(function() { $('body').append($('#unmemberModal').detach()); });
+
+    var unmemberStudentID = null;
+
+    $(document).on('click', '.unmember-btn', function() {
+        unmemberStudentID = $(this).data('student-id');
+
+        $('#unmemberLoading').show();
+        $('#unmemberContent').hide();
+        $('#unmemberNoInvoice, #unmemberSafeInvoice, #unmemberBlockingBox').hide();
+        $('#unmemberInvoiceRows').html('');
+        $('#unmemberForceDelete').prop('checked', false);
+        $('#unmemberConfirmBtn').prop('disabled', true).html('<i class="fa fa-minus-circle"></i> Un-Member');
+        $('#unmemberModal').modal('show');
+
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('hmember/unmember_precheck')?>",
+            data: { studentID: unmemberStudentID },
+            dataType: 'json',
+            success: function(response) {
+                $('#unmemberLoading').hide();
+                if (!response.status) {
+                    alert(response.message || 'Unable to load hostel details.');
+                    $('#unmemberModal').modal('hide');
+                    return;
+                }
+                $('#unmemberContent').show();
+                $('#unmemberStudentInfo').text((response.hostel || '') + (response.category ? ' - ' + response.category : ''));
+
+                if (!response.invoices || response.invoices.length === 0) {
+                    $('#unmemberNoInvoice').show();
+                } else if (!response.hasBlocking) {
+                    $('#unmemberSafeCount').text(response.invoices.length);
+                    $('#unmemberSafeInvoice').show();
+                } else {
+                    var rows = '';
+                    $.each(response.invoices, function(i, inv) {
+                        rows += '<tr>' +
+                            '<td>#' + inv.invoiceID + '</td>' +
+                            '<td>' + Number(inv.amount).toFixed(2) + '</td>' +
+                            '<td>' + Number(inv.paid).toFixed(2) + '</td>' +
+                            '<td>' + (inv.hasWaiver ? 'Yes' : '-') + '</td>' +
+                            '</tr>';
+                    });
+                    $('#unmemberInvoiceRows').html(rows);
+                    $('#unmemberBlockingBox').show();
+                }
+                $('#unmemberConfirmBtn').prop('disabled', false);
+            },
+            error: function() {
+                $('#unmemberLoading').hide();
+                alert('Unable to load hostel details. Please try again.');
+                $('#unmemberModal').modal('hide');
+            }
+        });
+    });
+
+    $(document).on('click', '#unmemberConfirmBtn', function() {
+        var $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Processing...');
+        $.ajax({
+            type: 'POST',
+            url: "<?=base_url('hmember/unmember')?>",
+            data: {
+                studentID: unmemberStudentID,
+                force_delete_invoices: $('#unmemberForceDelete').is(':checked') ? 1 : 0
+            },
+            dataType: 'json',
+            success: function(response) {
+                $('#unmemberModal').modal('hide');
+                alert(response.message || (response.status ? 'Done.' : 'An error occurred.'));
+                if (response.status) {
+                    location.reload();
+                } else {
+                    $btn.prop('disabled', false).html('<i class="fa fa-minus-circle"></i> Un-Member');
+                }
+            },
+            error: function() {
+                $btn.prop('disabled', false).html('<i class="fa fa-minus-circle"></i> Un-Member');
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+</script>
 
 <script type="text/javascript">
     window.addEventListener('load', function() {

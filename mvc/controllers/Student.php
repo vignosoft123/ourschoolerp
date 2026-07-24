@@ -216,7 +216,7 @@ class Student extends Admin_Controller
 					'schoolyearID' => $schoolyearID,
 				];
 
-				$exams             = pluck($this->exam_m->get_exam(), 'exam', 'examID');
+				$exams             = pluck($this->exam_m->get_order_by_exam(array('academic_year' => $schoolyearID)), 'exam', 'examID');
 				// echo "<pre>";print_r($subjects);die;
 				$grades            = $this->grade_m->get_grade();
 				$marks             = $this->mark_m->student_all_mark_array($queryArray);
@@ -252,6 +252,8 @@ class Student extends Admin_Controller
 					$highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = max($value->mark, $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID]);
 				}
 				$marksettings  = $this->marksetting_m->get_marksetting_markpercentages();
+				// get_marksetting_markpercentages() returns settings for exams across ALL academic years for the class;
+				// restrict to exams that belong to the currently selected school year ($exams is already year-filtered above).
 
 				$sectionID = $student->srsectionID;
 				$examScheduleRows = $this->db->query(
@@ -271,7 +273,8 @@ class Student extends Admin_Controller
 				$this->data['optionalsubjectArr'] = $optionalsubjectArr;
 				$this->data['marks']             = $retMark;
 				$this->data['highestmarks']      = $highestMarks;
-				$this->data['marksettings']      = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
+				$classMarksettings                = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
+				$this->data['marksettings']      = array_intersect_key($classMarksettings, $exams);
 				$this->data['examScheduleData']  = $examScheduleData;
 			} else {
 				$this->data['settingmarktypeID'] = 0;

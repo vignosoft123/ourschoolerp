@@ -325,7 +325,7 @@ class Profile extends Api_Controller {
 					'schoolyearID' => $schoolyearID, 
 				];
 
-				$exams             = pluck($this->exam_m->get_exam(), 'exam', 'examID');
+				$exams             = pluck($this->exam_m->get_order_by_exam(array('academic_year' => $schoolyearID)), 'exam', 'examID');
 				$grades            = $this->grade_m->get_grade();
 				$marks             = $this->mark_m->student_all_mark_array($queryArray);
 				$markpercentages   = $this->markpercentage_m->get_markpercentage();
@@ -358,6 +358,8 @@ class Profile extends Api_Controller {
 					$highestMarks[$value->examID][$value->subjectID][$value->markpercentageID] = max($value->mark, $highestMarks[$value->examID][$value->subjectID][$value->markpercentageID]);
 				}
 				$marksettings  = $this->marksetting_m->get_marksetting_markpercentages();
+				// get_marksetting_markpercentages() returns settings for exams across ALL academic years for the class;
+				// restrict to exams that belong to the currently selected school year ($exams is already year-filtered above).
 
 				$this->retdata['settingmarktypeID'] = $this->data['siteinfos']->marktypeID;
 				$this->retdata['subjects']          = $subjectArr;
@@ -367,7 +369,8 @@ class Profile extends Api_Controller {
 				$this->retdata['optionalsubjectArr']= $optionalsubjectArr;
 				$this->retdata['marks']             = $retMark;
 				$this->retdata['highestmarks']      = $highestMarks;
-				$this->retdata['marksettings']      = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
+				$classMarksettings                   = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
+				$this->retdata['marksettings']      = array_intersect_key($classMarksettings, $exams);
 			} else {
 				$this->retdata['settingmarktypeID'] = 0;
 				$this->retdata['subjects']          = [];
