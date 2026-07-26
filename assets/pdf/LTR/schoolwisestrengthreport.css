@@ -1,0 +1,94 @@
+body {
+	font-family: 'helvetica';
+	font-size:12px;
+	color:#707478;
+}
+
+.logo{
+	width:50px;
+	height:50px;
+	text-align:center;
+	border:none;
+}
+
+p {
+	margin: 2px;
+}
+
+.title{
+	font-size: 15px
+}
+
+.title-desc {
+	font-size: 12px
+}
+
+.reportPage-header {
+	text-align: center;
+}
+
+table {
+	width:100%;
+	border-spacing:0px;
+	font-size: 9px;
+	padding: 0px;
+	margin-bottom: 10px;
+}
+
+th{
+	font-weight: 700;
+	background-color: #1565c0;
+	color: #fff;
+	border-bottom: 1px solid #ddd;
+	font-size: 8px;
+	text-align: center;
+	padding: 4px 3px;
+}
+
+td{
+	border-bottom: 1px solid #ddd;
+	padding: 4px 3px;
+	text-align: center;
+	font-size: 9px;
+}
+
+.text-center {
+	text-align: center;
+}
+
+.footer {
+	padding-top: 10px;
+	text-align: center;
+}
+
+.flogo {
+	width: 30px;
+	height: 30px;
+	border:none;
+}
+
+.copyright {
+	font-size: 10px
+}
+
+.notfound{
+	padding: 20px 0px;
+	text-align:center;
+	border:1px solid #ddd;
+}
+
+.box h3 { margin: 0px; padding:8px; color:#001f3f !important; font-size: 13px; font-weight:400; }
+.box-solid { border:1px solid #ddd; margin-bottom: 10px; }
+.box-body { padding: 8px; }
+
+.classinfo { border-left:2px solid #1565c0; border-radius: 5px; }
+.subjectandteacher { border-left:2px solid #c2185b; border-radius: 5px; }
+
+.hr { color:#ddd; }
+
+/* NOTE: the stat cards row in SchoolwisestrengthReportPDF.php uses fully inline
+   style="" attributes (not classes) for its background colors — mPDF's CSS
+   engine did not reliably match class-based selectors like ".stat-table td"
+   or ".pdfcard-blue" (cards rendered with no color at all). Inline styles are
+   the one thing mPDF applies reliably regardless of selector-matching quirks.
+   See the mPDF CSS Gotcha in srinivas_project_structure.md (Section 4). */

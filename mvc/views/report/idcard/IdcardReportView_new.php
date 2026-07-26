@@ -100,6 +100,84 @@
 
             </div><!-- row -->
 
+            <hr class="rpt-filter-divider">
+
+            <div class="row">
+                <div class="form-group col-sm-12" id="fieldsDiv">
+                    <label>Fields to Display on ID Card</label>
+                    <div class="rpt-idcard-fields">
+                        <?php
+                            $idcardFieldOptions = array(
+                                'medium'        => 'Medium',
+                                'class_section' => 'Class/Sec',
+                                'father_name'   => "F'Name",
+                                'contact_no'    => 'Contact No.',
+                                'village'       => 'Village',
+                                'blood_group'   => 'Blood Group',
+                            );
+                            foreach ($idcardFieldOptions as $fieldValue => $fieldLabel) {
+                        ?>
+                            <label class="rpt-idcard-field-item">
+                                <input type="checkbox" class="idcard-field-checkbox" name="fields[]" value="<?=$fieldValue?>" checked>
+                                <span><?=$fieldLabel?></span>
+                            </label>
+                        <?php } ?>
+                    </div>
+                </div>
+            </div><!-- row -->
+
+            <div class="row">
+                <div class="form-group col-sm-12" id="fontStyleDiv">
+                    <label>Font Style</label>
+                    <div class="rpt-idcard-font-toolbar">
+                        <div class="rpt-idcard-font-group">
+                            <span class="rpt-idcard-font-caption">Font</span>
+                            <select id="idcardFontFamily" class="form-control rpt-idcard-font-select">
+                                <option value="Arial, sans-serif">Arial</option>
+                                <option value="'Times New Roman', serif">Times New Roman</option>
+                                <option value="Verdana, sans-serif">Verdana</option>
+                                <option value="Georgia, serif">Georgia</option>
+                                <option value="'Courier New', monospace">Courier New</option>
+                                <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                            </select>
+                        </div>
+                        <div class="rpt-idcard-font-group">
+                            <span class="rpt-idcard-font-caption">Size</span>
+                            <select id="idcardFontSize" class="form-control rpt-idcard-font-select">
+                                <option value="12">12px</option>
+                                <option value="13">13px</option>
+                                <option value="14">14px</option>
+                                <option value="15" selected>15px</option>
+                                <option value="16">16px</option>
+                                <option value="18">18px</option>
+                                <option value="20">20px</option>
+                                <option value="22">22px</option>
+                                <option value="24">24px</option>
+                            </select>
+                        </div>
+                        <div class="rpt-idcard-font-group">
+                            <span class="rpt-idcard-font-caption">Style</span>
+                            <div class="rpt-idcard-style-group">
+                                <button type="button" id="idcardFontBold" class="rpt-idcard-style-btn" title="Bold"><b>B</b></button>
+                                <button type="button" id="idcardFontItalic" class="rpt-idcard-style-btn" title="Italic"><i>I</i></button>
+                            </div>
+                        </div>
+                        <div class="rpt-idcard-font-group">
+                            <span class="rpt-idcard-font-caption">Label Color</span>
+                            <input type="color" id="idcardLabelColor" class="rpt-idcard-color-input" value="#000000" title="Label Color">
+                        </div>
+                        <div class="rpt-idcard-font-group">
+                            <span class="rpt-idcard-font-caption">Value Color</span>
+                            <input type="color" id="idcardValueColor" class="rpt-idcard-color-input" value="#000000" title="Value Color">
+                        </div>
+                        <div class="rpt-idcard-font-group">
+                            <span class="rpt-idcard-font-caption">Photo Border</span>
+                            <input type="color" id="idcardPhotoBorderColor" class="rpt-idcard-color-input" value="#000000" title="Photo Border Color">
+                        </div>
+                    </div>
+                </div>
+            </div><!-- row -->
+
             <div class="rpt-filter-actions">
                 <button id="get_idcardreport" class="btn btn-success rpt-filter-btn"><i class="fa fa-search"></i> <?=$this->lang->line("idcardreport_submit")?></button>
             </div>
@@ -134,6 +212,19 @@
         $('#sectionDiv').hide('slow');
         $('#userDiv').hide('slow');
         $(".select2").select2();
+    });
+
+    $(document).on('change', '.idcard-field-checkbox', function() {
+        $('#load_idcardreport').html('');
+    });
+
+    $(document).on('click', '#idcardFontBold, #idcardFontItalic', function() {
+        $(this).toggleClass('active');
+        $('#load_idcardreport').html('');
+    });
+
+    $(document).on('change', '#idcardFontFamily, #idcardFontSize, #idcardLabelColor, #idcardValueColor, #idcardPhotoBorderColor', function() {
+        $('#load_idcardreport').html('');
     });
 
     $(document).on('change', "#usertypeID", function() {
@@ -253,15 +344,34 @@
         var type      = $('#type').val();
         var background= $('#background').val();
         var photo_type= $('#photo_type').val();
+        var fields = [];
+        $('.idcard-field-checkbox:checked').each(function() {
+            fields.push($(this).val());
+        });
+        var fontFamily = $('#idcardFontFamily').val();
+        var fontSize   = $('#idcardFontSize').val();
+        var fontBold   = $('#idcardFontBold').hasClass('active') ? 1 : 0;
+        var fontItalic = $('#idcardFontItalic').hasClass('active') ? 1 : 0;
+        var labelColor = $('#idcardLabelColor').val();
+        var valueColor = $('#idcardValueColor').val();
+        var photoBorderColor = $('#idcardPhotoBorderColor').val();
         var error = 0;
         var field = {
-            'usertypeID': usertypeID,
-            'classesID' : classesID,
-            'sectionID' : sectionID,
-            'userID'    : userID,
-            'type'      : type,
-            'background': background,
-            'photo_type': photo_type,
+            'usertypeID'       : usertypeID,
+            'classesID'        : classesID,
+            'sectionID'        : sectionID,
+            'userID'           : userID,
+            'type'             : type,
+            'background'       : background,
+            'photo_type'       : photo_type,
+            'fields'           : fields,
+            'fontFamily'       : fontFamily,
+            'fontSize'         : fontSize,
+            'fontBold'         : fontBold,
+            'fontItalic'       : fontItalic,
+            'labelColor'       : labelColor,
+            'valueColor'       : valueColor,
+            'photoBorderColor' : photoBorderColor,
         }
 
         if(usertypeID == 0 ) {

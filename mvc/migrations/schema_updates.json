@@ -929,6 +929,18 @@
         "check_column": { "table": "section", "column": "active_status" }
     },
     {
+        "query": "INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`) SELECT 'schoolwisestrengthreport', 'schoolwisestrengthreport', 'fa-bar-chart', '1', '18', '985' FROM dual WHERE NOT EXISTS (SELECT 1 FROM `menu` WHERE `menuName` = 'schoolwisestrengthreport')",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permissions` (`name`, `description`) SELECT 'schoolwisestrengthreport', 'schoolwisestrengthreport' FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'schoolwisestrengthreport')",
+        "type": "raw"
+    },
+    {
+        "query": "INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`) SELECT 1, permissionID FROM `permissions` WHERE `name` = 'schoolwisestrengthreport' AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1 AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'schoolwisestrengthreport'))",
+        "type": "raw"
+    },
+    {
         "query": "ALTER TABLE `subject` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
         "type": "alter",
         "check_column": { "table": "subject", "column": "active_status" }

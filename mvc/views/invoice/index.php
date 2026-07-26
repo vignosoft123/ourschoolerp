@@ -93,18 +93,25 @@
 
                 if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) { ?>
                     <?php if(permissionChecker('invoice_add')) { ?>
-                        <h5 class="page-header">
-                            <a href="<?php echo base_url('invoice/add') ?>" class="btn btn-primary">
-                                <i class="fa fa-plus"></i>
-                                <?=$this->lang->line('add_title')?>
-                            </a>
+                        <h5 class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                            <span>
+                                <button type="button" id="openFeeFormBtn" class="btn btn-primary mb-3" disabled>Bulk Edit Amounts</button>
 
-                            <a href="<?php echo base_url('invoicereport') ?>" target="_blank" class="btn btn-success">
-                                <i class="fa fa-bar-chart"></i> Invoice Report
-                            </a>
+                                <?php if(permissionChecker('invoice_delete')) { ?>
+                                <button type="button" id="bulkDeleteBtn" class="btn btn-danger mb-3" disabled>Bulk Delete</button>
+                                <?php } ?>
+                            </span>
 
-                                            <button type="button" id="openFeeFormBtn" class="btn btn-primary mb-3">Bulk Edit Amounts</button>
+                            <span>
+                                <a href="<?php echo base_url('invoice/add') ?>" class="btn btn-primary">
+                                    <i class="fa fa-plus"></i>
+                                    <?=$this->lang->line('add_title')?>
+                                </a>
 
+                                <a href="<?php echo base_url('invoicereport') ?>" target="_blank" class="btn btn-success">
+                                    <i class="fa fa-bar-chart"></i> Invoice Report
+                                </a>
+                            </span>
                         </h5>
                     <?php } ?>
                 <?php } ?>
@@ -115,30 +122,44 @@
                 <div class="">
 <!-- Fee Update Form - Initially Hidden -->
 <form id="updateAmountForm" method="post" style="display: none;" action="<?= base_url('Invoice/update_bulk_amount') ?>">
-    <div class="row filter-box1">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Fee Type <span class="text-red">*</span></label>
-                <select name="feetypeID" id="feetypeID" class="form-control select2" required>
-                    <option value="">Select Fee Type</option>
-                    <?php foreach($allfee as $feetype): ?>
-                        <option value="<?= $feetype->feetypesID ?>"><?= $feetype->feetypes ?></option>
-                    <?php endforeach; ?>
-                </select>
+    <div class="filter-box1">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label>Fee Type <span class="text-red">*</span></label>
+                    <select name="feetypeID" id="feetypeID" class="form-control select2" required>
+                        <option value="">Select Fee Type</option>
+                        <?php foreach($allfee as $feetype): ?>
+                            <option value="<?= $feetype->feetypesID ?>"><?= $feetype->feetypes ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="form-group">
+                    <label>Amount <span class="text-red">*</span></label>
+                    <input type="text" name="amount" class="form-control" required/>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="form-group">
+                    <label class="hidden-xs">&nbsp;</label>
+                    <button type="submit" class="btn btn-success btn-block" style="border-radius:6px;">
+                        <i class="fa fa-check-circle"></i> Update Amount
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label>Amount <span class="text-red">*</span></label>
-                <input type="text" name="amount" class="form-control" required/>
-            </div>
-        </div>
+
+        <!-- Hidden input for selected IDs (populated by JS) -->
+        <input type="hidden" name="selectedIDs" id="selectedIDs"/>
     </div>
+</form>
 
-    <!-- Hidden input for selected IDs (populated by JS) -->
-    <input type="hidden" name="selectedIDs" id="selectedIDs"/>
-
-    <button type="submit" class="btn btn-success">Update Amount</button>
+<!-- Bulk Delete Form - only Not Paid invoices are ever included (checkbox is disabled for others) -->
+<form id="bulkDeleteForm" method="post" action="<?= base_url('Invoice/bulk_delete') ?>">
+    <input type="hidden" name="selectedIDs" id="bulkDeleteSelectedIDs"/>
+    <input type="hidden" name="maininvoiceclassesID" value="<?= isset($maininvoiceclassesID) ? $maininvoiceclassesID : '0' ?>"/>
 </form>
                     </div>
 
@@ -207,10 +228,35 @@
                         <tbody>
                             <?php
                         //    echo "<pre>"; print_r($maininvoices);die;
-                             if(customCompute($maininvoices)) {$i = 1; 
-                             foreach($maininvoices as $maininvoice) { ?>
+                             if(customCompute($maininvoices)) {$i = 1;
+                             foreach($maininvoices as $maininvoice) {
+
+                                // Pre-compute total/balance so the checkbox can be disabled for
+                                // Partially Paid / Fully Paid rows (only Not Paid rows are selectable).
+                                $chk_totl = isset($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID]) ? number_format($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID], 2) : '0.00';
+                                $chk_balance = "";
+                                if(isset($grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID])) {
+                                    if(isset($grandtotalandpayment['totalpayment'][$maininvoice->maininvoiceID])) {
+                                        if(isset($grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID])) {
+                                            $chk_paymentandweaver = ($grandtotalandpayment['totalpayment'][$maininvoice->maininvoiceID] + $grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID]);
+                                            $chk_balance = number_format(((float)$grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID] - (float)$chk_paymentandweaver), 2);
+                                        } else {
+                                            $chk_balance = number_format(((float)$grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID] - (float)$grandtotalandpayment['totalpayment'][$maininvoice->maininvoiceID]), 2);
+                                        }
+                                    } else {
+                                        if(isset($grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID])) {
+                                            $chk_balance = number_format(((float)$grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID] - (float)$grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID]), 2);
+                                        } else {
+                                            $chk_balance = number_format((float)$grandtotalandpayment['grandtotal'][$maininvoice->maininvoiceID], 2);
+                                        }
+                                    }
+                                } else {
+                                    $chk_balance = '0.00';
+                                }
+                                $isCheckable = ($maininvoice->maininvoicestatus == 0 && $chk_totl == $chk_balance);
+                                ?>
                                 <tr>
-                                    <td><input type="checkbox" class="invoice-checkbox" value="<?= $maininvoice->maininvoiceID ?>" name="maininvoiceIDs[]"/>   </td>
+                                    <td><input type="checkbox" class="invoice-checkbox" value="<?= $maininvoice->maininvoiceID ?>" name="maininvoiceIDs[]" <?= $isCheckable ? '' : 'disabled' ?>/>   </td>
 
                                     <td data-title="<?=$this->lang->line('slno')?>">
                                         <?php echo $i; ?>
@@ -538,19 +584,32 @@
 <!-- ✅ jQuery -->
 <script>
     $(document).ready(function() {
-        // Show form when Open button is clicked
+        // Toggle the form open/closed each time the button is clicked
         $('#openFeeFormBtn').click(function() {
-            $('#updateAmountForm').slideDown();
+            $('#updateAmountForm').slideToggle();
         });
 
-        // Select all checkboxes
+        // Bulk Edit Amounts / Bulk Delete stay disabled until at least 1 row is checked
+        function toggleBulkActionButtons() {
+            var anyChecked = $('.invoice-checkbox:checked:not(:disabled)').length > 0;
+            $('#openFeeFormBtn, #bulkDeleteBtn').prop('disabled', !anyChecked);
+        }
+        toggleBulkActionButtons();
+
+        // Select all checkboxes (skip disabled ones - Partially Paid / Fully Paid rows)
         $('#selectAll').click(function() {
-            $('.invoice-checkbox').prop('checked', this.checked);
+            $('.invoice-checkbox:not(:disabled)').prop('checked', this.checked);
+            toggleBulkActionButtons();
+        });
+
+        // Delegated so it also covers rows added later via Load More / Load All
+        $(document).on('change', '.invoice-checkbox', function() {
+            toggleBulkActionButtons();
         });
 
         // On submit, validate checkboxes
         $('#updateAmountForm').submit(function(e) {
-            const selected = $('.invoice-checkbox:checked').map(function() {
+            const selected = $('.invoice-checkbox:checked:not(:disabled)').map(function() {
                 return $(this).val();
             }).get();
 
@@ -561,6 +620,25 @@
             }
 
             $('#selectedIDs').val(selected.join(','));
+        });
+
+        // Bulk Delete - only Not Paid invoices are selectable (checkbox is disabled otherwise)
+        $('#bulkDeleteBtn').click(function() {
+            const selected = $('.invoice-checkbox:checked:not(:disabled)').map(function() {
+                return $(this).val();
+            }).get();
+
+            if (selected.length === 0) {
+                alert("⚠️ Please select at least 1 Not Paid invoice to delete.");
+                return;
+            }
+
+            if (!confirm('Are you sure you want to delete ' + selected.length + ' selected invoice(s)? This cannot be undone.')) {
+                return;
+            }
+
+            $('#bulkDeleteSelectedIDs').val(selected.join(','));
+            $('#bulkDeleteForm').submit();
         });
 
         // Lazy loading - Load More button

@@ -24,6 +24,7 @@
 | Study Certificate | `Studycertificatereport.php` | `report/studycertificatereport/` |
 | Salary | `Salaryreport.php` | `report/salary/` |
 | Leave Application | `Leaveapplicationreport.php` | `report/leaveapplication/` |
+| School Wise Strength | `Schoolwisestrengthreport.php` | `report/schoolwisestrength/` |
 
 ---
 
@@ -343,7 +344,61 @@ $students = $this->studentrelation_m->general_get_order_by_student_multi_selctio
 $this->reportPDF('reportname.css', $this->data, 'report/xyz/XyzReportPDF');
 $this->reportSendToMail('reportname.css', $this->data, 'report/xyz/XyzReportPDF', $to, $subject, $msg);
 ```
-Both defined in `Admin_Controller`. CSS file in `assets/css/`.
+Both defined in `Admin_Controller`. CSS file lives in **`assets/pdf/LTR/{reportname}.css`** (not `assets/css/` — that folder is the *live-page* report design system, a completely separate stylesheet from the PDF one).
+
+**Print button → new tab with a real PDF (project standard, not `window.print()`)**:
+```php
+<a href="<?=base_url('reportname/pdf/'.$classesID.'/'.$sectionID)?>" class="btn btn-primary rpt-action-btn" target="_blank">
+    <i class="fa fa-print"></i> Print
+</a>
+```
+The controller's `pdf()` method reads filter values from URI segments (`$this->uri->segment(3)`, etc.), rebuilds the same data the AJAX preview used, and normally calls `reportPDF()`. This is what most reports in this project do (Progress Card, Classesreport, ID Card, etc.) — the browser opens the PDF natively in a new tab with its own print/save/download icons. **School Wise Strength Report is the one exception** — see the gotcha below for why and what it does instead.
+
+**mPDF engine gotchas** (the underlying library is `Mpdf\Mpdf`, wrapped by `mvc/libraries/Mhtml2pdf.php`):
+- **No JavaScript execution** — any chart (Highcharts, etc.) renders as a blank box. If the live AJAX report has charts, build a **separate, simpler PDF view** that shows only the underlying stat cards/tables, not the charts.
+- **The external `.css` file can silently never load at all.** `reportPDF()` fetches it via `file_get_contents(base_url('assets/pdf/LTR/'.$stylesheet))` — a self-HTTP(S) request to its own asset URL. In this project's environment that self-fetch was returning `false`/empty with no error surfaced, so `Mhtml2pdf::create()` skipped `WriteHTML($stylesheet, 1)` entirely — **none** of the CSS file's rules applied, not class rules and not even bare `th{}`/`td{}` element rules. Symptom: the PDF renders as fully unstyled HTML even though the `.css` file itself is correct.
+- **Do NOT try fixing this with an embedded `<style>` block in the PDF view** — `Mhtml2pdf::create()` writes the view's HTML via `$mpdf->WriteHTML($this->html, 2)`, and mPDF's mode-`2` (body-only) parsing does **not** extract `<style>` tags the way mode-`1` (dedicated stylesheet parsing) does. A `<style>` block placed in the body prints as **literal visible text** at the top of the PDF page — an immediately obvious regression, not a subtle one.
+- **Actual working fix**: skip `Admin_Controller::reportPDF()` for reports whose stylesheet needs to be guaranteed to load, and drive `Mhtml2pdf` directly instead, reading the CSS off **local disk** rather than over HTTP:
+  ```php
+  $html = $this->load->view('report/x/XReportPDF', $this->data, true);
+  $stylesheet = file_get_contents(FCPATH.'assets/pdf/LTR/xreport.css');
+  $this->load->library('mhtml2pdf');
+  $this->mhtml2pdf->folder('uploads/report/');
+  $this->mhtml2pdf->filename('Report');
+  $this->mhtml2pdf->paper('a4', 'portrait');
+  $this->mhtml2pdf->html($html);
+  $this->mhtml2pdf->create('view', $panelTitle, $stylesheet);
+  ```
+  This still goes through the same mode-`1` `WriteHTML()` call that works correctly for every other report — it just gets the CSS content a more reliable way. Plain inline `style=""` per element is still fine for a handful of one-off elements (e.g. stat cards) regardless of which CSS-loading path is used.
+- **Avoid `float`** for side-by-side layout (e.g. a row of stat cards) — use a `<table>` with one `<td>` per box instead; table layout (including `colspan`/`rowspan` header groups) is what mPDF renders correctly and consistently.
+- **Reference fix**: `Schoolwisestrengthreport::pdf()` — switched from `$this->reportPDF(...)` to the direct-`Mhtml2pdf`-with-local-disk-read pattern above, after first trying (and reverting) an embedded `<style>` block that rendered as literal text.
+
+---
+
+### 7.1 Recommended PDF Design Pattern — Fully Inline, No External CSS Dependency
+
+**Reference implementation**: `mvc/views/report/progresscard/ProgresscardReportPDFNew.php` (paired with `Progresscardreport::pdf_new()`) — the "Progress Card (New Design)" PDF. This is the best-looking PDF in the project, and the reason is structural, not accidental: **it never depends on the external `.css` file at all.** Every single element carries its own `style=""` attribute — there is not one `class="..."` anywhere in the file. Given the external-stylesheet self-fetch gotcha documented above (Section 7), this design is immune to that entire class of bug by construction. **For any new colorful/dashboard-style PDF report, follow this pattern from the start** rather than writing a `.css` file and hoping the fetch succeeds.
+
+**Structure**:
+- Full standalone document: `<!DOCTYPE html><html lang="en"><body style="font-family:...">` (not just a body fragment) — one root wrapper `<div style="border:1px solid ...; border-radius:8px;">` per printable record.
+- Everything is `<table>`-based layout (mPDF's one fully reliable layout mechanism) with `style=""` on every `<td>`/`<th>`/`<tr>` — never a bare `class=""`.
+- **Circular photo**: `<img style="width:70px; height:70px; border-radius:50%;">`.
+- **Colored info box** (top-right "Academic Year" card): a nested `<table style="background:#1a237e; color:#fff; border-radius:4px;">` with each row's `<td>` also carrying `border:none; color:#fff;` explicitly (don't rely on inheritance from the parent table style).
+- **Colored badge** (e.g. grade pill): `<span style="background:<?=$bg?>; color:<?=$color?>; padding:2px 8px; border-radius:4px; font-weight:bold;">`.
+- **Section headings**: plain `<h4 style="margin:6px 0 3px; color:#1a237e;">` — a consistent brand-navy color reused across every heading in the doc.
+- **Fake progress bar / bar chart** (since mPDF can't run JS/Highcharts): nest a percentage-width `<table>` inside a fixed-width gray track `<td>`:
+  ```php
+  <td style="background:#e0e0e0; height:8px; font-size:1px;">
+      <table width="<?=$barPct?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+          <td style="background:#3949ab; height:8px; font-size:1px;">&nbsp;</td>
+      </tr></table>
+  </td>
+  ```
+  This is the standard way to show a proportional bar in an mPDF view — used here for "Subject Wise Marks", "Marks Distribution", and "Grade Distribution" bars, all built this way instead of attempting real charts.
+- **Multi-record loop with page breaks**: `<?php if($seen < $count) { ?><p style="page-break-after: always;">&nbsp;</p><?php } ?>` between records (not after the last one).
+- **No-data fallback**: a plain centered red message (`style="text-align:center; color:red; padding:20px;"`) when the result set is empty.
+
+**When to use this pattern vs. a `.css`-file-based PDF**: use the fully-inline pattern for any *new* PDF view, especially ones with color/badges/bars — it's strictly more reliable. Older reports that already use an external `.css` file and already render correctly in practice don't need to be rewritten; this only matters when something isn't rendering correctly or you're building something new.
 
 ---
 
@@ -372,3 +427,5 @@ Both defined in `Admin_Controller`. CSS file in `assets/css/`.
 - **2026-03-16**: Added full dropdown section (cascade chain, AJAX methods, JS block, select2, datepicker, multi-select, validation).
 - **2026-03-16**: Exam date ordering fix — add `ORDER BY examschedule.edate ASC` in model; reorder `$subjects` in controller to match date order before passing to view.
 - **2026-03-16**: Compacted file for efficient AI context loading. Next work: Invoice Report.
+- **2026-07-26**: Added **School Wise Strength Report** (`Schoolwisestrengthreport.php`) — a dashboard-style report (stat cards + Highcharts donut/bar/pie + two aggregation tables), not the usual flat filter/table report. Deviates from the standard skeleton in two ways worth noting for future similar reports: (1) Class/Section filter values of `0` mean "All" and are valid (no `required` validation, unlike other reports where `0` means "please select" and is rejected) — so `rules()`/`unique_data()` were omitted entirely; (2) the report auto-loads on page open (`$('#get_...').trigger('click')` at the bottom of the view JS) instead of waiting for the user to pick filters first, since "All Classes / All Sections" is a meaningful default view for a school-wide dashboard. Aggregation logic lives in two new `Studentrelation_m` methods: `get_strength_by_class_section()` (GROUP BY `srclassesID, srsectionID, sex`) and `get_strength_by_caste()` (GROUP BY `caste, sex`) — both correctly join through `studentrelation` (not `student.classesID` directly) per the Section 4 gotcha. Excel export uses the Section 8.6 server-side PhpSpreadsheet pattern via a dedicated `export_excel()` GET method.
+- **2026-07-27**: Fixed two School Wise Strength Report bugs and used them to document permanent patterns. (1) Live-page bar/pie charts rendered empty — `json_encode(array_map(...))` over a `$classAgg`/`$casteAgg` array with non-sequential keys produces a JS object instead of an array; fixed with `array_values()`, now a general rule in Section 5. (2) The PDF was completely unstyled because `reportPDF()`'s external-CSS self-HTTP-fetch was failing silently — fixed by having `pdf()` drive `Mhtml2pdf` directly with the stylesheet read off local disk (Section 7). While diagnosing this, identified *why* `ProgresscardReportPDFNew.php` ("Progress Card (New Design)") already looks good and never had this problem: it uses **zero external CSS** — every element is styled with inline `style=""` — so it's immune to the whole bug class by construction. Documented that as the recommended pattern for any new PDF report in the new **Section 7.1**.

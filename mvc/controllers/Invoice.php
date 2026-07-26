@@ -283,9 +283,10 @@ class Invoice extends Admin_Controller
                 }
                 
                 $uri = $maininvoiceclassesID;
-                
+                $isCheckable = ($setButton == 'btn-danger');
+
                 $html .= '<tr>';
-                $html .= '<td><input type="checkbox" class="invoice-checkbox" value="'.$maininvoice->maininvoiceID.'" name="maininvoiceIDs[]"/></td>';
+                $html .= '<td><input type="checkbox" class="invoice-checkbox" value="'.$maininvoice->maininvoiceID.'" name="maininvoiceIDs[]"'.($isCheckable ? '' : ' disabled').'/></td>';
                 $html .= '<td>'.$i.'</td>';
                 $html .= '<td>'.$maininvoice->srname.'<br/>Father: '.$maininvoice->parent_name.'</td>';
                 $html .= '<td>'.$maininvoice->srclasses.'</td>';
@@ -428,9 +429,10 @@ class Invoice extends Admin_Controller
                 }
                 
                 $uri = $maininvoiceclassesID;
-                
+                $isCheckable = ($setButton == 'btn-danger');
+
                 $html .= '<tr>';
-                $html .= '<td><input type="checkbox" class="invoice-checkbox" value="'.$maininvoice->maininvoiceID.'" name="maininvoiceIDs[]"/></td>';
+                $html .= '<td><input type="checkbox" class="invoice-checkbox" value="'.$maininvoice->maininvoiceID.'" name="maininvoiceIDs[]"'.($isCheckable ? '' : ' disabled').'/></td>';
                 $html .= '<td>'.$i.'</td>';
                 $html .= '<td>'.$maininvoice->srname.'<br/>Father: '.$maininvoice->parent_name.'</td>';
                 $html .= '<td>'.$maininvoice->srclasses.'</td>';
@@ -3221,5 +3223,64 @@ class Invoice extends Admin_Controller
     $this->session->set_flashdata('success', 'Amount updated successfully.');
     redirect(base_url('invoice/index/0'));
 }
+
+    public function bulk_delete()
+    {
+        $maininvoiceclassesID = $this->input->post('maininvoiceclassesID');
+        $redirect_param       = ($maininvoiceclassesID === '' || $maininvoiceclassesID === NULL) ? '0' : $maininvoiceclassesID;
+
+        if(!permissionChecker('invoice_delete')) {
+            $this->session->set_flashdata('error', $this->lang->line('invoice_permission'));
+            redirect(base_url('invoice/index/').$redirect_param);
+        }
+
+        if(!(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5))) {
+            $this->session->set_flashdata('error', $this->lang->line('invoice_authorize'));
+            redirect(base_url('invoice/index/').$redirect_param);
+        }
+
+        $selectedIDs = $this->input->post('selectedIDs');
+        if(!$selectedIDs) {
+            $this->session->set_flashdata('error', 'Please select at least one Not Paid invoice to delete.');
+            redirect(base_url('invoice/index/').$redirect_param);
+        }
+
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+        $idsArray     = explode(',', $selectedIDs);
+        $deletedCount = 0;
+
+        foreach($idsArray as $maininvoiceID) {
+            $maininvoiceID = (int) $maininvoiceID;
+            if(!$maininvoiceID) {
+                continue;
+            }
+
+            // Re-check eligibility server-side — never trust the disabled checkbox alone.
+            $maininvoice = $this->maininvoice_m->get_single_maininvoice([
+                'maininvoiceID'         => $maininvoiceID,
+                'maininvoicedeleted_at' => 1
+            ]);
+
+            if(customCompute($maininvoice) && $maininvoice->maininvoicestatus == 0) {
+                $grandtotalandpayment = $this->grandtotalandpaidsingle($maininvoice, $schoolyearID, $maininvoice->maininvoicestudentID);
+                $totalpaid            = (float)$grandtotalandpayment['totalpayment'] + (float)$grandtotalandpayment['totalweaver'];
+
+                // Only genuinely "Not Paid" invoices (no payment/weaver recorded) may be bulk deleted.
+                if($totalpaid == 0) {
+                    $this->maininvoice_m->update_maininvoice(['maininvoicedeleted_at' => 0], $maininvoiceID);
+                    $this->invoice_m->update_invoice_by_maininvoiceID(['deleted_at' => 0], $maininvoiceID);
+                    $deletedCount++;
+                }
+            }
+        }
+
+        if($deletedCount > 0) {
+            $this->session->set_flashdata('success', $deletedCount.' invoice(s) deleted successfully.');
+        } else {
+            $this->session->set_flashdata('error', 'No eligible (Not Paid) invoices were deleted.');
+        }
+
+        redirect(base_url('invoice/index/').$redirect_param);
+    }
 
 }

@@ -186,6 +186,7 @@ $lang['menu_admitcardreport']          = 'Hall Ticket Report';
 $lang['menu_attendanceoverviewreport'] = 'Attendance Overview Report';
 $lang['menu_studentfinereport']        = 'Student Fine Report';
 $lang['menu_idcardreport']             = 'ID Card Report';
+$lang['menu_schoolwisestrengthreport'] = 'School Wise Strength Report';
 $lang['menu_feesreport']               = "Fees Report";
 $lang['menu_duefeesreport']            = "Due Fees Report";
 $lang['menu_balancefeesreport']        = "Balance Fees Report";

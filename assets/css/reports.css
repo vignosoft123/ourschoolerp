@@ -36,6 +36,11 @@
     border-top: 1px solid #c8e6c9;
     text-align: right;
 }
+.rpt-filter-divider {
+    border: none;
+    border-top: 1px dashed #c8e6c9;
+    margin: 6px 0 14px;
+}
 .rpt-filter-btn {
     padding: 9px 20px;
     font-size: 13px;
@@ -334,6 +339,9 @@
 .adm-stat-card--blue { background: linear-gradient(135deg, #1565c0, #1976d2); }
 .adm-stat-card--teal { background: linear-gradient(135deg, #006064, #00838f); }
 .adm-stat-card--pink { background: linear-gradient(135deg, #ad1457, #c2185b); }
+.adm-stat-card--green  { background: linear-gradient(135deg, #2e7d32, #43a047); }
+.adm-stat-card--orange { background: linear-gradient(135deg, #e65100, #f57c00); }
+.adm-stat-card--purple { background: linear-gradient(135deg, #6a1b9a, #8e24aa); }
 
 /* Growth indicators */
 .adm-growth-pos { color: #2e7d32; font-weight: 700; }
@@ -604,4 +612,139 @@
 .idcard-details b {
     width: 120px;
     display: inline-block;
+}
+.idcard-details .idcard-label {
+    width: 120px;
+    display: inline-block;
+}
+
+/* ── 15.1 ID Card Field Selector (plain checkboxes, one row) ──── */
+/* Note: selector is scoped (.rpt-idcard-fields label.rpt-idcard-field-item)
+   so its specificity beats ".rpt-filter-card label { display:block }" (Section 4) */
+.rpt-idcard-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-top: 8px;
+}
+.rpt-idcard-fields label.rpt-idcard-field-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    text-transform: none;
+    letter-spacing: normal;
+    cursor: pointer;
+    user-select: none;
+}
+.rpt-idcard-field-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* ── 15.2 ID Card Font Toolbar ────────────────────────────────── */
+.rpt-idcard-font-toolbar {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 22px;
+    margin-top: 8px;
+}
+.rpt-idcard-font-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.rpt-idcard-font-caption {
+    font-size: 11px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+/* Scoped + element-qualified so it beats a possible "select.form-control { width:100% }" rule elsewhere */
+.rpt-idcard-font-toolbar select.rpt-idcard-font-select {
+    width: auto;
+    min-width: 150px;
+    display: inline-block;
+    height: 34px;
+    padding: 4px 10px;
+}
+.rpt-idcard-style-group {
+    display: flex;
+    gap: 6px;
+}
+.rpt-idcard-style-btn {
+    width: 38px;
+    height: 34px;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    background: #fff;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.rpt-idcard-style-btn.active {
+    background: #4CAF50;
+    border-color: #4CAF50;
+    color: #fff;
+}
+.rpt-idcard-color-input {
+    width: 44px;
+    height: 34px;
+    padding: 2px;
+    border: 1px solid #c8e6c9;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #fff;
+}
+
+/* ── 16. School Wise Strength Report ─────────────────────────── */
+.sws-panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.sws-panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #263238;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e0e0e0;
+}
+.sws-panel-title i { margin-right: 6px; color: #1565c0; }
+
+.sws-matrix-table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 12.5px;
+}
+.sws-matrix-table th, .sws-matrix-table td {
+    border: 1px solid #dde2e6;
+    padding: 6px 8px;
+    text-align: center;
+    white-space: nowrap;
+}
+.sws-matrix-table thead th { color: #fff; font-weight: 700; }
+.sws-matrix-table .sws-hd-class { background: #1565c0; }
+.sws-matrix-table .sws-hd-boys  { background: #1976d2; }
+.sws-matrix-table .sws-hd-girls { background: #c2185b; }
+.sws-matrix-table .sws-hd-total { background: #2e7d32; }
+.sws-matrix-table tbody td:first-child { text-align: left; font-weight: 600; }
+.sws-matrix-table tfoot td { background: #e3f2fd; font-weight: 700; }
+
+@media print {
+    .sws-panel { break-inside: avoid; }
 }

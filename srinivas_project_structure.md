@@ -62,6 +62,23 @@ This document serves as a technical blueprint for the **OurSchoolERP** project. 
   - **Gotcha**: If you add a new menu entry (in `schema_updates.json` or directly in DB) and the label does not appear in the sidebar, the fix is always to add the key to `topbar_menu_lang.php`. Adding it only to the controller's own language file (e.g. `youtube_lang.php`) will NOT work for the sidebar because that file is only loaded when that specific controller runs.
   - **Example**: `$lang['menu_youtube_links'] = 'YouTube Links';` added to `topbar_menu_lang.php` after the sidebar showed no label for the YouTube Links menu item.
 - **Subdomain/Licensing**: The system contains logic in `Admin_Controller` (`_my_settings`, `check_aapi`) that performs site-key verification and potential remote checks.
+- **mPDF CSS Gotcha (report PDF views, `Mhtml2pdf.php` → `Mpdf\Mpdf`)**: The `reportPDF()` helper renders report PDFs through **mPDF**, not a browser — so it does NOT execute JavaScript (Highcharts/any chart library renders blank) and its CSS support/loading is fragile in ways that don't show up until you actually look at the output.
+  - **Root cause (2026-07-27), confirmed by testing — supersedes two earlier wrong guesses**: `Admin_Controller::reportPDF()` loads the PDF stylesheet via `file_get_contents(base_url('assets/pdf/'.$designType.'/'.$stylesheet))` — a **self-HTTP(S) fetch of its own asset URL**. In this environment that self-fetch was silently returning `false`/empty with no error surfaced anywhere, so `Mhtml2pdf::create()`'s `if(!empty($stylesheet))` guard skipped `$mpdf->WriteHTML($stylesheet, 1)` entirely — **none** of the external `.css` file's rules ever reached mPDF (confirmed: this affects bare element selectors like `th{}`/`td{}` just as much as class selectors — it's not a selector-specificity issue, the whole file simply never loaded).
+  - **Wrong fix tried first — do NOT repeat**: embedding a `<style>...</style>` block directly in the `*ReportPDF.php` view's own HTML, assuming mPDF would parse it out of the body content. It does **not** — `Mhtml2pdf::create()` calls `$mpdf->WriteHTML($this->html, 2)`, and mPDF's mode-`2` (body-only) parsing does **not** extract `<style>` tags the way mode-`1` (stylesheet-only, used for the external CSS param) does. The `<style>` block was rendered as **literal visible text at the top of the PDF page** — visibly broken, easy to spot immediately.
+  - **Actual working fix**: bypass `Admin_Controller::reportPDF()` for this report's `pdf()` method and drive `Mhtml2pdf` directly, reading the stylesheet straight off **local disk** (`file_get_contents(FCPATH.'assets/pdf/LTR/{name}.css')`) instead of over HTTP — this sidesteps the unreliable self-fetch entirely while still passing the CSS through the same mode-`1` `WriteHTML()` call that demonstrably works correctly for every other report's PDF (Progress Card, Classesreport, etc. all show correct colors). Pattern:
+    ```php
+    $html = $this->load->view('report/x/XReportPDF', $this->data, true);
+    $stylesheet = file_get_contents(FCPATH.'assets/pdf/LTR/xreport.css');
+    $this->load->library('mhtml2pdf');
+    $this->mhtml2pdf->folder('uploads/report/');
+    $this->mhtml2pdf->filename('Report');
+    $this->mhtml2pdf->paper('a4', 'portrait');
+    $this->mhtml2pdf->html($html);
+    $this->mhtml2pdf->create('view', $panelTitle, $stylesheet);
+    ```
+  - Inline `style=""` attributes per element (e.g. the 4 stat cards) still work fine regardless of which CSS-loading path is used, and remain a reasonable choice for a handful of one-off elements.
+  - Avoid CSS `float` for side-by-side boxes in a PDF view — mPDF's float support is inconsistent. Use a `<table>` with one `<td>` per box instead (colspan/rowspan header groups render correctly in mPDF tables).
+  - **Reference fix**: `Schoolwisestrengthreport::pdf()` — switched from `$this->reportPDF('schoolwisestrengthreport.css', ...)` to the direct-`Mhtml2pdf`-with-local-disk-read pattern above; `SchoolwisestrengthReportPDF.php` had its (broken) embedded `<style>` block removed.
 - **Web ↔ Mobile API Parity (MANDATORY)**: This project has parallel API controllers under `mvc/controllers/api/v10/` (e.g. `api/v10/Student.php`, `api/v10/Profile.php`) that mirror admin-panel controllers (e.g. `Student.php`) for the Ionic mobile app. The two sides **duplicate logic instead of sharing it** — the same private method (e.g. `getMark()`) is copy-pasted in both places.
   - **Rule**: Any bug fix or logic change made in a web controller/model that affects data shown to students/parents/teachers MUST be checked against, and mirrored in, the corresponding mobile API controller. Fixing only the web side silently leaves the same bug live on mobile.
   - **How to check**: Before considering a fix complete, grep for the same method name or query pattern under `mvc/controllers/api/v10/` to find the mobile equivalent.
@@ -184,6 +201,11 @@ A plain SQL counterpart to `schema_updates.json`. Contains the same schema chang
 - **2026-07-23**: **Bulk Roll No Edit popup** — added serial number (`#`) column and live search bar (filters by name/phone/admission no). Search clears automatically on class/section change. JS: `$(document).on('input', '#bulkRollSearch', ...)` filters `#bulkRollTableBody tr` by `.text().toLowerCase()`.
 - **2026-07-23**: **GoDaddy assets.zip two-step deploy** — `/upload-assets-zip/{server}` in `python/main.py` extended to support GoDaddy via cPanel Fileman API (same pattern as MVC zip). `_deploy_assets_to_subdomain()` GoDaddy branch replaced direct per-subdomain cPanel upload with `bootstrap_copy.php?type=assets` call on dummy server. JS `uploadAssetsZipToServer()` routes GoDaddy through Python (`localhost:8000`) while FTP servers continue through PHP endpoint. `bootstrap_copy.php` already supported `type=assets`.
 - **2026-07-24**: Documented **Web ↔ Mobile API Parity rule** (Section 4, MANDATORY) — `mvc/controllers/api/v10/` controllers duplicate web controller logic instead of sharing it, so any web-side fix must be checked/mirrored on the mobile API side. Triggered by fixing the student Marks-tab year-leak bug in `Student::getMark()` and then finding/fixing the identical copy-pasted bug in `api/v10/Student.php` and `api/v10/Profile.php`.
+- **2026-07-27**: Fixed **School Wise Strength Report** PDF + live-chart bugs.
+  - **PDF unstyled** (stat cards + table headers rendered with no color at all): root cause is `reportPDF()`'s external stylesheet self-HTTP-fetch (`file_get_contents(base_url(...))`) silently failing, so the whole `.css` file never reached mPDF — not a class-vs-element selector issue as first suspected. First fix attempt (embedding a `<style>` block in the view's own HTML) was itself wrong and made things worse — it printed as literal visible text, since mPDF's body-only `WriteHTML` mode doesn't parse `<style>` tags. Actual fix: `Schoolwisestrengthreport::pdf()` now bypasses `reportPDF()` and drives `Mhtml2pdf` directly, reading the stylesheet off local disk (`file_get_contents(FCPATH.'assets/pdf/LTR/...')`) instead of over HTTP, still passing it through the same `WriteHTML($css, 1)` call that works for every other report. Plus inline `style=""` on the 4 stat cards. See the corrected **mPDF CSS Gotcha** (Section 4).
+  - **Live-page "Class Wise Total Strength" bar chart and "Caste Wise Strength" pie chart both rendered empty**: `$classAgg` (keyed by `classesID`, reordered via `uasort` which preserves keys) and `$casteAgg` (keyed by caste label strings) both have non-sequential array keys. `array_map()` over them preserves those keys, so `json_encode()` produced **JS objects** (`{"5":"...", "12":"..."}`) instead of JS arrays — Highcharts categories/series silently got `undefined` data. Fixed by wrapping every such `json_encode(array_map(...))` call in `array_values(...)` in `SchoolwisestrengthreportReport.php` to force proper sequential-indexed arrays. **General rule**: any time a PHP associative/re-keyed array is `json_encode()`'d for use as a JS array (chart data, list data), wrap it in `array_values()` first — non-sequential integer keys or string keys make `json_encode` emit an object instead of an array.
+  - Documented the **Report Print Button → PDF Pattern** (Section 8.7): every report's Print button should open a real PDF in a new tab via `reportPDF()`, and any report with JS charts must use a separate, simpler chart-free PDF view.
+- **2026-07-26**: Implemented **School Wise Strength Report** (`/schoolwisestrengthreport`, menu under Reports parentID=18, priority 985) — a new dashboard-style report (not the standard flat filter/table pattern): stat cards (Total Students/Boys/Girls/Classes/Sections), a Class & Section Wise Strength matrix table with dynamic section-name columns, a Caste Wise Strength table, and 3 Highcharts (donut boys/girls, bar per-class strength, pie per-caste). Key decisions made after researching the actual schema (`new domains/mindw2ft_dummy_bkp.sql`): (1) dropped the "Select School" filter from the original design reference entirely — this ERP is single-school-per-tenant (one DB per subdomain), `college_groups` is a list of *separate tenant login URLs* (redirects to a different subdomain's `/signin`), not an in-DB filter dimension, and `student` has no school/college FK; (2) `student.caste` is a free-text `varchar(55)` column with **no lookup/category table** — the Caste Wise Strength section groups by whatever distinct `caste` values actually exist in the data (bucketed as "Not Specified" when empty), not a fixed General/BC/SC/ST/OBC/Others enum; (3) reused the already-loaded **Highcharts** library (same one used by Dashboard and `Classesreport.php`) rather than adding a new charting dependency. New model methods `Studentrelation_m::get_strength_by_class_section()` and `::get_strength_by_caste()` both join through `studentrelation` (never `student.classesID` directly) per the class/section source-of-truth rule above. A "School Wise Strength Report" button was added to the Student Report page (`mvc/views/report/student/StudentReportView.php`) that opens the new report in a new tab (`target="_blank"`).
 
 ## 8. Reusable UI Patterns
 
@@ -541,6 +563,28 @@ public function export_excel() {
 **Cautionary example — client-side SheetJS done wrong**: `mvc/views/report/balancefees/BalanceFeesReport.php` (`#exportButton` handler) clones `#myTable` and hard-codes `deleteCell(clonedTable.rows[i].cells.length - 1)` to strip the last column, with a fixed `"table_data.xlsx"` filename. This breaks silently if the table's column layout ever changes, and depends on an external CDN (`cdnjs.cloudflare.com`) at runtime. Prefer 8.6 over this style for any new export button.
 
 **Decision log (2026-07-14)**: For `Studentreport::xlsx()`, we tried a client-side SheetJS button first (8.3 style) but reverted it in favor of fixing the existing server-side `generateXML()` method (8.6 style), since a working download endpoint already existed and the server-side approach avoids the photo-column and CDN-dependency issues entirely.
+
+---
+
+### 8.7 Report "Print" Button → Opens a Real PDF in a New Tab (project standard)
+
+**Rule**: A report's **Print** button/link should NOT default to `onclick="window.print()"` (browser print dialog on the live page). Instead, follow the pattern already used by Progress Card, Classesreport, ID Card, etc.:
+
+```php
+<a href="<?=base_url('yourreport/pdf/'.$classesID.'/'.$sectionID)?>" class="btn btn-primary rpt-action-btn" target="_blank">
+    <i class="fa fa-print"></i> Print
+</a>
+```
+
+The controller's `pdf()` method reads filter values from URI segments, rebuilds the same data the AJAX preview uses, and calls the shared helper:
+```php
+$this->reportPDF('yourreport.css', $this->data, 'report/yourreport/YourReportPDF');
+```
+This opens a genuine downloadable/printable PDF in a new browser tab (via mPDF — see the mPDF CSS gotcha above), matching what every other report in this project already does.
+
+**If the report includes charts (Highcharts, or any JS-rendered chart)**: the PDF must **exclude the charts** — mPDF does not execute JavaScript, so a chart `<div>` renders as a blank box in the PDF. Build a **separate, simpler PDF view** (`*ReportPDF.php`) containing only the stat cards/tables the charts summarize, using the mPDF-safe table-based layout described above — do not attempt to carry the chart containers into the PDF view at all.
+
+**Reference implementation**: School Wise Strength Report (`Schoolwisestrengthreport::pdf()` → `SchoolwisestrengthReportPDF.php`) — the live AJAX report shows 3 Highcharts, but its PDF view shows only the stat cards + the two aggregation tables.
 
 ---
 

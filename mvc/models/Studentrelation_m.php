@@ -221,6 +221,43 @@ public function general_get_order_by_student_multi_selction($arrays = [], $stude
 
 
 
+	public function get_strength_by_class_section($schoolyearID, $classesID = 0, $sectionID = 0) {
+		$this->db->select('sr.srclassesID, sr.srsectionID, cls.classes, cls.classes_numeric, sec.section, s.sex, COUNT(*) as cnt', FALSE);
+		$this->db->from('studentrelation sr');
+		$this->db->join('student s', 's.studentID = sr.srstudentID', 'INNER');
+		$this->db->join('classes cls', 'cls.classesID = sr.srclassesID', 'INNER');
+		$this->db->join('section sec', 'sec.sectionID = sr.srsectionID', 'INNER');
+		$this->db->where('sr.srschoolyearID', $schoolyearID);
+		$this->db->where('s.active', 1);
+		if ((int)$classesID > 0) {
+			$this->db->where('sr.srclassesID', $classesID);
+		}
+		if ((int)$sectionID > 0) {
+			$this->db->where('sr.srsectionID', $sectionID);
+		}
+		$this->db->group_by('sr.srclassesID, sr.srsectionID, s.sex');
+		$this->db->order_by('cls.classes_numeric asc, sec.section asc');
+		$query = $this->db->get();
+		return $query->result();
+	}
+
+	public function get_strength_by_caste($schoolyearID, $classesID = 0, $sectionID = 0) {
+		$this->db->select('s.caste, s.sex, COUNT(*) as cnt', FALSE);
+		$this->db->from('studentrelation sr');
+		$this->db->join('student s', 's.studentID = sr.srstudentID', 'INNER');
+		$this->db->where('sr.srschoolyearID', $schoolyearID);
+		$this->db->where('s.active', 1);
+		if ((int)$classesID > 0) {
+			$this->db->where('sr.srclassesID', $classesID);
+		}
+		if ((int)$sectionID > 0) {
+			$this->db->where('sr.srsectionID', $sectionID);
+		}
+		$this->db->group_by('s.caste, s.sex');
+		$query = $this->db->get();
+		return $query->result();
+	}
+
 	public function general_get_order_by_student_bkp($arrays = [], $studentExtend = FALSE) {
 		$arrays = $this->prefixLoad($arrays);
         $this->db->select('*,(select father_name from parents where parentsID=student.parentID) as father_name');

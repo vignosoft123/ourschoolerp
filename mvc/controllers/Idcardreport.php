@@ -204,6 +204,47 @@ class Idcardreport extends Admin_Controller {
         }
     }
 
+    private function sanitizeIdcardFontStyle($posts) {
+        $allowedFontFamilies = array(
+            'Arial, sans-serif',
+            "'Times New Roman', serif",
+            'Verdana, sans-serif',
+            'Georgia, serif',
+            "'Courier New', monospace",
+            "'Trebuchet MS', sans-serif",
+        );
+
+        $fontFamily = isset($posts['fontFamily']) && in_array($posts['fontFamily'], $allowedFontFamilies)
+            ? $posts['fontFamily']
+            : 'Arial, sans-serif';
+
+        $fontSize = isset($posts['fontSize']) && is_numeric($posts['fontSize']) && $posts['fontSize'] >= 10 && $posts['fontSize'] <= 40
+            ? (int)$posts['fontSize']
+            : 15;
+
+        $labelColor = isset($posts['labelColor']) && preg_match('/^#[0-9a-fA-F]{6}$/', $posts['labelColor'])
+            ? $posts['labelColor']
+            : '#000000';
+
+        $valueColor = isset($posts['valueColor']) && preg_match('/^#[0-9a-fA-F]{6}$/', $posts['valueColor'])
+            ? $posts['valueColor']
+            : '#000000';
+
+        $photoBorderColor = isset($posts['photoBorderColor']) && preg_match('/^#[0-9a-fA-F]{6}$/', $posts['photoBorderColor'])
+            ? $posts['photoBorderColor']
+            : '#000000';
+
+        return array(
+            'fontFamily'       => $fontFamily,
+            'fontSize'         => $fontSize,
+            'bold'             => !empty($posts['fontBold']),
+            'italic'           => !empty($posts['fontItalic']),
+            'labelColor'       => $labelColor,
+            'valueColor'       => $valueColor,
+            'photoBorderColor' => $photoBorderColor,
+        );
+    }
+
     private function queryArray($posts) {
         // echo "<pre>";print_r($posts);die;
         $usertypeID = $posts['usertypeID'];
@@ -331,6 +372,13 @@ class Idcardreport extends Admin_Controller {
                     $retArray['status'] = TRUE;
 
 					 $this->data['id_card_template'] = $this->Setting_m->get_setting_where('id_card_template');
+
+                    $selectedFields = $this->input->post('fields');
+                    $this->data['selectedFields'] = (is_array($selectedFields) && customCompute($selectedFields))
+                        ? $selectedFields
+                        : array('medium', 'class_section', 'father_name', 'contact_no', 'village', 'blood_group');
+
+                    $this->data['fontStyle'] = $this->sanitizeIdcardFontStyle($this->input->post());
 
                     //echo "<pre>";print_r($this->data['idcards']);die;
                     // $retArray['render'] = $this->load->view('report/idcard/IdcardReport', $this->data,true);

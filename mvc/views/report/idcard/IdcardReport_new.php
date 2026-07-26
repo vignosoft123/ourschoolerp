@@ -1,3 +1,19 @@
+<?php if(!isset($selectedFields) || !is_array($selectedFields)) {
+    $selectedFields = array('medium', 'class_section', 'father_name', 'contact_no', 'village', 'blood_group');
+} ?>
+<?php
+    $fontStyle = (isset($fontStyle) && is_array($fontStyle)) ? $fontStyle : array();
+    $idcardDetailsStyle = sprintf(
+        'font-family:%s; font-size:%dpx; font-weight:%s; font-style:%s;',
+        $fontStyle['fontFamily'] ?? 'Arial, sans-serif',
+        $fontStyle['fontSize'] ?? 15,
+        !empty($fontStyle['bold']) ? 'bold' : 'normal',
+        !empty($fontStyle['italic']) ? 'italic' : 'normal'
+    );
+    $idcardLabelStyle = 'color:'.($fontStyle['labelColor'] ?? '#000000').';';
+    $idcardValueStyle = 'color:'.($fontStyle['valueColor'] ?? '#000000').';';
+    $photoBorderColor = $fontStyle['photoBorderColor'] ?? '#000000';
+?>
 <?php if(count($idcards)) { ?>
 
 <div class="box" style="border-top: 3px solid #388e3c;">
@@ -26,7 +42,7 @@
                 <div class="idcard-box" style="background-image:url('<?=base_url("uploads/idcard_templates/".$id_card_template["value"])?>');">
 
                     <!-- Student Photo -->
-                    <div class="idcard-photo" style="margin-top : 40%;width:40% ; height:30%">
+                    <div class="idcard-photo" style="margin-top : 40%;width:40% ; height:30%; border-color:<?=$photoBorderColor?>;">
                         <img src="<?=imagelink($student->photo)?>" alt="Student Photo">
                     </div>
 
@@ -37,14 +53,27 @@
 
                     <!-- Student Details -->
                      <?php //echo "<pre>"; print_r($student);die;?>
-                   <b> <div class="idcard-details text-black" style="">
-                        <b class="text-black">Medium</b>: <?=$student->medium ?? 'English'?><br>
-                        <b class="text-black">Class/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
-                        <b class="text-black">F'Name</b>: <?=$student->father_name ?? ''?><br>
-                        <b class="text-black" >Contact No.</b>: <?=$student->phone ?? ''?><br>
-                        <b class="text-black">Village</b>: <?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?><br>
+                    <div class="idcard-details" style="<?=$idcardDetailsStyle?>">
+                        <?php if(in_array('medium', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Medium</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->medium ?? 'English'?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('class_section', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Class/Sec</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('father_name', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">F'Name</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->father_name ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('contact_no', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Contact No.</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->phone ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('village', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Village</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('blood_group', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Blood Group</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->bloodgroup ?? ''?></span><br>
+                        <?php } ?>
 
-                    </div></b>
+                    </div>
 
                 </div>
             <?php } ?>

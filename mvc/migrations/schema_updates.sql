@@ -473,3 +473,21 @@ INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
     SELECT 1, permissionID FROM `permissions` WHERE `name` = 'daysummaryreport'
     AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
         AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'daysummaryreport'));
+
+
+-- ------------------------------------------------------------
+-- INSERT: menu + permission — schoolwisestrengthreport
+-- ------------------------------------------------------------
+
+INSERT INTO `menu` (`menuName`, `link`, `icon`, `status`, `parentID`, `priority`)
+    SELECT 'schoolwisestrengthreport', 'schoolwisestrengthreport', 'fa-bar-chart', '1', '18', '985'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `menu` WHERE `menuName` = 'schoolwisestrengthreport');
+
+INSERT INTO `permissions` (`name`, `description`)
+    SELECT 'schoolwisestrengthreport', 'schoolwisestrengthreport'
+    FROM dual WHERE NOT EXISTS (SELECT 1 FROM `permissions` WHERE `name` = 'schoolwisestrengthreport');
+
+INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
+    SELECT 1, permissionID FROM `permissions` WHERE `name` = 'schoolwisestrengthreport'
+    AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
+        AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'schoolwisestrengthreport'));
