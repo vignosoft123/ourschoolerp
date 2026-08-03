@@ -14,18 +14,37 @@
                 <div class="form-group col-sm-4" id="usertypeIDDiv">
                     <label for="usertypeID"><?=$this->lang->line("idcardreport_idcard_for")?> <span class="text-red">*</span></label>
                     <?php
-                        $usertypesArray['0'] = $this->lang->line("idcardreport_please_select");
+                        // "ID Card For" is intentionally limited to Student / Teacher / Non Teaching Staff only.
+                        // Non Teaching Staff is a UI grouping over usertypeIDs 5-11 (Accountant, Librarian, Driver,
+                        // etc.) — picking it reveals the "Staff Type" dropdown below to choose the real usertypeID.
+                        $usertypeLabels = array();
                         if(customCompute($usertypes)) {
                             foreach($usertypes as $usertype) {
-                                if($usertype->usertypeID != 4) {
-                                    $usertypesArray[$usertype->usertypeID] = $usertype->usertype;
-                                }
+                                $usertypeLabels[$usertype->usertypeID] = $usertype->usertype;
                             }
                         }
+
+                        $usertypesArray = array();
+                        $usertypesArray['0'] = $this->lang->line("idcardreport_please_select");
+                        $usertypesArray['3'] = isset($usertypeLabels[3]) ? $usertypeLabels[3] : 'Student';
+                        $usertypesArray['2'] = isset($usertypeLabels[2]) ? $usertypeLabels[2] : 'Teacher';
+                        $usertypesArray['nonteaching'] = 'Non Teaching Staff';
                         echo form_dropdown("usertypeID", $usertypesArray, set_value("usertypeID"), "id='usertypeID' class='form-control select2'");
                      ?>
                 </div>
 
+                <div class="form-group col-sm-4" id="nonteachingTypeDiv">
+                    <label for="nonteachingTypeID">Staff Type <span class="text-red">*</span></label>
+                    <?php
+                        $nonteachingTypesArray = array('0' => $this->lang->line("idcardreport_please_select"));
+                        foreach($usertypeLabels as $utID => $utLabel) {
+                            if(!in_array($utID, array(1, 2, 3, 4))) {
+                                $nonteachingTypesArray[$utID] = $utLabel;
+                            }
+                        }
+                        echo form_dropdown("nonteachingTypeID", $nonteachingTypesArray, '', "id='nonteachingTypeID' class='form-control select2'");
+                     ?>
+                </div>
 
                 <div class="form-group col-sm-4" id="classesDiv">
                     <label for="classesID"><?=$this->lang->line("idcardreport_class")?> <span class="text-red">*</span></label>
@@ -105,9 +124,10 @@
             <div class="row">
                 <div class="form-group col-sm-12" id="fieldsDiv">
                     <label>Fields to Display on ID Card</label>
-                    <div class="rpt-idcard-fields">
+
+                    <div class="rpt-idcard-fields idcard-fields-group" id="studentFieldsGroup">
                         <?php
-                            $idcardFieldOptions = array(
+                            $studentFieldOptions = array(
                                 'medium'        => 'Medium',
                                 'class_section' => 'Class/Sec',
                                 'father_name'   => "F'Name",
@@ -115,7 +135,41 @@
                                 'village'       => 'Village',
                                 'blood_group'   => 'Blood Group',
                             );
-                            foreach ($idcardFieldOptions as $fieldValue => $fieldLabel) {
+                            foreach ($studentFieldOptions as $fieldValue => $fieldLabel) {
+                        ?>
+                            <label class="rpt-idcard-field-item">
+                                <input type="checkbox" class="idcard-field-checkbox" name="fields[]" value="<?=$fieldValue?>" checked>
+                                <span><?=$fieldLabel?></span>
+                            </label>
+                        <?php } ?>
+                    </div>
+
+                    <div class="rpt-idcard-fields idcard-fields-group" id="teacherFieldsGroup" style="display:none;">
+                        <?php
+                            $teacherFieldOptions = array(
+                                'employee_id' => 'Employee ID',
+                                'designation' => 'Designation',
+                                'contact_no'  => 'Contact No.',
+                                'village'     => 'Village',
+                            );
+                            foreach ($teacherFieldOptions as $fieldValue => $fieldLabel) {
+                        ?>
+                            <label class="rpt-idcard-field-item">
+                                <input type="checkbox" class="idcard-field-checkbox" name="fields[]" value="<?=$fieldValue?>" checked>
+                                <span><?=$fieldLabel?></span>
+                            </label>
+                        <?php } ?>
+                    </div>
+
+                    <div class="rpt-idcard-fields idcard-fields-group" id="nonteachingFieldsGroup" style="display:none;">
+                        <?php
+                            $nonteachingFieldOptions = array(
+                                'employee_id' => 'Employee ID',
+                                'role'        => 'Role',
+                                'contact_no'  => 'Contact No.',
+                                'village'     => 'Village',
+                            );
+                            foreach ($nonteachingFieldOptions as $fieldValue => $fieldLabel) {
                         ?>
                             <label class="rpt-idcard-field-item">
                                 <input type="checkbox" class="idcard-field-checkbox" name="fields[]" value="<?=$fieldValue?>" checked>
@@ -132,18 +186,31 @@
                     <div class="rpt-idcard-font-toolbar">
                         <div class="rpt-idcard-font-group">
                             <span class="rpt-idcard-font-caption">Font</span>
-                            <select id="idcardFontFamily" class="form-control rpt-idcard-font-select">
+                            <select id="idcardFontFamily" class="form-control rpt-idcard-font-select select2">
                                 <option value="Arial, sans-serif">Arial</option>
                                 <option value="'Times New Roman', serif">Times New Roman</option>
                                 <option value="Verdana, sans-serif">Verdana</option>
                                 <option value="Georgia, serif">Georgia</option>
                                 <option value="'Courier New', monospace">Courier New</option>
                                 <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                                <option value="'Revue', cursive">Revue</option>
+                                <option value="'Bookman Old Style', serif">Bookman Old Style Bold</option>
+                                <option value="'Souvenir', serif">Souvenir Bold</option>
+                                <option value="Tahoma, sans-serif">Tahoma</option>
+                                <option value="Tahoma, sans-serif">Tahoma Bold</option>
+                                <option value="Impact, sans-serif">Impact</option>
+                                <option value="'Bauhaus 93', sans-serif">Bauhaus</option>
+                                <option value="'Bazooka', fantasy">Bazooka</option>
+                                <option value="'Belwe Bd BT', serif">Belwe Bd Bt</option>
+                                <option value="'Benguiat', serif">Benguiat</option>
+                                <option value="'Arial Rounded MT Bold', Arial, sans-serif">Arial Round</option>
+                                <option value="'Futura', sans-serif">Futura</option>
+                                <option value="'Running Matter Ki', fantasy">Running Matter Ki</option>
                             </select>
                         </div>
                         <div class="rpt-idcard-font-group">
                             <span class="rpt-idcard-font-caption">Size</span>
-                            <select id="idcardFontSize" class="form-control rpt-idcard-font-select">
+                            <select id="idcardFontSize" class="form-control rpt-idcard-font-select select2">
                                 <option value="12">12px</option>
                                 <option value="13">13px</option>
                                 <option value="14">14px</option>
@@ -201,6 +268,49 @@
         window.location.reload();
     }
 
+    function getEffectiveUsertypeID() {
+        var mainVal = $('#usertypeID').val();
+        if (mainVal === 'nonteaching') {
+            return $('#nonteachingTypeID').val() || '0';
+        }
+        return mainVal;
+    }
+
+    function updateIdcardModeUI() {
+        var mainVal = $('#usertypeID').val();
+        var effective = getEffectiveUsertypeID();
+
+        if (mainVal === 'nonteaching') {
+            $('#nonteachingTypeDiv').show('slow');
+        } else {
+            $('#nonteachingTypeDiv').hide('slow');
+            $('#nonteachingTypeID').val('0');
+        }
+
+        if (effective == '3') {
+            $('#classesDiv').show('slow');
+            $('#sectionDiv').show('slow');
+        } else {
+            $('#classesDiv').hide('slow');
+            $('#sectionDiv').hide('slow');
+        }
+
+        if (effective && effective != '0') {
+            $('#userDiv').show('slow');
+        } else {
+            $('#userDiv').hide('slow');
+        }
+
+        $('.idcard-fields-group').hide();
+        if (effective == '2') {
+            $('#teacherFieldsGroup').show();
+        } else if (effective && effective != '0' && mainVal !== '3') {
+            $('#nonteachingFieldsGroup').show();
+        } else {
+            $('#studentFieldsGroup').show();
+        }
+    }
+
     $(function(){
         $("#routinefor").val(0);
         $("#classesID").val(0);
@@ -211,6 +321,7 @@
         $('#classesDiv').hide('slow');
         $('#sectionDiv').hide('slow');
         $('#userDiv').hide('slow');
+        $('#nonteachingTypeDiv').hide('slow');
         $(".select2").select2();
     });
 
@@ -229,44 +340,48 @@
 
     $(document).on('change', "#usertypeID", function() {
         $('#load_idcardreport').html("");
-        var usertypeID = $(this).val();
-        var classesID = $("#classesID").val();
-        var sectionID = $("#sectionID").val();
+        $("#classesID").val(0);
+        $("#sectionID").val(0);
+        $("#userID").val(null).trigger('change');
+
+        updateIdcardModeUI();
+
+        var mainVal = $(this).val();
+        var effective = getEffectiveUsertypeID();
         var idcardtext = $('#usertypeID option:selected').text();
-        var error = 0;
-
         $('#userDivlabel').text(idcardtext);
-        if(usertypeID == '0'){
-            $('#classesDiv').hide('slow');
-            $('#sectionDiv').hide('slow');
-            $('#userDiv').hide('slow');
-        } else if(usertypeID == '3') {
-            $("#classesID").val(0);
-            $("#sectionID").val(0);
-            $("#userID").val(null).trigger('change');
-            $('#classesDiv').show('slow');
-            $('#sectionDiv').show('slow');
-            $('#userDiv').show('slow');
-        } else if(usertypeID != '0' && usertypeID !='3') {
-            $("#classesID").val(0);
-            $("#sectionID").val(0);
-            $("#userID").val(null).trigger('change');
-            $('#classesDiv').hide('slow');
-            $('#sectionDiv').hide('slow');
-            $('#userDiv').show('slow');
+
+        if(mainVal === 'nonteaching') {
+            return; // wait for the Staff Type dropdown before loading users
         }
 
-        var passData = {
-            'usertypeID':usertypeID,
-            'classesID':classesID,
-            'sectionID':sectionID,
-        }
-
-        if(usertypeID > 0)  {
+        if(effective > 0)  {
             $.ajax({
                 type : 'POST',
                 url  : '<?=base_url('idcardreport/getUser')?>',
-                data : passData,
+                data : {'usertypeID': effective, 'classesID': $('#classesID').val(), 'sectionID': $('#sectionID').val()},
+                success : function(data) {
+                    $('#userID').html(data);
+                }
+            });
+        }
+    });
+
+    $(document).on('change', '#nonteachingTypeID', function() {
+        $('#load_idcardreport').html('');
+        $("#userID").val(null).trigger('change');
+
+        updateIdcardModeUI();
+
+        var effective = getEffectiveUsertypeID();
+        var idcardtext = $(this).find('option:selected').text();
+        $('#userDivlabel').text(idcardtext);
+
+        if(effective > 0) {
+            $.ajax({
+                type : 'POST',
+                url  : '<?=base_url('idcardreport/getUser')?>',
+                data : {'usertypeID': effective, 'classesID': 0, 'sectionID': 0},
                 success : function(data) {
                     $('#userID').html(data);
                 }
@@ -337,7 +452,8 @@
     });
 
     $(document).on('click','#get_idcardreport', function() {
-        var usertypeID = $('#usertypeID').val();
+        var mainVal   = $('#usertypeID').val();
+        var usertypeID = getEffectiveUsertypeID();
         var classesID = $('#classesID').val();
         var sectionID = $('#sectionID').val();
         var userID    = $('#userID').val();
@@ -345,7 +461,7 @@
         var background= $('#background').val();
         var photo_type= $('#photo_type').val();
         var fields = [];
-        $('.idcard-field-checkbox:checked').each(function() {
+        $('.idcard-fields-group:visible .idcard-field-checkbox:checked').each(function() {
             fields.push($(this).val());
         });
         var fontFamily = $('#idcardFontFamily').val();
@@ -374,11 +490,18 @@
             'photoBorderColor' : photoBorderColor,
         }
 
-        if(usertypeID == 0 ) {
+        if(mainVal == 0 ) {
             $('#usertypeIDDiv').addClass('has-error');
             error++;
         } else {
             $('#usertypeIDDiv').removeClass('has-error');
+        }
+
+        if(mainVal === 'nonteaching' && (usertypeID == 0 || usertypeID === '')) {
+            $('#nonteachingTypeDiv').addClass('has-error');
+            error++;
+        } else {
+            $('#nonteachingTypeDiv').removeClass('has-error');
         }
 
         if(usertypeID == 3 && classesID == 0 ) {

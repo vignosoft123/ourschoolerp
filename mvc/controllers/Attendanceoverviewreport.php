@@ -16,8 +16,6 @@ class Attendanceoverviewreport extends Admin_Controller {
 		$this->load->model("uattendance_m");
 		$language = $this->session->userdata('lang');
 		$this->lang->load('attendanceoverviewreport', $language);
-
-		$this->load->database();
 	}
 
 	public function rules($usertype) {
@@ -1055,7 +1053,7 @@ class Attendanceoverviewreport extends Admin_Controller {
 	}
 
 public function get_biomatric_report(){
-	$sql = "select t.teacherID,t.name,t.designation,t.phone,b.rfid, date, min(time) min, nullif(max(time), min(time)) max from biometric b left join teacher t on t.rfid=b.rfid where 1";
+	$sql = "select t.teacherID,t.name,t.designation,t.phone,b.rfid, date, min(time) min, nullif(max(time), min(time)) max from biometric b left join teacher t on t.rfid=b.rfid where t.teacherID is not null";
 
 	if(!empty($_POST['teacher_id'])){
 		$sql .= " and t.teacherID =".$_POST['teacher_id'];
@@ -1249,10 +1247,10 @@ public function get_student_biomatric_report() {
 }
 
 public function get_user_biomatric_report() {
-    $sql = "SELECT u.userID, u.name, ut.name AS role, u.phone, b.rfid, b.`date`,
+    $sql = "SELECT u.userID, u.name, ut.usertype AS role, u.phone, b.rfid, b.`date`,
                    MIN(b.`time`) AS `min`, NULLIF(MAX(b.`time`), MIN(b.`time`)) AS `max`
             FROM biometric b
-            LEFT JOIN user u ON u.rf_id = b.rfid
+            LEFT JOIN user u ON u.rfid = b.rfid
             LEFT JOIN usertype ut ON ut.usertypeID = u.usertypeID
             WHERE u.userID IS NOT NULL";
 

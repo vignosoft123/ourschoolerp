@@ -44,6 +44,7 @@ ALTER TABLE `student`        ADD COLUMN IF NOT EXISTS `medium`                  
 ALTER TABLE `student`        ADD COLUMN IF NOT EXISTS `platform`                   VARCHAR(255)    DEFAULT NULL;
 ALTER TABLE `student`        ADD COLUMN IF NOT EXISTS `pickup_id`                  INT             NULL DEFAULT '0';
 ALTER TABLE `student`        ADD COLUMN IF NOT EXISTS `remarks`                    TEXT            NULL DEFAULT NULL;
+ALTER TABLE `student`        ADD COLUMN IF NOT EXISTS `rf_id`                      VARCHAR(255)    DEFAULT NULL;
 
 ALTER TABLE `user`           ADD COLUMN IF NOT EXISTS `is_able_payment_discount`   INT             NULL DEFAULT '0';
 ALTER TABLE `user`           ADD COLUMN IF NOT EXISTS `rfid`                       VARCHAR(255)    DEFAULT NULL;
@@ -51,6 +52,7 @@ ALTER TABLE `user`           ADD COLUMN IF NOT EXISTS `rf_id`                   
 
 ALTER TABLE `teacher`        ADD COLUMN IF NOT EXISTS `default_login_time`         TIME            NULL DEFAULT '0.00';
 ALTER TABLE `teacher`        ADD COLUMN IF NOT EXISTS `default_logout_time`        TIME            NULL DEFAULT '17:00:00';
+ALTER TABLE `teacher`        ADD COLUMN IF NOT EXISTS `rfid`                       VARCHAR(255)    DEFAULT NULL;
 ALTER TABLE `teacher`        CHANGE `signature` `signature`                        TEXT            NULL;
 
 ALTER TABLE `make_payment`   ADD COLUMN IF NOT EXISTS `salary_date`                VARCHAR(255)    NULL DEFAULT NULL;
@@ -331,6 +333,13 @@ INSERT INTO `permission_relationships` (`usertype_id`, `permission_id`)
     AND NOT EXISTS (SELECT 1 FROM `permission_relationships` WHERE `usertype_id` = 1
         AND `permission_id` = (SELECT permissionID FROM `permissions` WHERE `name` = 'logs'));
 
+
+-- ------------------------------------------------------------
+-- ALTER: whatapp_templates — add template_name and short_name columns
+-- ------------------------------------------------------------
+
+ALTER TABLE `whatapp_templates` ADD COLUMN IF NOT EXISTS `template_name` VARCHAR(200) NULL DEFAULT NULL;
+ALTER TABLE `whatapp_templates` ADD COLUMN IF NOT EXISTS `short_name` VARCHAR(100) NULL DEFAULT NULL;
 
 -- ------------------------------------------------------------
 -- INSERT: WhatsApp templates  (WHERE NOT EXISTS on short_name)

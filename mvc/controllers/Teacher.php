@@ -113,6 +113,11 @@ class Teacher extends Admin_Controller {
                 'field' => 'default_logout_time',
                 'label' => $this->lang->line("default_logout_time"),
                 'rules' => 'trim|xss_clean'
+            ],
+            [
+                'field' => 'rfid',
+                'label' => 'RFID',
+                'rules' => 'trim|xss_clean|callback_rfid_format'
             ]
         ];
         return $rules;
@@ -155,6 +160,18 @@ class Teacher extends Admin_Controller {
             return true;
         }
         return true;
+    }
+
+    public function rfid_format( $str )
+    {
+        if ( $str === '' ) {
+            return true;
+        }
+        if ( preg_match('/^([0-9]{4}|[0-9]{8})$/', $str) ) {
+            return true;
+        }
+        $this->form_validation->set_message('rfid_format', 'Teacher RFID must be exactly 4 digits (new cards) or 8 digits (existing cards).');
+        return false;
     }
 
     public function photoupload()

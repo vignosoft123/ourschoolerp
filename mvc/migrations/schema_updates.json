@@ -574,6 +574,14 @@
         }
     },
     {
+        "query": "ALTER TABLE `whatapp_templates` ADD `template_name` VARCHAR(200) NULL DEFAULT NULL",
+        "type": "alter",
+        "check_column": {
+            "table": "whatapp_templates",
+            "column": "template_name"
+        }
+    },
+    {
         "query": "ALTER TABLE `whatapp_templates` ADD `short_name` VARCHAR(100) NULL DEFAULT NULL",
         "type": "alter",
         "check_column": {
@@ -959,5 +967,15 @@
         "query": "ALTER TABLE `transport` ADD `active_status` TINYINT(1) NOT NULL DEFAULT '1'",
         "type": "alter",
         "check_column": { "table": "transport", "column": "active_status" }
+    },
+    {
+        "query": "ALTER TABLE `teacher` ADD `rfid` VARCHAR(255) DEFAULT NULL",
+        "type": "alter",
+        "check_column": { "table": "teacher", "column": "rfid" }
+    },
+    {
+        "query": "ALTER TABLE `student` ADD `rf_id` VARCHAR(255) DEFAULT NULL",
+        "type": "alter",
+        "check_column": { "table": "student", "column": "rf_id" }
     }
 ]

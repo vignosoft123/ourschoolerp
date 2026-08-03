@@ -43,9 +43,9 @@
                         </ul>
                         <div style="padding:10px 15px; border-bottom:1px solid #ddd; background:#f9f9f9; text-align:center;">
                             <div class="btn-group btn-group-sm">
-                                <button type="button" class="btn btn-default hostel-filter active" data-filter=""><i class="fa fa-users"></i> All</button>
+                                <button type="button" class="btn btn-default hostel-filter" data-filter=""><i class="fa fa-users"></i> All</button>
                                 <button type="button" class="btn btn-success hostel-filter" data-filter="1"><i class="fa fa-check-circle"></i> Members</button>
-                                <button type="button" class="btn btn-warning hostel-filter" data-filter="0"><i class="fa fa-plus-circle"></i> Not Added</button>
+                                <button type="button" class="btn btn-warning hostel-filter active" data-filter="0"><i class="fa fa-plus-circle"></i> Not Added</button>
                             </div>
                         </div>
 
@@ -85,6 +85,7 @@
                                                     <td data-title="<?=$this->lang->line('hmember_phone')?>"><?php echo $student->phone; ?></td>
                                                     <?php if(permissionChecker('hmember_add') || permissionChecker('hmember_edit') || permissionChecker('hmember_delete') || permissionChecker('hmember_view')) { ?>
                                                     <td data-title="<?=$this->lang->line('action')?>">
+                                                        <?php if($student->hostel == 1) { ?><i class="fa fa-bed text-success" data-toggle="tooltip" data-placement="top" title="Hostel Member" style="margin-right:6px;"></i><?php } if($student->transport == 1) { ?><i class="fa fa-bus text-primary" data-toggle="tooltip" data-placement="top" title="Transport Member" style="margin-right:6px;"></i><?php } ?>
                                                         <?php
                                                             if($student->hostel == 0) {
                                                                 if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
@@ -143,6 +144,7 @@
                                                         <td data-title="<?=$this->lang->line('hmember_phone')?>"><?php echo $student->phone; ?></td>
                                                         <?php if(permissionChecker('hmember_add') || permissionChecker('hmember_edit') || permissionChecker('hmember_delete') || permissionChecker('hmember_view')) { ?>
                                                         <td data-title="<?=$this->lang->line('action')?>">
+                                                            <?php if($student->hostel == 1) { ?><i class="fa fa-bed text-success" data-toggle="tooltip" data-placement="top" title="Hostel Member" style="margin-right:6px;"></i><?php } if($student->transport == 1) { ?><i class="fa fa-bus text-primary" data-toggle="tooltip" data-placement="top" title="Transport Member" style="margin-right:6px;"></i><?php } ?>
                                                             <?php
                                                                 if($student->hostel == 0) {
                                                                     if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
@@ -207,6 +209,7 @@
                                                     <td data-title="<?=$this->lang->line('hmember_phone')?>"><?php echo $student->phone; ?></td>
                                                     <?php if(permissionChecker('hmember_add') || permissionChecker('hmember_edit') || permissionChecker('hmember_delete') || permissionChecker('hmember_view')) { ?>
                                                     <td data-title="<?=$this->lang->line('action')?>">
+                                                        <?php if($student->hostel == 1) { ?><i class="fa fa-bed text-success" data-toggle="tooltip" data-placement="top" title="Hostel Member" style="margin-right:6px;"></i><?php } if($student->transport == 1) { ?><i class="fa fa-bus text-primary" data-toggle="tooltip" data-placement="top" title="Transport Member" style="margin-right:6px;"></i><?php } ?>
                                                         <?php
                                                             if($student->hostel == 0) {
                                                                 echo btn_add('hmember/add/'.$student->studentID."/".$set, $this->lang->line('hmember'));
@@ -356,7 +359,11 @@
                     return;
                 }
                 $('#unmemberContent').show();
-                $('#unmemberStudentInfo').text((response.hostel || '') + (response.category ? ' - ' + response.category : ''));
+                if (response.isOrphan) {
+                    $('#unmemberStudentInfo').text('(membership record missing — clearing stale status)');
+                } else {
+                    $('#unmemberStudentInfo').text((response.hostel || '') + (response.category ? ' - ' + response.category : ''));
+                }
 
                 if (!response.invoices || response.invoices.length === 0) {
                     $('#unmemberNoInvoice').show();
@@ -452,7 +459,9 @@
     });
 
     // --- Hostel status filter (AJAX) ---
-    var activeHostelFilter = '';
+    // Default view is "Not Added" (matches the .active button set above) so admins
+    // land on the students still needing action first instead of the full unfiltered roster.
+    var activeHostelFilter = '0';
 
     function applyHostelFilter(tableEl, sectionID) {
         var $table   = $(tableEl);
@@ -480,6 +489,7 @@
                 } else {
                     $table.find('tbody').html(newHtml);
                 }
+                $table.find('[data-toggle="tooltip"]').tooltip();
                 selectedStudents = {};
                 updateBulkButton();
             },
@@ -489,6 +499,13 @@
                 );
             }
         });
+    }
+
+    // Apply the default "Members" filter to the initially-visible "All Students" tab
+    // on page load — the server-rendered table above shows everyone, so re-filter it
+    // immediately rather than waiting for the admin to click the button themselves.
+    if ($('.hostel-filter').length) {
+        applyHostelFilter('#example1', 0);
     }
 
     $(document).on('click', '.hostel-filter', function() {

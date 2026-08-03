@@ -1306,25 +1306,58 @@ function deployMvc(btn, subdomainId, subdomainName, server) {
 // ── Generate MVC.zip from local mvc/ folder ───────────────────────────────────
 $('#generateMvcZipBtn').on('click', function () {
     var btn = $(this);
-    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Zipping...');
+    var percent = 0;
+    var ticker;
+
+    function renderProgress(p) {
+        p = Math.min(Math.round(p), 100);
+        btn.html(
+            '<span style="display:inline-flex;align-items:center;gap:7px;">' +
+            '<i class="fa fa-cog fa-spin"></i>' +
+            '<span>Zipping ' + p + '%</span>' +
+            '<span style="display:inline-block;width:55px;height:6px;background:rgba(255,255,255,.3);border-radius:3px;overflow:hidden;vertical-align:middle;">' +
+            '<span style="display:block;height:100%;width:' + p + '%;background:#fff;border-radius:3px;transition:width .18s linear;"></span>' +
+            '</span>' +
+            '</span>'
+        );
+    }
+
+    btn.prop('disabled', true);
+    renderProgress(0);
+
+    // Accelerate early, decelerate near 90 so it never reaches 100 before the response
+    ticker = setInterval(function () {
+        var step = (90 - percent) * 0.06;
+        percent += Math.max(step, 0.4);
+        if (percent >= 89) { clearInterval(ticker); ticker = null; }
+        renderProgress(percent);
+    }, 180);
+
     $.ajax({
         url:         'http://localhost:8000/generate-mvc-zip',
         type:        'POST',
         dataType:    'json',
         contentType: 'application/json',
         success: function (res) {
-            if (res && res.success) {
-                alert('✅ ' + res.message);
-            } else {
-                alert('❌ Failed: ' + (res ? (res.message || res.detail) : 'Unknown error'));
-            }
+            if (ticker) { clearInterval(ticker); ticker = null; }
+            renderProgress(100);
+            setTimeout(function () {
+                if (res && res.success) {
+                    alert('✅ ' + res.message);
+                } else {
+                    alert('❌ Failed: ' + (res ? (res.message || res.detail) : 'Unknown error'));
+                }
+            }, 350);
         },
         error: function (xhr) {
+            if (ticker) { clearInterval(ticker); ticker = null; }
             var msg = xhr.responseJSON ? (xhr.responseJSON.detail || xhr.responseJSON.message) : xhr.statusText;
             alert('❌ Request failed: ' + msg);
         },
         complete: function () {
-            btn.prop('disabled', false).html('<i class="fa fa-file-archive-o"></i> Generate MVC.zip');
+            setTimeout(function () {
+                btn.prop('disabled', false).html('<i class="fa fa-file-archive-o"></i> Generate MVC.zip');
+            }, 900);
         }
     });
 });

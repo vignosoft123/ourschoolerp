@@ -29,6 +29,8 @@
                                 <th class="col-lg-2"><?=$this->lang->line('user_photo')?></th>
                                 <th class="col-lg-2"><?=$this->lang->line('user_name')?></th>
                                 <!-- <th class="col-lg-2"><?=$this->lang->line('user_email')?></th> -->
+                                <th class="col-lg-2"><?=$this->lang->line('user_username')?></th>
+                                <th class="col-lg-2">RFID</th>
                                 <th class="col-lg-2"><?=$this->lang->line('user_phone')?></th>
                                 <th class="col-lg-2"><?=$this->lang->line('user_usertype')?></th>
                                 <?php if(permissionChecker('user_edit')) { ?>
@@ -60,6 +62,12 @@
                                     <!-- <td data-title="<?=$this->lang->line('user_email')?>">
                                         <?php echo $user->email; ?>
                                     </td> -->
+                                    <td data-title="<?=$this->lang->line('user_username')?>">
+                                        <?php echo $user->username; ?>
+                                    </td>
+                                    <td data-title="RFID">
+                                        <?php echo $user->rfid; ?>
+                                    </td>
                                     <td data-title="<?=$this->lang->line('user_phone')?>">
                                         <?php echo $user->phone; ?>
                                     </td>

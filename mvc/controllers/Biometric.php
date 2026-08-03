@@ -93,10 +93,10 @@ class Biometric extends CI_Controller {
            if($insert)
            {
             $day_num = $day;
-            $prefix  = strtolower(substr($RFID, 0, 1));
+            $rfid_len = strlen($RFID);
 
-            if ($prefix === 's') {
-                // ── STUDENT ──────────────────────────────────────────────────
+            if ($rfid_len === 5) {
+                // ── STUDENT (5-digit RFID) ─────────────────────────────────────
                 $sq = $this->db->query("SELECT studentID FROM student WHERE rf_id = ?", [$RFID])->row();
                 if ($sq) {
                     $studentID = $sq->studentID;
@@ -136,9 +136,9 @@ class Biometric extends CI_Controller {
                     }
                 }
 
-            } elseif ($prefix === 'u') {
-                // ── USER / NON-TEACHING STAFF ─────────────────────────────────
-                $urow = $this->db->query("SELECT userID, usertypeID FROM user WHERE rf_id = ?", [$RFID])->row();
+            } elseif ($rfid_len === 6) {
+                // ── USER / NON-TEACHING STAFF (6-digit RFID) ────────────────────
+                $urow = $this->db->query("SELECT userID, usertypeID FROM user WHERE rfid = ?", [$RFID])->row();
                 if ($urow) {
                     $s_row = $this->db->query("SELECT value FROM setting WHERE fieldoption='student_present_time' LIMIT 1")->row();
                     $user_present_ts = strtotime($s_row ? $s_row->value : $present_timings);
@@ -166,8 +166,8 @@ class Biometric extends CI_Controller {
                     }
                 }
 
-            } else {
-                // ── TEACHER (existing logic — unchanged) ──────────────────────
+            } elseif ($rfid_len === 4 || $rfid_len === 8) {
+                // ── TEACHER (4-digit new cards or 8-digit legacy cards) ─────────
                 $teacherID = null;
                 $query = $this->db->query("SELECT teacherID FROM teacher WHERE rfid = ?", [$RFID]);
                 if ($query->num_rows() > 0) {
@@ -226,6 +226,9 @@ class Biometric extends CI_Controller {
                         }
                     }
                 }
+            } else {
+                // Unrecognized RFID length (not 4/5/6/8 digits) — no matching
+                // person type, nothing to attribute this punch to.
             }
 
            }

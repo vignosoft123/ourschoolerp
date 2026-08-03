@@ -14,6 +14,7 @@
     <td><?=$student->phone?></td>
     <?php if(permissionChecker('hmember_add') || permissionChecker('hmember_edit') || permissionChecker('hmember_delete') || permissionChecker('hmember_view')) { ?>
     <td>
+        <?php if($student->hostel == 1) { ?><i class="fa fa-bed text-success" data-toggle="tooltip" data-placement="top" title="Hostel Member" style="margin-right:6px;"></i><?php } if($student->transport == 1) { ?><i class="fa fa-bus text-primary" data-toggle="tooltip" data-placement="top" title="Transport Member" style="margin-right:6px;"></i><?php } ?>
         <?php if($student->hostel == 0) {
             if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
                 echo btn_add('hmember/add/'.$student->studentID.'/'.$set, $this->lang->line('hmember'));

@@ -1,4 +1,3 @@
-<link rel="stylesheet" href="/assets/css/report-buttons.css">
 <div class="box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa iniicon-attendanceoverviewreport"></i> <?=$this->lang->line('panel_title')?></h3>
@@ -9,15 +8,23 @@
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
-        <div class="row">
+        <div class="row report-layout-row">
 
-        <div class="col-sm-12">
-            <button class="btn btn-primary" id="at_rpt"> Attendance Report</button>
-            <button class="btn btn-primary" id="bio_rpt">Biomatric Report</button>
-            <button class="btn btn-primary" id="late_comers_rpt">Late Comers Report</button>
-            <button class="btn btn-success" id="sbio_rpt"><i class="fa fa-id-card"></i> Student Biometric Report</button>
-            <button class="btn btn-warning" id="ubio_rpt"><i class="fa fa-users"></i> User Biometric Report</button>
+        <div class="report-nav-col">
+            <div class="report-nav-group">
+                <div class="report-nav-group-label">General Reports</div>
+                <button class="btn btn-primary report-nav-btn" id="at_rpt"><i class="fa fa-calendar-check-o"></i> Attendance Report</button>
+                <button class="btn btn-primary report-nav-btn" id="late_comers_rpt"><i class="fa fa-clock-o"></i> Teacher Late Comers Report</button>
+            </div>
+            <div class="report-nav-group">
+                <div class="report-nav-group-label">Biometric Reports</div>
+                <button class="btn btn-info report-nav-btn" id="bio_rpt"><i class="fa fa-fingerprint"></i> Teacher Biometric Report</button>
+                <button class="btn btn-success report-nav-btn" id="sbio_rpt"><i class="fa fa-id-card"></i> Student Biometric Report</button>
+                <button class="btn btn-warning report-nav-btn" id="ubio_rpt"><i class="fa fa-users"></i> User Biometric Report</button>
+            </div>
         </div>
+
+        <div class="report-content-col">
             <div class="col-sm-12" id="attendance_report">
                 <div class="form-group col-sm-4" id="usertypeDiv">
                     <label><?=$this->lang->line("attendanceoverviewreport_reportfor")?><span class="text-red"> * </span></label>
@@ -78,7 +85,13 @@
             </div>
 
             <div class="col-sm-12" id="biomatric_report">
-            <h3>Biomatric Report</h3>
+            <h3><i class="fa fa-fingerprint"></i> Teacher Biometric Report</h3>
+            <p class="text-red" style="font-weight:600;">
+                Note: RFID is matched by digit length —
+                5 digits &rarr; Student attendance logic,
+                6 digits &rarr; User / Non-Teaching-Staff attendance logic,
+                4 or 8 digits &rarr; Teacher attendance logic.
+            </p>
 
                 <div class="form-group col-sm-4" id="usertypeDiv">
                     <label>Teacher</label>
@@ -105,14 +118,14 @@
                 </div>
 
                 <div class="col-sm-4">
-                    <button id="get_biomatric" class="btn btn-success" style="margin-top:23px;"> Get Biomatric Report</button>
+                    <button id="get_biomatric" class="btn btn-success" style="margin-top:23px;"> Get Teacher Biometric Report</button>
                 </div>
 
             </div>
 
             <div class="col-sm-12" id="late_comers_report">
 
-            <h3 class="text-purple">Late Comers Report</h3>
+            <h3 class="text-purple">Teacher Late Comers Report</h3>
                 <div class="form-group col-sm-4" id="usertypeDiv">
                     <label>Teacher</label>
                     <?php
@@ -138,7 +151,7 @@
                 </div>
 
                 <div class="col-sm-4">
-                    <button id="get_late_comers" class="btn btn-success" style="margin-top:23px;"> Get Late Comers Report</button>
+                    <button id="get_late_comers" class="btn btn-success" style="margin-top:23px;"> Get Teacher Late Comers Report</button>
                 </div>
 
             </div>
@@ -146,6 +159,12 @@
             <!-- Student Biometric Report Section -->
             <div class="col-sm-12" id="student_biomatric_report">
                 <h3 class="text-green"><i class="fa fa-id-card"></i> Student Biometric Report</h3>
+                <p class="text-red" style="font-weight:600;">
+                    Note: RFID is matched by digit length —
+                    5 digits &rarr; Student attendance logic,
+                    6 digits &rarr; User / Non-Teaching-Staff attendance logic,
+                    4 or 8 digits &rarr; Teacher attendance logic.
+                </p>
 
                 <div class="form-group col-sm-4">
                     <label>Class</label>
@@ -194,6 +213,12 @@
             <!-- User Biometric Report Section -->
             <div class="col-sm-12" id="user_biomatric_report">
                 <h3 class="text-yellow"><i class="fa fa-users"></i> User Biometric Report</h3>
+                <p class="text-red" style="font-weight:600;">
+                    Note: RFID is matched by digit length —
+                    5 digits &rarr; Student attendance logic,
+                    6 digits &rarr; User / Non-Teaching-Staff attendance logic,
+                    4 or 8 digits &rarr; Teacher attendance logic.
+                </p>
 
                 <div class="form-group col-sm-4">
                     <label>User (optional)</label>
@@ -224,6 +249,8 @@
                     </button>
                 </div>
             </div>
+
+        </div><!-- /.report-content-col -->
 
         </div><!-- row -->
     </div><!-- Body -->
@@ -292,28 +319,38 @@
         $("#user_biomatric_report").hide();
     }
 
+    function setActiveNav(button) {
+        $(".report-nav-btn").removeClass("active");
+        $(button).addClass("active");
+    }
+
     $("#at_rpt").click(function(){
         hideAllPanels();
+        setActiveNav(this);
         $("#attendance_report").show();
     });
 
     $("#bio_rpt").click(function(){
         hideAllPanels();
+        setActiveNav(this);
         $("#biomatric_report").show();
     });
 
     $("#late_comers_rpt").click(function(){
         hideAllPanels();
+        setActiveNav(this);
         $("#late_comers_report").show();
     });
 
     $("#sbio_rpt").click(function(){
         hideAllPanels();
+        setActiveNav(this);
         $("#student_biomatric_report").show();
     });
 
     $("#ubio_rpt").click(function(){
         hideAllPanels();
+        setActiveNav(this);
         $("#user_biomatric_report").show();
     });
 

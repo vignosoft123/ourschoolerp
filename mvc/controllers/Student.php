@@ -778,6 +778,14 @@ class Student extends Admin_Controller
 				'label' => "Refered By",
 				'rules' => 'trim|xss_clean'
 			),
+			array(
+				'field' => 'rf_id',
+				'label' => 'RFID',
+				'rules' => 'trim|xss_clean|regex_match[/^[0-9]{5}$/]',
+				'errors' => array(
+					'regex_match' => 'Student RFID must be exactly 5 digits.'
+				)
+			),
 		);
 		return $rules;
 	}
@@ -1054,8 +1062,12 @@ class Student extends Admin_Controller
 							"hbalance" => $category_main_id->hbalance,
 							"hjoindate" => date("Y-m-d")
 						);
-						$this->hmember_m->insert_hmember($hostelArray);
-						$this->student_m->update_student(array("hostel" => 1), $studentID);
+						$hmemberInsertID = $this->hmember_m->insert_hmember($hostelArray);
+						if ($hmemberInsertID) {
+							$this->student_m->update_student(array("hostel" => 1), $studentID);
+						} else {
+							$this->session->set_flashdata('error', 'Student was created, but adding to the hostel failed. Please add the student to a hostel from the Hostel Members page.');
+						}
 					}
 
 
@@ -1812,8 +1824,12 @@ class Student extends Admin_Controller
 							"hbalance" => $category_main_id->hbalance,
 							"hjoindate" => date("Y-m-d")
 						);
-						$this->hmember_m->insert_hmember($hostelArray);
-						$this->student_m->update_student(array("hostel" => 1), $studentID);
+						$hmemberInsertID = $this->hmember_m->insert_hmember($hostelArray);
+						if ($hmemberInsertID) {
+							$this->student_m->update_student(array("hostel" => 1), $studentID);
+						} else {
+							$this->session->set_flashdata('error', 'Student was created, but adding to the hostel failed. Please add the student to a hostel from the Hostel Members page.');
+						}
 					}
 
 
@@ -2619,13 +2635,16 @@ class Student extends Admin_Controller
 								$this->data['studntHostelDetails'] = $this->hmember_m->get_single_hmember(array('studentID' => $studentID), TRUE);
 								if ($this->data['studntHostelDetails']) {
 									$this->hmember_m->update_hmember($hostelArray, $this->data['studntHostelDetails']->hmemberID);
+									$this->student_m->update_student(array("hostel" => 1, "transport" => 0), $studentID);
 								} else {
 									$hostelArray["hjoindate"] =  date("Y-m-d");
-									$this->hmember_m->insert_hmember($hostelArray);
+									$hmemberInsertID = $this->hmember_m->insert_hmember($hostelArray);
+									if ($hmemberInsertID) {
+										$this->student_m->update_student(array("hostel" => 1, "transport" => 0), $studentID);
+									} else {
+										$this->session->set_flashdata('error', 'Adding the student to the hostel failed. Please try again from the Hostel Members page.');
+									}
 								}
-
-
-								$this->student_m->update_student(array("hostel" => 1, "transport" => 0), $studentID);
 							} else {
 								$this->data["hmember"] = $this->hmember_m->get_single_hmember(array("studentID" => $studentID));
 
@@ -4476,7 +4495,11 @@ public function assign_hostel(){
 		$this->hmember_m->update_hmember($hostelArray, $existingHmember->hmemberID);
 	} else {
 		$hostelArray["hjoindate"] = date("Y-m-d");
-		$this->hmember_m->insert_hmember($hostelArray);
+		$hmemberInsertID = $this->hmember_m->insert_hmember($hostelArray);
+		if (!$hmemberInsertID) {
+			echo json_encode(array('success' => false, 'message' => 'Failed to add student to hostel. Please try again.'));
+			return;
+		}
 
 		// auto invoice generation (new assignment only, mirrors Hmember::add())
 		$fee_type_hostel = $this->db->query("SELECT feetypesID FROM `feetypes` WHERE `feetypes` LIKE '%Hostel Fee%' ")->row_array();

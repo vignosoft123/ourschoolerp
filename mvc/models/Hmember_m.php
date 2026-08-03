@@ -33,8 +33,8 @@ class Hmember_m extends MY_Model {
 	}
 
 	function insert_hmember($array) {
-		$error = parent::insert($array);
-		return TRUE;
+		$id = parent::insert($array);
+		return $id ? $id : FALSE;
 	}
 
 	function update_hmember($data, $id = NULL) {

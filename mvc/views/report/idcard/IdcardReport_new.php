@@ -42,9 +42,7 @@
                 <div class="idcard-box" style="background-image:url('<?=base_url("uploads/idcard_templates/".$id_card_template["value"])?>');">
 
                     <!-- Student Photo -->
-                    <div class="idcard-photo" style="margin-top : 40%;width:40% ; height:30%; border-color:<?=$photoBorderColor?>;">
-                        <img src="<?=imagelink($student->photo)?>" alt="Student Photo">
-                    </div>
+                    <div class="idcard-photo" style="margin-top : 40%;width:40% ; height:30%; border-color:<?=$photoBorderColor?>; background-image:url('<?=imagelink($student->photo)?>');"></div>
 
                     <!-- Student Name -->
                     <div class="idcard-name">
@@ -54,6 +52,7 @@
                     <!-- Student Details -->
                      <?php //echo "<pre>"; print_r($student);die;?>
                     <div class="idcard-details" style="<?=$idcardDetailsStyle?>">
+                        <?php if($usertypeID == 3) { ?>
                         <?php if(in_array('medium', $selectedFields)) { ?>
                         <span class="idcard-label" style="<?=$idcardLabelStyle?>">Medium</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->medium ?? 'English'?></span><br>
                         <?php } ?>
@@ -73,6 +72,35 @@
                         <span class="idcard-label" style="<?=$idcardLabelStyle?>">Blood Group</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->bloodgroup ?? ''?></span><br>
                         <?php } ?>
 
+                        <?php } elseif($usertypeID == 2) { ?>
+                        <?php if(in_array('employee_id', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Employee ID</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->username ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('designation', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Designation</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->designation ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('contact_no', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Contact No.</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->phone ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('village', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Village</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->address ?? ''?></span><br>
+                        <?php } ?>
+
+                        <?php } else { ?>
+                        <?php if(in_array('employee_id', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Employee ID</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->username ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('role', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Role</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$usertypes[$usertypeID] ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('contact_no', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Contact No.</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->phone ?? ''?></span><br>
+                        <?php } ?>
+                        <?php if(in_array('village', $selectedFields)) { ?>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Village</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->address ?? ''?></span><br>
+                        <?php } ?>
+                        <?php } ?>
+
                     </div>
 
                 </div>
@@ -84,7 +112,7 @@
 <button class="rpt-scroll-top-btn" id="idcard-scroll-top-btn" title="Back to top">&#8679;</button>
 
 <?php } else { ?>
-    <p>No students found for this class/section.</p>
+    <p>No records found for the selected filter.</p>
 <?php } ?>
 
 

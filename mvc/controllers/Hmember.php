@@ -212,15 +212,20 @@ class Hmember extends Admin_Controller
 											"hjoindate" => date("Y-m-d")
 										);
 
-										$this->hmember_m->insert_hmember($array);
+										$hmemberInsertID = $this->hmember_m->insert_hmember($array);
+										if (!$hmemberInsertID) {
+											$this->session->set_flashdata('error', 'Failed to add student to hostel. Please try again.');
+											redirect(base_url("hmember/add/$id/$url"));
+											return;
+										}
 										$this->student_m->update_student(array("hostel" => 1,"transport"=> 0, 'studentType' => 2), $id);
 
 
 										//code for auto invoice generation
 						$studentID = $student->srstudentID;
-						 
-						$class_id = $student->classesID;
-						$section_id = $student->sectionID;
+
+						$class_id = $student->srclassesID;
+						$section_id = $student->srsectionID;
 						$year_id = $this->session->userdata('defaultschoolyearID');
  
 						// $p_amount = $this->input->post("tbalance");
@@ -339,21 +344,22 @@ class Hmember extends Admin_Controller
 			if(!customCompute($student) || $student->hostel != 0) { $failCount++; continue; }
 			$existingTmember = $this->tmember_m->get_single_tmember(array('studentID' => $student->srstudentID), TRUE);
 			if($existingTmember) { $failCount++; continue; }
-			$this->hmember_m->insert_hmember(array(
+			$hmemberInsertID = $this->hmember_m->insert_hmember(array(
 				"hostelID"   => $hostelID,
 				"categoryID" => $categoryID,
 				"studentID"  => $studentID,
 				"hbalance"   => $h_amount,
 				"hjoindate"  => date("Y-m-d")
 			));
+			if(!$hmemberInsertID) { $failCount++; continue; }
 			$this->student_m->update_student(array("hostel" => 1, "transport" => 0, 'studentType' => 2), $studentID);
 			$fee_items = array();
 			if($fee_type_hostel) {
 				$fee_items[] = array('feetypeID' => $fee_type_hostel['feetypesID'], 'amount' => $h_amount, 'discount' => '', 'subtotal' => $h_amount, 'paidamount' => '');
 			}
 			$invoice_data = array(
-				'classesID'       => $student->classesID,
-				'sectionID'       => $student->sectionID,
+				'classesID'       => $student->srclassesID,
+				'sectionID'       => $student->srsectionID,
 				'studentID'       => $studentID,
 				'date'            => date('d-m-Y'),
 				'statusID'        => 0,
@@ -455,8 +461,14 @@ class Hmember extends Admin_Controller
 								$this->load->view('_layout_main', $this->data);
 							}
 						} else {
-							$this->data["subview"] = "error";
-							$this->load->view('_layout_main', $this->data);
+							// Data inconsistency: student is flagged as a hostel member but no
+							// hmember row exists for them (e.g. an earlier failed/partial add).
+							// Self-heal by clearing the stale flag instead of dead-ending on "error".
+							if ($student->hostel == 1) {
+								$this->student_m->update_student(array("hostel" => 0), $id);
+								$this->session->set_flashdata('error', 'This student\'s hostel membership record was missing, so the hostel status has been reset. Please re-add the student to a hostel.');
+							}
+							redirect(base_url("hmember/index/$url"));
 						}
 					} else {
 						$this->data["subview"] = "error";
@@ -573,13 +585,21 @@ class Hmember extends Admin_Controller
 		}
 
 		$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
+		$isOrphan = false;
 		if(!$hmember) {
-			echo json_encode(array('status' => false, 'message' => 'This student is not currently a hostel member.'));
-			return;
+			$this->db->where('studentID', $studentID);
+			$studentRow = $this->db->get('student')->row();
+			if(!$studentRow || (int)$studentRow->hostel !== 1) {
+				echo json_encode(array('status' => false, 'message' => 'This student is not currently a hostel member.'));
+				return;
+			}
+			// Flag says hostel member but no backing hmember row (e.g. an earlier
+			// failed/partial add) — let the confirm button clear the stale status.
+			$isOrphan = true;
 		}
 
-		$hostel   = $this->hostel_m->get_hostel($hmember->hostelID);
-		$category = $this->category_m->get_category($hmember->categoryID);
+		$hostel   = $hmember ? $this->hostel_m->get_hostel($hmember->hostelID) : null;
+		$category = $hmember ? $this->category_m->get_category($hmember->categoryID) : null;
 
 		$this->db->where('studentID', $studentID);
 		$this->db->where('schoolyearID', $schoolyearID);
@@ -616,6 +636,7 @@ class Hmember extends Admin_Controller
 			'category'    => $category ? $category->class_type : '',
 			'invoices'    => $invoiceRows,
 			'hasBlocking' => $hasBlocking,
+			'isOrphan'    => $isOrphan,
 		));
 	}
 
@@ -651,17 +672,25 @@ class Hmember extends Admin_Controller
 		}
 
 		$hmember = $this->hmember_m->get_single_hmember(array('studentID' => $studentID));
-		if(!$hmember) {
+		if(!$hmember && (int)$student->hostel !== 1) {
 			echo json_encode(array('status' => false, 'message' => 'This student is not currently a hostel member.'));
 			return;
 		}
 
 		$summary = $this->_removeHostelInvoices($studentID, $schoolyearID, $forceDeleteAll);
 
-		$this->hmember_m->delete_hmember($hmember->hmemberID);
+		if($hmember) {
+			$this->hmember_m->delete_hmember($hmember->hmemberID);
+		}
 		$this->student_m->update_student(array('hostel' => 0), $studentID);
 
-		$msgParts = array('Student removed from the hostel.');
+		if(!$hmember) {
+			// Orphaned flag with no backing hmember row (e.g. from an earlier failed
+			// add) — nothing to unlink, just clearing the stale status.
+			$msgParts = array('This student\'s hostel membership record was already missing; the stale status has been cleared.');
+		} else {
+			$msgParts = array('Student removed from the hostel.');
+		}
 		if($summary['removed'] > 0) {
 			$msgParts[] = $summary['removed'] . ' unpaid invoice(s) totalling ' . number_format($summary['removedAmount'], 2) . ' removed.';
 		}

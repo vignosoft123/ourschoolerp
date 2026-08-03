@@ -212,6 +212,18 @@ class Idcardreport extends Admin_Controller {
             'Georgia, serif',
             "'Courier New', monospace",
             "'Trebuchet MS', sans-serif",
+            "'Revue', cursive",
+            "'Bookman Old Style', serif",
+            "'Souvenir', serif",
+            'Tahoma, sans-serif',
+            'Impact, sans-serif',
+            "'Bauhaus 93', sans-serif",
+            "'Bazooka', fantasy",
+            "'Belwe Bd BT', serif",
+            "'Benguiat', serif",
+            "'Arial Rounded MT Bold', Arial, sans-serif",
+            "'Futura', sans-serif",
+            "'Running Matter Ki', fantasy",
         );
 
         $fontFamily = isset($posts['fontFamily']) && in_array($posts['fontFamily'], $allowedFontFamilies)
@@ -243,6 +255,15 @@ class Idcardreport extends Admin_Controller {
             'valueColor'       => $valueColor,
             'photoBorderColor' => $photoBorderColor,
         );
+    }
+
+    private function defaultFieldsFor($usertypeID) {
+        if ($usertypeID == 3) {
+            return array('medium', 'class_section', 'father_name', 'contact_no', 'village', 'blood_group');
+        } elseif ($usertypeID == 2) {
+            return array('designation', 'contact_no', 'village', 'employee_id');
+        }
+        return array('role', 'contact_no', 'village', 'employee_id');
     }
 
     private function queryArray($posts) {
@@ -376,7 +397,7 @@ class Idcardreport extends Admin_Controller {
                     $selectedFields = $this->input->post('fields');
                     $this->data['selectedFields'] = (is_array($selectedFields) && customCompute($selectedFields))
                         ? $selectedFields
-                        : array('medium', 'class_section', 'father_name', 'contact_no', 'village', 'blood_group');
+                        : $this->defaultFieldsFor($usertypeID);
 
                     $this->data['fontStyle'] = $this->sanitizeIdcardFontStyle($this->input->post());
 

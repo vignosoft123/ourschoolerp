@@ -93,6 +93,14 @@ class User extends Admin_Controller {
 				'label' => $this->lang->line("user_password"),
 				'rules' => 'trim|required|min_length[4]|max_length[40]|xss_clean'
 			),
+			array(
+				'field' => 'rfid',
+				'label' => 'RFID',
+				'rules' => 'trim|xss_clean|regex_match[/^[0-9]{6}$/]',
+				'errors' => array(
+					'regex_match' => 'Non Teaching Staff RFID must be exactly 6 digits.'
+				)
+			),
 		);
 		return $rules;
 	}
