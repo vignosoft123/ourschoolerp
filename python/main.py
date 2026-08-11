@@ -15,7 +15,7 @@ from mysql.connector import Error
 import mysql.connector
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 APP_ENV = os.getenv("APP_ENV", "local")
 APP_HOST = os.getenv("APP_HOST", "0.0.0.0")
@@ -2051,6 +2051,45 @@ async def generate_mvc_zip():
         raise HTTPException(status_code=500, detail=f"ZIP failed: {e}")
 
 
+@app.post("/upload-bootstrap-files/{server}")
+async def upload_bootstrap_files(server: str):
+    """
+    Upload Cssupdate.php + css_update_config.php to the dummy server for FTP-based servers.
+    One-time setup — must be done before Bootstrap works on Collegehour / Schoolhour / HostGator / MySchools.
+    Reads files from local 'need to upload in dummy1/' folder.
+    """
+    ftp_servers = ["hostgator", "myschools", "schoolhour", "collegehour"]
+    if server not in ftp_servers:
+        raise HTTPException(status_code=400, detail=f"'{server}' is not an FTP-based server. Only {ftp_servers} need bootstrap files on dummy.")
+    if server not in FTP_CONFIGS:
+        raise HTTPException(status_code=400, detail=f"No FTP config for '{server}' in python/.env")
+    if server not in DUMMY_SERVERS:
+        raise HTTPException(status_code=400, detail=f"No dummy server configured for '{server}'")
+
+    base_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "need to upload in dummy1"))
+    files_to_upload = ["Cssupdate.php", "css_update_config.php"]
+
+    file_contents = {}
+    missing = []
+    for fname in files_to_upload:
+        path = os.path.join(base_dir, fname)
+        if os.path.isfile(path):
+            with open(path, "rb") as f:
+                file_contents[fname] = f.read()
+        else:
+            missing.append(fname)
+
+    if missing:
+        raise HTTPException(status_code=404, detail=f"Files not found locally: {', '.join(missing)}. Expected in: {base_dir}")
+
+    dummy_host = DUMMY_SERVERS[server]
+    result = _upload_files_via_ftp(FTP_CONFIGS[server], dummy_host, file_contents)
+
+    if result.get("success"):
+        result["message"] = f"Bootstrap files uploaded to {dummy_host}/ — {result['message']}"
+    return result
+
+
 @app.post("/upload-mvc-zip/{server}")
 async def upload_mvc_zip(server: str):
     """
@@ -2242,9 +2281,10 @@ async def ftp_upload_file(request: Request):
     subdomains of the selected server.
     Body: { "server": "hostgator", "file_path": "frontend/default/views/partials/footer.blade.php" }
     """
-    body      = await request.json()
-    server    = body.get("server", "").lower().strip()
-    file_path = body.get("file_path", "").strip().replace("\\", "/").lstrip("/")
+    body          = await request.json()
+    server        = body.get("server", "").lower().strip()
+    file_path     = body.get("file_path", "").strip().replace("\\", "/").lstrip("/")
+    subdomain_ids = body.get("subdomain_ids", [])  # optional list of int IDs to restrict upload
 
     if not server or not file_path:
         raise HTTPException(status_code=422, detail="'server' and 'file_path' are required")
@@ -2266,17 +2306,25 @@ async def ftp_upload_file(request: Request):
     filename = os.path.basename(file_path)
     file_dir = os.path.dirname(file_path).replace("\\", "/")  # e.g. "frontend/default/views/partials"
 
-    # Fetch all active subdomains for this server
+    # Fetch subdomains — filtered by selected IDs when provided, otherwise all active
     conn = get_db_connection()
     if not conn:
         raise HTTPException(status_code=500, detail="DB connection failed")
     cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT * FROM subdomain_settings WHERE server=%s AND status='active'", (server,))
+    if subdomain_ids:
+        fmt = ",".join(["%s"] * len(subdomain_ids))
+        cur.execute(
+            f"SELECT * FROM subdomain_settings WHERE server=%s AND status='active' AND id IN ({fmt})",
+            [server] + list(subdomain_ids)
+        )
+    else:
+        cur.execute("SELECT * FROM subdomain_settings WHERE server=%s AND status='active'", (server,))
     subdomains = cur.fetchall()
     cur.close(); conn.close()
 
     if not subdomains:
-        return {"success": False, "message": f"No active subdomains found for server '{server}'"}
+        scope_msg = f"{len(subdomain_ids)} selected ID(s)" if subdomain_ids else f"server '{server}'"
+        return {"success": False, "message": f"No active subdomains found for {scope_msg}"}
 
     results = {}
     domain_suffix = SERVER_DOMAINS.get(server, "")

@@ -93,6 +93,9 @@
                             <button id="bulk_migration_btn" class="btn btn-warning btn-sm" onclick="migrationAll()" disabled title="Create DB tables for all subdomains on selected server">
                                 <i class="fa fa-shuttle-van"></i> Create Tables
                             </button>
+                            <button id="upload_bootstrap_files_btn" class="btn btn-warning btn-sm" onclick="uploadBootstrapFilesToDummy()" disabled title="One-time: upload Cssupdate.php + css_update_config.php to dummy server. Required before Bootstrap works on FTP servers (Collegehour, Schoolhour, HostGator, MySchools).">
+                                <i class="fa fa-upload"></i> Upload Bootstrap Files to Dummy
+                            </button>
                             <button id="bulk_bootstrap_btn" class="btn btn-bootstrap btn-sm" onclick="bulkBootstrap()" disabled title="Bootstrap: copy Mvcdeploy.php + Cssupdate.php to each subdomain (first-time setup only)">
                                 <i class="fa fa-plug"></i> Bootstrap All
                             </button>
@@ -233,7 +236,7 @@
                                 </tr>
                                 <tr style="background:#fafafa;">
                                     <td style="padding:4px 8px;font-weight:bold;color:#6a1b9a;">Collegehour</td>
-                                    <td style="padding:4px 8px;color:#666;">collegeerp.in</td>
+                                    <td style="padding:4px 8px;color:#666;">collegehour.in</td>
                                     <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
                                     <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
                                     <td style="padding:4px 8px;text-align:center;"><span style="color:#2e7d32;">✔</span></td>
@@ -385,10 +388,11 @@
         <div class="modal-content">
             <div class="modal-header" style="background:#37474f;color:#fff;">
                 <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;"><span>&times;</span></button>
-                <h4 class="modal-title"><i class="fa fa-file-o"></i> FTP Upload File to All Subdomains</h4>
+                <h4 class="modal-title" id="ftp_upload_modal_title"><i class="fa fa-file-o"></i> FTP Upload File</h4>
             </div>
             <div class="modal-body">
-                <p style="margin:0 0 10px;font-size:13px;">Server: <strong id="ftp_upload_server_label" style="color:#37474f;">—</strong></p>
+                <p style="margin:0 0 6px;font-size:13px;">Server: <strong id="ftp_upload_server_label" style="color:#37474f;">—</strong></p>
+                <p style="margin:0 0 10px;font-size:12px;" id="ftp_upload_scope_label"></p>
                 <div class="form-group">
                     <label style="font-size:12px;color:#555;">File path (relative to project root):</label>
                     <input type="text" id="ftp_upload_path" class="form-control"
@@ -396,7 +400,7 @@
                            style="font-size:13px;">
                     <p style="font-size:11px;color:#888;margin-top:5px;margin-bottom:0;">
                         Reads from <code>C:\xampp\htdocs\ourschoolerp\{path}</code><br>
-                        and uploads to the same relative path on every active subdomain.
+                        and uploads to the same relative path on the selected subdomain(s).
                     </p>
                 </div>
                 <div id="ftp_upload_result" style="display:none;margin-top:10px;max-height:220px;overflow-y:auto;"></div>
@@ -404,7 +408,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 <button type="button" id="ftp_upload_submit_btn" class="btn btn-primary" onclick="submitFtpUpload()">
-                    <i class="fa fa-upload"></i> Upload to All
+                    <i class="fa fa-upload"></i> <span id="ftp_upload_submit_label">Upload</span>
                 </button>
             </div>
         </div>
@@ -579,10 +583,12 @@ function updateBulkDeployBtn() {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
             $('#upload_assets_zip_btn').prop('disabled', false).html('<i class="fa fa-image"></i> Upload Assets to Dummy (' + server + ')');
             $('#upload_frontend_zip_btn').prop('disabled', false).html('<i class="fa fa-code"></i> Upload Frontend to Dummy (' + server + ')');
+            $('#upload_bootstrap_files_btn').prop('disabled', false);
         } else {
             $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
             $('#upload_assets_zip_btn').prop('disabled', true).html('<i class="fa fa-image"></i> Upload Assets to Dummy');
             $('#upload_frontend_zip_btn').prop('disabled', true).html('<i class="fa fa-code"></i> Upload Frontend to Dummy');
+            $('#upload_bootstrap_files_btn').prop('disabled', true);
         }
     } else if (server) {
         $('#cpanel_create_btn').prop('disabled', !showCpanelBtn);
@@ -598,10 +604,12 @@ function updateBulkDeployBtn() {
             $('#upload_mvc_zip_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload MVC to Dummy (' + server + ')');
             $('#upload_assets_zip_btn').prop('disabled', false).html('<i class="fa fa-image"></i> Upload Assets to Dummy (' + server + ')');
             $('#upload_frontend_zip_btn').prop('disabled', false).html('<i class="fa fa-code"></i> Upload Frontend to Dummy (' + server + ')');
+            $('#upload_bootstrap_files_btn').prop('disabled', false);
         } else {
             $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
             $('#upload_assets_zip_btn').prop('disabled', true).html('<i class="fa fa-image"></i> Upload Assets to Dummy');
             $('#upload_frontend_zip_btn').prop('disabled', true).html('<i class="fa fa-code"></i> Upload Frontend to Dummy');
+            $('#upload_bootstrap_files_btn').prop('disabled', true);
         }
     } else {
         $('#cpanel_create_btn').prop('disabled', true);
@@ -614,6 +622,7 @@ function updateBulkDeployBtn() {
         $('#upload_mvc_zip_btn').prop('disabled', true).html('<i class="fa fa-upload"></i> Upload MVC to Dummy');
         $('#upload_assets_zip_btn').prop('disabled', true).html('<i class="fa fa-image"></i> Upload Assets to Dummy');
         $('#upload_frontend_zip_btn').prop('disabled', true).html('<i class="fa fa-code"></i> Upload Frontend to Dummy');
+        $('#upload_bootstrap_files_btn').prop('disabled', true);
         $('#bulk_deploy_assets_btn').prop('disabled', true).html('<i class="fa fa-picture-o"></i> Deploy Assets');
         $('#bulk_deploy_frontend_btn').prop('disabled', true).html('<i class="fa fa-desktop"></i> Deploy Frontend');
     }
@@ -1597,6 +1606,41 @@ function bulkDeployMvc() {
     });
 }
 
+// ── Upload Bootstrap Files (Cssupdate.php + css_update_config.php) to Dummy ──
+
+function uploadBootstrapFilesToDummy() {
+    var server = ($('#server_filter').val() || '').toLowerCase();
+    if (!server) { alert('Please select a server first.'); return; }
+    var ftpServers = ['hostgator', 'myschools', 'schoolhour', 'collegehour'];
+    if (ftpServers.indexOf(server) === -1) {
+        alert(server + ' does not need bootstrap files on a dummy server (only FTP-based servers do).');
+        return;
+    }
+    var btn = $('#upload_bootstrap_files_btn');
+    var origHtml = btn.html();
+    btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading...');
+    $.ajax({
+        url:     'http://localhost:8000/upload-bootstrap-files/' + server,
+        type:    'POST',
+        dataType: 'json',
+        timeout: 60000,
+        success: function(res) {
+            if (res && res.success) {
+                alert('✅ ' + res.message + '\n\nNow click Bootstrap to push these files to each subdomain.');
+            } else {
+                alert('❌ Failed: ' + (res ? res.message : 'Unknown error'));
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? (xhr.responseJSON.detail || xhr.responseJSON.message) : xhr.statusText;
+            alert('❌ Request failed: ' + msg);
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(origHtml);
+        }
+    });
+}
+
 // ── Deploy Assets ────────────────────────────────────────────────────────────
 
 function uploadAssetsZipToServer() {
@@ -1740,10 +1784,21 @@ function bulkDeployFrontend() {
 function openFtpUploadModal() {
     var server = $('#server_filter').val();
     if (!server) { alert('Please select a server first.'); return; }
+    var ids    = Array.from(selectedIds);
+    var count  = ids.length;
     $('#ftp_upload_server_label').text(server);
+    if (count > 0) {
+        $('#ftp_upload_modal_title').html('<i class="fa fa-file-o"></i> FTP Upload File — ' + count + ' Selected');
+        $('#ftp_upload_scope_label').html('<i class="fa fa-info-circle" style="color:#1565c0;"></i> Uploading to <strong>' + count + '</strong> selected subdomain(s).');
+        $('#ftp_upload_submit_label').text('Upload to ' + count + ' Selected');
+    } else {
+        $('#ftp_upload_modal_title').html('<i class="fa fa-file-o"></i> FTP Upload File — All Subdomains');
+        $('#ftp_upload_scope_label').html('<i class="fa fa-info-circle" style="color:#e65100;"></i> No subdomains selected — will upload to <strong>all active</strong> subdomains on this server.');
+        $('#ftp_upload_submit_label').text('Upload to All');
+    }
     $('#ftp_upload_path').val('');
     $('#ftp_upload_result').hide().html('');
-    $('#ftp_upload_submit_btn').prop('disabled', false).html('<i class="fa fa-upload"></i> Upload to All');
+    $('#ftp_upload_submit_btn').prop('disabled', false);
     $('#ftpUploadModal').modal('show');
     setTimeout(function() { $('#ftp_upload_path').focus(); }, 400);
 }
@@ -1751,18 +1806,24 @@ function openFtpUploadModal() {
 function submitFtpUpload() {
     var path   = $.trim($('#ftp_upload_path').val());
     var server = $('#server_filter').val();
+    var ids    = Array.from(selectedIds);
     if (!path) { alert('Please enter a file path.'); return; }
     var $btn = $('#ftp_upload_submit_btn');
     $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Uploading...');
     $('#ftp_upload_result').hide().html('');
+    var postData = { server: server, file_path: path };
+    if (ids.length > 0) { postData.subdomain_ids = ids; }
     $.ajax({
         url: '<?=base_url("subdomains/ftp_upload_file")?>',
         type: 'POST',
         dataType: 'json',
-        data: { server: server, file_path: path },
+        data: postData,
         timeout: 130000,
         success: function(res) {
-            $btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Upload to All');
+            var labelHtml = ids.length > 0
+                ? '<i class="fa fa-upload"></i> Upload to ' + ids.length + ' Selected'
+                : '<i class="fa fa-upload"></i> Upload to All';
+            $btn.prop('disabled', false).html(labelHtml);
             var cls  = res.success ? 'alert-success' : 'alert-danger';
             var msg  = res.message !== undefined ? res.message : (res.detail || 'Unknown error');
             var html = '<div class="alert ' + cls + '" style="font-size:12px;margin:0 0 6px;">' +
@@ -1783,7 +1844,10 @@ function submitFtpUpload() {
             $('#ftp_upload_result').html(html).show();
         },
         error: function(xhr) {
-            $btn.prop('disabled', false).html('<i class="fa fa-upload"></i> Upload to All');
+            var labelHtml = ids.length > 0
+                ? '<i class="fa fa-upload"></i> Upload to ' + ids.length + ' Selected'
+                : '<i class="fa fa-upload"></i> Upload to All';
+            $btn.prop('disabled', false).html(labelHtml);
             var detail = xhr.responseJSON ? (xhr.responseJSON.detail || xhr.statusText) : xhr.statusText;
             $('#ftp_upload_result').html('<div class="alert alert-danger" style="font-size:12px;margin:0;">Error: ' + detail + '</div>').show();
         }

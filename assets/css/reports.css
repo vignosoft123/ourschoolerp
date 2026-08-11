@@ -754,3 +754,132 @@
 @media print {
     .sws-panel { break-inside: avoid; }
 }
+
+/* ── 17. Report Column Selector (generic — any *Report.php with a "Columns" dropdown) ── */
+/* Reusable dropdown of checkboxes for showing/hiding table columns (and matching the export
+   to whichever columns stay checked, via the .display=true option on table_to_book). First
+   used on Fees Report; safe to reuse as-is on other reports that need the same control. */
+.rpt-col-selector-group .dropdown-toggle {
+    border-radius: 4px;
+}
+.rpt-col-selector-menu.dropdown-menu {
+    width: 380px;
+    padding: 0;
+    border-radius: 6px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    border: 1px solid #e2e6ea;
+    overflow: hidden;
+}
+.rpt-col-selector-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+.rpt-col-selector-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #333;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.rpt-col-selector-actions a {
+    font-size: 12px;
+    font-weight: 600;
+    color: #4CAF50;
+    cursor: pointer;
+    margin-left: 12px;
+    text-decoration: none;
+}
+.rpt-col-selector-actions a:hover {
+    text-decoration: underline;
+}
+.rpt-col-selector-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 10px;
+    padding: 10px 14px;
+    max-height: 280px;
+    overflow-y: auto;
+    background: #fbfcfb;
+}
+.rpt-col-selector-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 400;
+    color: #444;
+    margin-bottom: 0;
+    background: #fff;
+    border: 1px solid #eef1ee;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+.rpt-col-selector-item:hover {
+    background: #f1f8f1;
+    border-color: #d9ecd9;
+}
+.rpt-col-selector-item input[type="checkbox"] {
+    margin: 0 8px 0 0;
+    width: 15px;
+    height: 15px;
+    accent-color: #4CAF50;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.rpt-col-selector-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.rpt-col-selector-footer {
+    padding: 8px 14px;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+    font-size: 12px;
+    color: #777;
+    text-align: right;
+}
+.rpt-col-selector-footer #columnSelectedCount {
+    font-weight: 700;
+    color: #4CAF50;
+}
+
+/* ── 18. Table Header Theme — Navy + Callout Column (optional alt to the default green .rpt-table header) ── */
+/* Add class "rpt-table-navy" alongside "rpt-table" on the <table> to switch the header from the
+   default green (#4CAF50) to navy/indigo. Add "rpt-col-callout-hd"/"rpt-col-callout" directly on
+   whichever specific <th>/<td> represents a standout amount column (e.g. "Prev C/F", "Overdue",
+   "Balance Carried Forward") — class-based, not nth-child, so it works regardless of column order
+   or count on a different report. Codifies the visual theme already used ad-hoc/inline in
+   Due Fees Report (mvc/views/report/duefees/DueFeesReport.php) for reuse elsewhere; that file was
+   NOT migrated to these classes — this is net-new shared CSS for future reports only. */
+.rpt-table-navy thead th {
+    background-color: #1a237e;
+    color: #fff;
+    border-color: #151a5e;
+}
+.rpt-table-navy thead tr:first-child th {
+    background-color: #1a237e;
+}
+.rpt-table-navy thead tr:nth-child(2) th {
+    background-color: #283593;
+}
+.rpt-table-navy .rpt-sticky-left-hd {
+    background-color: #0d47a1 !important;
+}
+.rpt-table-navy .rpt-sticky-right-hd {
+    background-color: #1b5e20 !important;
+}
+.rpt-col-callout-hd {
+    background-color: #e65100 !important;
+    color: #fff !important;
+}
+.rpt-col-callout {
+    background-color: #fff3e0 !important;
+    color: #e65100;
+    font-weight: 700;
+}

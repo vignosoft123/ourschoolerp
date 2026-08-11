@@ -149,3 +149,52 @@ CREATE TABLE IF NOT EXISTS `voice_messages` (
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `sticky_notes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL DEFAULT '0',
+  `note` text,
+  `color` varchar(20) DEFAULT '#fff9c4',
+  `sort_order` int(11) DEFAULT '0',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `bookmarks` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL DEFAULT '0',
+  `category` varchar(100) NOT NULL,
+  `name` varchar(150) NOT NULL,
+  `url` varchar(500) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `whatsapp_logs` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `type` VARCHAR(255) DEFAULT NULL,
+  `request_url` TEXT,
+  `api_response` TEXT,
+  `created_on` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `message` TEXT COMMENT 'This is whatsapp params',
+  `template_name` VARCHAR(255) DEFAULT NULL,
+  `http_code` VARCHAR(55) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS `whatapp_templates` (
+  `mailandsmstemplateID` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `template_name` VARCHAR(128) NOT NULL,
+  `usertypeID` INT(11) NOT NULL,
+  `type` VARCHAR(10) NOT NULL,
+  `template` TEXT NOT NULL,
+  `create_date` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `templ_id` BIGINT(20) NOT NULL DEFAULT '0',
+  `params` TEXT,
+  `short_name` VARCHAR(55) DEFAULT NULL,
+  PRIMARY KEY (`mailandsmstemplateID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

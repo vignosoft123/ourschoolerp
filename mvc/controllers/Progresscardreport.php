@@ -1859,18 +1859,22 @@ foreach($months_array as $mkey => $v) {
 					// echo $params;die;
 
 
-					if (strpos($school_name, 'HANUMANTHARAO') !== false 
-					|| strpos($school_name, 'SRI LITTLE') !== false
-					|| strpos($school_name, 'Navami Global school') !== false 
-					|| strpos($school_name, 'Infant Jesus E.M. High School') !== false 
-					)
-					{
-					$message = $params.','.$final_messege;	//don't need school name in template
+					// if (strpos($school_name, 'HANUMANTHARAO') !== false 
+					// || strpos($school_name, 'SRI LITTLE') !== false
+					// || strpos($school_name, 'Navami Global school') !== false 
+					// || strpos($school_name, 'Infant Jesus E.M. High School') !== false 
+					// )
+					// {
+					// $message = $params.','.$final_messege;	//don't need school name in template
 
-					}else{
-					$message = $params.','.$final_messege.','.$school_name;
+					// }else{
+					// $message = $params.','.$final_messege.','.$school_name;
 
-					}
+					// }
+
+				 
+					$message = $params.','.$final_messege; 
+
 					// echo $params;die;
 					// echo $message;die;
 					$res = $this->Whatsapp_m->sendWhatsapp($mobile_no[$key],$message,$template_name);

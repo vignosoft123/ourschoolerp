@@ -72,10 +72,10 @@
                 <!-- Student Details -->
                 <div class="idcard-details text-black">
                     <b>Medium</b>: <?=$student->medium ?? 'English'?><br>
-                    <b>Class/Sec</b>: <?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?><br>
+                    <b>Class/Sec</b>: <?=$classes[$student->srclassesID] ?? ''?> / <?=$sections[$student->srsectionID] ?? ''?><br>
                     <b>F'Name</b>: <?=$student->father_name ?? ''?><br>
                     <b>Contact No.</b>: <?=$student->phone ?? ''?><br>
-                    <b>Village</b>: <?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?><br>
+                    <b>Village</b>: <?=(get_subdomain() === 'vasavi') ? ($student->address ?? '') : (!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?><br>
                 </div>
             </div>
         <?php } ?>

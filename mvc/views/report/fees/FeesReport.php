@@ -4,55 +4,9 @@
     .pull-left{padding: top 45px!important;}
 </style>
 
-<style>
-/* Style the table header */
- .table-container {
-      max-height: 400px; /* Set scroll height */
-      overflow-y: auto;
-      border: 1px solid #ccc;
-    }
-
-#myTable thead th {
-    background-color: #4CAF50; Green background
-    color: white;               /* White text */
-    padding: 10px;              /* Padding inside headers */
-    text-align: center;         /* Center the header text */
-    font-weight: bold;          /* Bold text */
-    border: 1px solid #ddd;     /* Light border */
-    font-size: 14px;            /* Font size */
-    white-space: nowrap;        /* Prevent headers from wrapping */
-
-     position: sticky;
-      top: 0; 
-      z-index: 2; /* Keep above scrolling content */
-
-}
-
-/* Table rows */
-#myTable tbody td {
-    padding: 8px;
-    text-align: center;
-    border: 1px solid #ddd;
-    font-size: 13px;
-}
-
-/* Table overall */
-#myTable {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 1200px; /* make sure table scrolls */
-}
-
-/* Scrollbar wrapping div */
-.table-responsive {
-    width: 100%;
-    overflow-x: auto;
-}
-
- 
-</style>
 <div class="row">
-    <div class="col-sm-12" style="margin:10px 0px">
+    <div class="col-sm-12">
+        <div class="rpt-action-bar">
         <?php
             if($fromdate !='' && $todate !='') {
                 $pdf_preview_uri = base_url('feesreport/pdf/'.$classesID.'/'.$sectionID.'/'.$studentID.'/'.$feetypeID.'/'.strtotime($fromdate).'/'.strtotime($todate));
@@ -71,7 +25,29 @@
             // echo btn_xmlReport('feesreport',$xml_preview_uri, $this->lang->line('report_xlsx'));
             // echo btn_sentToMailReport('feesreport', $this->lang->line('report_send_pdf_to_mail'));
         ?>
-        <button id="exportButton" class="btn btn-default">Export to Excel</button>
+        <button id="exportButton" class="btn btn-success rpt-action-btn"><i class="fa fa-file-excel-o"></i> Export to Excel</button>
+
+        <div class="btn-group rpt-col-selector-group" id="columnSelectorGroup">
+            <button type="button" class="btn btn-info rpt-action-btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-columns"></i> Columns <span class="caret"></span>
+            </button>
+            <div class="dropdown-menu rpt-col-selector-menu" id="columnSelectorMenu">
+                <div class="rpt-col-selector-header">
+                    <span class="rpt-col-selector-title"><i class="fa fa-eye"></i> Show Columns</span>
+                    <span class="rpt-col-selector-actions">
+                        <a href="javascript:void(0)" id="columnSelectAll">Select All</a>
+                        <a href="javascript:void(0)" id="columnDeselectAll">Deselect All</a>
+                    </span>
+                </div>
+                <div class="rpt-col-selector-list" id="columnSelectorList">
+                    <!-- checkboxes injected by JS -->
+                </div>
+                <div class="rpt-col-selector-footer">
+                    <span id="columnSelectedCount">0</span>/<span id="columnTotalCount">0</span> columns shown
+                </div>
+            </div>
+        </div>
+        </div><!-- /.rpt-action-bar -->
     </div>
 </div>
 
@@ -117,27 +93,27 @@
                     if(customCompute($getFeesReports)) {
                            
                         ?>
-                    <div class="table-container" style="overflow-x: auto; margin-top: 20px; background: #fff; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                    <table class="table table-bordered" id="myTable">
+                    <div class="rpt-table-wrap" style="max-height:400px; overflow-y:auto;">
+                    <table class="rpt-table rpt-table-navy" id="myTable">
     <thead>
         <tr>
-            <th><?=$this->lang->line('slno')?></th>
-            <th><?= 'Invoice Number'?></th>
-            <th><?=$this->lang->line('feesreport_payment_date')?></th>
-            <th><?='Cashier Name'; ?></th>
-            <th><?=$this->lang->line('feesreport_name')?></th>
-            <th>Roll No</th>
+            <th data-col="slno"><?=$this->lang->line('slno')?></th>
+            <th data-col="invoice"><?= 'Invoice Number'?></th>
+            <th data-col="paymentdate"><?=$this->lang->line('feesreport_payment_date')?></th>
+            <th data-col="cashier"><?='Cashier Name'; ?></th>
+            <th data-col="name"><?=$this->lang->line('feesreport_name')?></th>
+            <th data-col="roll">Roll No</th>
             <?php if(!($classesID > 0)) { ?>
-                <th><?=$this->lang->line('feesreport_class')?></th>
+                <th data-col="class"><?=$this->lang->line('feesreport_class')?></th>
             <?php } ?>
-            <?php if(!($sectionID > 0)) { ?> 
-                <th><?=$this->lang->line('feesreport_section')?></th>
+            <?php if(!($sectionID > 0)) { ?>
+                <th data-col="section"><?=$this->lang->line('feesreport_section')?></th>
             <?php } ?>
-            <th><?=$this->lang->line('feesreport_feetype')?></th>
-            <th><?=$this->lang->line('feesreport_paid')?></th>
-            <th>Payment Type</th>
-            <th><?=$this->lang->line('feesreport_weaver')?></th>
-            <th><?=$this->lang->line('feesreport_fine')?></th>
+            <th data-col="feetype"><?=$this->lang->line('feesreport_feetype')?></th>
+            <th data-col="paid"><?=$this->lang->line('feesreport_paid')?></th>
+            <th data-col="paymenttype">Payment Type</th>
+            <th data-col="weaver"><?=$this->lang->line('feesreport_weaver')?></th>
+            <th data-col="fine"><?=$this->lang->line('feesreport_fine')?></th>
         </tr>
     </thead>
     <tbody>
@@ -172,35 +148,35 @@
                     $i++;
         ?>
         <tr>
-            <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
-            <td data-title=""><?= '<b>INV-S-'.$getFeesReport->globalpaymentID.'</b>'?></td>
-            <td data-title="<?=$this->lang->line('feesreport_payment_date')?>"><?=date('d M Y',strtotime($getFeesReport->paymentdate))?></td>
-            <td data-title=""><?=$getFeesReport->uname;?></td>
-            <td data-title="<?=$this->lang->line('feesreport_name')?>"><?=isset($students[$getFeesReport->studentID]) ? $students[$getFeesReport->studentID]->srname : '' ?></td>
-            <td data-title="Roll No">
+            <td data-col="slno" data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
+            <td data-col="invoice" data-title=""><?= '<b>INV-S-'.$getFeesReport->globalpaymentID.'</b>'?></td>
+            <td data-col="paymentdate" data-title="<?=$this->lang->line('feesreport_payment_date')?>"><?=date('d M Y',strtotime($getFeesReport->paymentdate))?></td>
+            <td data-col="cashier" data-title=""><?=$getFeesReport->uname;?></td>
+            <td data-col="name" data-title="<?=$this->lang->line('feesreport_name')?>"><?=isset($students[$getFeesReport->studentID]) ? $students[$getFeesReport->studentID]->srname : '' ?></td>
+            <td data-col="roll" data-title="Roll No">
                 <?=isset($students[$getFeesReport->studentID]) ? $students[$getFeesReport->studentID]->srroll : '' ?>
             </td>
 
             <?php if(!($classesID > 0)) {
-                echo "<td data-title='".$this->lang->line('feesreport_class')."'>";
+                echo "<td data-col='class' data-title='".$this->lang->line('feesreport_class')."'>";
                 if(isset($students[$getFeesReport->studentID])) {
                     $stclassID = $students[$getFeesReport->studentID]->srclassesID;
                     echo isset($classes[$stclassID]) ? $classes[$stclassID] : '';
-                } 
+                }
                 echo "</td>";
             } ?>
 
             <?php if(!($sectionID > 0)) {
-                echo "<td data-title='".$this->lang->line('feesreport_section')."'>";
+                echo "<td data-col='section' data-title='".$this->lang->line('feesreport_section')."'>";
                 if(isset($students[$getFeesReport->studentID])) {
                     $stsectionID = $students[$getFeesReport->studentID]->srsectionID;
                     echo isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
-                } 
+                }
                 echo "</td>";
             } ?>
 
-            <td data-title="<?=$this->lang->line('feesreport_feetype')?>">
-                <?php 
+            <td data-col="feetype" data-title="<?=$this->lang->line('feesreport_feetype')?>">
+                <?php
                     if(isset($invoices[$getFeesReport->invoiceID])) {
                         $feetypeIDD = $invoices[$getFeesReport->invoiceID];
                         if(isset($feetypes[$feetypeIDD])) {
@@ -210,8 +186,8 @@
                 ?>
             </td>
 
-            <td data-title="<?=$this->lang->line('feesreport_paid')?>">
-                <?php 
+            <td data-col="paid" data-title="<?=$this->lang->line('feesreport_paid')?>">
+                <?php
                     echo number_format($getFeesReport->paymentamount,2);
                     $totalPaid += $getFeesReport->paymentamount;
                     if(!empty($getFeesReport->is_previous_year_amount)){
@@ -219,7 +195,7 @@
                         <br/> <h6 class="text-purple" > Previous Year(<?= $getFeesReport->is_previous_year_amount?>)</h6>
                 <?php } ?>
             </td>
-            <td>
+            <td data-col="paymenttype">
                 <?php
                 $pt = $getFeesReport->paymenttype;
                 if ($pt === 'Cash') {
@@ -240,19 +216,19 @@
                 <span class="<?= $p_class ?>"><?= $p_label ?></span>
             </td>
 
-            <td data-title="<?=$this->lang->line('feesreport_weaver')?>">
-                <?php 
+            <td data-col="weaver" data-title="<?=$this->lang->line('feesreport_weaver')?>">
+                <?php
                     if(isset($weaverandfine[$getFeesReport->paymentID])) {
                         echo number_format($weaverandfine[$getFeesReport->paymentID]->weaver,2);
-                        $totalWeaver += $weaverandfine[$getFeesReport->paymentID]->weaver; 
+                        $totalWeaver += $weaverandfine[$getFeesReport->paymentID]->weaver;
                     } else {
                         echo number_format(0,2);
                     }
                 ?>
             </td>
 
-            <td data-title="<?=$this->lang->line('feesreport_fine')?>">
-                <?php 
+            <td data-col="fine" data-title="<?=$this->lang->line('feesreport_fine')?>">
+                <?php
                     if(isset($weaverandfine[$getFeesReport->paymentID])) {
                         echo  number_format($weaverandfine[$getFeesReport->paymentID]->fine,2);
                         $totalFine += $weaverandfine[$getFeesReport->paymentID]->fine;
@@ -272,8 +248,8 @@
         ?>
 
         <tr style="font-weight: bold; background:#f8f9fa;">
-            <td colspan="<?=$colspan?>"></td>
-            <td colspan="4" style="padding:8px 10px; white-space:nowrap;">
+            <td data-col-group="group1" colspan="<?=$colspan?>"></td>
+            <td data-col-group="group2" colspan="4" style="padding:8px 10px; white-space:nowrap;">
                 <span class="text-green">Cash:&nbsp;<?=number_format($cash_amount,2)?></span>
                 &nbsp;&nbsp;|&nbsp;&nbsp;
                 <span class="text-blue">Digital:&nbsp;<?=number_format($digital_amount,2)?></span>
@@ -291,12 +267,12 @@
         </tr>
 
         <tr style="font-weight: bold">
-            <td data-title="<?=$this->lang->line('feesreport_grand_total')?>" align="right" colspan="<?=$colspan?>">
+            <td data-col-group="group1" data-title="<?=$this->lang->line('feesreport_grand_total')?>" align="right" colspan="<?=$colspan?>">
                 <?=$this->lang->line('feesreport_grand_total')?> <?=isset($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : ''?>
             </td>
-            <td data-title="<?=$this->lang->line('feesreport_total_paid')?>"><?=number_format($totalPaid,2)?></td>
-            <td data-title="<?=$this->lang->line('feesreport_total_weaver')?>"><?=number_format($totalWeaver,2)?></td>
-            <td data-title="<?=$this->lang->line('feesreport_total_fine')?>"><?=number_format($totalFine,2)?></td>
+            <td data-col="paid" data-title="<?=$this->lang->line('feesreport_total_paid')?>"><?=number_format($totalPaid,2)?></td>
+            <td data-col="weaver" data-title="<?=$this->lang->line('feesreport_total_weaver')?>"><?=number_format($totalWeaver,2)?></td>
+            <td data-col="fine" data-title="<?=$this->lang->line('feesreport_total_fine')?>"><?=number_format($totalFine,2)?></td>
         </tr>
     </tbody>
 </table>
@@ -554,8 +530,87 @@ $(document).on('click', '#othersBreakdownIcon', function () {
             const filename = `fee_report_${todate}.xlsx`;
 
             var table = document.getElementById("myTable");
-            var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+            var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1", display: true });
             XLSX.writeFile(wb, filename );
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        var $table = $('#myTable');
+        if (!$table.length) {
+            return;
+        }
+
+        var GROUP1_COLS = ['slno', 'invoice', 'paymentdate', 'cashier', 'name', 'roll', 'class', 'section', 'feetype'];
+        var GROUP2_COLS = ['paid', 'paymenttype', 'weaver', 'fine'];
+
+        // Build the "Columns" checkbox list from whatever headers the server actually rendered
+        var $menu = $('#columnSelectorMenu');
+        var $list = $('#columnSelectorList');
+        $table.find('thead th[data-col]').each(function () {
+            var col = $(this).attr('data-col');
+            var label = $.trim($(this).text());
+            var $item = $('<label>', { class: 'rpt-col-selector-item' });
+            var $checkbox = $('<input>', {
+                type: 'checkbox',
+                'data-col': col,
+                checked: true
+            });
+            var $text = $('<span>', { text: label, title: label });
+            $item.append($checkbox).append($text);
+            $list.append($item);
+        });
+
+        function updateSelectedCount() {
+            var total = $list.find('input[type="checkbox"][data-col]').length;
+            var selected = $list.find('input[type="checkbox"][data-col]:checked').length;
+            $('#columnSelectedCount').text(selected);
+            $('#columnTotalCount').text(total);
+        }
+        updateSelectedCount();
+
+        function recomputeGroupColspans() {
+            var group1Visible = GROUP1_COLS.filter(function (col) {
+                var $th = $table.find('thead th[data-col="' + col + '"]');
+                return $th.length && $th.css('display') !== 'none';
+            }).length;
+
+            var group2Visible = GROUP2_COLS.filter(function (col) {
+                var $th = $table.find('thead th[data-col="' + col + '"]');
+                return $th.length && $th.css('display') !== 'none';
+            }).length;
+
+            $table.find('td[data-col-group="group1"]').attr('colspan', Math.max(group1Visible, 1));
+            $table.find('td[data-col-group="group2"]').attr('colspan', Math.max(group2Visible, 1));
+        }
+
+        function toggleColumn(col, visible) {
+            $table.find('[data-col="' + col + '"]').css('display', visible ? '' : 'none');
+            recomputeGroupColspans();
+            updateSelectedCount();
+        }
+
+        $list.on('change', 'input[type="checkbox"][data-col]', function () {
+            toggleColumn($(this).attr('data-col'), $(this).is(':checked'));
+        });
+
+        $('#columnSelectAll').on('click', function () {
+            $list.find('input[type="checkbox"][data-col]').prop('checked', true).each(function () {
+                toggleColumn($(this).attr('data-col'), true);
+            });
+        });
+
+        $('#columnDeselectAll').on('click', function () {
+            $list.find('input[type="checkbox"][data-col]').prop('checked', false).each(function () {
+                toggleColumn($(this).attr('data-col'), false);
+            });
+        });
+
+        // Keep the dropdown open while interacting with checkboxes
+        $menu.on('click', function (e) {
+            e.stopPropagation();
         });
     });
 </script>

@@ -57,7 +57,7 @@
                         <span class="idcard-label" style="<?=$idcardLabelStyle?>">Medium</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->medium ?? 'English'?></span><br>
                         <?php } ?>
                         <?php if(in_array('class_section', $selectedFields)) { ?>
-                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Class/Sec</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$classes[$student->classesID] ?? ''?> / <?=$sections[$student->sectionID] ?? ''?></span><br>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Class/Sec</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$classes[$student->srclassesID] ?? ''?> / <?=$sections[$student->srsectionID] ?? ''?></span><br>
                         <?php } ?>
                         <?php if(in_array('father_name', $selectedFields)) { ?>
                         <span class="idcard-label" style="<?=$idcardLabelStyle?>">F'Name</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->father_name ?? ''?></span><br>
@@ -66,7 +66,7 @@
                         <span class="idcard-label" style="<?=$idcardLabelStyle?>">Contact No.</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->phone ?? ''?></span><br>
                         <?php } ?>
                         <?php if(in_array('village', $selectedFields)) { ?>
-                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Village</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=(!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?></span><br>
+                        <span class="idcard-label" style="<?=$idcardLabelStyle?>">Village</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=(get_subdomain() === 'vasavi') ? ($student->address ?? '') : (!empty($student->village_name) ? $student->village_name : ($student->address ?? ''))?></span><br>
                         <?php } ?>
                         <?php if(in_array('blood_group', $selectedFields)) { ?>
                         <span class="idcard-label" style="<?=$idcardLabelStyle?>">Blood Group</span>: <span class="idcard-value" style="<?=$idcardValueStyle?>"><?=$student->bloodgroup ?? ''?></span><br>

@@ -62,6 +62,19 @@ $due = $net_payable - $paid - $waiver;
 $totalAmount = $invoice->amount - (($invoice->amount / 100) * $invoice->discount);
 ```
 
+### 4.1 Second discount mechanism: Invoice list "edit discount" icon (`globalpaymentID = 0`)
+
+There are **two independent ways** an invoice ends up with a discount, and they are stored completely differently:
+
+| Mechanism | Where set | Storage |
+|---|---|---|
+| Invoice-creation discount | Fee amount entry when the invoice is first generated (`Invoice.php` ~line 2077/2272) | `invoice.discount` column directly |
+| Invoice list "Change Amount" / edit-discount icon (pencil icon next to Discount column, `Invoice::change_discount()`) | Editing an existing invoice's discount from the Invoice list page | A **dummy row in `payment`** (no `paymentamount`, `globalpaymentID` defaults to `0`) **plus** a `weaverandfine` row (`weaver = disc_amount`) tied to that dummy payment's `paymentID`. `invoice.discount` is left untouched. |
+
+**Gotcha**: Any code that walks `payment`/`weaverandfine` grouped by `globalpaymentID` (e.g. building a per-payment history list) will find a `globalpaymentID = 0` bucket that does **not** correspond to any real `globalpayment` row — it's this edit-discount mechanism, not a real payment. Don't skip/ignore it as junk data; it represents a real discount that must be surfaced somewhere (either summed into a total, or shown as its own line), just never attributed to a globalpayment receipt.
+
+**Reference fix (2026-08-11)**: `Global_payment_new`'s "Payment History — Current Year" popup (`mvc/views/global_payment_new/index.php`) was silently dropping this `globalpaymentID=0` discount whenever the invoice also had a real payment. Fixed via `Global_payment_new::generateOrphanDiscountAmount()` (sums `weaverandfine.weaver` where `globalpaymentID == 0`, keyed by `invoiceID`) — see `srinivas_issues.md` (2026-08-11 entry) for full root cause and fix.
+
 ---
 
 ## 5. CRITICAL: Invoice paidstatus Values

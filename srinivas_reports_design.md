@@ -201,7 +201,7 @@ function reportheader($setting, $schoolyear, $pdf = false, $student = null)
 | `.rpt-class-info` | class/section bar | Flex space-between info pill |
 | `.rpt-action-bar` | export btn wrapper | Flex row, gap:10px |
 | `.rpt-action-btn` | each export button | 7px 16px, hover lift |
-| `.rpt-table` | `<table>` | Dark navy header, clean body |
+| `.rpt-table` | `<table>` | Green header (`#4CAF50`), clean body — the project default. Add `.rpt-table-navy` too for the navy/indigo alternative (§18) |
 | `.rpt-table-wrap` | scroll wrapper div | `overflow-x: auto` |
 | `.rpt-hscroll-bar` | sticky scrollbar div | `position:fixed; bottom:0` mirror bar |
 | `.rpt-hscroll-inner` | spacer inside bar | Width = table scrollWidth (set by JS) |
@@ -209,15 +209,25 @@ function reportheader($setting, $schoolyear, $pdf = false, $student = null)
 ### Sticky Columns
 | Class | Used on | Effect |
 |-------|---------|--------|
-| `.rpt-sticky-left` | body `<td>` | Sticky left, light blue `#e3f2fd` |
-| `.rpt-sticky-left-hd` | header `<th>` | Sticky left, dark navy `#0d47a1` |
+| `.rpt-sticky-left` | body `<td>` | Sticky left, white/zebra (`#fff` / `#f9f9f9`) |
+| `.rpt-sticky-left-hd` | header `<th>` | Sticky left, green `#4CAF50` (matches `.rpt-table` default header) |
 | `.rpt-sticky-right` | body `<td>` | Sticky right, light green `#e8f5e9` |
-| `.rpt-sticky-right-hd` | header `<th>` | Sticky right, dark green `#1b5e20` |
+| `.rpt-sticky-right-hd` | header `<th>` | Sticky right, dark green `#2e7d32` |
 
 ### Scroll Utilities
 | Class/ID | Effect |
 |----------|--------|
 | `.rpt-scroll-top-btn` | Fixed ↑ button, bottom-right, appears after 200px scroll |
+
+### Column Selector (generic, §17 — reuse on any report)
+| Class | Used on | Effect |
+|-------|---------|--------|
+| `.rpt-col-selector-group` | `.btn-group` wrapper | Positions the "Columns" dropdown toggle |
+| `.rpt-col-selector-menu` | `.dropdown-menu` | 380px card: header + 2-col checkbox grid + footer |
+| `.rpt-col-selector-header` / `-title` / `-actions` | header row | "Show Columns" title + Select All/Deselect All links |
+| `.rpt-col-selector-list` | checkbox grid wrapper | 2-column grid, light-gray bg, scrolls if tall |
+| `.rpt-col-selector-item` | each `<label>` checkbox row | White chip, green accent-color checkbox, hover highlight |
+| `.rpt-col-selector-footer` | footer row | "`x`/`y` columns shown" live counter |
 
 ---
 
@@ -295,7 +305,47 @@ The due fees vertical report has **unique** per-table sticky column CSS (nth-chi
 
 ---
 
-## 11. Files Never to Touch
+## 11. Table Header Theme — Navy + Callout Column + Sticky Header (optional alt to the default green header)
+
+An alternative table-header color scheme to the default green `.rpt-table` header, for when a report needs a distinct look and/or a highlighted "important amount" column (e.g. a carry-forward/overdue/balance column that should visually stand out from the rest of the row). Codifies the visual theme already used ad-hoc (inline styles + ID selectors) in `mvc/views/report/duefees/DueFeesReport.php` — that file was **not** migrated to these classes, this is net-new shared CSS in `reports.css` §18 for applying to *other* reports going forward.
+
+**Classes** (all in `reports.css` §18):
+
+| Class | Used on | Effect |
+|-------|---------|--------|
+| `.rpt-table-navy` | `<table>`, **in addition to** `.rpt-table` (`class="rpt-table rpt-table-navy"`) | Overrides the header background to navy/indigo (`#1a237e`, second header row `#283593` if the table has two header rows) |
+| `.rpt-col-callout-hd` | one specific `<th>` | Orange header (`#e65100`) for a standout column — class-based, so it works on any column position, not tied to `nth-child`/`last-child` |
+| `.rpt-col-callout` | the matching `<td>`s in that column | Light-orange fill (`#fff3e0`) + bold orange text (`#e65100`) |
+
+**Sticky header comes for free — no extra CSS needed.** `.rpt-table-navy` is a color-only modifier; it must be combined with the base `.rpt-table` class (never used standalone), and `.rpt-table` already makes `thead` sticky (`position: sticky; top: 0;` on the first header row, `top: 40px` on a second header row if present — see §7/reports.css). Combining both classes gets you the navy/orange color scheme **and** a header that stays pinned to the top of the scroll container while the body scrolls — exactly like the Due Fees horizontal report already does with its own bespoke CSS.
+
+**Example**:
+```html
+<table class="rpt-table rpt-table-navy rpt-table-wrap ...">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <!-- ... -->
+            <th class="rpt-col-callout-hd">Prev C/F</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>K Ishitha</td>
+            <!-- ... -->
+            <td class="rpt-col-callout">450.00</td>
+        </tr>
+    </tbody>
+</table>
+```
+
+**When to use**: only when explicitly asked to apply this look to a report — it's an opt-in alternative, not a replacement for the project-default green `.rpt-table` header used everywhere else.
+
+---
+
+## 12. Files Never to Touch
 
 - All `*ReportPDF.php` files — print-specific, separate concern
 - All controllers (`mvc/controllers/`) — no design changes there
@@ -305,7 +355,7 @@ The due fees vertical report has **unique** per-table sticky column CSS (nth-chi
 
 ---
 
-## 12. Execution Order (When Applying to a New Report)
+## 13. Execution Order (When Applying to a New Report)
 
 1. Open the `*ReportView.php` (filter form) — wrap content in `.rpt-filter-card`, update button class
 2. Open the `*Report.php` (output) — add `.rpt-table` + `.rpt-table-wrap`, sticky columns, scrollbar, scroll-to-top, update box-header and action-bar
@@ -314,7 +364,10 @@ The due fees vertical report has **unique** per-table sticky column CSS (nth-chi
 
 ---
 
-## 13. Maintenance Log
+## 14. Maintenance Log
 
 - **2026-04-30**: Created this document. Designed and planned the full reports.css design system. Due fees reports (DueFeesReportView, DueFeesReport, DueFeesReport_vertical) fully implemented as reference. All other reports pending batch implementation.
 - **2026-07-19**: ID Card report migrated. `IdcardReportView_new.php` wrapped in `.rpt-filter-card`/`.rpt-filter-title`/`.rpt-filter-actions`/`.rpt-filter-btn`. `IdcardReport_new.php` (non-tabular — a grid of visual ID cards, not a data table) adapted the output pattern: `.rpt-box-header` + `.rpt-action-bar`/`.rpt-action-btn` + `.rpt-scroll-top-btn` applied, but `.rpt-table`/sticky-columns/hscroll-bar were **not** used since there is no table. The per-file `.idcard-*` `<style>` block was moved into `reports.css` (§15); the school's uploaded ID card template image stays as a small dynamic inline `style="background-image:url(...)"` on `.idcard-box` since that value is per-record data, not a static design property. `reportheader()`/`reportfooter()` were intentionally not added — each card is a self-contained printable artifact, not part of a school-header-style document.
+- **2026-08-05**: Fees Report — added a "Columns" show/hide dropdown next to Export to Excel (`FeesReport.php`), backed by `data-col` attributes on every `<th>`/`<td>` and a jQuery toggle that also recomputes the `colspan` on the two merged summary/grand-total cells (`data-col-group="group1"/"group2"`). The Excel export (`XLSX.utils.table_to_book`) was given `{ display: true }` so hidden columns are excluded from the downloaded file automatically — no server-side change needed. New **generic, reusable** pattern documented in `reports.css` §17: `.rpt-col-selector-*` (group/menu/header/title/actions/list/item/footer). Reuse this section as-is on any other `*Report.php` that needs the same column show/hide control — do not re-invent a per-file version. `FeesReportView.php` filter form was migrated to the `.rpt-filter-card` pattern (§4) in the same pass. The pre-existing `#myTable`/`.table-container`/`.table-responsive` inline `<style>` block in `FeesReport.php` (green header, sticky thead, min-width scroll) was **left as-is** — migrating the table output itself to `.rpt-table`/sticky-columns/hscroll-bar (§5) is a separate, larger task that wasn't in scope here, and `#myTable` is also used un-migrated by `DueFeesReport_vertical.php` with different styling, so moving it into the shared `reports.css` without doing that full migration would risk a cross-report collision. Also created a companion playbook file, `srinivas_reports_dynamic_columns.md`, documenting how to apply this same column-selector feature to any other report (including the 4-way Excel-export-pattern branch it needs).
+- **2026-08-06**: Added **§11 Table Header Theme — Navy + Callout Column + Sticky Header** and its CSS in `reports.css` §18 (`.rpt-table-navy`, `.rpt-col-callout-hd`, `.rpt-col-callout`) — an opt-in alternative to the default green `.rpt-table` header, codifying the navy/indigo header + orange "Prev C/F" callout column already used ad-hoc/inline in `DueFeesReport.php`, as class-based (not `nth-child`) CSS so it transfers cleanly to a different report's column layout. `.rpt-table-navy` is a color-only modifier meant to be combined with the base `.rpt-table` class, which already makes the header sticky (`position: sticky`) — so this theme gets a pinned header for free with no extra CSS. `DueFeesReport.php` itself was **not** migrated to these new classes; they're net-new shared CSS for applying to other reports going forward. Also corrected two stale color descriptions in the §6 CSS Class Reference table (`.rpt-table`/`.rpt-sticky-left-hd` were documented as "dark navy" but the actual `reports.css` values are green `#4CAF50`/`#2e7d32` — likely drift from an earlier design iteration).
+- **2026-08-06**: First real-world use of the §11/§18 navy theme — applied to **Fees Report** (`FeesReport.php`) at the user's request, right after the theme was documented. This also finally migrated the table that the 2026-08-05 entry above had explicitly left as-is: removed the old per-file `<style>` block (`#myTable`/`.table-container`/`.table-responsive`, green header) entirely, and replaced `<table class="table table-bordered" id="myTable">` with `<table class="rpt-table rpt-table-navy" id="myTable">` plus `<div class="rpt-table-wrap" style="max-height:400px; overflow-y:auto;">` for the wrapper (kept the deliberate 400px vertical-scroll box as a small inline override on top of the shared class, since `.rpt-table-wrap` itself only handles horizontal overflow and this report intentionally caps height rather than letting the page grow — that specific behavior isn't in the shared class and wasn't worth inventing a whole new CSS variant for one report). No `.rpt-col-callout` column was added — Fees Report has no carry-forward/overdue-style column that fits that treatment; skipped rather than forcing one on. Verified the `data-col`/`data-col-group` column-selector feature (§17, added 2026-08-05) and the Excel export still work unaffected by the header/wrapper class swap.

@@ -144,3 +144,22 @@ Whenever that pairing broke for any reason (a transient failure on the remote te
 - `mvc/models/Hmember_m.php` — `insert_hmember()` returns real insert ID/`FALSE`
 - `mvc/controllers/Hmember.php` — `add()`, `bulk_add()` verify insert success + use `srclassesID`/`srsectionID`; `edit()`, `unmember_precheck()`, `unmember()` self-heal orphaned flags
 - `mvc/views/hmember/index.php` — Un-Member modal shows a clear message for the orphan/self-heal case
+
+---
+
+### 2026-08-11: Invoice List "Edit Discount" Amount Missing From Global Payment's Payment History Popup
+
+**Reported as**: A student's invoice has a discount entered via the Invoice list page's inline "edit discount" icon (Discount column). That amount is correctly reflected in the invoice list's Balance and in the Global Payment page's "Remaining Due" total, but the Global Payment page's "Payment History — Current Year" popup does not show it anywhere against that invoice's row.
+
+**Root Cause**: The Invoice list's edit-discount icon does **not** write to `invoice.discount`. `Invoice::change_discount()` instead inserts a dummy row into `payment` (no `paymentamount`, `globalpaymentID` defaults to `0`) plus a `weaverandfine` row (`weaver = disc_amount`) tied to that dummy payment's `paymentID` — a second, separate discount mechanism from the `invoice.discount` column set at invoice-creation time (see `srinivas_global_payment_instructions.md` Section 4 for the column-based mechanism).
+
+In `Global_payment_new::index()`, `generateAllPaymentAmountWithGlobalID()` groups payment history by `globalpaymentID` for rendering. A `globalpaymentID = 0` orphan payment never matches any real `globalpayment` row, so it's invisible to the main "Payment History" loop (`mvc/views/global_payment_new/index.php`, ~line 553). The view also has a separate "Discount-only rows" fallback block meant for invoices with a discount but no real payment — but it was gated by `if ($_dinvPaid > 0) continue;`, so as soon as the invoice ALSO had one real payment (e.g. a partial payment through the normal Global Payment form), the whole fallback block was skipped and the orphan weaver-discount silently disappeared from the popup, even though it was still correctly subtracted in the page's own Due/Remaining Balance math (which reads `$weavers[$invoiceID]`, an all-time sum across both discount mechanisms, unaffected by this bug).
+
+**Fix**:
+1. Added `Global_payment_new::generateOrphanDiscountAmount()` — sums `weaverandfine.weaver` per `invoiceID` **only** for rows where `globalpaymentID == 0` (the invoice-list-edit-discount mechanism), and wired it into `index()` as `$this->data['orphan_discounts']`.
+2. In the view's "Discount-only rows" block, replaced the `$_dinvPaid > 0` skip-the-whole-block guard with a targeted one: the orphan-discount portion is now **always** rendered (regardless of other real payments on the invoice); only the `invoice.discount`-column portion is zeroed out when a real payment exists, since that portion is already correctly attributed to the real payment's row via the existing `invoice_discount` map (unaffected by this bug, kept as-is) — this avoids double-counting while no longer dropping the orphan amount.
+
+**Files Changed**:
+- `mvc/controllers/Global_payment_new.php` — added `generateOrphanDiscountAmount()`; `index()` now builds `$this->data['orphan_discounts']`
+- `mvc/views/global_payment_new/index.php` — "Discount-only rows" block now always shows the orphan (`globalpaymentID=0`) weaverandfine discount, independent of whether the invoice has a real payment
+- `srinivas_global_payment_instructions.md` — documented the `globalpaymentID=0` orphan-discount mechanism

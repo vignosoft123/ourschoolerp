@@ -8,6 +8,12 @@
     </div><!-- /.box-header -->
     <!-- form start -->
     <div class="box-body">
+
+        <div class="rpt-filter-card">
+            <div class="rpt-filter-title">
+                <i class="fa fa-filter"></i>&nbsp; Filter Options
+            </div>
+
         <div class="row">
             <div class="col-sm-12">
                 <div class="form-group col-sm-4" id="schoolyearIDDiv">
@@ -62,11 +68,13 @@
                     <label><?=$this->lang->line("onlineadmissionreport_admissionID")?></label>
                     <input type="text" name="admissionID" class="form-control" id="admissionID">
                 </div>
-                <div class="col-sm-4">
-                    <button id="get_onlineadmissionreport" class="btn btn-success" style="margin-top:23px;"><?=$this->lang->line("onlineadmissionreport_submit")?></button>
-                </div>
             </div>
         </div><!-- row -->
+
+            <div class="rpt-filter-actions">
+                <button id="get_onlineadmissionreport" class="btn btn-success rpt-filter-btn"><i class="fa fa-search"></i> <?=$this->lang->line("onlineadmissionreport_submit")?></button>
+            </div>
+        </div><!-- /.rpt-filter-card -->
     </div><!-- Body -->
 </div><!-- /.box -->
 

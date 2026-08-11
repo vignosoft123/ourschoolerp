@@ -256,6 +256,25 @@ class Global_payment_new extends Admin_Controller
         return $returnArray;
     }
 
+    // Discount entered via the Invoice list "Change Amount" (edit-discount) icon —
+    // Invoice::change_discount() inserts a dummy payment (globalpaymentID=0, no
+    // paymentamount) plus a weaverandfine row against it. Since globalpaymentID=0
+    // never matches a real globalpayment row, this amount is never attributed to a
+    // payment-history row and must be tracked separately so it can always be shown.
+    private function generateOrphanDiscountAmount($weaverandfines) {
+        $returnArray = [];
+        if (customCompute($weaverandfines)) {
+            foreach ($weaverandfines as $wf) {
+                if ((int)$wf->globalpaymentID === 0) {
+                    $returnArray[$wf->invoiceID] = isset($returnArray[$wf->invoiceID])
+                        ? $returnArray[$wf->invoiceID] + $wf->weaver
+                        : $wf->weaver;
+                }
+            }
+        }
+        return $returnArray;
+    }
+
     // -------------------------------------------------------------------------
     // AJAX dropdown helpers
     // -------------------------------------------------------------------------
@@ -359,8 +378,9 @@ class Global_payment_new extends Admin_Controller
                 'studentID' => $studentID, 'schoolyearID' => $schoolyearID,
             ]);
 
-            $this->data['payments']   = $this->generateAllPaymentAmount($allPaymentList);
-            $this->data['weavers']    = $this->generateAllWeaverAmount($allWeaverList);
+            $this->data['payments']          = $this->generateAllPaymentAmount($allPaymentList);
+            $this->data['weavers']           = $this->generateAllWeaverAmount($allWeaverList);
+            $this->data['orphan_discounts']  = $this->generateOrphanDiscountAmount($allWeaverList);
             $this->data['paymenteds'] = $allPaymentList;
             $this->data['weavereds']  = $allWeaverList;
 

@@ -597,15 +597,18 @@
                                 </tr>
                             <?php endforeach; } } ?>
                             <?php
-                            // Discount-only rows: invoices that have a discount (invoice.discount OR weaverandfine waiver
-                            // from "Change Amount" modal) but NO actual payment amount — these have no globalpaymentID
-                            // and never appear in the globalpayments loop above.
+                            // Discount-only rows: invoice.discount (set at invoice creation) and/or the
+                            // "Change Amount" discount from the Invoice list edit-discount icon. The latter
+                            // is stored as a weaverandfine row against a dummy payment with globalpaymentID=0
+                            // (see Invoice::change_discount()), so it never matches a real globalpayment row
+                            // and must always be shown here — regardless of whether the invoice also has a
+                            // real payment (in which case only invoice.discount is skipped, since that part
+                            // is already attributed to the real payment's row above via invoice_discount).
                             foreach ((array)$invoices as $_dinv):
-                                $_dinvPaid  = round(isset($payments[$_dinv->invoiceID]) ? (float)$payments[$_dinv->invoiceID] : 0, 2);
-                                if ($_dinvPaid > 0) continue;  // has real payments → already shown in globalpayments loop
-                                $_dinvWvr   = round(isset($weavers[$_dinv->invoiceID])  ? (float)$weavers[$_dinv->invoiceID]  : 0, 2);
-                                $_dinvDisc  = (float)($_dinv->discount ?? 0);
-                                $_totalDisc = $_dinvDisc + $_dinvWvr;
+                                $_dinvPaid   = round(isset($payments[$_dinv->invoiceID]) ? (float)$payments[$_dinv->invoiceID] : 0, 2);
+                                $_dinvOrphan = round(isset($orphan_discounts[$_dinv->invoiceID]) ? (float)$orphan_discounts[$_dinv->invoiceID] : 0, 2);
+                                $_dinvDisc   = ($_dinvPaid > 0) ? 0 : (float)($_dinv->discount ?? 0);
+                                $_totalDisc  = $_dinvDisc + $_dinvOrphan;
                                 if ($_totalDisc <= 0) continue;  // no discount of any kind
                                 $has_history = true;
                                 $invoice_weaver += $_totalDisc;

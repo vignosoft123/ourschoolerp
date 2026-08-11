@@ -231,7 +231,7 @@ class Subdomains extends Admin_Controller {
 			'hostgator'  => 'ourschoolerp.com',
 			'myschools'  => 'myschoolserp.com',
 			'schoolhour' => 'schoolhour.in',
-			'collegehour'=> 'collegeerp.in',
+			'collegehour'=> 'collegehour.in',
 			'godaddy'    => 'ourcollegeerp.com',
 		];
 
@@ -603,7 +603,7 @@ class Subdomains extends Admin_Controller {
 			'hostgator'  => 'ourschoolerp.com',
 			'myschools'  => 'myschoolserp.com',
 			'schoolhour' => 'schoolhour.in',
-			'collegehour'=> 'collegeerp.in',
+			'collegehour'=> 'collegehour.in',
 		];
 		$dummy_servers = [
 			'hostgator'  => 'dummy1.ourschoolerp.com',
@@ -763,7 +763,7 @@ class Subdomains extends Admin_Controller {
 			'hostgator'   => ['host' => 'cs3005.hostgator.in',  'port' => 21, 'user' => 'mindw2ft',  'pass' => 'Mindwhile$1986@', 'dummy_dir' => 'dummy1.ourschoolerp.com'],
 			'myschools'   => ['host' => 'sh203.bigrock.com',     'port' => 21, 'user' => 'myschknc',  'pass' => 'Kiran$1986@',    'dummy_dir' => 'dummy1.myschoolserp.com'],
 			'schoolhour'  => ['host' => 'schoolhour.in',         'port' => 21, 'user' => 'schoodj8',  'pass' => 'School@123456@', 'dummy_dir' => 'dummy1.schoolhour.in'],
-			'collegehour' => ['host' => 'collegehour.in',        'port' => 21, 'user' => 'collenv4p', 'pass' => 'Satya$1986$',   'dummy_dir' => 'dummy1.collegeerp.in'],
+			'collegehour' => ['host' => 'collegehour.in',        'port' => 21, 'user' => 'collenv4p', 'pass' => 'Satya$1986$',   'dummy_dir' => 'dummy1.collegehour.in'],
 		];
 
 		if (!isset($ftp_configs[$server])) {
@@ -822,7 +822,7 @@ class Subdomains extends Admin_Controller {
 			'hostgator'   => ['host' => 'cs3005.hostgator.in',  'port' => 21, 'user' => 'mindw2ft',  'pass' => 'Mindwhile$1986@', 'dummy_dir' => 'dummy1.ourschoolerp.com'],
 			'myschools'   => ['host' => 'sh203.bigrock.com',     'port' => 21, 'user' => 'myschknc',  'pass' => 'Kiran$1986@',    'dummy_dir' => 'dummy1.myschoolserp.com'],
 			'schoolhour'  => ['host' => 'schoolhour.in',         'port' => 21, 'user' => 'schoodj8',  'pass' => 'School@123456@', 'dummy_dir' => 'dummy1.schoolhour.in'],
-			'collegehour' => ['host' => 'collegehour.in',        'port' => 21, 'user' => 'collenv4p', 'pass' => 'Satya$1986$',   'dummy_dir' => 'dummy1.collegeerp.in'],
+			'collegehour' => ['host' => 'collegehour.in',        'port' => 21, 'user' => 'collenv4p', 'pass' => 'Satya$1986$',   'dummy_dir' => 'dummy1.collegehour.in'],
 		];
 
 		if (!isset($ftp_configs[$server])) {
@@ -1011,7 +1011,7 @@ class Subdomains extends Admin_Controller {
 			'hostgator'   => 'ourschoolerp.com',
 			'myschools'   => 'myschoolserp.com',
 			'schoolhour'  => 'schoolhour.in',
-			'collegehour' => 'collegeerp.in',
+			'collegehour' => 'collegehour.in',
 			'godaddy'     => 'ourcollegeerp.com',
 		];
 		$base_domain = isset($domain_map[$server]) ? $domain_map[$server] : '';
@@ -1078,12 +1078,17 @@ class Subdomains extends Admin_Controller {
 			echo json_encode(['success' => false, 'message' => 'Server and file path are required']);
 			return;
 		}
+		$payload = ['server' => $server, 'file_path' => $file_path];
+		$raw_ids = $this->input->post('subdomain_ids');
+		if (!empty($raw_ids) && is_array($raw_ids)) {
+			$payload['subdomain_ids'] = array_values(array_map('intval', $raw_ids));
+		}
 		$ch = curl_init('http://localhost:8000/ftp-upload-file');
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_POST           => true,
 			CURLOPT_HTTPHEADER     => ['Content-Type: application/json'],
-			CURLOPT_POSTFIELDS     => json_encode(['server' => $server, 'file_path' => $file_path]),
+			CURLOPT_POSTFIELDS     => json_encode($payload),
 			CURLOPT_TIMEOUT        => 120,
 		]);
 		$body = curl_exec($ch); $err = curl_error($ch); curl_close($ch);
