@@ -58,7 +58,13 @@
                                         <?php echo $payment->feetype; ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('paymenthistory_method')?>">
-                                        <?php echo $payment->paymenttype; ?>
+                                        <?php
+                                            $paymentMethodLabel = $payment->paymenttype;
+                                            if(strtolower($payment->paymenttype) === 'others' && !empty($payment->payment_other_details)) {
+                                                $paymentMethodLabel = $payment->payment_other_details;
+                                            }
+                                            echo $paymentMethodLabel;
+                                        ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('paymenthistory_amount')?>">
                                         <?php echo $payment->paymentamount; ?>

@@ -12,6 +12,7 @@ class Expensereport extends Admin_Controller {
         $this->load->model("productpurchaseitem_m");
         $this->load->model("productpurchasepaid_m");
         $this->load->model("expense_m");
+        $this->load->model("banks_m");
         $language = $this->session->userdata('lang');
 		$this->lang->load('productpurchasereport', $language);
 	}
@@ -27,7 +28,17 @@ class Expensereport extends Admin_Controller {
 	                'field' => 'reference_no',
 	                'label' => $this->lang->line('productpurchasereport_referenceNo'),
 	                'rules' => 'trim|xss_clean|callback_unique_data'
-	        ),
+        ),
+            array(
+                    'field' => 'expense_payment_type',
+                    'label' => 'Payment Type',
+                    'rules' => 'trim|xss_clean'
+            ),
+            array(
+                    'field' => 'expense_bank_name',
+                    'label' => 'Bank Name',
+                    'rules' => 'trim|xss_clean'
+            ),
             array(
 	                'field' => 'fromdate',
 	                'label' => $this->lang->line('productpurchasereport_fromdate'),
@@ -107,6 +118,7 @@ class Expensereport extends Admin_Controller {
             )
 		);
         $this->data['expensetypes'] = $this->db->get('expensetypes')->result();
+        $this->data['banks'] = $this->banks_m->get_active_banks();
         $this->data["subview"] = "report/expense/ExpenseReportView";
 		$this->load->view('_layout_main', $this->data);
 	}
@@ -138,11 +150,14 @@ class Expensereport extends Admin_Controller {
                     $schoolyearID = $this->session->userdata('defaultschoolyearID');
                     $this->data['expensetypesID'] = $this->input->post('expensetypesID');
                      $this->data['reference_no'] = !empty($this->input->post('reference_no')) ? $this->input->post('reference_no') : '0';
+                     $this->data['expense_payment_type'] = $this->input->post('expense_payment_type');
+                     $this->data['expense_bank_name'] = $this->input->post('expense_bank_name');
                      $this->data['fromdate'] = $this->input->post('fromdate');
 					$this->data['todate'] = $this->input->post('todate');
 
 
                     $this->data['expensetypes'] = $this->db->get('expensetypes')->result();
+                    $this->data['banks'] = $this->banks_m->get_active_banks();
                    
 					$expensesArray = $this->expense_m->get_all_expenses_for_report($this->input->post());
                     // echo "<pre>";print_r($expensesArray);die;
@@ -172,16 +187,22 @@ class Expensereport extends Admin_Controller {
 		$reference_no    = htmlentities(escapeString($this->uri->segment(4)));
 		$fromdate = htmlentities(escapeString($this->uri->segment(5)));
 		$todate   = htmlentities(escapeString($this->uri->segment(6)));
+		$expense_payment_type = urldecode(htmlentities(escapeString($this->uri->segment(7))));
+		$expense_bank_name = urldecode(htmlentities(escapeString($this->uri->segment(8))));
 		if((int)$expensetypesID >= 0) {
 			$schoolyearID = $this->session->userdata('defaultschoolyearID');
 			$this->data['expensetypesID'] = $expensetypesID;
 			$this->data['reference_no'] = $reference_no;
+			$this->data['expense_payment_type'] = $expense_payment_type;
+			$this->data['expense_bank_name'] = $expense_bank_name;
 			$this->data['fromdate'] = ($fromdate != '') ? date('d-m-Y', $fromdate) : '';
 			$this->data['todate']   = ($todate != '') ? date('d-m-Y', $todate) : '';
 
 			$postArray = [];
 			$postArray['expensetypesID'] = $expensetypesID;
 			$postArray['reference_no']    = $reference_no;
+			$postArray['expense_payment_type'] = $expense_payment_type;
+			$postArray['expense_bank_name'] = $expense_bank_name;
 			if($fromdate !='' && $todate != '') {
 				$postArray['fromdate'] = date('d-m-Y',$fromdate);
 				$postArray['todate']   = date('d-m-Y',$todate);
@@ -264,17 +285,23 @@ class Expensereport extends Admin_Controller {
 		$reference_no    = htmlentities(escapeString($this->uri->segment(4)));
 		$fromdate = htmlentities(escapeString($this->uri->segment(5)));
 		$todate   = htmlentities(escapeString($this->uri->segment(6)));
+		$expense_payment_type = urldecode(htmlentities(escapeString($this->uri->segment(7))));
+		$expense_bank_name = urldecode(htmlentities(escapeString($this->uri->segment(8))));
 		
 		if((int)$expensetypesID >= 0) {
 			$schoolyearID = $this->session->userdata('defaultschoolyearID');
 			$this->data['expensetypesID'] = $expensetypesID;
 			$this->data['reference_no'] = $reference_no;
+			$this->data['expense_payment_type'] = $expense_payment_type;
+			$this->data['expense_bank_name'] = $expense_bank_name;
 			$this->data['fromdate'] = $fromdate;
 			$this->data['todate']   = $todate;
 
 			$postArray = [];
 			$postArray['expensetypesID'] = $expensetypesID;
 			$postArray['reference_no']    = $reference_no;
+			$postArray['expense_payment_type'] = $expense_payment_type;
+			$postArray['expense_bank_name'] = $expense_bank_name;
 			if($fromdate !='' && $todate != '') {
 				$postArray['fromdate'] = date('d-m-Y',$fromdate);
 				$postArray['todate']   = date('d-m-Y',$todate);

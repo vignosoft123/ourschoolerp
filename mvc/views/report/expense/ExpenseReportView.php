@@ -33,6 +33,33 @@
                     <input class="form-control" type="text" name="reference_no" id="reference_no">
                 </div>
 
+                <div class="form-group col-sm-4" id="expensePaymentTypeDiv">
+                    <label>Payment Type</label>
+                    <?php
+                    $paymentTypeArray = array(
+                        "0" => "Select Payment Type",
+                        "Cash" => "Cash",
+                        "Digital" => "Digital",
+                        "Cheque" => "Cheque",
+                        "Others" => "Others",
+                    );
+                    echo form_dropdown("expense_payment_type", $paymentTypeArray, set_value("expense_payment_type"), "id='expense_payment_type' class='form-control select2'");
+                    ?>
+                </div>
+
+                <div class="form-group col-sm-4" id="expenseBankNameDiv" style="display:none;">
+                    <label>Bank Name</label>
+                    <?php
+                    $bankArray = array("0" => "Select Bank");
+                    if(customCompute($banks)) {
+                        foreach($banks as $bank) {
+                            $bankArray[$bank->bank_name] = $bank->bank_name;
+                        }
+                    }
+                    echo form_dropdown("expense_bank_name", $bankArray, set_value("expense_bank_name"), "id='expense_bank_name' class='form-control select2'");
+                    ?>
+                </div>
+
                 <!-- <div class="form-group col-sm-4" id="statusDiv">
                     <label><?=$this->lang->line("productpurchasereport_status")?></label>
                     <?php
@@ -121,16 +148,29 @@
     });
 
 
+    $('#expense_payment_type').on('change', function() {
+        if ($(this).val() === 'Others') {
+            $('#expenseBankNameDiv').show();
+        } else {
+            $('#expenseBankNameDiv').hide();
+            $('#expense_bank_name').val('0').trigger('change');
+        }
+    });
+
     $('#get_expensereport').click(function() {
 
         var expensetypesID = $('#expensetypesID').val(); 
         var reference_no = $('#reference_no').val(); 
+        var expense_payment_type = $('#expense_payment_type').val(); 
+        var expense_bank_name = $('#expense_bank_name').val(); 
         var fromdate = $('#fromdate').val();
         var todate   = $('#todate').val();
 
         var field = {
             'expensetypesID': expensetypesID, 
             'reference_no': reference_no, 
+            'expense_payment_type': expense_payment_type,
+            'expense_bank_name': expense_bank_name,
             'fromdate': fromdate,
             'todate': todate
         };

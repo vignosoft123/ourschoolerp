@@ -44,6 +44,7 @@
                                 <th class="col-sm-1"><?=$this->lang->line('slno')?></th>
                                 <th class="col-sm-2">Reference No</th>
                                 <th class="col-sm-2"><?=$this->lang->line('expense_expense')?></th>
+                                <th class="col-sm-2">Payment Type</th>
                                 <th class="col-sm-2"><?=$this->lang->line('expense_date')?></th>
                                 <th class="col-sm-2"><?=$this->lang->line('expense_uname')?></th>
                                 <th class="col-sm-1"><?=$this->lang->line('expense_amount')?></th>
@@ -67,6 +68,15 @@
                                     </td>
                                     <td data-title="<?=$this->lang->line('expense_expense')?>">
                                         <?php echo $expense->expense; ?>
+                                    </td>
+                                    <td data-title="Payment Type">
+                                        <?php
+                                            $expensePaymentType = isset($expense->expense_payment_type) ? $expense->expense_payment_type : '';
+                                            if(strtolower($expensePaymentType) === 'others' && !empty($expense->expense_bank_name)) {
+                                                $expensePaymentType = $expense->expense_bank_name;
+                                            }
+                                            echo $expensePaymentType;
+                                        ?>
                                     </td>
                                     <td data-title="<?=$this->lang->line('expense_date')?>">
                                         <?php echo date("d M Y", strtotime($expense->date)); ?>

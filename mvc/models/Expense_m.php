@@ -104,7 +104,16 @@ class Expense_m extends MY_Model {
             $this->db->where('expense.expense_referenceno', $queryArray['reference_no']);
         }
 
-        
+        if(isset($queryArray['expense_payment_type']) && !empty($queryArray['expense_payment_type']) && $queryArray['expense_payment_type'] != '0') {
+            $this->db->where('expense.expense_payment_type', $queryArray['expense_payment_type']);
+
+            if(strtolower($queryArray['expense_payment_type']) === 'others') {
+                if(isset($queryArray['expense_bank_name']) && !empty($queryArray['expense_bank_name']) && $queryArray['expense_bank_name'] != '0') {
+                    $this->db->where('expense.expense_bank_name', $queryArray['expense_bank_name']);
+                }
+            }
+        }
+
         if((isset($queryArray['fromdate']) && $queryArray['fromdate'] != 0) && (isset($queryArray['todate']) && $queryArray['todate'] != 0)) {
             $fromdate = date('Y-m-d', strtotime($queryArray['fromdate']));
             $todate = date('Y-m-d', strtotime($queryArray['todate']));

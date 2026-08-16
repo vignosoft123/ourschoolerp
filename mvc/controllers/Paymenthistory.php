@@ -26,6 +26,7 @@ class Paymenthistory extends Admin_Controller {
 		$this->load->model('studentrelation_m');
 		$this->load->model('studentrelation_m');
 		$this->load->model('globalpayment_m');
+		$this->load->model('banks_m');
 		$language = $this->session->userdata('lang');
 		$this->lang->load('paymenthistory', $language);	
 	}
@@ -42,6 +43,11 @@ class Paymenthistory extends Admin_Controller {
 				'field' => 'payment_method',
 				'label' => $this->lang->line("paymenthistory_paymentmethod"),
 				'rules' => 'trim|required|xss_clean|max_length[11]|callback_unique_paymentmethod'
+			),
+			array(
+				'field' => 'payment_date',
+				'label' => $this->lang->line("paymenthistory_date"),
+				'rules' => 'trim|required|xss_clean'
 			)
 		);
 		return $rules;
@@ -101,6 +107,7 @@ class Paymenthistory extends Admin_Controller {
 			$id = htmlentities(escapeString($this->uri->segment(3)));
 			$schoolyearID = $this->session->userdata('defaultschoolyearID');
 			if((int)$id) {
+				$this->data['banks'] = $this->banks_m->get_active_banks();
 				$this->data['payment'] = $this->payment_m->get_single_payment(array('paymentID' => $id, 'paymentamount !=' => NULL, 'schoolyearID' => $schoolyearID));
 				if(customCompute($this->data['payment'])) {
 					if(($this->data['payment']->paymenttype != "Paypal") && ($this->data['payment']->paymenttype != 'Stripe') && ($this->data['payment']->paymenttype != 'Payumoney') && ($this->data['payment']->paymenttype != 'Voguepay')) {
@@ -138,9 +145,21 @@ class Paymenthistory extends Admin_Controller {
 											$invoicepaidstatus = 1;
 										}
 
+										$paymentDate = $this->input->post('payment_date');
+										if(!empty($paymentDate)) {
+											$paymentDate = date('Y-m-d', strtotime($paymentDate));
+										} else {
+											$paymentDate = $this->data['payment']->paymentdate;
+										}
+
+										$paymentMethod = $this->input->post('payment_method');
+										$paymentOtherDetails = (strtolower($paymentMethod) === 'others') ? ($this->input->post('payment_bank_name') ?: '') : '';
+
 										$paymentArray = array(
 											'paymentamount' => $this->input->post('amount'),
-											'paymentdate' => date('Y-m-d'),
+											'paymenttype' => $paymentMethod,
+											'payment_other_details' => $paymentOtherDetails,
+											'paymentdate' => $paymentDate,
 											'userID' => $this->session->userdata('loginuserID'),
 											'usertypeID' => $this->session->userdata('usertypeID'), 
 											'uname' => $this->session->userdata('name'),

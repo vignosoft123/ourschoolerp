@@ -1,12 +1,14 @@
 <div class="row">
     <div class="col-sm-12" style="margin:10px 0px">
         <?php
+            $paymentTypeParam = isset($expense_payment_type) ? $expense_payment_type : '';
+            $bankParam = isset($expense_bank_name) ? $expense_bank_name : '';
             if($fromdate != '' && $todate != '') {
-                $generatepdfurl = base_url("expensereport/pdf/".$expensetypesID."/".$reference_no."/".strtotime($fromdate)."/".strtotime($todate));
-                $generatexmlurl = base_url("expensereport/xlsx/".$expensetypesID."/".$reference_no."/".strtotime($fromdate)."/".strtotime($todate));
+                $generatepdfurl = base_url("expensereport/pdf/".$expensetypesID."/".$reference_no."/".strtotime($fromdate)."/".strtotime($todate)."/".urlencode($paymentTypeParam)."/".urlencode($bankParam));
+                $generatexmlurl = base_url("expensereport/xlsx/".$expensetypesID."/".$reference_no."/".strtotime($fromdate)."/".strtotime($todate)."/".urlencode($paymentTypeParam)."/".urlencode($bankParam));
             } else {
-                $generatepdfurl = base_url("expensereport/pdf/".$expensetypesID."/".$reference_no);
-                $generatexmlurl = base_url("expensereport/xlsx/".$expensetypesID."/".$reference_no);
+                $generatepdfurl = base_url("expensereport/pdf/".$expensetypesID."/".$reference_no."/0/0/".urlencode($paymentTypeParam)."/".urlencode($bankParam));
+                $generatexmlurl = base_url("expensereport/xlsx/".$expensetypesID."/".$reference_no."/0/0/".urlencode($paymentTypeParam)."/".urlencode($bankParam));
             }
 
             echo btn_printReport('productpurchasereport', $this->lang->line('report_print'), 'printablediv');
@@ -69,7 +71,8 @@
                                     <tr>
                                         <th><?=$this->lang->line('slno')?></th>
                                         <th>Reference No</th>
-                                        <th>Expense Type</th> 
+                                        <th>Expense Type</th>
+                                        <th>Payment Type</th>
                                         <th>Expense Date</th>
                                         <th>Created By</th> 
                                         <th>Created Date</th>
@@ -93,7 +96,15 @@
                                                 <?=$productpurchase['expense'];?>
                                             </td>
 
-                                            
+                                            <td data-title="Payment Type">
+                                                <?php
+                                                    $paymentTypeLabel = isset($productpurchase['expense_payment_type']) ? $productpurchase['expense_payment_type'] : '';
+                                                    if(strtolower($paymentTypeLabel) === 'others' && !empty($productpurchase['expense_bank_name'])) {
+                                                        $paymentTypeLabel = $productpurchase['expense_bank_name'];
+                                                    }
+                                                    echo $paymentTypeLabel;
+                                                ?>
+                                            </td>
 
                                             <td data-title="<?=$this->lang->line('productpurchasereport_date')?>">
                                                 <?=$productpurchase['date'];?>
@@ -122,7 +133,7 @@
                                         </tr>
                                     <?php $i++; } ?>
                                     <tr>
-                                        <td data-title="<?=$this->lang->line('productpurchasereport_grandtotal')?>" colspan="7" class="text-right text-bold"><?=$this->lang->line('productpurchasereport_grandtotal')?> <?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></td>
+                                        <td data-title="<?=$this->lang->line('productpurchasereport_grandtotal')?>" colspan="8" class="text-right text-bold"><?=$this->lang->line('productpurchasereport_grandtotal')?> <?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></td>
 
                                         <td data-title="<?=$this->lang->line('productpurchasereport_totalamount')?>" class="text-bold"><?=number_format($total_amount,2)?></td>
 
