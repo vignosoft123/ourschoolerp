@@ -6,11 +6,13 @@
 
 /* ---- Header band ---- */
 .pcn-header { display: flex; align-items: center; gap: 18px; padding: 20px 24px; background: linear-gradient(135deg,#eef1fb 0%,#e3e8fb 100%); border-bottom: 4px solid #1a237e; }
-.pcn-header-logo { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+/* background-image divs, not <img object-fit:cover> — html2canvas (Download JPEG button)
+   doesn't reliably support object-fit, same gotcha already worked around in the ID Card report. */
+.pcn-header-logo { width: 68px; height: 68px; border-radius: 50%; background-size: cover; background-position: center center; background-repeat: no-repeat; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 .pcn-header-info { flex: 1; }
 .pcn-header-info h2 { margin: 0 0 3px; font-size: 22px; color: #1a237e; font-weight: 800; letter-spacing: 0.2px; }
 .pcn-header-info p { margin: 0; font-size: 12px; color: #5c6b8a; line-height: 1.5; }
-.pcn-header-photo { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); flex-shrink: 0; }
+.pcn-header-photo { width: 68px; height: 68px; border-radius: 50%; background-size: cover; background-position: center center; background-repeat: no-repeat; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); flex-shrink: 0; }
 .pcn-year-box { background: linear-gradient(160deg,#1a237e,#0d1550); color: #fff; border-radius: 10px; padding: 10px 16px; font-size: 11px; min-width: 200px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(26,35,126,0.35); }
 .pcn-year-box .pcn-year-label { opacity: 0.75; letter-spacing: 0.6px; font-size: 10px; }
 .pcn-year-box .pcn-year-big { font-size: 20px; font-weight: 800; margin: 2px 0 8px; letter-spacing: 0.3px; color: #ffb300 !important; }
@@ -159,6 +161,8 @@
     <a class="btn btn-default rpt-action-btn" target="_blank" href="<?=base_url('progresscardreport/pdf_new/'.$classesID.'/'.$sectionID.'/'.(isset($studentID) ? $studentID : 0).'/'.$examID)?>"><i class="fa fa-print"></i> Print</a>
     <button type="button" class="btn btn-default rpt-action-btn sendSms_new"><i class="fa fa-send"></i> Send SMS</button>
     <button type="button" class="btn btn-default rpt-action-btn sendWhatsapp_btn_new"><i class="fa fa-whatsapp"></i> Send Whatsapp New</button>
+    <button type="button" id="pcnDownloadJpegBtn" class="btn btn-default rpt-action-btn"><i class="fa fa-image"></i> Download JPEG</button>
+    <button type="button" id="pcnDownloadZipBtn" class="btn btn-default rpt-action-btn"><i class="fa fa-file-archive-o"></i> Download All as JPEG ZIP</button>
 </div>
 
 <div class="no-print" id="students_div_new" style="display:none; margin-top:14px; margin-bottom:14px;">
@@ -232,7 +236,11 @@
                     }
 
                     $percent   = $totalMaxMarks > 0 ? round(($totalObtained / $totalMaxMarks) * 100, 2) : 0;
-                    $gradeInfo = progresscard_resolve_grade($percent);
+                    $hasZeroMark = false;
+                    foreach($subjectRows as $row) {
+                        if ($row['absent'] || $row['obtained'] == 0) { $hasZeroMark = true; break; }
+                    }
+                    $gradeInfo = progresscard_resolve_grade($percent, $hasZeroMark);
                     $attInfo   = isset($attendanceByStudent[$student->srstudentID]) ? $attendanceByStudent[$student->srstudentID] : array('months'=>[], 'totalWorkingDays'=>0,'totalPresent'=>0,'totalAbsent'=>0,'yearlyPercentage'=>0);
 
                     // Remarks — same auto-generated message as the old progress card, for the same percentage.
@@ -266,14 +274,14 @@
                 <div class="pcn-card" id="pcn-card-<?=$student->srstudentID?>">
                     <div class="pcn-header">
                         <?php if($siteinfos->photo) { ?>
-                            <img class="pcn-header-logo" src="<?=base_url('uploads/images/'.$siteinfos->photo)?>" alt="">
+                            <div class="pcn-header-logo" style="background-image:url('<?=base_url('uploads/images/'.$siteinfos->photo)?>');"></div>
                         <?php } ?>
                         <div class="pcn-header-info">
                             <h2><?=$siteinfos->sname?></h2>
                             <p><?=$siteinfos->address?></p>
                             <p><?=$siteinfos->email?> &nbsp;|&nbsp; <?=$siteinfos->phone?></p>
                         </div>
-                        <img class="pcn-header-photo" src="<?=imagelink($student->photo)?>" alt="">
+                        <div class="pcn-header-photo" style="background-image:url('<?=imagelink($student->photo)?>');"></div>
                         <div class="pcn-year-box">
                             <div class="pcn-year-label">ACADEMIC YEAR</div>
                             <div class="pcn-year-big"><?=isset($schoolyearsessionobj->schoolyear) ? $schoolyearsessionobj->schoolyear : ''?></div>
@@ -327,10 +335,12 @@
                                             <div class="pcn-stat-value"><?=($student->rank !== null && $student->rank !== '') ? $student->rank : '-'?></div>
                                         </div>
                                     </div>
+                                    <?php if($is_display_attendance > 0) { ?>
                                     <div class="pcn-att-panel">
                                         <div class="pcn-stat-label">Overall Attendance</div>
                                         <div class="pcn-ring pcn-ring--lg" style="background:conic-gradient(#1a237e <?=$attInfo['yearlyPercentage']?>%, #e3e6f0 0);"><span><?=$attInfo['yearlyPercentage']?>%</span></div>
                                     </div>
+                                    <?php } ?>
                                 </div>
                                 </div>
                             </div>
@@ -342,14 +352,12 @@
                                 <div class="pcn-box-body">
                                 <table class="pcn-table">
                                     <thead>
-                                        <tr><th>Subject</th><th>Max Marks</th><th>Obtained</th><th>Grade</th><th>Status</th></tr>
+                                        <tr><th>Subject</th><th>Max Marks</th><th>Obtained</th><th>Status</th></tr>
                                     </thead>
                                     <tbody>
                                         <?php foreach($subjectRows as $row) {
                                             $badge      = subject_badge($row['subject']);
                                             $subjIcon   = pcn_subject_icon($row['subject']);
-                                            $subjPct    = $row['max'] > 0 ? ($row['obtained'] / $row['max']) * 100 : 0;
-                                            $subjGrade  = progresscard_resolve_grade($subjPct);
                                         ?>
                                         <tr>
                                             <td style="text-align:left;">
@@ -358,7 +366,6 @@
                                             </td>
                                             <td><?=$row['max']?></td>
                                             <td><?=$row['absent'] ? '<span class="pcn-status-absent">Absent</span>' : ini_round($row['obtained'])?></td>
-                                            <td><span class="pcn-grade-chip" style="background:<?=$subjGrade['bg']?>;color:<?=$subjGrade['color']?>;"><?=$row['absent'] ? '-' : $subjGrade['grade']?></span></td>
                                             <td><?=$row['absent'] ? '<span class="pcn-status-absent">&#10008;</span>' : '<span class="pcn-status-ok">&#10004;</span>'?></td>
                                         </tr>
                                         <?php } ?>
@@ -405,6 +412,7 @@
                                 </div>
                             </div>
 
+                            <?php if($is_display_attendance > 0) { ?>
                             <div class="pcn-box pcn-b--green" style="flex:2;">
                                 <h4 class="pcn-h--green"><span class="pcn-h-icon"><i class="fa fa-calendar-check-o"></i></span><span class="pcn-h-text">Attendance Summary (Academic Year: <?=isset($attInfo['schoolyear']) ? $attInfo['schoolyear'] : ''?>)</span></h4>
                                 <div class="pcn-box-body">
@@ -452,6 +460,7 @@
                                 <p style="text-align:right; margin:8px 0 0; font-weight:700; color:#1a237e !important;">Yearly Attendance : <?=$attInfo['yearlyPercentage']?>%</p>
                                 </div>
                             </div>
+                            <?php } ?>
                         </div>
 
                         <div class="pcn-row no-print">
@@ -486,6 +495,9 @@
                                 <?php if ($remarkSuggestion) { ?><p class="pcn-remark-sub"><?=$remarkSuggestion?></p><?php } ?>
                                 </div>
                             </div>
+                            <?php /* "Scan to Verify" QR box disabled per request (2026-08-22) — not needed on
+                                     screen/JPEG for now, verify page isn't built yet either. Flip to `if (true)`
+                                     to bring it back. */ if (false) { ?>
                             <div class="pcn-box pcn-b--navy pcn-qr-box">
                                 <h4 class="pcn-h--navy"><span class="pcn-h-icon"><i class="fa fa-qrcode"></i></span><span class="pcn-h-text">Scan to Verify</span></h4>
                                 <div class="pcn-box-body">
@@ -494,6 +506,7 @@
                                 <p class="pcn-qr-caption">Verify at: <?=$qrText?></p>
                                 </div>
                             </div>
+                            <?php } ?>
                         </div>
 
                         <div class="pcn-signatures">
@@ -625,5 +638,107 @@ $(document).on('click', '.sendWhatsapp_new', function() {
             toastr.error('Request failed. Please try again.');
         }
     });
+});
+</script>
+
+<!-- Download JPEG — captures each on-screen .pcn-card exactly as rendered (same design as
+     the screen), since mPDF (used by the Print button) can't reproduce this Flexbox/
+     conic-gradient card layout. See srinivas_issues.md for why Print can't just be changed instead. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+// .off() before .on(): this whole view is re-inserted via AJAX every time the filters
+// change, and jQuery auto-executes embedded <script> tags on each insertion — without
+// .off() first, every reload would bind ANOTHER click handler on top of the old one(s),
+// so one real click fires N handlers at once (duplicate downloads, and the button's
+// "please wait" state getting stuck since each handler stomps on the others' captured html).
+$(document).off('click', '#pcnDownloadJpegBtn').on('click', '#pcnDownloadJpegBtn', async function() {
+    var $btn = $(this);
+    var cards = document.querySelectorAll('.pcn-card');
+
+    if (!cards.length) {
+        toastr.error('No progress card found to download.');
+        return;
+    }
+
+    var originalHtml = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Please wait...');
+
+    var names     = $('input[name="st_names[]"]').map(function() { return this.value; }).get();
+    var examNames = $('input[name="exam_name[]"]').map(function() { return this.value; }).get();
+    var h2cOpts   = { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' };
+
+    try {
+        for (var i = 0; i < cards.length; i++) {
+            var canvas  = await html2canvas(cards[i], h2cOpts);
+            var imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+            var safeName = (names[i] || ('student_' + (i + 1))).replace(/[^a-z0-9]+/gi, '_');
+            var safeExam = (examNames[i] || 'exam').replace(/[^a-z0-9]+/gi, '_');
+
+            var link = document.createElement('a');
+            link.href = imgData;
+            link.download = 'ProgressCard_' + safeName + '_' + safeExam + '.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            canvas.remove();
+        }
+    } catch (err) {
+        console.error(err);
+        toastr.error('Error generating JPEG image.');
+    }
+
+    $btn.prop('disabled', false).html(originalHtml);
+});
+</script>
+
+<!-- Download All as JPEG ZIP — same per-card html2canvas capture as Download JPEG above,
+     bundled into one .zip instead of one download per card (mirrors the ID Card report's
+     "Download All as JPEG ZIP" button, IdcardReport_new.php). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+$(document).off('click', '#pcnDownloadZipBtn').on('click', '#pcnDownloadZipBtn', async function() {
+    var $btn = $(this);
+    var cards = document.querySelectorAll('.pcn-card');
+
+    if (!cards.length) {
+        toastr.error('No progress card found to download.');
+        return;
+    }
+
+    var originalHtml = $btn.html();
+    $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Creating ZIP...');
+
+    var names     = $('input[name="st_names[]"]').map(function() { return this.value; }).get();
+    var examNames = $('input[name="exam_name[]"]').map(function() { return this.value; }).get();
+    var h2cOpts   = { scale: 2, useCORS: true, allowTaint: false, backgroundColor: '#ffffff' };
+
+    try {
+        var zip = new JSZip();
+
+        for (var i = 0; i < cards.length; i++) {
+            var canvas  = await html2canvas(cards[i], h2cOpts);
+            var imgData = canvas.toDataURL('image/jpeg', 0.95);
+            var imgBlob = await (await fetch(imgData)).blob();
+
+            var safeName = (names[i] || ('student_' + (i + 1))).replace(/[^a-z0-9]+/gi, '_');
+            var safeExam = (examNames[i] || 'exam').replace(/[^a-z0-9]+/gi, '_');
+
+            zip.file('ProgressCard_' + safeName + '_' + safeExam + '.jpg', imgBlob);
+
+            canvas.remove();
+        }
+
+        var content  = await zip.generateAsync({ type: 'blob' });
+        var zipExam  = (examNames[0] || 'exam').replace(/[^a-z0-9]+/gi, '_');
+        saveAs(content, 'ProgressCards_' + zipExam + '.zip');
+    } catch (err) {
+        console.error(err);
+        toastr.error('Error generating ZIP file.');
+    }
+
+    $btn.prop('disabled', false).html(originalHtml);
 });
 </script>

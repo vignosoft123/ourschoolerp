@@ -163,3 +163,55 @@ In `Global_payment_new::index()`, `generateAllPaymentAmountWithGlobalID()` group
 - `mvc/controllers/Global_payment_new.php` — added `generateOrphanDiscountAmount()`; `index()` now builds `$this->data['orphan_discounts']`
 - `mvc/views/global_payment_new/index.php` — "Discount-only rows" block now always shows the orphan (`globalpaymentID=0`) weaverandfine discount, independent of whether the invoice has a real payment
 - `srinivas_global_payment_instructions.md` — documented the `globalpaymentID=0` orphan-discount mechanism
+
+---
+
+### 2026-08-21: Invoice List "Edit Discount" Icon Does Nothing From Page 2 Onward (Load More / Load All)
+
+**Reported as**: On the Invoice list page, the pencil/edit icon next to the Discount column value opens the "Change Amount" popup correctly for rows on the first page (initial 50 records). After clicking "Load More" or "Load All Invoices" to bring in the next batch, clicking the same edit icon on any of those newly-loaded rows does nothing — no popup appears.
+
+**Root Cause**: Each invoice row's edit icon calls `checkDiscountValidation(invoice_id)` (`mvc/views/invoice/index.php`), which does `$("#change_discount"+invoice_id).modal('show')`. That per-invoice modal `<div>` is only ever rendered by the initial server-side page load (`Invoice::index()` → `mvc/views/invoice/index.php` lines ~436-465, one modal emitted inline per `<tr>` in the PHP loop). The AJAX row-builders backing "Load More"/"Load All" — `Invoice::load_more_invoices()` and `Invoice::load_all_invoices()` (`mvc/controllers/Invoice.php`) — build each row's `<tr>` HTML in PHP string concatenation but never emitted the matching `change_discount{id}` modal markup at all, so for any invoice loaded via those two AJAX endpoints, `#change_discount{id}` simply doesn't exist in the DOM — `.modal('show')` on an empty jQuery selection silently no-ops.
+
+**Fix**: Extracted the modal markup into a shared `Invoice::buildChangeDiscountModal($maininvoiceID, $srstudentID)` helper. Both `load_more_invoices()` and `load_all_invoices()` now build this per-invoice modal HTML into a separate `$modalsHtml` string (kept out of the `<tr>` string on purpose — a `<div>` can't validly live inside a table row, and DataTables' `rows.add()` only accepts `<tr>` nodes) and return it as a new `modals` key in the JSON response, alongside the existing `html`/`count`. In `mvc/views/invoice/index.php`, both AJAX success handlers (`#load-more-btn`, `#load-all-btn`) now do `$('body').append(response.modals)` right after adding the new rows via `rows.add(...).draw(false)`.
+
+**Files Changed**:
+- `mvc/controllers/Invoice.php` — added `buildChangeDiscountModal()`; `load_more_invoices()` and `load_all_invoices()` now return `modals` in their JSON response
+- `mvc/views/invoice/index.php` — both Load More/Load All AJAX success handlers append `response.modals` to `<body>`
+
+---
+
+### 2026-08-21: Exam Filter Dropdown Showed Exams With No Exam Schedule, Across All Report Pages
+
+**Reported as**: Follow-up to the same-day Exam Schedule listing page fix (dropdown showed exams like "slip test 3" duplicated / exams with zero schedule rows). User asked for the identical fix to be applied everywhere else in the app that has a Class → Exam cascading dropdown, since several report pages share the same pattern.
+
+**Root Cause**: `Marksetting_m::get_exam($marktypeID, $classesID)` returns every exam configured in `marksetting`/`exam` for the class/marktype, with no check that the exam actually has any rows in `examschedule`. Six report controllers' `getExam()` AJAX methods (bound to each report's Class dropdown `onchange`, populating the Exam dropdown) all called this unfiltered method directly:
+- `Terminalreport::getExam()`, `Marksheetreport::getExam()` (shared by Progress Card Report, Marksheet Report, and Student Session Report views — all three point at `marksheetreport/getExam`), `Admitcardreport::getExam()`, `Tabulationsheetreport::getExam()`, `Meritstagereport::getExam()`, `Examschedulereport::getExam()`.
+
+A schedule-aware alternative already existed and was already in use elsewhere: `Marksetting_m::get_exam_with_schedule_condition()` (used by `Mark::examcall()` for the Mark entry page) — same signature as `get_exam()`, but adds an `EXISTS (SELECT 1 FROM examschedule WHERE examschedule.examID = exam.examID AND examschedule.classesID = $classesID)` guard per exam-type branch (marktypeID 4/5-6/default).
+
+**Fix**: Swapped `$this->marksetting_m->get_exam(...)` → `$this->marksetting_m->get_exam_with_schedule_condition(...)` in all six `getExam()` methods above — no other logic changed, since the two methods share the same call signature and return shape. (The Exam Schedule listing page itself, `Examschedule::getExam()`, was fixed earlier the same day with an equivalent but separately-written scheduled-exam-IDs intersection — left as-is since it already does the same job.)
+
+**Files Changed**:
+- `mvc/controllers/Terminalreport.php`
+- `mvc/controllers/Marksheetreport.php`
+- `mvc/controllers/Admitcardreport.php`
+- `mvc/controllers/Tabulationsheetreport.php`
+- `mvc/controllers/Meritstagereport.php`
+- `mvc/controllers/Examschedulereport.php`
+
+---
+
+### 2026-08-21: New-Design Progress Card Report Ignored the "Show Attendance" Setting
+
+**Reported as**: The old Progress Card Report (`progresscardreport/getProgresscardreport`) correctly hides the Attendance section when `is_display_attendance_on_progresscard` is off in Settings, and shows it when on. The New Design report (`progresscardreport/getProgresscardreportNew`) always shows the Attendance donut and the full Attendance Summary table, regardless of that setting.
+
+**Root Cause**: The old flow (`Progresscardreport::getProgresscardreport()`) reads `$this->setting_m->get_setting_where('is_display_attendance_on_progresscard')` and only builds/renders attendance data inside `if($is_display_attendance > 0)`, also passing `$this->data['is_display_attendance']` to the view so `ProgresscardReport.php` can gate its `<h5>Attendance</h5>` block. The New flow — `getProgresscardreportNew()`, `pdf_new()` (Print/PDF button), and `send_pdf_to_whatsapp_new()` (bulk WhatsApp send) — builds `attendanceByStudent` unconditionally via `_buildAttendanceByMonth()` and never reads the setting at all, so neither `ProgresscardReportNew.php` (screen view) nor `ProgresscardReportPDFNew.php` (PDF/WhatsApp view) had any gate to check — they always render the Overall Attendance donut and Attendance Summary table.
+
+**Fix**: In all three controller methods, added the same `$this->setting_m->get_setting_where('is_display_attendance_on_progresscard')` read, stored as `$this->data['is_display_attendance']`, and only build `attendanceByStudent` (or the per-recipient one in the WhatsApp loop) when it's `> 0`. Wrapped the corresponding display blocks in both views with `if($is_display_attendance > 0) { ... }`:
+- `ProgresscardReportNew.php` — the "Overall Attendance" donut panel (sits beside the 2x2 Result Summary grid) and the whole "Attendance Summary" box (month-by-month table).
+- `ProgresscardReportPDFNew.php` — the "Attendance" column in the Result Summary table's header+data row (both cells gated together to keep row column counts matched) and the whole "Attendance Summary" table block.
+
+**Files Changed**:
+- `mvc/controllers/Progresscardreport.php` — `getProgresscardreportNew()`, `pdf_new()`, `send_pdf_to_whatsapp_new()`
+- `mvc/views/report/progresscard/ProgresscardReportNew.php`
+- `mvc/views/report/progresscard/ProgresscardReportPDFNew.php`

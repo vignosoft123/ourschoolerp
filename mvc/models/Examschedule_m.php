@@ -36,6 +36,19 @@ class Examschedule_m extends MY_Model {
 		return $query->result();
 	}
 
+	// Distinct examIDs that already have at least one schedule row for a class —
+	// used to restrict the Exam filter dropdown to exams worth selecting.
+	public function get_scheduled_exam_ids($classesID, $schoolyearID) {
+		$this->db->distinct();
+		$this->db->select('examschedule.examID');
+		$this->db->from('examschedule');
+		$this->db->join('exam', 'exam.examID = examschedule.examID');
+		$this->db->where('examschedule.classesID', $classesID);
+		$this->db->where('exam.academic_year', $schoolyearID);
+		$query = $this->db->get();
+		return $query->result();
+	}
+
 	public function get_examschedule($array=NULL, $signal=FALSE) {
 		$query = parent::get($array, $signal);
 		return $query;

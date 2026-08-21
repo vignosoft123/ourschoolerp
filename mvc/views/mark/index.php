@@ -44,7 +44,7 @@
                         <ul class="nav nav-tabs">
                             <li class="active"><a data-toggle="tab" href="#all" aria-expanded="true"><?= $this->lang->line("mark_all_students") ?></a></li>
                             <?php
-                            if($this->session->userdata('usertypeID') != 3){ 
+                            if($this->session->userdata('usertypeID') != 3){
                                 foreach ($sections as $key => $section) {
                                 echo '<li class=""><a data-toggle="tab" href="#' . spClean($section->section . $section->sectionID) . ' " aria-expanded="false">' . $this->lang->line("mark_section") . " " . $section->section . " ( " . $section->category . " )" . '</a></li>';
                             }
@@ -90,7 +90,7 @@
                                                         </td>
                                                         <?php if (permissionChecker('mark_view')) { ?>
                                                             <td data-title="<?= $this->lang->line('action') ?>">
-                                                                <?php echo btn_view('mark/view/' . $student->studentID . "/" . $set, $this->lang->line('view')); ?>
+                                                                <?php echo btn_view('student/view/' . $student->studentID . "/" . $set . '#mark', $this->lang->line('view')); ?>
                                                             </td>
                                                         <?php } ?>
                                                     </tr>
@@ -143,7 +143,7 @@
                                                             </td>
                                                             <?php if (permissionChecker('mark_view')) { ?>
                                                                 <td data-title="<?= $this->lang->line('action') ?>">
-                                                                    <?php echo btn_view('mark/view/' . $student->studentID . "/" . $set, $this->lang->line('view')); ?>
+                                                                    <?php echo btn_view('student/view/' . $student->studentID . "/" . $set . '#mark', $this->lang->line('view')); ?>
                                                                 </td>
                                                             <?php } ?>
                                                         </tr>
@@ -208,7 +208,7 @@
                                                         </td>
                                                         <?php if (permissionChecker('mark_view')) { ?>
                                                             <td data-title="<?= $this->lang->line('action') ?>">
-                                                                <?php echo btn_view('mark/view/' . $student->studentID . "/" . $set, $this->lang->line('view')); ?>
+                                                                <?php echo btn_view('student/view/' . $student->studentID . "/" . $set . '#mark', $this->lang->line('view')); ?>
                                                             </td>
                                                         <?php } ?>
                                                     </tr>
@@ -247,5 +247,5 @@
         }
     });
 
-    
+
 </script>

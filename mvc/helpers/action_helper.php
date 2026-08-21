@@ -1171,8 +1171,11 @@
     // hardcoded percentage scheme already used by the old progress card
     // (ProgresscardReport.php / ProgresscardReportPDF.php: 95/90/80/70/60/50, percent-only,
     // no zero-mark rule) so old and new designs never disagree for the same student/exam.
-    function progresscard_resolve_grade( $percent )
+    // $hasZeroMark forces a 'D' regardless of percent — mirrors Mark.php's rule
+    // ("D - Below 50% or zero marks"): any subject with zero/absent marks caps the grade at D.
+    function progresscard_resolve_grade( $percent, $hasZeroMark = false )
     {
+        if ($hasZeroMark) return array('grade' => 'D', 'label' => 'Need Improvement', 'bg' => '#ffcdd2', 'color' => '#d32f2f');
         if ($percent >= 95) return array('grade' => 'A+', 'label' => 'Outstanding',      'bg' => '#c8e6c9', 'color' => '#2e7d32');
         if ($percent >= 90) return array('grade' => 'A',  'label' => 'Excellent',        'bg' => '#dcedc8', 'color' => '#388e3c');
         if ($percent >= 80) return array('grade' => 'B+', 'label' => 'Very Good',        'bg' => '#bbdefb', 'color' => '#0288d1');

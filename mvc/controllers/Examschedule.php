@@ -57,15 +57,19 @@ class Examschedule extends Admin_Controller {
 			$this->data['set'] = $id;
 			$this->data['examId'] = $examId;
 			$this->data['sec_id'] = $sectionID;
-			$exams    = pluck($this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $id), 'obj', 'examID'); 
- 
+			$exams    = pluck($this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $id), 'obj', 'examID');
+			$scheduledExamIDs = pluck($this->examschedule_m->get_scheduled_exam_ids($id, $schoolyearID), 'examID', 'examID');
+
 			// echo "<pre>";print_r($exams);die;
+			$examArray = [];
 			if (!empty($exams)) {
 				foreach ($exams as $exam) {
-					$examArray[$exam->examID] = $exam->exam; // Ensure examName is a string
+					if (isset($scheduledExamIDs[$exam->examID])) {
+						$examArray[$exam->examID] = $exam->exam; // Ensure examName is a string
+					}
 				}
 			}
-			
+
 			$this->data['examArray'] = $examArray;
 
 			$this->data['classes'] = $this->classes_m->get_classes();
@@ -709,10 +713,14 @@ class Examschedule extends Admin_Controller {
 		$classesID = $this->input->post('classesID');
 		echo "<option value='0'>", $this->lang->line("examschedulereport_please_select"),"</option>";
 		if((int)$classesID) {
+			$schoolyearID = $this->session->userdata('defaultschoolyearID');
 			$exams    = pluck($this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID), 'obj', 'examID');
+			$scheduledExamIDs = pluck($this->examschedule_m->get_scheduled_exam_ids($classesID, $schoolyearID), 'examID', 'examID');
 			if(customCompute($exams)) {
 				foreach ($exams as $exam) {
-					echo "<option value=".$exam->examID.">".$exam->exam."</option>";
+					if(isset($scheduledExamIDs[$exam->examID])) {
+						echo "<option value=".$exam->examID.">".$exam->exam."</option>";
+					}
 				}
 			}
 		}

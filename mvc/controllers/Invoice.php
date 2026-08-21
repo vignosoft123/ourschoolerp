@@ -226,12 +226,13 @@ class Invoice extends Admin_Controller
         $grandtotalandpayment = $this->grandtotalandpaid($maininvoices, $schoolyearID);
         
         $html = '';
+        $modalsHtml = '';
         $i = $offset + 1;
-        
+
         if(customCompute($maininvoices)) {
             foreach($maininvoices as $maininvoice) {
                 $totl = isset($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID]) ? $grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID] : 0;
-                
+
                 $totll = number_format($totl, 2);
                 // Calculate balance
                 $balance = "";
@@ -312,24 +313,24 @@ class Invoice extends Admin_Controller
                     $discount_plus_weaver = $grandtotalandpayment['totaldiscount'][$maininvoice->maininvoiceID] + (isset($grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID]) ? $grandtotalandpayment['totalweaver'][$maininvoice->maininvoiceID] : 0);
                 }
                 $html .= '<td>'.number_format($discount_plus_weaver, 2).' <a onclick="checkDiscountValidation('.$maininvoice->maininvoiceID.')"> <i title="Change discount amount" class="fa fa-edit"></i></a></td>';
-                
+
                 // Paid
                 $html .= '<td>'.(isset($grandtotalandpayment['totalpayment'][$maininvoice->maininvoiceID]) ? number_format($grandtotalandpayment['totalpayment'][$maininvoice->maininvoiceID], 2) : '0.00').'</td>';
-                
+
                 // Balance
                 $html .= '<td>'.$balance.'<input type="hidden" id="invoice_'.$maininvoice->maininvoiceID.'" value="'.$balance.'"></td>';
-                
+
                 // Status
                 $html .= '<td><button class="btn '.$setButton.' btn-xs">'.$status.'</button></td>';
-                
+
                 // Date
                 $html .= '<td>'.date("d M Y", strtotime($maininvoice->maininvoicedate)).'</td>';
-                
+
                 // Actions
                 if(permissionChecker('invoice_view') || permissionChecker('invoice_edit') || permissionChecker('invoice_delete')) {
                     $html .= '<td>';
                     $html .= btn_view('invoice/view/'.$maininvoice->maininvoiceID.'/'.$maininvoice->srstudentID, $this->lang->line('view'));
-                    
+
                     if(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1) || ($this->session->userdata('usertypeID') == 5)) {
                         if($maininvoice->maininvoicestatus != 1 && $maininvoice->maininvoicestatus != 2 && $partial != 1) {
                             $html .= btn_edit('invoice/edit/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('edit'));
@@ -338,22 +339,58 @@ class Invoice extends Admin_Controller
                             $html .= btn_delete('invoice/delete/'.$maininvoice->maininvoiceID.'/'.$uri, $this->lang->line('delete'));
                         }
                     }
-                    
+
                     if(permissionChecker('invoice_view')) {
                         $html .= '<a href="#paymentlist" id="'.$maininvoice->maininvoiceID.'" class="btn btn-info btn-xs mrg getpaymentinfobtn" rel="tooltip" data-toggle="modal"><i class="fa fa-list-ul" data-toggle="tooltip" data-placement="top" data-original-title="'.$this->lang->line('invoice_view_payments').'"></i></a>';
                     }
                     $html .= '</td>';
                 }
-                
+
                 $html .= '</tr>';
+
+                // Change-discount modal — kept out of the <tr> string (a <div> can't
+                // live inside a table row) and returned separately so it can be
+                // appended to <body>, matching the modal each row gets on first page load.
+                $modalsHtml .= $this->buildChangeDiscountModal($maininvoice->maininvoiceID, $maininvoice->srstudentID);
+
                 $i++;
             }
         }
-        
+
         echo json_encode([
             'html' => $html,
+            'modals' => $modalsHtml,
             'count' => count($maininvoices)
         ]);
+    }
+
+    private function buildChangeDiscountModal($maininvoiceID, $srstudentID)
+    {
+        return '<div class="modal fade" id="change_discount'.$maininvoiceID.'" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">'
+            .'<div class="modal-dialog">'
+                .'<div class="modal-content">'
+                    .'<div class="modal-header">'
+                        .'<h5 class="modal-title" id="fileUploadModalLabel">Change Amount</h5>'
+                        .'<button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>'
+                    .'</div>'
+                    .'<div class="modal-body">'
+                        .'<form id="" enctype="multipart/form-data" method="post" action="'.base_url('Invoice/change_discount').'">'
+                            .'<div class="mb-3">'
+                                .'<label for="formFile" class="form-label">Discount Amount</label>'
+                                .'<input class="form-control" type="hidden" id="invoice_id" name="invoice_id" value="'.$maininvoiceID.'">'
+                                .'<input class="form-control" type="hidden" id="srstudentID" name="srstudentID" value="'.$srstudentID.'">'
+                                .'<input type="hidden" id="balance_'.$maininvoiceID.'" value="">'
+                                .'<input class="form-control" type="text" id="disc_amount" name="disc_amount" value="" oninput="validate_disc('.$maininvoiceID.', this.value)">'
+                                .'<span class="error" style="color: red;"></span>'
+                            .'</div>'
+                            .'<div class="mb-3">'
+                                .'<button type="submit" class="btn btn-primary submit_button" id="submit_button">Submit</button>'
+                            .'</div>'
+                        .'</form>'
+                    .'</div>'
+                .'</div>'
+            .'</div>'
+        .'</div>';
     }
 
     // AJAX method to load all remaining invoices at once
@@ -370,8 +407,9 @@ class Invoice extends Admin_Controller
         $grandtotalandpayment = $this->grandtotalandpaid($maininvoices, $schoolyearID);
         
         $html = '';
+        $modalsHtml = '';
         $i = $offset + 1;
-        
+
         if(customCompute($maininvoices)) {
             foreach($maininvoices as $maininvoice) {
                 $totl = isset($grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID]) ? $grandtotalandpayment['totalamount'][$maininvoice->maininvoiceID] : 0;
@@ -490,14 +528,18 @@ class Invoice extends Admin_Controller
                     }
                     $html .= '</td>';
                 }
-                
+
                 $html .= '</tr>';
+
+                $modalsHtml .= $this->buildChangeDiscountModal($maininvoice->maininvoiceID, $maininvoice->srstudentID);
+
                 $i++;
             }
         }
-        
+
         echo json_encode([
             'html' => $html,
+            'modals' => $modalsHtml,
             'count' => count($maininvoices)
         ]);
     }

@@ -1879,9 +1879,11 @@ public function get_students_page() {
 				}
 
 				$retMark = [];
+				$attendanceData = [];
 				if (customCompute($marks)) {
 					foreach ($marks as $mark) {
 						$retMark[$mark->examID][$mark->subjectID][$mark->markpercentageID] = $mark->mark;
+						$attendanceData[$mark->examID][$mark->subjectID] = $mark->eattendance;
 					}
 				}
 
@@ -1895,6 +1897,15 @@ public function get_students_page() {
 				}
 				$marksettings  = $this->marksetting_m->get_marksetting_markpercentages();
 
+				$sectionID = $student->srsectionID;
+				$examScheduleRows = $this->db->query(
+					"SELECT examID, subjectID, max_mark FROM examschedule WHERE classesID = $classesID AND sectionID = $sectionID"
+				)->result();
+				$examScheduleData = [];
+				foreach ($examScheduleRows as $esRow) {
+					$examScheduleData[(int)$esRow->examID][(int)$esRow->subjectID] = (int)$esRow->max_mark;
+				}
+
 				$this->data['settingmarktypeID'] = $this->data['siteinfos']->marktypeID;
 				$this->data['subjects']          = $subjectArr;
 				$this->data['exams']             = $exams;
@@ -1904,6 +1915,8 @@ public function get_students_page() {
 				$this->data['marks']             = $retMark;
 				$this->data['highestmarks']      = $highestMarks;
 				$this->data['marksettings']      = isset($marksettings[$classesID]) ? $marksettings[$classesID] : [];
+				$this->data['examScheduleData']  = $examScheduleData;
+				$this->data['attendanceData']    = $attendanceData;
 			} else {
 				$this->data['settingmarktypeID'] = 0;
 				$this->data['subjects']          = [];
@@ -1914,6 +1927,8 @@ public function get_students_page() {
 				$this->data['marks']             = [];
 				$this->data['highestmarks']      = [];
 				$this->data['marksettings']      = [];
+				$this->data['examScheduleData']  = [];
+				$this->data['attendanceData']    = [];
 			}
 		} else {
 			$this->data['settingmarktypeID'] = 0;
@@ -1925,6 +1940,7 @@ public function get_students_page() {
 			$this->data['marks']             = [];
 			$this->data['highestmarks']      = [];
 			$this->data['marksettings']      = [];
+			$this->data['examScheduleData']  = [];
 		}
 	}
 

@@ -99,7 +99,11 @@
         }
 
         $percent   = $totalMaxMarks > 0 ? round(($totalObtained / $totalMaxMarks) * 100, 2) : 0;
-        $gradeInfo = progresscard_resolve_grade($percent);
+        $hasZeroMark = false;
+        foreach($subjectRows as $row) {
+            if ($row['absent'] || $row['obtained'] == 0) { $hasZeroMark = true; break; }
+        }
+        $gradeInfo = progresscard_resolve_grade($percent, $hasZeroMark);
         $attInfo   = isset($attendanceByStudent[$student->srstudentID]) ? $attendanceByStudent[$student->srstudentID] : array('months'=>[], 'totalWorkingDays'=>0,'totalPresent'=>0,'totalAbsent'=>0,'yearlyPercentage'=>0,'schoolyear'=>'');
 
         if ($percent >= 90) { $remarkText = 'Excellent'; $remarkColor = '#2e7d32'; }
@@ -118,14 +122,14 @@
             <th style="border:1px solid #ddd;">Percentage</th>
             <th style="border:1px solid #ddd;">Grade</th>
             <th style="border:1px solid #ddd;">Rank (Class)</th>
-            <th style="border:1px solid #ddd;">Attendance</th>
+            <?php if($is_display_attendance > 0) { ?><th style="border:1px solid #ddd;">Attendance</th><?php } ?>
         </tr>
         <tr>
             <td style="border:1px solid #ddd;"><?=ini_round($totalObtained)?>/<?=ini_round($totalMaxMarks)?></td>
             <td style="border:1px solid #ddd;"><?=$percent?>%</td>
             <td style="border:1px solid #ddd;"><span style="background:<?=$gradeInfo['bg']?>;color:<?=$gradeInfo['color']?>;padding:2px 8px;border-radius:4px;font-weight:bold;"><?=$gradeInfo['grade']?></span></td>
             <td style="border:1px solid #ddd;"><?=($student->rank !== null && $student->rank !== '') ? $student->rank : '-'?></td>
-            <td style="border:1px solid #ddd;"><?=$attInfo['yearlyPercentage']?>%</td>
+            <?php if($is_display_attendance > 0) { ?><td style="border:1px solid #ddd;"><?=$attInfo['yearlyPercentage']?>%</td><?php } ?>
         </tr>
     </table>
 
@@ -177,6 +181,7 @@
         </tr>
     </table>
 
+    <?php if($is_display_attendance > 0) { ?>
     <!-- ===== Attendance Summary ===== -->
     <h4 style="margin:6px 0 3px; color:#1a237e;">Attendance Summary (Academic Year: <?=isset($attInfo['schoolyear']) ? $attInfo['schoolyear'] : ''?>)</h4>
     <table width="100%" cellpadding="2" cellspacing="0" style="border-collapse:collapse; text-align:center; font-size:9px;">
@@ -202,6 +207,7 @@
         </tr>
     </table>
     <p style="text-align:right; font-weight:bold; color:#1a237e; margin:2px 0; font-size:10px;">Yearly Attendance : <?=$attInfo['yearlyPercentage']?>%</p>
+    <?php } ?>
 
     <!-- ===== Performance Overview (plain HTML/CSS bars — mPDF can't run the on-screen Highcharts JS) ===== -->
     <h4 style="margin:6px 0 3px; color:#1a237e;">Performance Overview</h4>
@@ -235,7 +241,7 @@
                 <p style="margin:0 0 3px; font-size:9px; font-weight:bold; color:#37474f;">Marks Distribution</p>
                 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                     <td style="background:#e0e0e0; height:12px; font-size:1px;">
-                        <table width="<?=$totalMaxMarks > 0 ? round(($totalObtained / $totalMaxMarks) * 100) : 0?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                        <table width="<?=$totalMaxMarks > 0 ? min(100, round(($totalObtained / $totalMaxMarks) * 100)) : 0?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                             <td style="background:#1a73e8; height:12px; font-size:1px;">&nbsp;</td>
                         </tr></table>
                     </td>
@@ -283,12 +289,16 @@
         </tr>
     </table>
 
-    <!-- ===== Signatures ===== -->
-    <div style="margin-top:8px; display:flex; justify-content:space-between; text-align:center; font-size:10px;">
-        <span>Parent's Signature</span>
-        <span>Class Teacher's Signature</span>
-        <span>Principal's Signature</span>
-    </div>
+    <!-- ===== Signatures =====
+         mPDF does not support CSS flexbox (display:flex is silently dropped), so the three
+         labels must use a table with explicit column alignment instead — left/center/right. -->
+    <table width="100%" style="border:none; margin-top:8px; font-size:10px;">
+        <tr>
+            <td style="border:none; text-align:left;">Parent's Signature</td>
+            <td style="border:none; text-align:center;">Class Teacher's Signature</td>
+            <td style="border:none; text-align:right;">Principal's Signature</td>
+        </tr>
+    </table>
 </div>
 
 <?php if($pcnSeen < $pcnCount) { ?><p style="page-break-after: always;">&nbsp;</p><?php } ?>

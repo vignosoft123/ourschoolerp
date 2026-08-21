@@ -53,235 +53,123 @@
 
                     <div class="tab-content">
                         <div class="active tab-pane" id="mark">
-                            <?php 
+                            <?php
+                                // Style/columns mirror the Mark tab on the student profile page (student/getView.php) —
+                                // simple Subject/Max Marks/Mark table + Percentage/Grade/Remarks footer, instead of the
+                                // old Obtained/Highest/Point/GPA layout. Exams with no examschedule rows for this
+                                // class+section are skipped entirely (they have nothing to show but N/A everywhere).
                                 $optionalsubjectID = $profile->sroptionalsubjectID;
                                 if(customCompute($marksettings)) {
                                     foreach ($marksettings as $examID => $marksetting) {
-                                        echo '<div style="border-top:1px solid #23292F; border-left:1px solid #23292F; border-right:1px solid #23292F; border-bottom:1px solid #23292F;" class="box" id="e'.$examID.'">';
-                                            echo '<div class="box-header" style="background-color:#FFFFFF;">';
-                                                echo '<h3 class="box-title" style="color:#23292F;">'; 
+                                        if (empty($examScheduleData[$examID])) { continue; }
+                                        echo '<div style="border:1px solid #ddd" class="box" id="e'.$examID.'">';
+                                            echo '<div class="box-header" style="background-color:#ddedfd;">';
+                                                echo '<h3 class="box-title" style="color:#23292F;">';
                                                     echo (isset($exams[$examID]) ? $exams[$examID] : '');
                                                 echo '</h3>';
                                             echo '</div>';
 
-                                            echo '<div class="box-body mark-bodyID" style="border-top:1px solid #23292F;">';
-                                                    echo "<table class=\"table table-striped table-bordered\" >";
-                                                        echo "<thead>";
-                                                            echo "<tr>";
-                                                                echo "<th class='text-center' rowspan='2' style='background-color:#395C7F;color:#fff;' data-title='".$this->lang->line("mark_subject")."'>";
-                                                                    echo $this->lang->line("mark_subject");
-                                                                echo "</th>";
-
-                                                                foreach ($marksetting as $subjectID => $markpercentageArr) {
-                                                                    foreach ($markpercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'] as $markpercentageID) {
-                                                                        $markpercentagetypelabel = isset($markpercentages[$markpercentageID]) ? $markpercentages[$markpercentageID]->markpercentagetype : '';
-                                                                        echo "<th colspan='2' class='text-center' style='background-color:#395C7F;color:#fff;' data-title='".$markpercentagetypelabel."'>";
-                                                                            echo $markpercentagetypelabel;
-                                                                        echo "</th>";
-                                                                    }
-                                                                    break;
-                                                                }
-                                                                echo "<th colspan='3' class='text-center' style='background-color:#395C7F;color:#fff;' data-title='".$this->lang->line("mark_total")."'>";
-                                                                    echo $this->lang->line("mark_total");
-                                                                echo "</th>";
-                                                            echo "</tr>";
-                                                            foreach ($marksetting as $subjectID => $markpercentageArr) {
-                                                                echo "<tr>";
-                                                                    foreach ($markpercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'] as $markpercentageID) {
-                                                                        echo "<th class='text-center' data-title='".$this->lang->line('mark_obtained_mark')."'>";
-                                                                            echo $this->lang->line("mark_obtained_mark");
-                                                                        echo "</th>";
-
-                                                                        echo "<th class='text-center' data-title='".$this->lang->line('mark_highest_mark')."'>";
-                                                                            echo $this->lang->line("mark_highest_mark");
-                                                                        echo "</th>";
-                                                                    }
-                                                                    echo "<th class='text-center' data-title='".$this->lang->line('mark_mark')."'>";
-                                                                        echo $this->lang->line("mark_mark");
-                                                                    echo "</th>";
-                                                                    echo "<th class='text-center' data-title='".$this->lang->line('mark_point')."'>";
-                                                                        echo $this->lang->line("mark_point");
-                                                                    echo "</th>";
-                                                                    echo "<th class='text-center' data-title='".$this->lang->line('mark_grade')."'>";
-                                                                        echo $this->lang->line("mark_grade");
-                                                                    echo "</th>";
-                                                                echo "</tr>";
-                                                                break;
-                                                            }
-                                                        echo "</thead>";
-                                                        echo "<tbody>";
-                                                        $totalMark           = 0;
-                                                        $totalFinalMark      = 0;
-                                                        $totalSubject        = 0;
-                                                        $averagePoint        = 0;
-                                                        $opmarkpercentageArr = [];
-                                                        foreach ($marksetting as $subjectID => $markpercentageArr) {
-                                                            if($subjectID == $optionalsubjectID) {
-                                                                $opmarkpercentageArr = $markpercentageArr;
-                                                            }
-                                                            if(!in_array($subjectID, $optionalsubjectArr)) {
-                                                                $totalSubject++;
-                                                                echo "<tr>";
-                                                                    echo "<td class='text-black' data-title='".$this->lang->line('mark_subject')."'>";
-                                                                         echo isset($subjects[$subjectID]) ? $subjects[$subjectID]->subject : '';
-                                                                    echo "</td>";
-
-                                                                    $subjectfinalmark = isset($subjects[$subjectID]) ? (int)$subjects[$subjectID]->finalmark : 0;
-                                                                    $totalSubjectMark = 0;
-                                                                    $percentageMark   = 0;
-                                                                    foreach ($markpercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'] as $markpercentageID) {
-
-                                                                        $f = false;
-                                                                        if(isset($markpercentageArr['own']) && in_array($markpercentageID, $markpercentageArr['own'])) {
-                                                                            $f = true;
-                                                                            $percentageMark   += (isset($markpercentages[$markpercentageID]) ? $markpercentages[$markpercentageID]->percentage : 0);
-                                                                        }
-
-                                                                        echo "<td class='text-black' data-title='".$this->lang->line('mark_mark')."'>";
-                                                                            if(isset($marks[$examID][$subjectID][$markpercentageID]) && $f) {
-                                                                                echo $marks[$examID][$subjectID][$markpercentageID];
-                                                                                $totalSubjectMark += $marks[$examID][$subjectID][$markpercentageID];
-                                                                            } else {
-                                                                                if($f) {
-                                                                                    echo 'N/A';
-                                                                                }
-                                                                            }
-                                                                        echo "</td>";
-
-                                                                        echo "<td class='text-black' data-title='".$this->lang->line('mark_highest_mark')."'>";
-                                                                            if(isset($highestmarks[$examID][$subjectID][$markpercentageID]) && ($highestmarks[$examID][$subjectID][$markpercentageID] != -1) && $f) {
-                                                                                echo $highestmarks[$examID][$subjectID][$markpercentageID];
-                                                                            } else {
-                                                                                 if($f) {
-                                                                                    echo 'N/A';
-                                                                                }
-                                                                            }
-                                                                        echo "</td>";
-                                                                    }
-                                                                    $finalpercentageMark = convertMarkpercentage($percentageMark, $subjectfinalmark);
-
-
-                                                                    echo "<td class='text-black' data-title='".$this->lang->line('mark_mark')."'>";
-                                                                        echo $totalSubjectMark;
-                                                                        $totalMark        += $totalSubjectMark;
-                                                                        $totalFinalMark   += $finalpercentageMark;
-                                                                        $totalSubjectMark  = markCalculationView($totalSubjectMark, $subjectfinalmark, $percentageMark);
-                                                                    echo "</td>";
-                                                                    
-                                                                    if(customCompute($grades)) {
-                                                                        foreach ($grades as $grade) {
-                                                                            if(($grade->gradefrom <= $totalSubjectMark) && ($grade->gradeupto >= $totalSubjectMark)) {
-                                                                                echo "<td class='text-black' data-title='".$this->lang->line('mark_point')."'>";
-                                                                                    echo $grade->point;
-                                                                                    $averagePoint += $grade->point;
-                                                                                echo "</td>";
-                                                                                echo "<td class='text-black' data-title='".$this->lang->line('mark_grade')."'>";
-                                                                                    echo $grade->grade;
-                                                                                echo "</td>";
-                                                                            }
-                                                                        }
-                                                                    } else {
-                                                                        echo "<td class='text-black' data-title='".$this->lang->line('mark_point')."'>";
-                                                                            echo 'N/A';
-                                                                        echo '</td>';
-                                                                        echo "<td class='text-black' data-title='".$this->lang->line('mark_grade')."'>";
-                                                                            echo 'N/A';
-                                                                        echo '</td>';
-                                                                    }
-                                                                echo "</tr>";
-                                                            }
+                                            echo '<div class="box-body mark-bodyID">';
+                                                echo "<table class=\"table table-striped table-bordered\">";
+                                                    echo "<thead>";
+                                                        echo "<tr>";
+                                                            echo "<th class='text-center' style='background-color:#016bd6;color:#fff;' data-title='".$this->lang->line("mark_subject")."'>";
+                                                                echo $this->lang->line("mark_subject");
+                                                            echo "</th>";
+                                                            echo "<th class='text-center' style='background-color:#016bd6;color:#fff;'>Max Marks</th>";
+                                                            echo "<th class='text-center' style='background-color:#016bd6;color:#fff;' data-title='".$this->lang->line("mark_mark")."'>";
+                                                                echo $this->lang->line("mark_mark");
+                                                            echo "</th>";
+                                                        echo "</tr>";
+                                                    echo "</thead>";
+                                                    echo "<tbody>";
+                                                    $totalMark           = 0;
+                                                    $opmarkpercentageArr = [];
+                                                    foreach ($marksetting as $subjectID => $markpercentageArr) {
+                                                        if($subjectID == $optionalsubjectID) {
+                                                            $opmarkpercentageArr = $markpercentageArr;
                                                         }
-
-                                                        if(($optionalsubjectID > 0) && customCompute($opmarkpercentageArr)) {
-                                                            $totalSubject++;
+                                                        if(!in_array($subjectID, $optionalsubjectArr) && isset($examScheduleData[$examID][$subjectID])) {
                                                             echo "<tr>";
                                                                 echo "<td class='text-black' data-title='".$this->lang->line('mark_subject')."'>";
-                                                                     echo isset($subjects[$optionalsubjectID]) ? $subjects[$optionalsubjectID]->subject : '';
+                                                                     echo isset($subjects[$subjectID]) ? $subjects[$subjectID]->subject : '';
                                                                 echo "</td>";
-                                                                $subjectfinalmark  = isset($subjects[$optionalsubjectID]) ? $subjects[$optionalsubjectID]->finalmark : 0;
+                                                                echo "<td class='text-center' data-title='Max Marks'>";
+                                                                    echo $examScheduleData[$examID][$subjectID];
+                                                                echo "</td>";
 
                                                                 $totalSubjectMark = 0;
-                                                                $percentageMark   = 0;
-                                                                foreach ($opmarkpercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'] as $markpercentageID) {
-
-                                                                    $f = false;
-                                                                    if(isset($opmarkpercentageArr['own']) && in_array($markpercentageID, $opmarkpercentageArr['own'])) {
-                                                                        $f = true;
-                                                                        $percentageMark   += (isset($markpercentages[$markpercentageID]) ? $markpercentages[$markpercentageID]->percentage : 0);
-                                                                    } 
-
-                                                                    echo "<td class='text-black' data-title='".$this->lang->line('mark_mark')."'>";
-                                                                        if(isset($marks[$examID][$optionalsubjectID][$markpercentageID]) && $f) {
-                                                                            echo $marks[$examID][$optionalsubjectID][$markpercentageID];
-                                                                            $totalSubjectMark += $marks[$examID][$optionalsubjectID][$markpercentageID];
-                                                                        } else {
-                                                                            if($f) {
-                                                                                echo 'N/A';
-                                                                            }
-                                                                        }
-                                                                    echo "</td>";
-
-                                                                    echo "<td class='text-black' data-title='".$this->lang->line('mark_highest_mark')."'>";
-                                                                        if(isset($highestmarks[$examID][$optionalsubjectID][$markpercentageID]) && ($highestmarks[$examID][$optionalsubjectID][$markpercentageID] != -1) && $f) {
-                                                                            echo $highestmarks[$examID][$optionalsubjectID][$markpercentageID];
-                                                                        } else {
-                                                                            if($f) {
-                                                                                echo 'N/A';
-                                                                            }
-                                                                        }
-                                                                    echo "</td>";
-                                                                }
-                                                                $finalpercentageMark = convertMarkpercentage($percentageMark, $subjectfinalmark);
-
-
-                                                                echo "<td class='text-black' data-title='".$this->lang->line('mark_mark')."'>";
-                                                                    echo $totalSubjectMark;
-                                                                    $totalMark        += $totalSubjectMark;
-                                                                    $totalFinalMark   += $finalpercentageMark;
-
-                                                                    $totalSubjectMark  = markCalculationView($totalSubjectMark, $subjectfinalmark, $percentageMark);
-                                                                echo "</td>";
-                                                                
-                                                                if(customCompute($grades)) {
-                                                                    foreach ($grades as $grade) {
-                                                                        if(($grade->gradefrom <= $totalSubjectMark) && ($grade->gradeupto >= $totalSubjectMark)) {
-                                                                            echo "<td class='text-black' data-title='".$this->lang->line('mark_point')."'>";
-                                                                                echo $grade->point;
-                                                                                $averagePoint += $grade->point;
-                                                                            echo "</td>";
-                                                                            echo "<td class='text-black' data-title='".$this->lang->line('mark_grade')."'>";
-                                                                                echo $grade->grade;
-                                                                            echo "</td>";
-                                                                        }
+                                                                foreach ($markpercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'] as $markpercentageID) {
+                                                                    if(isset($marks[$examID][$subjectID][$markpercentageID])) {
+                                                                        $totalSubjectMark += $marks[$examID][$subjectID][$markpercentageID];
                                                                     }
-                                                                } else {
-                                                                    echo "<td class='text-black' data-title='".$this->lang->line('mark_point')."'>";
-                                                                        echo 'N/A';
-                                                                    echo '</td>';
-                                                                    echo "<td class='text-black' data-title='".$this->lang->line('mark_grade')."'>";
-                                                                        echo 'N/A';
-                                                                    echo '</td>';
                                                                 }
+
+                                                                $isAbsent = isset($attendanceData[$examID][$subjectID]) && ($attendanceData[$examID][$subjectID] == 'Absent');
+                                                                echo "<td class='text-black' data-title='".$this->lang->line('mark_mark')."'>";
+                                                                    if($isAbsent) {
+                                                                        echo '<span style="color:#c62828;">Absent</span>';
+                                                                        $totalSubjectMark = 0;
+                                                                    } else {
+                                                                        echo $totalSubjectMark;
+                                                                    }
+                                                                echo "</td>";
+                                                                $totalMark += $totalSubjectMark;
                                                             echo "</tr>";
                                                         }
-                                                        echo "</tbody>";
-                                                    echo "</table>";
+                                                    }
 
-                                                    echo '<div class="box-footer" style="padding-left:0px;">';
-                                                        echo '<p class="text-black">'. $this->lang->line('mark_total_marks').' : <span class="text-red text-bold">'. ini_round($totalFinalMark).'</span>';
-                                                        echo '&nbsp;&nbsp;&nbsp;&nbsp;'.$this->lang->line('mark_total_obtained_marks').' : <span class="text-red text-bold">'. ini_round($totalMark).'</span>';
-                                                        $totalAverageMark = $totalMark / $totalSubject;
-                                                        echo '&nbsp;&nbsp;&nbsp;&nbsp;'.$this->lang->line('mark_total_average_marks').' : <span class="text-red text-bold">'. ini_round($totalAverageMark).'</span>';
+                                                    if(($optionalsubjectID > 0) && customCompute($opmarkpercentageArr) && isset($examScheduleData[$examID][$optionalsubjectID])) {
+                                                        echo "<tr>";
+                                                            echo "<td class='text-black' data-title='".$this->lang->line('mark_subject')."'>";
+                                                                 echo isset($subjects[$optionalsubjectID]) ? $subjects[$optionalsubjectID]->subject : '';
+                                                            echo "</td>";
+                                                            echo "<td class='text-center' data-title='Max Marks'>";
+                                                                echo $examScheduleData[$examID][$optionalsubjectID];
+                                                            echo "</td>";
 
-                                                        $totalmarkpercentage  = markCalculationView($totalMark, $totalFinalMark);
-                                                        echo '&nbsp;&nbsp;&nbsp;&nbsp;'.$this->lang->line('mark_total_average_marks_percetage').' : <span class="text-red text-bold">'. ini_round($totalmarkpercentage) .'</span>';
+                                                            $totalSubjectMark = 0;
+                                                            foreach ($opmarkpercentageArr[(($settingmarktypeID==4) || ($settingmarktypeID==6)) ? 'unique' : 'own'] as $markpercentageID) {
+                                                                if(isset($marks[$examID][$optionalsubjectID][$markpercentageID])) {
+                                                                    $totalSubjectMark += $marks[$examID][$optionalsubjectID][$markpercentageID];
+                                                                }
+                                                            }
 
-                                                        $gpaAveragePoint = $averagePoint / $totalSubject;
-                                                        echo '&nbsp;&nbsp;&nbsp;&nbsp;'.$this->lang->line('mark_gpa').' : <span class="text-red text-bold">'. ini_round($gpaAveragePoint) .'</span>';
-                                                        echo '</p>';
-                                                    echo '</div>';
+                                                            $isAbsent = isset($attendanceData[$examID][$optionalsubjectID]) && ($attendanceData[$examID][$optionalsubjectID] == 'Absent');
+                                                            echo "<td class='text-black' data-title='".$this->lang->line('mark_mark')."'>";
+                                                                if($isAbsent) {
+                                                                    echo '<span style="color:#c62828;">Absent</span>';
+                                                                    $totalSubjectMark = 0;
+                                                                } else {
+                                                                    echo $totalSubjectMark;
+                                                                }
+                                                            echo "</td>";
+                                                            $totalMark += $totalSubjectMark;
+                                                        echo "</tr>";
+                                                    }
+                                                    echo "</tbody>";
+                                                echo "</table>";
 
-                                                echo '</div>';  
+                                                $totalOutOf = array_sum($examScheduleData[$examID]);
+                                                $percent    = $totalOutOf > 0 ? round(($totalMark / $totalOutOf) * 100, 2) : 0;
+
+                                                if ($percent >= 95)     { $grade = 'A+'; $gradeClass = 'label-success'; $remarks = 'Excellent';       $remarksClass = 'label-success'; }
+                                                elseif ($percent >= 90) { $grade = 'A';  $gradeClass = 'label-success'; $remarks = 'Excellent';       $remarksClass = 'label-success'; }
+                                                elseif ($percent >= 80) { $grade = 'B+'; $gradeClass = 'label-primary'; $remarks = 'Very Good';       $remarksClass = 'label-primary'; }
+                                                elseif ($percent >= 70) { $grade = 'B';  $gradeClass = 'label-info';    $remarks = 'Good';            $remarksClass = 'label-info'; }
+                                                elseif ($percent >= 60) { $grade = 'C+'; $gradeClass = 'label-warning'; $remarks = 'Fair';            $remarksClass = 'label-warning'; }
+                                                elseif ($percent >= 50) { $grade = 'C';  $gradeClass = 'label-warning'; $remarks = 'Average';         $remarksClass = 'label-warning'; }
+                                                else                    { $grade = 'D';  $gradeClass = 'label-danger';  $remarks = 'Need Improvement'; $remarksClass = 'label-danger'; }
+
+                                                echo '<div class="box-footer st-attendance-info">';
+                                                    echo '<div class="footer-item">'.$this->lang->line('mark_total_marks').' : <span class="text-red text-bold">'.ini_round($totalOutOf).'</span>,</div>';
+                                                    echo '<div class="footer-item">'.$this->lang->line('mark_total_obtained_marks').' : <span class="text-red text-bold">'.ini_round($totalMark).'</span>,</div>';
+                                                    echo '<div class="footer-item">Percentage : <span class="text-red text-bold">'.$percent.'%</span>,</div>';
+                                                    echo '<div class="footer-item">Grade : <span class="label '.$gradeClass.'" style="font-size:13px;padding:4px 8px;">'.$grade.'</span></div>';
+                                                    echo '<div class="footer-item">Remarks : <span class="label '.$remarksClass.'" style="font-size:13px;padding:4px 8px;">'.$remarks.'</span></div>';
+                                                echo '</div>';
+
+                                            echo '</div>';
                                         echo "</div>";
                                     }
                                 }

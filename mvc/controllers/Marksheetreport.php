@@ -654,7 +654,7 @@ class Marksheetreport extends Admin_Controller {
 		$classesID = $this->input->post('classesID');
 		echo "<option value='0'>", $this->lang->line("marksheetreport_please_select"),"</option>";
 		if((int)$classesID) {
-			$exams    = pluck($this->marksetting_m->get_exam($this->data['siteinfos']->marktypeID, $classesID), 'obj', 'examID');
+			$exams    = pluck($this->marksetting_m->get_exam_with_schedule_condition($this->data['siteinfos']->marktypeID, $classesID), 'obj', 'examID');
 			if(customCompute($exams)) {
 				foreach ($exams as $exam) {
 					echo "<option value=".$exam->examID.">".$exam->exam."</option>";

@@ -1000,6 +1000,7 @@ if (customCompute($profile)) { ?>
 								$optionalsubjectID = $profile->sroptionalsubjectID;
 								if (customCompute($marksettings)) {
 									foreach ($marksettings as $examID => $marksetting) {
+										if (empty($examScheduleData[$examID])) { continue; }
 										echo '<div style="border:1px solid #ddd" class="box" id="e' . $examID . '">';
 										echo '<div class="box-header" style="background-color:#ddedfd;">';
 										echo '<h3 class="box-title" style="color:#23292F;">';
@@ -1999,6 +2000,18 @@ if (customCompute($profile)) { ?>
 			if(inv == 'inv'){
 				$(".nav-tabs a:eq(5)").tab("show");
 			}
+
+			// Deep-link/persist the active tab via the URL hash (e.g. "#mark") so a direct
+			// link (Mark module's view icon) opens on that tab, and a reload keeps it.
+			if (window.location.hash) {
+				var $deepLinkTab = $('.nav-tabs a[href="' + window.location.hash + '"]');
+				if ($deepLinkTab.length) {
+					$deepLinkTab.tab('show');
+				}
+			}
+			$('.nav-tabs a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+				window.location.hash = e.target.hash;
+			});
 		})
 	</script>
 <?php } ?>

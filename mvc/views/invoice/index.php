@@ -435,33 +435,34 @@
                                                                             
                                         <!-- change discount   Modal  start Structure -->
                                         <div class="modal fade" id="change_discount<?= $maininvoice->maininvoiceID?>" tabindex="-1" aria-labelledby="fileUploadModalLabel" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="fileUploadModalLabel">Change Amount</h5>
-                                                            <button style="margin-left: 98% !important;" type="button" class="btn-close" data-dismiss="modal" aria-label="Close"> X </button>
+                                                <div class="modal-dialog" role="document" style="max-width:380px;margin-top:120px;">
+                                                    <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+                                                        <div class="modal-header" style="background:#17a2b8;color:#fff;padding:14px 20px;">
+                                                            <h5 class="modal-title" id="fileUploadModalLabel" style="font-size:15px;font-weight:700;">Change Amount</h5>
+                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color:#fff;opacity:1;font-size:20px;">&times;</button>
                                                         </div>
-                                                        <div class="modal-body">
+                                                        <div class="modal-body" style="padding:20px 24px;">
                                                             <!-- Form for File Upload -->
                                                             <form id="" enctype="multipart/form-data" method="post" action="<?php echo base_url('Invoice/change_discount')?>">
                                                                 <div class="mb-3">
-                                                                    <label for="formFile" class="form-label">Discount Amount</label>
+                                                                    <label for="formFile" class="form-label" style="font-size:13px;font-weight:600;color:#333;">Discount Amount</label>
                                                                     <input  class="form-control" type="hidden" id="invoice_id" name="invoice_id" value="<?= $maininvoice->maininvoiceID?>">
                                                                     <input  class="form-control" type="hidden" id="srstudentID" name="srstudentID" value="<?= $maininvoice->srstudentID?>">
 
                                                                     <input type="hidden" id="balance_<?= $maininvoice->maininvoiceID ?>" value="">
-                                                                    <input class="form-control" type="text" id="disc_amount" name="disc_amount" value="" 
+                                                                    <input class="form-control" type="text" id="disc_amount" name="disc_amount" value="" style="border-radius:6px;"
                                                                         oninput="validate_disc(<?= $maininvoice->maininvoiceID ?>, this.value)">
-                                                                    <span class="error" style="color: red;"></span>
+                                                                    <span class="error" style="color:#e53935;font-size:12px;"></span>
                                                                 </div>
-                                                                <div class="mb-3">
-                                                                    <button type="submit" class="btn btn-primary submit_button" id="submit_button" >Submit</button>
+                                                                <div class="mb-3" style="text-align:right;margin-top:16px;">
+                                                                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Cancel</button>
+                                                                    <button type="submit" class="btn btn-info btn-sm submit_button" id="submit_button"><i class="fa fa-save"></i> Submit</button>
                                                                 </div>
                                                             </form>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div> 
+                                            </div>
                                         <!-- change discount modal end -->
 
 
@@ -666,6 +667,13 @@
                         var $newRows = $(response.html);
                         $('#example11').DataTable().rows.add($newRows.get()).draw(false);
 
+                        // Change-discount modals can't live inside a table row, so they're
+                        // returned separately and appended to <body> (needed for the edit
+                        // icon in the Discount column to find and open its modal).
+                        if(response.modals) {
+                            $('body').append(response.modals);
+                        }
+
                         // Update offset
                         var newOffset = offset + response.count;
                         $btn.data('offset', newOffset);
@@ -729,6 +737,13 @@
                         // Add rows through DataTables API so search/filter index is updated
                         var $newRows = $(response.html);
                         $('#example11').DataTable().rows.add($newRows.get()).draw(false);
+
+                        // Change-discount modals can't live inside a table row, so they're
+                        // returned separately and appended to <body> (needed for the edit
+                        // icon in the Discount column to find and open its modal).
+                        if(response.modals) {
+                            $('body').append(response.modals);
+                        }
 
                         // Hide both buttons as all records are now loaded
                         $btn.hide();

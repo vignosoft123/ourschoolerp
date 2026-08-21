@@ -1222,7 +1222,10 @@ foreach($months_array as $mkey => $v) {
 				$settingmarktypeID       = $this->data['siteinfos']->marktypeID;
 				$markpercentagesmainArr  = $this->marksetting_m->get_marksetting_markpercentages();
 				$markpercentagesclassArr = isset($markpercentagesmainArr[$classesID]) ? $markpercentagesmainArr[$classesID] : [];
-				$settingExam             = array_keys($markpercentagesclassArr);
+				// Scope to the exam this report is actually for — summing across every exam
+				// the class has ever had marksettings for (the old array_keys(...) behavior)
+				// double/triple-counted subjects whenever other exams also had marks entered.
+				$settingExam             = ((int)$examID) ? array($examID) : array_keys($markpercentagesclassArr);
 				$percentageArr           = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
 
 				$this->data['markpercentagesclassArr'] = $markpercentagesclassArr;
@@ -1293,9 +1296,12 @@ foreach($months_array as $mkey => $v) {
 
 				$classPerf = $this->_computeClassPerformance($classesID, $sectionID, $examID, $schoolyearID, $mandatorySubjects, $markpercentagesclassArr, $settingmarktypeID);
 
+				$is_display_attendance_res = $this->setting_m->get_setting_where('is_display_attendance_on_progresscard');
+				$this->data['is_display_attendance'] = $is_display_attendance = $is_display_attendance_res['value'];
+
 				$attendanceByStudent = [];
 				$qrByStudent         = [];
-				if(customCompute($students)) {
+				if($is_display_attendance > 0 && customCompute($students)) {
 					foreach($students as $student) {
 						$attendanceByStudent[$student->srstudentID] = $this->_buildAttendanceByMonth($schoolyearID, $student->srstudentID);
 					}
@@ -1362,7 +1368,8 @@ foreach($months_array as $mkey => $v) {
 			$settingmarktypeID       = $this->data['siteinfos']->marktypeID;
 			$markpercentagesmainArr  = $this->marksetting_m->get_marksetting_markpercentages();
 			$markpercentagesclassArr = isset($markpercentagesmainArr[$classesID]) ? $markpercentagesmainArr[$classesID] : [];
-			$settingExam             = array_keys($markpercentagesclassArr);
+			// Scope to the exam this report is actually for — see getProgresscardreportNew() for why.
+			$settingExam             = ((int)$examID) ? array($examID) : array_keys($markpercentagesclassArr);
 
 			$this->data['markpercentagesclassArr'] = $markpercentagesclassArr;
 			$this->data['settingmarktypeID']       = $settingmarktypeID;
@@ -1430,8 +1437,11 @@ foreach($months_array as $mkey => $v) {
 
 			$classPerf = $this->_computeClassPerformance($classesID, $sectionID, $examID, $schoolyearID, $mandatorySubjects, $markpercentagesclassArr, $settingmarktypeID);
 
+			$is_display_attendance_res = $this->setting_m->get_setting_where('is_display_attendance_on_progresscard');
+			$this->data['is_display_attendance'] = $is_display_attendance = $is_display_attendance_res['value'];
+
 			$attendanceByStudent = [];
-			if(customCompute($students)) {
+			if($is_display_attendance > 0 && customCompute($students)) {
 				foreach($students as $student) {
 					$attendanceByStudent[$student->srstudentID] = $this->_buildAttendanceByMonth($schoolyearID, $student->srstudentID);
 				}
@@ -1475,7 +1485,8 @@ foreach($months_array as $mkey => $v) {
 				$settingmarktypeID       = $this->data['siteinfos']->marktypeID;
 				$markpercentagesmainArr  = $this->marksetting_m->get_marksetting_markpercentages();
 				$markpercentagesclassArr = isset($markpercentagesmainArr[$classesID]) ? $markpercentagesmainArr[$classesID] : [];
-				$settingExam             = array_keys($markpercentagesclassArr);
+				// Scope to the exam this report is actually for — see getProgresscardreportNew() for why.
+				$settingExam             = ((int)$examID) ? array($examID) : array_keys($markpercentagesclassArr);
 				$percentageArr           = pluck($this->markpercentage_m->get_markpercentage(), 'obj', 'markpercentageID');
 
 				$this->data['markpercentagesclassArr'] = $markpercentagesclassArr;
@@ -1492,6 +1503,9 @@ foreach($months_array as $mkey => $v) {
 				// in this request shares the same classesID/sectionID/examID.
 				$classPerf = $this->_computeClassPerformance($classesID, $sectionID, $examID, $schoolyearID, $mandatorySubjects, $markpercentagesclassArr, $settingmarktypeID);
 				$this->data['classPerf'] = $classPerf;
+
+				$is_display_attendance_res = $this->setting_m->get_setting_where('is_display_attendance_on_progresscard');
+				$this->data['is_display_attendance'] = $is_display_attendance = $is_display_attendance_res['value'];
 
 				$bulkMessages = array();
 
@@ -1546,9 +1560,9 @@ foreach($months_array as $mkey => $v) {
 					$this->data['students']          = $students;
 					$this->data['markArray']         = $markArray;
 					$this->data['eattendanceArray']  = $retStatus;
-					$this->data['attendanceByStudent'] = array(
+					$this->data['attendanceByStudent'] = $is_display_attendance > 0 ? array(
 						$studentID[$i] => $this->_buildAttendanceByMonth($schoolyearID, $studentID[$i]),
-					);
+					) : array();
 
 					$attachment = $this->generateAttachment('progresscardreportnew.css', $this->data, 'report/progresscard/ProgresscardReportPDFNew');
 					$media_path = base_url().$attachment;
@@ -1933,9 +1947,9 @@ foreach($months_array as $mkey => $v) {
 			$decrypt_data = explode("^",$decrypt_data1);
 
 
-			 $user['fee_amount'] = 'Rs '.$decrypt_data[0].'.00';
-			 $user['paid_amount'] = 'Rs '.$decrypt_data[1].'.00';
-			$user['balance_amount'] = 'Rs '.$decrypt_data[2].'.00';
+			 $user['fee_amount'] = 'Rs '.$decrypt_data[0];
+			 $user['paid_amount'] = 'Rs '.$decrypt_data[1];
+			$user['balance_amount'] = 'Rs '.$decrypt_data[2];
 			$user['date'] = $date;
 			$user['dynnamic_term'] = $dynamic_term;
 			$user['srname'] = $student;
