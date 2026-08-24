@@ -57,6 +57,19 @@
                 ?>
             </div>
 
+            <!-- Payment Status -->
+            <div class="form-group col-sm-3" id="balanceStatusDiv">
+                <label><i class="fa fa-balance-scale"></i> Payment Status</label>
+                <?php
+                $balanceStatusArray = [
+                    ""          => "All",
+                    "balance"   => "Balance",
+                    "fullypaid" => "Fully Paid",
+                ];
+                echo form_dropdown("balanceStatus", $balanceStatusArray, set_value("balanceStatus"), "id='balanceStatus' class='form-control select2'");
+                ?>
+            </div>
+
             <!-- Submit -->
             <div class="col-sm-12" style="margin-top:10px;">
                 <button id="get_invoicereport" class="btn btn-success">
@@ -99,11 +112,13 @@
             var sec = $('#sectionID option:selected').text().trim();
             var stu = $('#studentID option:selected').text().trim();
             var fee = $('#feetypeID option:selected').text().trim();
+            var bal = $('#balanceStatus option:selected').text().trim();
             var pleaseSelect = '<?= $this->lang->line('invoicereport_please_select') ?>';
             if (cls && cls !== pleaseSelect) parts.push('<strong>Class:</strong> ' + cls);
             if (sec && sec !== pleaseSelect) parts.push('<strong>Section:</strong> ' + sec);
             if (stu && stu !== pleaseSelect) parts.push('<strong>Student:</strong> ' + stu);
             if (fee && fee !== pleaseSelect) parts.push('<strong>Fee Type:</strong> ' + fee);
+            if (bal && bal !== 'All') parts.push('<strong>Payment Status:</strong> ' + bal);
             $('#filter-summary-text').html(parts.length ? parts.join(' &nbsp;|&nbsp; ') : 'All');
             $('#filter-toggle-strip').slideDown(200);
         });
@@ -170,7 +185,8 @@
             classesID: $('#classesID').val(),
             sectionID: $('#classesID').val() != '0' ? $('#sectionID').val() : 0,
             studentID: $('#classesID').val() != '0' ? $('#studentID').val() : 0,
-            feetypeID: $('#feetypeID').val()
+            feetypeID: $('#feetypeID').val(),
+            balanceStatus: $('#balanceStatus').val()
         };
 
         $('#load_invoicereport').html(

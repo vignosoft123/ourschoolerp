@@ -9,13 +9,22 @@
     <div class="box-body">
 
         <div class="rpt-filter-card">
-            <div class="rpt-filter-title"><i class="fa fa-filter"></i>&nbsp; Select Date</div>
+            <div class="rpt-filter-title"><i class="fa fa-filter"></i>&nbsp; Select Date Range</div>
             <div class="row">
-                <div class="form-group col-sm-4" id="dsumDateDiv">
-                    <label>Date</label>
+                <div class="form-group col-sm-4" id="dsumFromDateDiv">
+                    <label>From Date</label>
                     <div class="input-group">
                         <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                        <input type="text" id="dsummary_date" name="date" class="form-control"
+                        <input type="text" id="dsummary_from_date" name="fromDate" class="form-control"
+                               placeholder="dd-mm-yyyy" autocomplete="off"
+                               value="<?=date('d-m-Y')?>">
+                    </div>
+                </div>
+                <div class="form-group col-sm-4" id="dsumToDateDiv">
+                    <label>To Date</label>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input type="text" id="dsummary_to_date" name="toDate" class="form-control"
                                placeholder="dd-mm-yyyy" autocomplete="off"
                                value="<?=date('d-m-Y')?>">
                     </div>
@@ -35,26 +44,41 @@
 
 <script>
 $(function() {
-    $('#dsummary_date').datepicker({
+    $('#dsummary_from_date, #dsummary_to_date').datepicker({
         autoclose: true,
         format: 'dd-mm-yyyy',
         startDate: '<?=$schoolyearsessionobj->startingdate?>',
         endDate: '<?=$schoolyearsessionobj->endingdate?>',
     });
 
-    $('#get_daysummaryreport').on('click', function() {
-        var date = $('#dsummary_date').val();
-        if (!date) { $('#dsumDateDiv').addClass('has-error'); return; }
-        $('#dsumDateDiv').removeClass('has-error');
-        loadSummary(date);
+    // Keep the two pickers from being picked in reverse order - the server will
+    // still swap them defensively if it ever happens, but it's clearer to just
+    // not let the UI produce a reversed range in the first place.
+    $('#dsummary_from_date').on('changeDate', function() {
+        $('#dsummary_to_date').datepicker('setStartDate', $(this).val());
+    });
+    $('#dsummary_to_date').on('changeDate', function() {
+        $('#dsummary_from_date').datepicker('setEndDate', $(this).val());
     });
 
-    function loadSummary(date) {
+    $('#get_daysummaryreport').on('click', function() {
+        var fromDate = $('#dsummary_from_date').val();
+        var toDate   = $('#dsummary_to_date').val();
+        var hasError = false;
+        if (!fromDate) { $('#dsumFromDateDiv').addClass('has-error'); hasError = true; }
+        else { $('#dsumFromDateDiv').removeClass('has-error'); }
+        if (!toDate) { $('#dsumToDateDiv').addClass('has-error'); hasError = true; }
+        else { $('#dsumToDateDiv').removeClass('has-error'); }
+        if (hasError) return;
+        loadSummary(fromDate, toDate);
+    });
+
+    function loadSummary(fromDate, toDate) {
         $('#load_daysummaryreport').html('<div style="text-align:center;padding:40px;"><i class="fa fa-spinner fa-spin fa-2x" style="color:#27ae60;"></i><br><small style="color:#888;margin-top:8px;display:block;">Loading...</small></div>');
         $.ajax({
             type: 'POST',
             url: '<?=base_url('daysummaryreport/getReport')?>',
-            data: { date: date },
+            data: { fromDate: fromDate, toDate: toDate },
             dataType: 'json',
             success: function(resp) {
                 if (!resp.status) {
@@ -76,7 +100,9 @@ $(function() {
     $(document).on('click', '#dsummary-export-btn', function() {
         if (typeof dsmData === 'undefined') { alert('Please load the report first.'); return; }
 
-        var date = $('#dsummary_date').val();
+        var fromDate = $('#dsummary_from_date').val();
+        var toDate   = $('#dsummary_to_date').val();
+        var dateLabel = (fromDate === toDate) ? fromDate : (fromDate + ' to ' + toDate);
         function fa(n) { return parseFloat(n || 0).toFixed(2); }
         function td(v, s) { return '<td style="border:1px solid #bdc3c7;padding:5px 8px;font-size:10pt;font-family:Calibri,Arial;' + (s||'') + '">' + v + '</td>'; }
         function th(v, s) { return '<th style="border:1px solid #bdc3c7;padding:5px 8px;font-size:10pt;font-family:Calibri,Arial;font-weight:bold;' + (s||'') + '">' + v + '</th>'; }
@@ -94,7 +120,7 @@ $(function() {
         h += '<table style="border-collapse:collapse;margin-bottom:10px;"><tr>'
            + '<td colspan="8" style="background:#2c3e50;color:#fff;font-size:14pt;font-weight:bold;'
            + 'text-align:center;padding:10px;font-family:Calibri,Arial;border:none;">'
-           + 'Daily Summary Report &mdash; ' + date + '</td></tr></table>';
+           + 'Daily Summary Report &mdash; ' + dateLabel + '</td></tr></table>';
 
         // SUMMARY
         h += '<table style="border-collapse:collapse;margin-bottom:14px;">';
@@ -111,7 +137,7 @@ $(function() {
         // TRANSACTION LEDGER
         h += '<table style="border-collapse:collapse;margin-bottom:14px;">';
         h += '<tr><td colspan="8" style="' + BLUE + 'font-size:12pt;padding:7px 10px;border:1px solid #aaa;font-family:Calibri,Arial;">TRANSACTION LEDGER</td></tr>';
-        h += '<tr>' + th('Time',TC+LBLUE) + th('Type',LBLUE) + th('Student / Expense',LBLUE) + th('Category',LBLUE)
+        h += '<tr>' + th('Date &amp; Time',TC+LBLUE) + th('Type',LBLUE) + th('Student / Expense',LBLUE) + th('Category',LBLUE)
            + th('Payment Mode',TC+LBLUE) + th('Receipt (Rs)',TR+LBLUE) + th('Payment (Rs)',TR+LBLUE) + th('Balance (Rs)',TR+LBLUE) + '</tr>';
 
         // Opening row
@@ -124,7 +150,12 @@ $(function() {
                      expense:{bg:'#fdedec',fg:'#c0392b'}, salary:{bg:'#fef9e7',fg:'#b7950b'} };
 
         var allTxn = dsmData.receipts.concat(dsmData.payments);
-        allTxn.sort(function(a, b) { return a.sort_key - b.sort_key; });
+        // Primary sort: true chronological order (sort_ts) - matters once the range
+        // spans more than one day. sort_key (type-then-id) is only a tiebreaker.
+        allTxn.sort(function(a, b) {
+            if (a.sort_ts !== b.sort_ts) { return a.sort_ts - b.sort_ts; }
+            return a.sort_key - b.sort_key;
+        });
         var bal = dsmData.totalOpening;
         allTxn.forEach(function(r) {
             bal += (r.receipt || 0) - (r.payment || 0);
@@ -172,7 +203,7 @@ $(function() {
         var url  = URL.createObjectURL(blob);
         var a    = document.createElement('a');
         a.href   = url;
-        a.download = 'DailySummary_' + date.replace(/\//g, '-') + '.xls';
+        a.download = 'DailySummary_' + dateLabel.replace(/\//g, '-').replace(/ /g, '_') + '.xls';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

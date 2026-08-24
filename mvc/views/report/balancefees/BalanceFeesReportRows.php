@@ -51,25 +51,25 @@ if(isset($students) && customCompute($students)) {
             $i++;
             ?>
             <tr>
-                <td class="rpt-sticky-left"><?= $i ?></td>
-                <td class="rpt-sticky-left"><?= $student->srname ?></td>
-                <td class="rpt-sticky-left"><?= $student->father_name ?></td>
-                <td class="rpt-sticky-left"><?= $student->srregisterNO ?></td>
-                <td><?= $student->village_name ?></td>
+                <td class="rpt-sticky-left" data-col="slno"><?= $i ?></td>
+                <td class="rpt-sticky-left" data-col="name"><?= $student->srname ?></td>
+                <td class="rpt-sticky-left" data-col="father"><?= $student->father_name ?></td>
+                <td class="rpt-sticky-left" data-col="regno"><?= $student->srregisterNO ?></td>
+                <td data-col="village"><?= $student->village_name ?></td>
 
                 <?php if(isset($classesID) && (int)$classesID == 0) { ?>
-                    <td><?= isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : '' ?></td>
+                    <td data-col="class"><?= isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : '' ?></td>
                 <?php } ?>
 
                 <?php if(isset($sectionID) && (int)$sectionID == 0) { ?>
-                    <td><?= isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : '' ?></td>
+                    <td data-col="section"><?= isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : '' ?></td>
                 <?php } ?>
 
-                <td><?= $student->phone ?></td>
+                <td data-col="phone"><?= $student->phone ?></td>
 
-                <?php 
+                <?php
                 $all_total = $all_paid = $all_discount = $all_remaining = 0;
-                foreach($allFeeTypes as $feeType) {
+                foreach($allFeeTypes as $ftIndex => $feeType) {
                     $total = $paid = $discount = $remaining = 0;
 
                     if (isset($totalPayment_split[$student->srstudentID][$feeType])) {
@@ -80,41 +80,41 @@ if(isset($students) && customCompute($students)) {
                         $remaining = isset($feeData['remaining']) ? max(0, $feeData['remaining']) : 0;
                     }
                     ?>
-                    <td>
-                        <?php echo formatIndianCurrency($total); 
+                    <td data-col="ft<?=$ftIndex?>">
+                        <?php echo formatIndianCurrency($total);
                             $all_total += $total;
                         ?>
                     </td>
-                    <td><?php echo formatIndianCurrency($paid);
+                    <td data-col="ft<?=$ftIndex?>"><?php echo formatIndianCurrency($paid);
                         $all_paid += $paid; ?></td>
-                    <td><?= formatIndianCurrency($discount);
+                    <td data-col="ft<?=$ftIndex?>"><?= formatIndianCurrency($discount);
                         $all_discount += $discount; ?></td>
-                    <td><?= formatIndianCurrency($remaining);
+                    <td data-col="ft<?=$ftIndex?>"><?= formatIndianCurrency($remaining);
                         $all_remaining += $remaining; ?></td>
                 <?php } ?>
 
-                <td>
+                <td data-col="amount">
                     <?php
                         $feeamount = formatIndianCurrency($all_total);
                         echo $feeamount;
                     ?>
                 </td>
 
-                <td>
+                <td data-col="discountweaver">
                     <?php
                         $discount_plus_waver = formatIndianCurrency($all_discount);
                         echo $discount_plus_waver;
                     ?>
                 </td>
 
-                <td>
+                <td data-col="paid">
                     <?php
                         $paidAmount = formatIndianCurrency($all_paid);
                         echo $paidAmount;
                     ?>
                 </td>
 
-                <td>
+                <td data-col="balance">
                     <?php
                         echo $Balance = formatIndianCurrency($all_remaining);
 
@@ -132,14 +132,14 @@ if(isset($students) && customCompute($students)) {
                     ?>
                 </td>
 
-                <td style="background:#fff3e0; color:#e65100; font-weight:700;">
+                <td style="background:#fff3e0; color:#e65100; font-weight:700;" data-col="prevcf">
                     <?php
                         $cfPrev = isset($prevBalanceMap[$student->srstudentID]) ? $prevBalanceMap[$student->srstudentID] : 0;
                         echo $cfPrev > 0 ? formatIndianCurrency($cfPrev) : '';
                     ?>
                 </td>
 
-                <td>
+                <td data-col="sendsms">
                     <?php
                     $fee_paid_balance = $feeamount."^".$paidAmount."^".$Balance;
                     $fee_paid_balance = encrypt_data($fee_paid_balance);

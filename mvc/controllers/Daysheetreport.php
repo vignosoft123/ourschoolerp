@@ -19,6 +19,14 @@ class Daysheetreport extends Admin_Controller {
         $this->load->view('_layout_main', $this->data);
     }
 
+    /*
+    ================================================================================
+    BACKUP — original single-date getDaysheetReport(), kept for reference/rollback.
+    Replaced (2026-08-23) by the From Date / To Date range version below. This is a
+    live financial report (real cash amounts), so the old working version is kept
+    here intentionally rather than deleted - do not remove without checking first.
+    ================================================================================
+
     public function getDaysheetReport() {
         $retArray = ['status' => FALSE, 'render' => '', 'need_opening_balance' => FALSE];
 
@@ -179,6 +187,217 @@ class Daysheetreport extends Admin_Controller {
         // Pass to view
         $this->data['date']               = $rawDate;
         $this->data['date_ymd']           = $date;
+        $this->data['accounts']           = $accounts;
+        $this->data['banks']              = $banks;
+        $this->data['opening']            = $opening;
+        $this->data['feeByType']          = $feeByType;
+        $this->data['feeCount']           = $feeCount;
+        $this->data['incomeBycat']        = $incomeBycat;
+        $this->data['expenseItems']       = $expenseItems;
+        $this->data['expByTypeAgg']       = $expByTypeAgg;
+        $this->data['expenseByCat']       = $expenseByCat;
+        $this->data['feeByFeetype']       = $feeByFeetype;
+        $this->data['salaryTotal']        = $salaryTotal;
+        $this->data['salaryDetail']       = $salaryDetail;
+        $this->data['received']           = $received;
+        $this->data['closing']            = $closing;
+        $this->data['totalFeeCollection'] = $totalFeeCollection;
+        $this->data['totalOtherIncome']   = $totalOtherIncome;
+        $this->data['totalExpenses']      = $totalExpenses;
+        $this->data['netCashFlow']        = $netCashFlow;
+        $this->data['totalOpening']       = $totalOpening;
+        $this->data['totalReceived']      = $totalReceived;
+        $this->data['totalSpent']         = $totalSpent;
+        $this->data['totalClosing']       = $totalClosing;
+
+        $retArray['render']  = $this->load->view('report/daysheet/DaysheetreportReport', $this->data, true);
+        $retArray['status']  = TRUE;
+        echo json_encode($retArray); exit;
+    }
+    ================================================================================
+    END BACKUP
+    ================================================================================
+    */
+
+    // If this range-based version ever misbehaves, the original single-date
+    // getDaysheetReport() is preserved in the commented-out BACKUP block directly
+    // above - scroll up, or search this file for "BACKUP" to find it.
+    public function getDaysheetReport() {
+        $retArray = ['status' => FALSE, 'render' => '', 'need_opening_balance' => FALSE];
+
+        if (!permissionChecker('daysheetreport')) {
+            $retArray['render'] = $this->load->view('report/reporterror', $this->data, true);
+            $retArray['status'] = TRUE;
+            echo json_encode($retArray); exit;
+        }
+
+        if (!$_POST) {
+            echo json_encode($retArray); exit;
+        }
+
+        $rawFromDate = $this->input->post('fromDate');
+        $rawToDate   = $this->input->post('toDate');
+        if (!$rawFromDate || !$rawToDate) {
+            $retArray['error'] = 'From Date and To Date are required.';
+            echo json_encode($retArray); exit;
+        }
+
+        $fromDate = date('Y-m-d', strtotime($rawFromDate));
+        $toDate   = date('Y-m-d', strtotime($rawToDate));
+
+        // Defensive: if the two dates were picked in reverse order, swap rather than
+        // reject - the requested range is unambiguous either way, and this is real
+        // financial data where a hard error is more likely to just annoy the user
+        // into re-submitting the same (still reversed) values.
+        if ($toDate < $fromDate) {
+            $tmp = $fromDate; $fromDate = $toDate; $toDate = $tmp;
+            $tmpRaw = $rawFromDate; $rawFromDate = $rawToDate; $rawToDate = $tmpRaw;
+        }
+
+        $schoolyearID = $this->session->userdata('defaultschoolyearID');
+        $banks        = $this->banks_m->get_active_banks();
+
+        // Build ordered account list
+        $accounts = ['Cash', 'Digital', 'Cheque', 'Others'];
+        if (customCompute($banks)) {
+            foreach ($banks as $b) {
+                $accounts[] = $b->bank_name;
+            }
+        }
+
+        // --- Opening Balance: anchored to the FIRST day of the range, exactly like
+        // the single-date version anchored to "today" - same auto-fill-from-
+        // yesterday's-closing / auto-save-if-missing logic, just now for $fromDate. ---
+        $opening = $this->daysheet_m->get_opening_balance($fromDate, $schoolyearID);
+
+        if (empty($opening)) {
+            // Try auto-fill from previous day's closing balance
+            $prevDate    = date('Y-m-d', strtotime($fromDate . ' -1 day'));
+            $prevOpening = $this->daysheet_m->get_opening_balance($prevDate, $schoolyearID);
+            if (!empty($prevOpening)) {
+                $opening = $this->daysheet_m->get_previous_closing($prevDate, $schoolyearID, $banks);
+            }
+
+            // If still empty (first day of operation), default all accounts to 0
+            if (empty($opening)) {
+                foreach ($accounts as $acct) {
+                    $opening[$acct] = 0;
+                }
+            }
+
+            // Auto-save computed opening so next load reads from DB
+            $createdBy = $this->session->userdata('loginuserID');
+            $this->daysheet_m->save_opening_balance($opening, $fromDate, $schoolyearID, $createdBy);
+        }
+
+        // Fill missing accounts with 0
+        foreach ($accounts as $acct) {
+            if (!isset($opening[$acct])) $opening[$acct] = 0;
+        }
+
+        // --- Section 2: Fee collection by payment type, across the whole range ---
+        $feeByType    = $this->daysheet_m->get_fee_by_paymenttype_range($fromDate, $toDate, $schoolyearID);
+        $feeCount     = $this->daysheet_m->get_fee_count($fromDate, $toDate, $schoolyearID);
+
+        // --- Section 3: Other income by category ---
+        $incomeBycat  = $this->daysheet_m->get_income_by_category($fromDate, $toDate, $schoolyearID);
+
+        // --- Section 4: Expense items by payment account ---
+        $expenseItems = $this->daysheet_m->get_expense_items_by_paymenttype($fromDate, $toDate, $schoolyearID);
+
+        // --- Section 7: Expense by category ---
+        $expenseByCat = $this->daysheet_m->get_expense_by_category($fromDate, $toDate, $schoolyearID);
+
+        // --- Section 8: Fee by fee type ---
+        $feeByFeetype = $this->daysheet_m->get_fee_by_feetype($fromDate, $toDate, $schoolyearID);
+
+        // --- Salary total + breakdown ---
+        $salaryTotal  = $this->daysheet_m->get_salary_total($fromDate, $toDate, $schoolyearID);
+        $salaryDetail = $this->daysheet_m->get_salary_detail($fromDate, $toDate, $schoolyearID);
+
+        // --- Aggregate totals --- (unchanged math - just now summed over the whole range)
+        $totalFeeCollection = 0;
+        foreach ($feeByType as $row) {
+            $totalFeeCollection += (float)$row->total;
+        }
+
+        $totalOtherIncome = 0;
+        foreach ($incomeBycat as $row) {
+            $totalOtherIncome += (float)$row->total;
+        }
+
+        $totalExpenses = 0;
+        $expByTypeAgg  = []; // account_type → total spent
+        foreach ($accounts as $acct) { $expByTypeAgg[$acct] = 0; }
+
+        foreach ($expenseItems as $item) {
+            $totalExpenses += (float)$item->amount;
+            $key = ($item->payment_type === 'Others' && $item->bank !== '')
+                ? $item->bank
+                : $item->payment_type;
+            if (isset($expByTypeAgg[$key])) {
+                $expByTypeAgg[$key] += (float)$item->amount;
+            } else {
+                $expByTypeAgg['Others'] = ($expByTypeAgg['Others'] ?? 0) + (float)$item->amount;
+            }
+        }
+        $totalExpenses += $salaryTotal;
+
+        // Distribute salary payments into per-account spent tracker by payment method
+        foreach ($salaryDetail as $sd) {
+            $pm = (int)$sd->payment_method;
+            if ($pm === 1) {
+                $key = 'Cash';
+            } elseif ($pm === 2) {
+                $key = 'Cheque';
+            } elseif ($pm === 3 && !empty($sd->bank_name)) {
+                $key = $sd->bank_name;
+            } else {
+                $key = 'Cash';
+            }
+            if (isset($expByTypeAgg[$key])) {
+                $expByTypeAgg[$key] += (float)$sd->payment_amount;
+            } else {
+                $expByTypeAgg['Cash'] = ($expByTypeAgg['Cash'] ?? 0) + (float)$sd->payment_amount;
+            }
+        }
+
+        // --- Section 6: Closing balance per account, at the end of the range ---
+        // received[acct] from fees only
+        $received = [];
+        foreach ($accounts as $acct) { $received[$acct] = 0; }
+        foreach ($feeByType as $row) {
+            $key = ($row->paymenttype === 'Others' && $row->bank !== '')
+                ? $row->bank
+                : $row->paymenttype;
+            if (isset($received[$key])) {
+                $received[$key] += (float)$row->total;
+            } else {
+                $received['Others'] = ($received['Others'] ?? 0) + (float)$row->total;
+            }
+        }
+
+        $closing = [];
+        $totalOpening = 0; $totalReceived = 0; $totalSpent = 0; $totalClosing = 0;
+        foreach ($accounts as $acct) {
+            $op = (float)($opening[$acct] ?? 0);
+            $rc = (float)($received[$acct] ?? 0);
+            $sp = (float)($expByTypeAgg[$acct] ?? 0);
+            $cl = $op + $rc - $sp;
+            $closing[$acct] = $cl;
+            $totalOpening  += $op;
+            $totalReceived += $rc;
+            $totalSpent    += $sp;
+            $totalClosing  += $cl;
+        }
+
+        $netCashFlow = $totalFeeCollection + $totalOtherIncome - $totalExpenses;
+
+        // Pass to view
+        $this->data['rawFromDate']        = $rawFromDate;
+        $this->data['rawToDate']          = $rawToDate;
+        $this->data['fromDate']           = $fromDate;
+        $this->data['toDate']             = $toDate;
         $this->data['accounts']           = $accounts;
         $this->data['banks']              = $banks;
         $this->data['opening']            = $opening;

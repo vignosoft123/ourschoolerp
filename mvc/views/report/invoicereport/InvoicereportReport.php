@@ -95,10 +95,31 @@
                 <strong style="font-size:16px;"><?= isset($siteinfos->sname) ? $siteinfos->sname : '' ?></strong><br/>
                 <span style="font-size:13px; color:#555;">Invoice Report — Academic Year <?= isset($schoolyearsessionobj->schoolyear) ? $schoolyearsessionobj->schoolyear : '' ?></span>
             </div>
-            <div style="width:160px; text-align:right;">
-                <button id="invoice-excel-btn" class="btn btn-success btn-sm">
+            <div class="rpt-action-bar" style="width:auto; text-align:right;">
+                <button id="invoice-excel-btn" class="btn btn-success rpt-action-btn btn-sm">
                     <i class="fa fa-file-excel-o"></i> Download Excel
                 </button>
+
+                <div class="btn-group rpt-col-selector-group" id="columnSelectorGroup">
+                    <button type="button" class="btn btn-info rpt-action-btn btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-columns"></i> Columns <span class="caret"></span>
+                    </button>
+                    <div class="dropdown-menu rpt-col-selector-menu" id="columnSelectorMenu">
+                        <div class="rpt-col-selector-header">
+                            <span class="rpt-col-selector-title"><i class="fa fa-eye"></i> Show Columns</span>
+                            <span class="rpt-col-selector-actions">
+                                <a href="javascript:void(0)" id="columnSelectAll">Select All</a>
+                                <a href="javascript:void(0)" id="columnDeselectAll">Deselect All</a>
+                            </span>
+                        </div>
+                        <div class="rpt-col-selector-list" id="columnSelectorList">
+                            <!-- checkboxes injected by JS -->
+                        </div>
+                        <div class="rpt-col-selector-footer">
+                            <span id="columnSelectedCount">0</span>/<span id="columnTotalCount">0</span> columns shown
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -107,27 +128,27 @@
                 <thead>
                     <!-- Row 1 -->
                     <tr>
-                        <th class="col-fixed col-sno" rowspan="2">#</th>
-                        <th class="col-fixed col-name" rowspan="2">Student</th>
-                        <th class="col-fixed col-class" rowspan="2">Class</th>
-                        <th class="col-fixed col-section" rowspan="2">Section</th>
-                        <th class="col-fixed" rowspan="2">Phone</th>
+                        <th class="col-fixed col-sno" data-col="sno" rowspan="2">#</th>
+                        <th class="col-fixed col-name" data-col="name" rowspan="2">Student</th>
+                        <th class="col-fixed col-class" data-col="class" rowspan="2">Class</th>
+                        <th class="col-fixed col-section" data-col="section" rowspan="2">Section</th>
+                        <th class="col-fixed" data-col="phone" rowspan="2">Phone</th>
                         <?php foreach ($feetypesList as $fid => $fname): ?>
-                            <th colspan="2"><?= htmlspecialchars($fname) ?></th>
+                            <th colspan="2" data-col-group="ft_<?= $fid ?>" data-group-cols="amt_<?= $fid ?>,disc_<?= $fid ?>"><?= htmlspecialchars($fname) ?></th>
                         <?php endforeach; ?>
-                        <th colspan="5" class="col-grand">Grand Total</th>
+                        <th colspan="5" class="col-grand" data-col-group="grand" data-group-cols="gt_amount,gt_discount,gt_paid,gt_net,gt_balance">Grand Total</th>
                     </tr>
                     <!-- Row 2 sub-headers -->
                     <tr>
                         <?php foreach ($feetypesList as $fid => $fname): ?>
-                            <th>Amount</th>
-                            <th>Discount</th>
+                            <th data-col="amt_<?= $fid ?>" data-label="<?= htmlspecialchars($fname) ?> Amount">Amount</th>
+                            <th data-col="disc_<?= $fid ?>" data-label="<?= htmlspecialchars($fname) ?> Discount">Discount</th>
                         <?php endforeach; ?>
-                        <th class="col-grand-sub">Amount</th>
-                        <th class="col-grand-sub">Discount</th>
-                        <th class="col-grand-sub">Paid</th>
-                        <th class="col-grand-sub">Net</th>
-                        <th class="col-grand-sub">Balance</th>
+                        <th class="col-grand-sub" data-col="gt_amount">Amount</th>
+                        <th class="col-grand-sub" data-col="gt_discount">Discount</th>
+                        <th class="col-grand-sub" data-col="gt_paid">Paid</th>
+                        <th class="col-grand-sub" data-col="gt_net">Net</th>
+                        <th class="col-grand-sub" data-col="gt_balance">Balance</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -153,11 +174,11 @@
                     $ttBalance   = [];
                 ?>
                     <tr>
-                        <td class="col-fixed col-sno"><?= $i++ ?></td>
-                        <td class="col-fixed col-name"><strong><?= htmlspecialchars($student->srname) ?></strong></td>
-                        <td class="col-fixed col-class"><?= isset($classes[$student->srclassesID])  ? htmlspecialchars($classes[$student->srclassesID])  : '' ?></td>
-                        <td class="col-fixed col-section"><?= isset($sections[$student->srsectionID]) ? htmlspecialchars($sections[$student->srsectionID]) : '' ?></td>
-                        <td class="col-fixed"><?= htmlspecialchars($student->phone ?? '') ?></td>
+                        <td class="col-fixed col-sno" data-col="sno"><?= $i++ ?></td>
+                        <td class="col-fixed col-name" data-col="name"><strong><?= htmlspecialchars($student->srname) ?></strong></td>
+                        <td class="col-fixed col-class" data-col="class"><?= isset($classes[$student->srclassesID])  ? htmlspecialchars($classes[$student->srclassesID])  : '' ?></td>
+                        <td class="col-fixed col-section" data-col="section"><?= isset($sections[$student->srsectionID]) ? htmlspecialchars($sections[$student->srsectionID]) : '' ?></td>
+                        <td class="col-fixed" data-col="phone"><?= htmlspecialchars($student->phone ?? '') ?></td>
 
                         <?php foreach ($feetypesList as $fid => $fname):
                             if (isset($pivot[$sid][$fid])) {
@@ -181,8 +202,8 @@
                             $colTotals[$fid]['discount'] += (float)$discount;
                             $colTotals[$fid]['paid']     += (float)$paid;
                         ?>
-                            <td><?= $amount !== null ? number_format($amount, 2) : '&mdash;' ?></td>
-                            <td class="inv-discount"><?= ($discount !== null && $discount > 0) ? number_format($discount, 2) : '&mdash;' ?></td>
+                            <td data-col="amt_<?= $fid ?>"><?= $amount !== null ? number_format($amount, 2) : '&mdash;' ?></td>
+                            <td class="inv-discount" data-col="disc_<?= $fid ?>"><?= ($discount !== null && $discount > 0) ? number_format($discount, 2) : '&mdash;' ?></td>
                         <?php endforeach; ?>
 
                         <?php
@@ -193,23 +214,23 @@
                             $grandPaid     += $rowPaid;
                             $grandBalance  += $rowBalance;
                         ?>
-                        <td class="inv-gt-amount" data-toggle="tooltip" data-placement="top"
+                        <td class="inv-gt-amount" data-col="gt_amount" data-toggle="tooltip" data-placement="top"
                             title="<?= implode('&#10;', $ttAmount) ?>">
                             <strong><?= number_format($rowAmount, 2) ?></strong>
                         </td>
-                        <td class="inv-discount inv-gt-amount" data-toggle="tooltip" data-placement="top"
+                        <td class="inv-discount inv-gt-amount" data-col="gt_discount" data-toggle="tooltip" data-placement="top"
                             title="<?= count($ttDiscount) ? implode('&#10;', $ttDiscount) : 'No discount' ?>">
                             <strong><?= $rowDiscount > 0 ? number_format($rowDiscount, 2) : '&mdash;' ?></strong>
                         </td>
-                        <td class="inv-paid inv-gt-amount" data-toggle="tooltip" data-placement="top"
+                        <td class="inv-paid inv-gt-amount" data-col="gt_paid" data-toggle="tooltip" data-placement="top"
                             title="<?= count($ttPaid) ? implode('&#10;', $ttPaid) : 'No payments' ?>">
                             <strong><?= $rowPaid > 0 ? number_format($rowPaid, 2) : '&mdash;' ?></strong>
                         </td>
-                        <td class="inv-gt-amount" data-toggle="tooltip" data-placement="top"
+                        <td class="inv-gt-amount" data-col="gt_net" data-toggle="tooltip" data-placement="top"
                             title="<?= implode('&#10;', $ttNet) ?>">
                             <strong><?= number_format($rowNet, 2) ?></strong>
                         </td>
-                        <td class="inv-balance inv-gt-amount" data-toggle="tooltip" data-placement="top"
+                        <td class="inv-balance inv-gt-amount" data-col="gt_balance" data-toggle="tooltip" data-placement="top"
                             title="<?= count($ttBalance) ? implode('&#10;', $ttBalance) : 'No balance' ?>">
                             <strong><?= number_format($rowBalance, 2) ?></strong>
                         </td>
@@ -219,17 +240,17 @@
 
                 <tfoot>
                     <tr>
-                        <td class="col-fixed col-sno"></td>
-                        <td class="col-fixed" colspan="4" style="position:sticky; left:36px; text-align:right; border-right:2px solid #adb5bd;">TOTAL</td>
+                        <td class="col-fixed col-sno" data-col="sno"></td>
+                        <td class="col-fixed" data-col-group="footer_label" data-group-cols="name,class,section,phone" colspan="4" style="position:sticky; left:36px; text-align:right; border-right:2px solid #adb5bd;">TOTAL</td>
                         <?php foreach ($feetypesList as $fid => $fname): ?>
-                            <td><?= number_format($colTotals[$fid]['amount'],   2) ?></td>
-                            <td><?= number_format($colTotals[$fid]['discount'], 2) ?></td>
+                            <td data-col="amt_<?= $fid ?>"><?= number_format($colTotals[$fid]['amount'],   2) ?></td>
+                            <td data-col="disc_<?= $fid ?>"><?= number_format($colTotals[$fid]['discount'], 2) ?></td>
                         <?php endforeach; ?>
-                        <td><?= number_format($grandAmount,                    2) ?></td>
-                        <td><?= number_format($grandDiscount,                  2) ?></td>
-                        <td><?= number_format($grandPaid,                      2) ?></td>
-                        <td><?= number_format($grandAmount - $grandDiscount,   2) ?></td>
-                        <td><?= number_format($grandBalance,                   2) ?></td>
+                        <td data-col="gt_amount"><?= number_format($grandAmount,                    2) ?></td>
+                        <td data-col="gt_discount"><?= number_format($grandDiscount,                  2) ?></td>
+                        <td data-col="gt_paid"><?= number_format($grandPaid,                      2) ?></td>
+                        <td data-col="gt_net"><?= number_format($grandAmount - $grandDiscount,   2) ?></td>
+                        <td data-col="gt_balance"><?= number_format($grandBalance,                   2) ?></td>
                     </tr>
                 </tfoot>
             </table>
@@ -256,7 +277,7 @@ $(function () {
             }
         });
 
-        var ws = XLSX.utils.table_to_sheet(tbl, { raw: false });
+        var ws = XLSX.utils.table_to_sheet(tbl, { raw: false, display: true });
         XLSX.utils.book_append_sheet(wb, ws, 'Invoice Report');
 
         var className   = $('#classesID option:selected').text().trim();
@@ -271,6 +292,72 @@ $(function () {
         parts.push(dateStr);
         XLSX.writeFile(wb, parts.join(' - ') + '.xlsx');
     });
+});
+</script>
+
+<script>
+$(document).ready(function () {
+    var $table = $('#invoice-pivot-table');
+    if (!$table.length) { return; }
+
+    // Build the "Columns" checkbox list from whatever headers the server actually rendered.
+    // (This table's fee-type columns are dynamic per query, so — unlike the static
+    // GROUP1_COLS/GROUP2_COLS arrays in the Fees Report reference — group membership is
+    // read from each group cell's own data-group-cols attribute instead of a hardcoded list.)
+    var $menu = $('#columnSelectorMenu');
+    var $list = $('#columnSelectorList');
+    $table.find('thead th[data-col]').each(function () {
+        var col = $(this).attr('data-col');
+        var label = $(this).attr('data-label') || $.trim($(this).text());
+        var $item = $('<label>', { class: 'rpt-col-selector-item' });
+        var $checkbox = $('<input>', { type: 'checkbox', 'data-col': col, checked: true });
+        var $text = $('<span>', { text: label, title: label });
+        $item.append($checkbox).append($text);
+        $list.append($item);
+    });
+
+    function updateSelectedCount() {
+        var total = $list.find('input[type="checkbox"][data-col]').length;
+        var selected = $list.find('input[type="checkbox"][data-col]:checked').length;
+        $('#columnSelectedCount').text(selected);
+        $('#columnTotalCount').text(total);
+    }
+    updateSelectedCount();
+
+    function recomputeGroupColspans() {
+        $table.find('[data-col-group]').each(function () {
+            var $cell = $(this);
+            var cols = ($cell.attr('data-group-cols') || '').split(',').filter(Boolean);
+            if (!cols.length) { return; }
+            var visible = cols.filter(function (col) {
+                var $th = $table.find('thead th[data-col="' + col + '"]');
+                return $th.length && $th.css('display') !== 'none';
+            }).length;
+            $cell.css('display', visible ? '' : 'none');
+            $cell.attr('colspan', Math.max(visible, 1));
+        });
+    }
+
+    function toggleColumn(col, visible) {
+        $table.find('[data-col="' + col + '"]').css('display', visible ? '' : 'none');
+        recomputeGroupColspans();
+        updateSelectedCount();
+    }
+
+    $list.on('change', 'input[type="checkbox"][data-col]', function () {
+        toggleColumn($(this).attr('data-col'), $(this).is(':checked'));
+    });
+    $('#columnSelectAll').on('click', function () {
+        $list.find('input[type="checkbox"][data-col]').prop('checked', true).each(function () {
+            toggleColumn($(this).attr('data-col'), true);
+        });
+    });
+    $('#columnDeselectAll').on('click', function () {
+        $list.find('input[type="checkbox"][data-col]').prop('checked', false).each(function () {
+            toggleColumn($(this).attr('data-col'), false);
+        });
+    });
+    $menu.on('click', function (e) { e.stopPropagation(); }); // keeps dropdown open while clicking checkboxes
 });
 </script>
 

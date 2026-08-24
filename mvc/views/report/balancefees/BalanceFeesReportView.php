@@ -93,6 +93,18 @@
                                      ?>
                                 </div>
 
+                                <div class="form-group col-sm-4" id="balanceStatusDiv">
+                                    <label><i class="fa fa-balance-scale"></i> Payment Status</label>
+                                    <?php
+                                        $balanceStatusArray = array(
+                                            ""          => "All",
+                                            "balance"   => "Balance",
+                                            "fullypaid" => "Fully Paid",
+                                        );
+                                        echo form_dropdown("balanceStatus", $balanceStatusArray, set_value("balanceStatus"), "id='balanceStatus' class='form-control select2'");
+                                     ?>
+                                </div>
+
                             </div>
                         </form>
                         <div class="rpt-filter-actions">
@@ -297,6 +309,7 @@
         var studentID = $('#studentID').val();
         var feetypeID = $('#feetypeID').val();
         var villageID = $('#villageID').val();
+        var balanceStatus = $('#balanceStatus').val();
         var sectionName = $('#sectionID option:selected').text(); // 👈 get selected section name
         if (sectionName === '' || sectionName.toLowerCase() === 'please select') {
             sectionName = '';
@@ -309,7 +322,8 @@
             "studentID" : studentID,
             "feetypeID" : feetypeID,
             "villageID" : villageID,
-            "sectionName" :sectionName
+            "sectionName" :sectionName,
+            "balanceStatus" : balanceStatus
         };
 
         if(error == 0 ) {
@@ -467,6 +481,7 @@
         var studentID = $('#studentID').val();
         var feetypeID = $('#feetypeID').val();
         var villageID = $('#villageID').val();
+        var balanceStatus = $('#balanceStatus').val();
         var sectionName = $('#sectionID option:selected').text();
         if (sectionName === '' || sectionName.toLowerCase() === 'please select') {
             sectionName = '';
@@ -489,6 +504,7 @@
                 feetypeID: feetypeID,
                 villageID: villageID,
                 sectionName: sectionName,
+                balanceStatus: balanceStatus,
                 offset: offset
             },
             dataType: 'html',
@@ -518,6 +534,7 @@
                     }
 
                     updateGrandTotals();
+                    if (typeof window.balanceFeesReapplyColumns === 'function') window.balanceFeesReapplyColumns();
                     if (typeof applyStickyColumns === 'function') applyStickyColumns();
                 }
 
@@ -541,6 +558,7 @@
         var studentID = $('#studentID').val();
         var feetypeID = $('#feetypeID').val();
         var villageID = $('#villageID').val();
+        var balanceStatus = $('#balanceStatus').val();
         var sectionName = $('#sectionID option:selected').text();
         if (sectionName === '' || sectionName.toLowerCase() === 'please select') {
             sectionName = '';
@@ -567,6 +585,7 @@
                     feetypeID: feetypeID,
                     villageID: villageID,
                     sectionName: sectionName,
+                    balanceStatus: balanceStatus,
                     offset: currentOffset
                 },
                 dataType: 'html',
@@ -597,6 +616,7 @@
                             $btn.hide();
                             $loadMoreBtn.hide();
                             updateGrandTotals();
+                            if (typeof window.balanceFeesReapplyColumns === 'function') window.balanceFeesReapplyColumns();
                             if (typeof applyStickyColumns === 'function') applyStickyColumns();
                         }
                     } else {

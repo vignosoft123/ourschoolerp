@@ -158,6 +158,27 @@ class Invoicereport extends Admin_Controller
             ];
         }
 
+        // "Balance" / "Fully Paid" dropdown (blank/other = no filtering). Mirrors the exact
+        // per-student total the report table itself shows in its "Balance" column
+        // (InvoicereportReport.php: rowBalance = sum of (amount-discount) across fee types,
+        // minus sum of paid - no floor at 0, so an overpaid/credit balance is negative and
+        // still counts as "non-zero", i.e. Balance, not Fully Paid).
+        $balanceStatus = $this->input->post('balanceStatus');
+        if ($balanceStatus === 'balance' || $balanceStatus === 'fullypaid') {
+            foreach ($students as $sid => $student) {
+                $rowBalance = 0;
+                if (isset($pivot[$sid])) {
+                    foreach ($pivot[$sid] as $feeData) {
+                        $rowBalance += ($feeData['amount'] - $feeData['discount']) - $feeData['paid'];
+                    }
+                }
+                $isFullyPaid = (round($rowBalance, 2) === 0.0);
+                if ($balanceStatus === 'balance' ? $isFullyPaid : !$isFullyPaid) {
+                    unset($students[$sid]);
+                }
+            }
+        }
+
         $this->data['classes']      = pluck($this->classes_m->general_get_classes(), 'classes', 'classesID');
         $this->data['sections']     = pluck($this->section_m->general_get_section(), 'section', 'sectionID');
         $this->data['students']     = $students;

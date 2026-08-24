@@ -814,7 +814,26 @@ class Admin_Controller extends MY_Controller {
         $this->mhtml2pdf->html($html);
         $path = @$this->mhtml2pdf->create('save',$this->data['panel_title'], $stylesheet);
         return $path;
-         
+
+    }
+
+    // Same rendering as generateAttachment() but returns the raw PDF bytes instead of
+    // saving a file — for transient/bulk cases (e.g. one entry inside a ZIP built on the
+    // fly) where the individual PDF must never be left behind on the server.
+    public function generatePdfString($stylesheet=NULL, $data=NULL, $viewpath=NULL, $pagesize = 'a4', $pagetype='portrait'){
+        $designType = 'LTR';
+        $this->load->library('mhtml2pdf');
+        $this->mhtml2pdf->paper($pagesize, $pagetype);
+
+        if(!empty($stylesheet)) {
+            $stylesheet = file_get_contents(base_url('assets/pdf/'.$designType.'/'.$stylesheet));
+        }
+
+        $this->data['panel_title'] = $this->lang->line('panel_title');
+        $html = $this->load->view($viewpath, $this->data, true);
+        $this->mhtml2pdf->html($html);
+        return @$this->mhtml2pdf->create('string', $this->data['panel_title'], $stylesheet);
+
 
 }
 

@@ -192,7 +192,15 @@ var dsCards = {
 
 <?= reportheader($siteinfos, $schoolyearsessionobj) ?>
 <div class="rpt-class-info">
-    <span><i class="fa fa-calendar"></i> Day Sheet Date: <strong><?=date('d M Y', strtotime($date_ymd))?></strong></span>
+    <?php
+        // $fromDate/$toDate replace the old single $date_ymd (2026-08-23, range filter) -
+        // the original single-date header logic is kept commented out alongside the
+        // controller/model backups if this ever needs to be rolled back.
+        $dsDisplayDate = ($fromDate === $toDate)
+            ? date('d M Y', strtotime($fromDate))
+            : date('d M Y', strtotime($fromDate)) . ' &ndash; ' . date('d M Y', strtotime($toDate));
+    ?>
+    <span><i class="fa fa-calendar"></i> Day Sheet Date: <strong><?=$dsDisplayDate?></strong></span>
     <span><i class="fa fa-calendar-check-o"></i> Academic Year: <strong><?=$schoolyearsessionobj->schoolyear?></strong></span>
 </div>
 
@@ -280,7 +288,7 @@ var dsCards = {
                         </tr>
                         <?php endforeach; ?>
                         <?php else: ?>
-                        <tr><td colspan="2" class="text-center text-muted">No fee collections for this date.</td></tr>
+                        <tr><td colspan="2" class="text-center text-muted">No fee collections for this period.</td></tr>
                         <?php endif; ?>
                     </tbody>
                     <tfoot>
@@ -326,7 +334,7 @@ var dsCards = {
             </tfoot>
         </table>
         <?php else: ?>
-        <div class="text-center text-muted" style="padding:14px;">No other income recorded for this date.</div>
+        <div class="text-center text-muted" style="padding:14px;">No other income recorded for this period.</div>
         <?php endif; ?>
     </div>
 </div>
@@ -376,7 +384,7 @@ var dsCards = {
             <?php endforeach; ?>
         </div>
         <?php else: ?>
-        <div class="text-center text-muted">No expenses recorded for this date.</div>
+        <div class="text-center text-muted">No expenses recorded for this period.</div>
         <?php endif; ?>
         <?php if ($salaryTotal > 0): ?>
         <div style="margin-top:12px;">
@@ -470,7 +478,7 @@ var dsCards = {
     <div class="box-header" style="background:linear-gradient(135deg,#f0fffd,#e0f2f1);border-bottom:1px solid #b2dfdb;padding:10px 14px;">
         <h4 style="margin:0;font-size:14px;font-weight:700;color:#004d40;">
             <i class="fa fa-lock" style="color:#16a085;"></i> 6. Closing Balance
-            <small style="font-weight:400;color:#666;">(Tomorrow's Opening)</small>
+            <small style="font-weight:400;color:#666;">(Next Day's Opening)</small>
         </h4>
     </div>
     <div class="box-body" style="padding:0;">

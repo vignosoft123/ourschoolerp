@@ -3809,21 +3809,43 @@ public function marks_bulkimport()
         return;
     }
 
-    $config['upload_path']   = "./uploads/csv/";
-    $config['allowed_types'] = 'csv|text/plain|text/csv';
-    $config['max_size']      = '2048';
-    $config['file_name']     = $_FILES["csvMarks"]['name'];
-    $config['overwrite']     = TRUE;
+    $uploaded = $_FILES['csvMarks'];
 
-    $this->load->library('upload', $config);
-
-    if (!$this->upload->do_upload("csvMarks")) {
-        echo json_encode(['status' => false, 'message' => "File upload failed: " . $this->upload->display_errors('', '')]);
+    if ($uploaded['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode(['status' => false, 'message' => 'File upload failed: upload error code ' . $uploaded['error'] . '.']);
         return;
     }
 
-    $file_data = $this->upload->data();
-    $file_path = './uploads/csv/' . $file_data['file_name'];
+    if (strtolower(pathinfo($uploaded['name'], PATHINFO_EXTENSION)) !== 'csv') {
+        echo json_encode(['status' => false, 'message' => 'File upload failed: only .csv files are allowed.']);
+        return;
+    }
+
+    if ($uploaded['size'] > 2048 * 1024) { // 2MB, matches the previous max_size (in KB)
+        echo json_encode(['status' => false, 'message' => 'File upload failed: file exceeds the 2MB size limit.']);
+        return;
+    }
+
+    $upload_dir = './uploads/csv/';
+    if (!is_dir($upload_dir)) {
+        @mkdir($upload_dir, 0755, true);
+    }
+
+    // Deliberately NOT using CI's Upload library / allowed_types MIME sniffing here.
+    // That relies on ext/fileinfo (finfo) to inspect the file's actual byte content,
+    // and CI's own source comments note that XAMPP/CentOS/cPanel commonly disable that
+    // extension or fall back to different detection methods per environment. The same
+    // valid CSV file can therefore get classified with a MIME type that's allowed on
+    // one server and rejected on another ("File upload failed: filetype not allowed"
+    // on a live host that worked fine on local XAMPP). Since the content is already
+    // strictly validated right below (classID/examID/header parsing, numeric studentID
+    // checks), an extension + size check here is sufficient and environment-independent.
+    $file_path = $upload_dir . 'marks_' . uniqid() . '.csv';
+
+    if (!move_uploaded_file($uploaded['tmp_name'], $file_path)) {
+        echo json_encode(['status' => false, 'message' => 'File upload failed: could not save the uploaded file.']);
+        return;
+    }
 
     // Read the raw file contents to auto detect delimiter
     $raw = file_get_contents($file_path);

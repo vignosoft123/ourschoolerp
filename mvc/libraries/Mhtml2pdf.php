@@ -99,6 +99,15 @@ class Mhtml2pdf {
 	 */
 	function create($mode = 'view', $title = 'Report', $stylesheet = NULL)
 	{
+        // mPDF's WriteHTML() runs several preg_* passes (AdjustHTML) over the whole HTML
+        // string before layout. On a large enough document (e.g. a combined multi-student
+        // report) those regexes can exceed PHP's default pcre.backtrack_limit (1,000,000)
+        // and throw MpdfException: "The HTML code size is larger than pcre.backtrack_limit".
+        // Raise both limits for the duration of this PDF build — cheap safety net, applies
+        // to every report that goes through this shared library.
+        ini_set('pcre.backtrack_limit', 10000000);
+        ini_set('pcre.recursion_limit', 10000000);
+
         $mpdf = new Mpdf();
         // $mpdf->baseScript = 1;
         $mpdf->autoScriptToLang = true;
@@ -132,6 +141,11 @@ class Mhtml2pdf {
             return $this->path.$this->filename . '.pdf';
         } elseif ($mode == 'download') {
             $mpdf->Output($this->filename . '.pdf','D');
+        } elseif ($mode == 'string') {
+            // Returns the raw PDF bytes with no disk write at all — used when a PDF is only
+            // needed transiently (e.g. one entry inside a ZIP built on the fly) and should
+            // never be left behind as a file on the server.
+            return $mpdf->Output('', 'S');
         }
 	}
 

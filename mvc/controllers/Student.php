@@ -3713,16 +3713,20 @@ class Student extends Admin_Controller
 
 			// echo "<pre>";print_r($this->data['students']);die;
 			$this->data['classes'] = $this->classes_m->get_classes();
-			if (customCompute($this->data['students'])) {
-				$sections = $this->section_m->general_get_order_by_section(array("classesID" => $id));
-				$this->data['sections'] = $sections;
-				foreach ($sections as $key => $section) {
-					$this->data['allsection'][$section->sectionID] = $this->studentrelation_m->get_order_by_student(array('srclassesID' => $id, "srsectionID" => $section->sectionID, 'srschoolyearID' => $schoolyearID));
-				}
-			} else {
+			// Village/Section inline dropdowns on the shared student/index view were rendering
+			// empty here: $villages was never set at all, and the old $sections fetch below used
+			// an undefined $id (this method has no single classesID — search results can span
+			// multiple classes). $sections stays [] on purpose (not populated from a class filter)
+			// so the view only shows the "All Students" tab, same as before — this only fixes the
+			// per-row Village/Section <select> options via the dedicated sectionOptions var (see
+			// student/index.php's section_update <select>, which falls back to $sections if unset).
+			$this->data['villages'] = $this->village_m->get_active_villages();
+			$this->data['sectionOptions'] = $this->section_m->general_get_section();
+			$this->data['sections'] = [];
+			if (!customCompute($this->data['students'])) {
 				$this->data['students'] = [];
 			}
-		 
+
 
 		$this->data["subview"] = "student/index";
 		$this->load->view('_layout_main', $this->data);

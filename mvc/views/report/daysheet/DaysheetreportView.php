@@ -9,13 +9,22 @@
     <div class="box-body">
 
         <div class="rpt-filter-card">
-            <div class="rpt-filter-title"><i class="fa fa-filter"></i>&nbsp; Select Date</div>
+            <div class="rpt-filter-title"><i class="fa fa-filter"></i>&nbsp; Select Date Range</div>
             <div class="row">
-                <div class="form-group col-sm-4" id="dateDiv">
-                    <label>Date</label>
+                <div class="form-group col-sm-4" id="fromDateDiv">
+                    <label>From Date</label>
                     <div class="input-group">
                         <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-                        <input type="text" id="daysheet_date" name="date" class="form-control"
+                        <input type="text" id="daysheet_from_date" name="fromDate" class="form-control"
+                               placeholder="dd-mm-yyyy" autocomplete="off"
+                               value="<?=date('d-m-Y')?>">
+                    </div>
+                </div>
+                <div class="form-group col-sm-4" id="toDateDiv">
+                    <label>To Date</label>
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                        <input type="text" id="daysheet_to_date" name="toDate" class="form-control"
                                placeholder="dd-mm-yyyy" autocomplete="off"
                                value="<?=date('d-m-Y')?>">
                     </div>
@@ -35,26 +44,41 @@
 
 <script>
 $(function() {
-    $('#daysheet_date').datepicker({
+    $('#daysheet_from_date, #daysheet_to_date').datepicker({
         autoclose: true,
         format: 'dd-mm-yyyy',
         startDate: '<?=$schoolyearsessionobj->startingdate?>',
         endDate: '<?=$schoolyearsessionobj->endingdate?>',
     });
 
-    $('#get_daysheetreport').on('click', function() {
-        var date = $('#daysheet_date').val();
-        if (!date) { $('#dateDiv').addClass('has-error'); return; }
-        $('#dateDiv').removeClass('has-error');
-        loadDaySheet(date);
+    // Keep the two pickers from being picked in reverse order - the server will
+    // still swap them defensively if it ever happens, but it's clearer to just
+    // not let the UI produce a reversed range in the first place.
+    $('#daysheet_from_date').on('changeDate', function() {
+        $('#daysheet_to_date').datepicker('setStartDate', $(this).val());
+    });
+    $('#daysheet_to_date').on('changeDate', function() {
+        $('#daysheet_from_date').datepicker('setEndDate', $(this).val());
     });
 
-    function loadDaySheet(date) {
+    $('#get_daysheetreport').on('click', function() {
+        var fromDate = $('#daysheet_from_date').val();
+        var toDate   = $('#daysheet_to_date').val();
+        var hasError = false;
+        if (!fromDate) { $('#fromDateDiv').addClass('has-error'); hasError = true; }
+        else { $('#fromDateDiv').removeClass('has-error'); }
+        if (!toDate) { $('#toDateDiv').addClass('has-error'); hasError = true; }
+        else { $('#toDateDiv').removeClass('has-error'); }
+        if (hasError) return;
+        loadDaySheet(fromDate, toDate);
+    });
+
+    function loadDaySheet(fromDate, toDate) {
         $('#load_daysheetreport').html('<div style="text-align:center;padding:30px;"><i class="fa fa-spinner fa-spin fa-2x"></i></div>');
         $.ajax({
             type: 'POST',
             url: '<?=base_url('daysheetreport/getDaysheetReport')?>',
-            data: { date: date },
+            data: { fromDate: fromDate, toDate: toDate },
             dataType: 'json',
             success: function(resp) {
                 if (!resp.status) {
@@ -78,7 +102,9 @@ $(function() {
     $(document).on('click', '#daysheet-export-btn', function() {
         if (typeof dsCards === 'undefined') { alert('Please load the report first.'); return; }
 
-        var date = $('#daysheet_date').val();
+        var fromDate = $('#daysheet_from_date').val();
+        var toDate   = $('#daysheet_to_date').val();
+        var date     = (fromDate === toDate) ? fromDate : (fromDate + ' to ' + toDate);
         function fa(n) { return parseFloat(n || 0).toFixed(2); }
         function td(v, s) { return '<td style="border:1px solid #bdc3c7;padding:5px 8px;font-size:10pt;font-family:Calibri,Arial;' + (s||'') + '">' + v + '</td>'; }
         function th(v, s) { return '<th style="border:1px solid #bdc3c7;padding:5px 8px;font-size:10pt;font-family:Calibri,Arial;font-weight:bold;' + (s||'') + '">' + v + '</th>'; }
@@ -121,7 +147,7 @@ $(function() {
         h += te();
 
         // Section 2: Fee Collection
-        h += ts() + sec('2. Today\'s Fee Collection (Payment Mode Wise)', '#0d47a1', 2);
+        h += ts() + sec('2. Fee Collection (Payment Mode Wise)', '#0d47a1', 2);
         h += '<tr>' + th('Payment Mode','background:#bbdefb;color:#0d47a1;') + th('Amount',TR+'background:#bbdefb;color:#0d47a1;') + '</tr>';
         if (dsCards.feeByType.length) {
             dsCards.feeByType.forEach(function(r) {
@@ -169,19 +195,19 @@ $(function() {
         h += '<tr>' + td('<b>Grand Total Expenses</b>',DARK) + td('',DARK) + td('<b>'+fa(dsCards.totalExpenses)+'</b>',TR+DARK) + '</tr>';
         h += te();
 
-        // Section 5: Today's Summary
+        // Section 5: Summary
         var totalIncome = dsCards.totalFeeCollection + dsCards.totalOtherIncome;
         var nc = dsCards.netCashFlow;
-        h += ts() + sec('5. Today\'s Summary', '#e65100', 2);
+        h += ts() + sec('5. Summary', '#e65100', 2);
         h += '<tr>' + td('Fee Collection','background:#fff8e1;') + td(fa(dsCards.totalFeeCollection),TR+'background:#fff8e1;color:#27ae60;') + '</tr>';
         h += '<tr>' + td('Other Income','background:#fff8e1;') + td(fa(dsCards.totalOtherIncome),TR+'background:#fff8e1;color:#8e44ad;') + '</tr>';
         h += '<tr>' + td('<b>Total Income</b>','background:#fff8e1;font-weight:bold;') + td('<b>'+fa(totalIncome)+'</b>',TR+'background:#fff8e1;color:#27ae60;font-weight:bold;') + '</tr>';
         h += '<tr>' + td('Total Expenses','background:#fff8e1;') + td(fa(dsCards.totalExpenses),TR+'background:#fff8e1;color:#e74c3c;') + '</tr>';
-        h += '<tr>' + td('<b>Net Balance Today</b>','background:#ffe0b2;color:#e65100;font-weight:bold;') + td('<b>'+fa(Math.abs(nc))+(nc<0?' (Deficit)':'')+'</b>',TR+'background:#ffe0b2;font-weight:bold;color:'+(nc>=0?'#27ae60':'#e74c3c')+';') + '</tr>';
+        h += '<tr>' + td('<b>Net Balance</b>','background:#ffe0b2;color:#e65100;font-weight:bold;') + td('<b>'+fa(Math.abs(nc))+(nc<0?' (Deficit)':'')+'</b>',TR+'background:#ffe0b2;font-weight:bold;color:'+(nc>=0?'#27ae60':'#e74c3c')+';') + '</tr>';
         h += te();
 
         // Section 6: Closing Balance
-        h += ts() + sec('6. Closing Balance (Tomorrow\'s Opening)', '#004d40', 5);
+        h += ts() + sec('6. Closing Balance (Next Day\'s Opening)', '#004d40', 5);
         h += '<tr>' + th('Account','background:#b2dfdb;color:#004d40;') + th('Opening',TR+'background:#b2dfdb;color:#004d40;') + th('Received',TR+'background:#b2dfdb;color:#27ae60;') + th('Spent',TR+'background:#b2dfdb;color:#e74c3c;') + th('Closing Balance',TR+'background:#b2dfdb;color:#004d40;') + '</tr>';
         accts.forEach(function(a) {
             var d = acctData(a);
@@ -217,7 +243,7 @@ $(function() {
         var url  = URL.createObjectURL(blob);
         var a    = document.createElement('a');
         a.href   = url;
-        a.download = 'DaySheet_' + date.replace(/\//g, '-') + '.xls';
+        a.download = 'DaySheet_' + date.replace(/\//g, '-').replace(/ /g, '_') + '.xls';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

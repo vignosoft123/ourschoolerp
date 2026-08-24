@@ -118,9 +118,30 @@
     }
 ?>
 <div class="due-report-actions">
-    <a href="<?=$xml_preview_uri?>" class="btn btn-success btn-rpt-action">
+    <a href="<?=$xml_preview_uri?>" id="dueExportXlsxBtn" data-base-href="<?=$xml_preview_uri?>" class="btn btn-success btn-rpt-action">
         <i class="fa fa-file-excel-o"></i> Export XLSX
     </a>
+
+    <div class="btn-group rpt-col-selector-group" id="columnSelectorGroup">
+        <button type="button" class="btn btn-info btn-rpt-action dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-columns"></i> Columns <span class="caret"></span>
+        </button>
+        <div class="dropdown-menu rpt-col-selector-menu" id="columnSelectorMenu">
+            <div class="rpt-col-selector-header">
+                <span class="rpt-col-selector-title"><i class="fa fa-eye"></i> Show Columns</span>
+                <span class="rpt-col-selector-actions">
+                    <a href="javascript:void(0)" id="columnSelectAll">Select All</a>
+                    <a href="javascript:void(0)" id="columnDeselectAll">Deselect All</a>
+                </span>
+            </div>
+            <div class="rpt-col-selector-list" id="columnSelectorList">
+                <!-- checkboxes injected by JS -->
+            </div>
+            <div class="rpt-col-selector-footer">
+                <span id="columnSelectedCount">0</span>/<span id="columnTotalCount">0</span> columns shown
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="box" style="border-top: 3px solid #3949ab;">
@@ -157,36 +178,36 @@
                             <table id="due-fees-h-table" class="table table-bordered" style="min-width:900px;">
                                 <thead>
                                     <tr>
-                                        <th><?=$this->lang->line('slno')?></th>
-                                        <th><?=$this->lang->line('duefeesreport_invoice_date')?></th>
-                                        <th><?=$this->lang->line('duefeesreport_name')?></th>
-                                        <th><?=$this->lang->line('duefeesreport_registerNO')?></th>
+                                        <th data-col="slno"><?=$this->lang->line('slno')?></th>
+                                        <th data-col="invoicedate"><?=$this->lang->line('duefeesreport_invoice_date')?></th>
+                                        <th data-col="name"><?=$this->lang->line('duefeesreport_name')?></th>
+                                        <th data-col="registerno"><?=$this->lang->line('duefeesreport_registerNO')?></th>
                                         <?php if($classesID == 0) { ?>
-                                          <th><?=$this->lang->line('duefeesreport_class')?></th>
+                                          <th data-col="class"><?=$this->lang->line('duefeesreport_class')?></th>
                                         <?php } ?>
                                         <?php if($sectionID == 0) { ?>
-                                          <th><?=$this->lang->line('duefeesreport_section')?></th>
+                                          <th data-col="section"><?=$this->lang->line('duefeesreport_section')?></th>
                                         <?php } ?>
-                                        <th><?=$this->lang->line('duefeesreport_roll')?></th>
-                                        <th><?=$this->lang->line('duefeesreport_feetype')?></th>
-                                        <th><?=$this->lang->line('duefeesreport_discount')?></th>
-                                        <th><?=$this->lang->line('duefeesreport_due') ?></th>
-                                        <th style="background:#e65100;">Prev C/F</th>
+                                        <th data-col="roll"><?=$this->lang->line('duefeesreport_roll')?></th>
+                                        <th data-col="feetype"><?=$this->lang->line('duefeesreport_feetype')?></th>
+                                        <th data-col="discount"><?=$this->lang->line('duefeesreport_discount')?></th>
+                                        <th data-col="due"><?=$this->lang->line('duefeesreport_due') ?></th>
+                                        <th data-col="prevcf" style="background:#e65100;">Prev C/F</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php $totalDue = 0; $totalPrevCF = 0; $i = 0; $lastStudentID = 0; $seenStudents = []; foreach($getDueFeesReports as $getDueFeesReport) {
                                         if($sectionID > 0) { if(isset($students[$getDueFeesReport->studentID]) && $students[$getDueFeesReport->studentID]->srsectionID == $sectionID) { $i++; ?>
                                             <tr>
-                                                <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_invoice_date')?>"><?=date('d M Y',strtotime($getDueFeesReport->create_date))?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_name')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '' ?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_registerNO')?>">
+                                                <td data-col="slno" data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
+                                                <td data-col="invoicedate" data-title="<?=$this->lang->line('duefeesreport_invoice_date')?>"><?=date('d M Y',strtotime($getDueFeesReport->create_date))?></td>
+                                                <td data-col="name" data-title="<?=$this->lang->line('duefeesreport_name')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '' ?></td>
+                                                <td data-col="registerno" data-title="<?=$this->lang->line('duefeesreport_registerNO')?>">
                                                     <?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srregisterNO : '' ?>
                                                 </td>
                                                 <?php
                                                     if($classesID == 0) {
-                                                        echo "<td data-title='".$this->lang->line('duefeesreport_class')."'>";
+                                                        echo "<td data-col='class' data-title='".$this->lang->line('duefeesreport_class')."'>";
                                                         if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stclassID = $students[$getDueFeesReport->studentID]->srclassesID;
                                                             echo isset($classes[$stclassID]) ? $classes[$stclassID] : '';
@@ -196,7 +217,7 @@
                                                 ?>
                                                 <?php
                                                     if($sectionID == 0) {
-                                                        echo "<td data-title='".$this->lang->line('duefeesreport_section')."'>";
+                                                        echo "<td data-col='section' data-title='".$this->lang->line('duefeesreport_section')."'>";
                                                             if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stsectionID = $students[$getDueFeesReport->studentID]->srsectionID;
                                                             echo isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
@@ -204,16 +225,16 @@
                                                         echo "</td>";
                                                     }
                                                 ?>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_roll')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '' ?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_feetype')?>">
+                                                <td data-col="roll" data-title="<?=$this->lang->line('duefeesreport_roll')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '' ?></td>
+                                                <td data-col="feetype" data-title="<?=$this->lang->line('duefeesreport_feetype')?>">
                                                     <?php
                                                         if(isset($feetypes[$getDueFeesReport->feetypeID])) {
                                                             echo $feetypes[$getDueFeesReport->feetypeID];
                                                         }
                                                     ?>
                                                 </td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_discount')?>"><?=number_format($getDueFeesReport->discount, 2);?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_due')?>">
+                                                <td data-col="discount" data-title="<?=$this->lang->line('duefeesreport_discount')?>"><?=number_format($getDueFeesReport->discount, 2);?></td>
+                                                <td data-col="due" data-title="<?=$this->lang->line('duefeesreport_due')?>">
                                                     <?php
                                                         $discount = $getDueFeesReport->discount;
                                                         if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
@@ -227,7 +248,7 @@
                                                         }
                                                     ?>
                                                 </td>
-                                                <td data-title="Prev C/F" style="background:#fff3e0;">
+                                                <td data-col="prevcf" data-title="Prev C/F" style="background:#fff3e0;">
                                                     <?php
                                                         $cf_sid = $getDueFeesReport->studentID;
                                                         if (!isset($seenStudents[$cf_sid])) {
@@ -241,15 +262,15 @@
                                             </tr>
                                         <?php } } else { $i++;?>
                                             <tr>
-                                                <td data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_invoice_date')?>"><?=date('d M Y',strtotime($getDueFeesReport->create_date))?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_name')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '' ?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_registerNO')?>">
+                                                <td data-col="slno" data-title="<?=$this->lang->line('slno')?>"><?=$i?></td>
+                                                <td data-col="invoicedate" data-title="<?=$this->lang->line('duefeesreport_invoice_date')?>"><?=date('d M Y',strtotime($getDueFeesReport->create_date))?></td>
+                                                <td data-col="name" data-title="<?=$this->lang->line('duefeesreport_name')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '' ?></td>
+                                                <td data-col="registerno" data-title="<?=$this->lang->line('duefeesreport_registerNO')?>">
                                                     <?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srregisterNO : '' ?>
                                                 </td>
                                                 <?php
                                                     if($classesID == 0) {
-                                                        echo "<td data-title='".$this->lang->line('duefeesreport_class')."'>";
+                                                        echo "<td data-col='class' data-title='".$this->lang->line('duefeesreport_class')."'>";
                                                         if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stclassID = $students[$getDueFeesReport->studentID]->srclassesID;
                                                             echo isset($classes[$stclassID]) ? $classes[$stclassID] : '';
@@ -259,7 +280,7 @@
                                                 ?>
                                                 <?php
                                                     if($sectionID == 0) {
-                                                        echo "<td data-title='".$this->lang->line('duefeesreport_section')."'>";
+                                                        echo "<td data-col='section' data-title='".$this->lang->line('duefeesreport_section')."'>";
                                                             if(isset($students[$getDueFeesReport->studentID])) {
                                                             $stsectionID = $students[$getDueFeesReport->studentID]->srsectionID;
                                                             echo isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
@@ -267,16 +288,16 @@
                                                         echo "</td>";
                                                     }
                                                 ?>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_roll')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '' ?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_feetype')?>">
+                                                <td data-col="roll" data-title="<?=$this->lang->line('duefeesreport_roll')?>"><?=isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '' ?></td>
+                                                <td data-col="feetype" data-title="<?=$this->lang->line('duefeesreport_feetype')?>">
                                                     <?php
                                                         if(isset($feetypes[$getDueFeesReport->feetypeID])) {
                                                             echo $feetypes[$getDueFeesReport->feetypeID];
                                                         }
                                                     ?>
                                                 </td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_discount')?>"><?=number_format($getDueFeesReport->discount, 2);?></td>
-                                                <td data-title="<?=$this->lang->line('duefeesreport_due')?>">
+                                                <td data-col="discount" data-title="<?=$this->lang->line('duefeesreport_discount')?>"><?=number_format($getDueFeesReport->discount, 2);?></td>
+                                                <td data-col="due" data-title="<?=$this->lang->line('duefeesreport_due')?>">
                                                     <?php
                                                         $discount = $getDueFeesReport->discount;
                                                         if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
@@ -290,7 +311,7 @@
                                                         }
                                                     ?>
                                                 </td>
-                                                <td data-title="Prev C/F" style="background:#fff3e0;">
+                                                <td data-col="prevcf" data-title="Prev C/F" style="background:#fff3e0;">
                                                     <?php
                                                         $cf_sid = $getDueFeesReport->studentID;
                                                         if (!isset($seenStudents[$cf_sid])) {
@@ -316,11 +337,11 @@
                                                 $colspan = 9;
                                             }
                                         ?>
-                                        <td data-title="<?=$this->lang->line('duefeesreport_grand_total')?>" class="text-right text-bold" colspan="<?=$colspan?>">
+                                        <td data-col-group="group1" data-title="<?=$this->lang->line('duefeesreport_grand_total')?>" class="text-right text-bold" colspan="<?=$colspan?>">
                                             <?=$this->lang->line('duefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : '' ?>
                                         </td>
-                                        <td data-title="<?=$this->lang->line('duefeesreport_total_due')?>" class="text-bold"><?=number_format($totalDue,2)?></td>
-                                        <td class="text-bold" style="background:#ffe0b2; color:#e65100;">
+                                        <td data-col="due" data-title="<?=$this->lang->line('duefeesreport_total_due')?>" class="text-bold"><?=number_format($totalDue,2)?></td>
+                                        <td data-col="prevcf" class="text-bold" style="background:#ffe0b2; color:#e65100;">
                                             <?=$totalPrevCF > 0 ? number_format($totalPrevCF, 2) : ''?>
                                         </td>
                                     </tr>
@@ -578,5 +599,94 @@
                 }
             });
         }
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        var $table = $('#due-fees-h-table');
+        if (!$table.length) {
+            return;
+        }
+
+        // Columns whose grand-total label cell spans via data-col-group="group1"
+        // (everything except "due" and "prevcf", which have their own individually
+        // mapped total cells in the same row — see DueFeesReport.php's grand-total <tr>).
+        var GROUP1_COLS = ['slno', 'invoicedate', 'name', 'registerno', 'class', 'section', 'roll', 'feetype', 'discount'];
+
+        // Build the "Columns" checkbox list from whatever headers the server actually rendered
+        var $menu = $('#columnSelectorMenu');
+        var $list = $('#columnSelectorList');
+        $table.find('thead th[data-col]').each(function () {
+            var col = $(this).attr('data-col');
+            var label = $.trim($(this).text());
+            var $item = $('<label>', { class: 'rpt-col-selector-item' });
+            var $checkbox = $('<input>', {
+                type: 'checkbox',
+                'data-col': col,
+                checked: true
+            });
+            var $text = $('<span>', { text: label, title: label });
+            $item.append($checkbox).append($text);
+            $list.append($item);
+        });
+
+        function updateSelectedCount() {
+            var total = $list.find('input[type="checkbox"][data-col]').length;
+            var selected = $list.find('input[type="checkbox"][data-col]:checked').length;
+            $('#columnSelectedCount').text(selected);
+            $('#columnTotalCount').text(total);
+        }
+        updateSelectedCount();
+
+        function recomputeGroupColspans() {
+            var group1Visible = GROUP1_COLS.filter(function (col) {
+                var $th = $table.find('thead th[data-col="' + col + '"]');
+                return $th.length && $th.css('display') !== 'none';
+            }).length;
+
+            $table.find('td[data-col-group="group1"]').attr('colspan', Math.max(group1Visible, 1));
+        }
+
+        function toggleColumn(col, visible) {
+            $table.find('[data-col="' + col + '"]').css('display', visible ? '' : 'none');
+            recomputeGroupColspans();
+            updateSelectedCount();
+        }
+
+        $list.on('change', 'input[type="checkbox"][data-col]', function () {
+            toggleColumn($(this).attr('data-col'), $(this).is(':checked'));
+        });
+
+        $('#columnSelectAll').on('click', function () {
+            $list.find('input[type="checkbox"][data-col]').prop('checked', true).each(function () {
+                toggleColumn($(this).attr('data-col'), true);
+            });
+        });
+
+        $('#columnDeselectAll').on('click', function () {
+            $list.find('input[type="checkbox"][data-col]').prop('checked', false).each(function () {
+                toggleColumn($(this).attr('data-col'), false);
+            });
+        });
+
+        // Keep the dropdown open while interacting with checkboxes
+        $menu.on('click', function (e) {
+            e.stopPropagation();
+        });
+
+        // Wire the server-side "Export XLSX" link (PhpSpreadsheet, duefeesreport/xlsx/...)
+        // to only include the columns still checked here. "prevcf" (Prev C/F) has no matching
+        // column in the export at all, so it's silently ignored server-side if unchecked/checked.
+        $('#dueExportXlsxBtn').on('click', function (e) {
+            e.preventDefault();
+            var visibleCols = [];
+            $list.find('input[type="checkbox"][data-col]:checked').each(function () {
+                visibleCols.push($(this).attr('data-col'));
+            });
+            var base = $(this).attr('data-base-href');
+            var sep = base.indexOf('?') === -1 ? '?' : '&';
+            window.location.href = base + sep + 'cols=' + encodeURIComponent(visibleCols.join(','));
+        });
     });
 </script>

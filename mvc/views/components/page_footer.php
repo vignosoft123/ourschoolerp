@@ -21,7 +21,17 @@
     margin-left: 6px;
     border: 1px solid #ccc;
 }
- 
+/* This search box starts readonly on purpose (see the initComplete script further down —
+   it blocks Chrome's autofill, and readonly is removed on focus/re-applied on blur), but
+   Bootstrap's default `.form-control[readonly] { cursor:not-allowed; background:#eee; }`
+   makes it LOOK disabled the whole time it isn't focused, which is misleading — clicking
+   it works fine and immediately makes it editable. Override just the cosmetic cursor/
+   background so it always looks like a normal, usable text input. */
+.dataTables_filter input[readonly] {
+    cursor: text !important;
+    background-color: #fff !important;
+}
+
 
           </style>
 

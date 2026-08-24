@@ -64,7 +64,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     .sbar-btn-yearly{ background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%); color: #fff !important; }
     .sbar-btn.sbar-disabled { background: #ccc !important; color: #888 !important; border-color: #ccc !important; cursor: not-allowed !important; transform: none !important; box-shadow: none !important; opacity: 0.7; }
     .sbar-class-wrap { margin-left: auto; display: flex; align-items: center; }
-    .sbar-class-wrap select { width: 220px !important; border-radius: 8px !important; font-size: 13px; }
+    .sbar-class-wrap select { width: 150px !important; border-radius: 8px !important; font-size: 13px; }
 
     /* Keep old class names working as fallback */
     .ose-btn1, .ose-btn2 {
@@ -98,43 +98,106 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
     /* Firefox */
     #hide-table { scrollbar-color: #0cc035 #eef1f4; scrollbar-width: auto; }
 
-    /* Serial number (#) column — narrower than the default col-sm-1 width */
-    #example1 .col-slno { width: 40px !important; min-width: 40px !important; max-width: 40px !important; }
+    /* # + Photo are combined into one merged column — stacked vertically in a single
+       cell — instead of two separate ones. */
+    .student-list-table .col-merged { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; }
+    .student-list-table .col-merged .slno-num { font-size: 12px; font-weight: 600; color: #333; }
 
-    /* Enhanced Table Styling */
-    #example1 {
+    /* Sticky-left columns: Photo + checkbox + # merged into one column (col 1, still
+       using the .sticky-col-checkbox class name from before it absorbed Photo/# — not
+       renamed to avoid touching every reference) + Name (col 2). Everything else scrolls
+       normally inside #hide-table. Classes (not nth-child) so this still lines up
+       correctly even on the no-sections fallback table, which has no checkbox column. */
+    .student-list-table th.sticky-col-checkbox,
+    .student-list-table td.sticky-col-checkbox {
+        position: sticky !important;
+        left: 0 !important;
+        z-index: 2;
+        width: 70px !important;
+        background: #fff !important;
+    }
+    .student-list-table thead th.sticky-col-checkbox { background: #1558b0 !important; z-index: 5; }
+    .student-list-table tbody tr:nth-child(even) td.sticky-col-checkbox { background: #f9f9f9 !important; }
+    .student-list-table tbody tr:hover td.sticky-col-checkbox { background: #ffe0b2 !important; }
+
+    .student-list-table th.sticky-col-name,
+    .student-list-table td.sticky-col-name {
+        position: sticky !important;
+        left: 70px !important;
+        z-index: 2;
+        background: #fff !important;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.12);
+    }
+    .student-list-table thead th.sticky-col-name { background: #1558b0 !important; z-index: 5; }
+    .student-list-table tbody tr:nth-child(even) td.sticky-col-name { background: #f9f9f9 !important; }
+    .student-list-table tbody tr:hover td.sticky-col-name { background: #ffe0b2 !important; }
+
+    /* Per-column widths, keyed by the same data-col used by the "Columns" show/hide
+       dropdown (see the <script> near the bottom of this file). Every data-col'd
+       column gets an explicit width so table-layout:auto has a sane per-column
+       preference to fall back on instead of guessing purely from content. */
+    /* slno_photo's width comes from .sticky-col-checkbox (70px) instead of a rule here,
+       since that column is now the sticky merged Photo+checkbox+# cell — see above. */
+    .student-list-table [data-col="admno"]    { width: 90px  !important; }
+    .student-list-table [data-col="roll"]     { width: 70px  !important; }
+    /* Wider than the other columns: the Name cell also carries the view link and the
+       4 login-action icons stacked below it now (see .name-action-icons below) — the
+       old separate Action column was removed since those icons moved here and View
+       is reached by clicking the name (Edit already lives on the student view page). */
+    .student-list-table [data-col="name"]     { width: 190px !important; }
+    .student-list-table [data-col="phone"]    { width: 110px !important; }
+    .student-list-table [data-col="whatsapp"] { width: 140px !important; }
+    .student-list-table [data-col="address"]  { width: 170px !important; }
+    .student-list-table [data-col="village"]  { width: 110px !important; }
+    .student-list-table [data-col="type"]     { width: 130px !important; }
+    .student-list-table [data-col="class"]    { width: 70px  !important; }
+    .student-list-table [data-col="section"]  { width: 90px  !important; }
+    .student-list-table [data-col="rfid"]     { width: 70px  !important; }
+    .student-list-table [data-col="status"]   { width: 70px  !important; }
+
+    .student-list-table .name-link { color: #1a73e8; font-weight: 600; text-decoration: none; }
+    .student-list-table .name-link:hover { text-decoration: underline; }
+    .student-list-table .name-action-icons { margin-top: 6px; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px; }
+
+    /* Enhanced Table Styling.
+       Styling keys off the shared .student-list-table CLASS, not #example1 — the
+       "All Students" tab table and every per-Section tab table used to all share the
+       literal id="example1" (invalid duplicate-id HTML), which confused the bundled
+       DataTables plugin's re-init guard (jquery.dataTables.js ~line 6410 matches by
+       sTableId, not just by DOM node) into silently discarding the first table's
+       tracking entry while still leaving its fully-built toolbar in the DOM, then
+       building a SECOND, differently-configured wrapper around it — that's what
+       produced the two mismatched search/pagination bars stacked on top of each
+       other. Each table now gets its own unique id (see the per-table markup further
+       down) and this shared class carries the styling instead. */
+    .student-list-table {
         border-collapse: separate !important;
         border-spacing: 0 !important;
         background: #fff !important;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
         border-radius: 8px !important;
-        overflow: hidden !important;
+        /* overflow:hidden was here to clip the table's own rounded corners, but a
+           <table> with overflow != visible becomes the "nearest scrolling ancestor"
+           for its sticky-positioned <th> descendants (per the position:sticky spec) —
+           since the table itself never actually scrolls, that stopped the header from
+           ever reaching up to #hide-table's real scroll box, so it just sat in place
+           instead of sticking. Dropped so the sticky header (below) can find #hide-table
+           as intended; the corner-radius is cosmetic and the small square-corner peek
+           at the very top of the header row is an acceptable tradeoff for it working. */
         margin: 15px 0 !important;
         /* was width:100% !important, which forced columns to squeeze/wrap instead of
            overflowing — that's why the scrollbar never appeared and Action icons got
-           clipped. A hard px min-width guarantees the table stays wide enough that it
-           overflows #hide-table on any normal screen, regardless of how DataTables'
-           own auto-width calculation sizes individual columns. */
+           clipped.
+           min-width is intentionally NOT set here (and NOT !important) any more: it is
+           now driven entirely by recalcTableMinWidth() in the "Columns" dropdown
+           <script>, which sums the widths of only the currently-visible data-col
+           columns. A static min-width here (as before) forced the table to stay
+           e.g. 1900px wide even after most columns were hidden via the dropdown,
+           and table-layout:auto then blew up whatever few columns remained visible
+           to fill that leftover space — that was the "column got very wide" bug. */
         width: auto !important;
-        min-width: 1900px !important;
         border: 1px solid #e0e0e0 !important;
     }
-
-    /* Sticky Action column — icons stay visible no matter how far the table scrolls */
-    #example1 th.sticky-col-action,
-    #example1 td.sticky-col-action {
-        position: sticky;
-        right: 0;
-        z-index: 2;
-        background: #fff !important;
-        box-shadow: -2px 0 5px rgba(0,0,0,0.12);
-    }
-    #example1 thead th.sticky-col-action {
-        background: #1558b0 !important;
-        z-index: 5;
-    }
-    #example1 tbody tr:nth-child(even) td.sticky-col-action { background: #f9f9f9 !important; }
-    #example1 tbody tr:hover td.sticky-col-action { background: #ffe0b2 !important; }
 
     /* This file already sets a global .modal-backdrop { z-index: 99990 } for the
        Quick Student modal (see near #quickStudentModal below) — these two must sit
@@ -145,12 +208,12 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
        confirm dialogs would render behind an already-open modal — push it above both. */
     .swal2-container { z-index: 100001 !important; }
 
-    #example1 thead {
+    .student-list-table thead {
         background: linear-gradient(135deg, #1a73e8 0%, #1045a8 100%) !important;
         color: white !important;
     }
 
-    #example1 thead th {
+    .student-list-table thead th {
         /* padding: 15px 12px !important; */
         text-align: center !important;
         font-weight: 600 !important;
@@ -167,22 +230,22 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         background: #1558b0 !important;
     }
 
-    #example1 thead th:last-child {
+    .student-list-table thead th:last-child {
         border-right: none !important;
     }
 
-    #example1 tbody tr {
+    .student-list-table tbody tr {
         transition: all 0.3s ease !important;
         border-bottom: 1px solid #f0f0f0 !important;
     }
 
-    #example1 tbody tr:hover {
+    .student-list-table tbody tr:hover {
         background: linear-gradient(90deg, #fff3e0 0%, #ffe0b2 100%) !important;
         transform: translateY(-1px) !important;
         box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2) !important;
     }
 
-    #example1 tbody td {
+    .student-list-table tbody td {
         padding: 12px 10px !important;
         vertical-align: middle !important;
         border: 1px solid gray !important;
@@ -191,16 +254,16 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
         position: relative !important;
     }
 
-    #example1 tbody td:last-child {
+    .student-list-table tbody td:last-child {
         border: 1px solid gray !important;
     }
 
     /* Zebra striping for better readability */
-    #example1 tbody tr:nth-child(even) {
+    .student-list-table tbody tr:nth-child(even) {
         background: rgba(255, 235, 238, 0.3) !important;
     }
 
-    #example1 tbody tr:nth-child(odd) {
+    .student-list-table tbody tr:nth-child(odd) {
         background: #fff !important;
     }
 
@@ -371,31 +434,52 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                         <?php if (permissionChecker('student_add')) { ?>
                         <div class="student-top-bar">
 
-                            <a class="sbar-btn sbar-btn-add" href="<?php echo base_url('student/add') ?>">
-                                <i class="fa fa-plus"></i> Add Student
+                            <a class="sbar-btn sbar-btn-add" href="<?php echo base_url('student/add') ?>" title="Add Student">
+                                <i class="fa fa-plus"></i> Add
                             </a>
 
                             <button type="button" class="sbar-btn sbar-btn-quick" data-toggle="modal" data-target="#quickStudentModal">
                                 <i class="fa fa-bolt"></i> Quick Add
                             </button>
 
-                            <a href="<?= base_url('student/export_comprehensive_excel/' . (isset($set) ? $set : '0')) ?>" class="sbar-btn sbar-btn-excel">
-                                <i class="fa fa-file-excel-o"></i> Export Excel
+                            <a href="<?= base_url('student/export_comprehensive_excel/' . (isset($set) ? $set : '0')) ?>" class="sbar-btn sbar-btn-excel" title="Export Excel">
+                                <i class="fa fa-file-excel-o"></i> Excel
                             </a>
+
+                            <div class="btn-group rpt-col-selector-group" style="position:relative;">
+                                <button type="button" class="sbar-btn dropdown-toggle" style="background:linear-gradient(135deg, #607d8b 0%, #455a64 100%); color:#fff !important;" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fa fa-columns"></i> Columns
+                                </button>
+                                <div class="dropdown-menu rpt-col-selector-menu" id="columnSelectorMenu">
+                                    <div class="rpt-col-selector-header">
+                                        <span class="rpt-col-selector-title"><i class="fa fa-eye"></i> Show Columns</span>
+                                        <span class="rpt-col-selector-actions">
+                                            <a href="javascript:void(0)" id="columnSelectAll">Select All</a>
+                                            <a href="javascript:void(0)" id="columnDeselectAll">Deselect All</a>
+                                        </span>
+                                    </div>
+                                    <div class="rpt-col-selector-list" id="columnSelectorList">
+                                        <!-- checkboxes injected by JS -->
+                                    </div>
+                                    <div class="rpt-col-selector-footer">
+                                        <span id="columnSelectedCount">0</span>/<span id="columnTotalCount">0</span> columns shown
+                                    </div>
+                                </div>
+                            </div>
 
                             <?php if (permissionChecker('student_delete') && customCompute($students) > 0) { ?>
                                 <form id="multiDeleteForm" method="post" action="<?= base_url('student/multi_delete') ?>" style="display:contents;">
                                     <input type="hidden" name="ids" id="multi_delete_ids" value="" />
                                     <input type="hidden" name="url" value="<?= isset($set) ? $set : '' ?>" />
-                                    <button type="button" id="bulkDeleteBtn" class="sbar-btn sbar-btn-delete sbar-disabled" onclick="confirmMultiDelete()">
-                                        <i class="fa fa-trash"></i> Delete Selected
+                                    <button type="button" id="bulkDeleteBtn" class="sbar-btn sbar-btn-delete sbar-disabled" onclick="confirmMultiDelete()" title="Delete Selected">
+                                        <i class="fa fa-trash"></i>
                                     </button>
                                 </form>
                             <?php } ?>
                             <?php if (permissionChecker('student_edit') && customCompute($students) > 0) { ?>
                                 <div style="position:relative;display:inline-block;">
-                                    <button type="button" id="bulkLoginDetailsBtn" class="sbar-btn sbar-disabled" style="background:#1a73e8;color:#fff;border-color:#1558b0;" onclick="toggleLoginDropdown(event)">
-                                        <i class="fa fa-paper-plane"></i> Send Login Details
+                                    <button type="button" id="bulkLoginDetailsBtn" class="sbar-btn sbar-disabled" style="background:#1a73e8;color:#fff;border-color:#1558b0;" onclick="toggleLoginDropdown(event)" title="Send Login Details">
+                                        <i class="fa fa-paper-plane"></i> Login Details
                                     </button>
                                     <!-- Dropdown popover -->
                                     <div id="loginDetailsDropdown" style="display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:9999;background:#fff;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,0.18);min-width:230px;padding:16px 18px;">
@@ -424,6 +508,15 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
                             <?php if ($this->session->userdata('usertypeID') != 3) { ?>
                             <div class="sbar-class-wrap">
+                                <?php if (customCompute($students) > 0) { ?>
+                                    <div id="studentStatusFilterWrap" style="display:inline-flex;align-items:center;gap:6px;margin-right:10px;">
+                                        <select id="studentStatusFilter" class="form-control" title="Status" style="width:110px;height:34px;padding:4px 8px;display:inline-block;">
+                                            <option value="all">All Students</option>
+                                            <option value="active">Active Only</option>
+                                            <option value="inactive">Inactive Only</option>
+                                        </select>
+                                    </div>
+                                <?php } ?>
                                 <?php
                                 $array = array("0" => $this->lang->line("student_select_class"));
                                 if (customCompute($classes)) {
@@ -433,34 +526,40 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                 }
                                 echo form_dropdown("classesID", $array, set_value("classesID", $set), "id='classesID' class='form-control'");
                                 ?>
+
+                                <!-- Advanced Tools (superadmin only) — kept in the same row as the
+                                     Status/Class filters (was its own row below .student-top-bar
+                                     before, which looked disconnected from the other controls).
+                                     Absolutely-positioned panel (same technique as the Send Login
+                                     Details popover above) so opening it doesn't push this row's
+                                     height around or wrap the layout. -->
+                                <?php if ($this->session->userdata('usertypeID') == 1) { ?>
+                                <div style="position:relative;display:inline-block;margin-left:10px;">
+                                    <button type="button" onclick="toggleAdvanced()" id="advancedToggleBtn"
+                                        style="background:none;border:1px dashed #aaa;color:#666;font-size:12px;padding:5px 14px;border-radius:6px;cursor:pointer;height:34px;">
+                                        <i class="fa fa-cogs" id="advancedIcon"></i> Advanced <i class="fa fa-chevron-down" id="advancedChevron"></i>
+                                    </button>
+                                    <div id="advancedPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:9999;white-space:nowrap;padding:12px 16px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,0.18);">
+                                        <span style="font-size:12px;color:#888;margin-right:12px;"><i class="fa fa-info-circle"></i> Advanced data operations</span>
+                                        <button type="button" onclick="fillWhatsappFromPhone()" id="fillWaBtn"
+                                            style="background:#25D366;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
+                                            <i class="fa fa-whatsapp"></i> Fill WhatsApp from Phone
+                                        </button>
+                                        <button type="button" onclick="openAutoRollModal()" id="autoRollBtn"
+                                            style="background:#2196F3;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
+                                            <i class="fa fa-sort-numeric-asc"></i> Auto Adjust Roll No
+                                        </button>
+                                        <button type="button" onclick="openBulkRollModal()" id="bulkRollBtn"
+                                            style="background:#ff9800;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
+                                            <i class="fa fa-table"></i> Bulk Roll No Edit
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php } ?>
                             </div>
                             <?php } ?>
 
                         </div><!-- /.student-top-bar -->
-
-                        <!-- Advanced Tools (superadmin only) -->
-                        <?php if ($this->session->userdata('usertypeID') == 1) { ?>
-                        <div style="margin-bottom:12px;">
-                            <button type="button" onclick="toggleAdvanced()" id="advancedToggleBtn"
-                                style="background:none;border:1px dashed #aaa;color:#666;font-size:12px;padding:5px 14px;border-radius:6px;cursor:pointer;">
-                                <i class="fa fa-cogs" id="advancedIcon"></i> Advanced <i class="fa fa-chevron-down" id="advancedChevron"></i>
-                            </button>
-                            <div id="advancedPanel" style="display:none;margin-top:8px;padding:12px 16px;background:#fff8e1;border:1px solid #ffe082;border-radius:8px;">
-                                <span style="font-size:12px;color:#888;margin-right:12px;"><i class="fa fa-info-circle"></i> Advanced data operations</span>
-                                <button type="button" onclick="fillWhatsappFromPhone()" id="fillWaBtn"
-                                    style="background:#25D366;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">
-                                    <i class="fa fa-whatsapp"></i> Fill WhatsApp from Phone
-                                </button>
-                                <button type="button" onclick="openAutoRollModal()" id="autoRollBtn"
-                                    style="background:#2196F3;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
-                                    <i class="fa fa-sort-numeric-asc"></i> Auto Adjust Roll No
-                                </button>
-                                <button type="button" onclick="openBulkRollModal()" id="bulkRollBtn"
-                                    style="background:#ff9800;color:#fff;border:none;padding:6px 16px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;margin-left:8px;">
-                                    <i class="fa fa-table"></i> Bulk Roll No Edit
-                                </button>
-                            </div>
-                        </div>
                         <script>
                         function toggleAdvanced() {
                             var panel   = document.getElementById('advancedPanel');
@@ -726,7 +825,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                             });
                         });
                         </script>
-                        <?php } ?>
 
                         <?php } ?>
                     <?php } ?>
@@ -770,14 +868,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
 
 
                 <?php if (customCompute($students) > 0) { ?>
-                    <div id="studentStatusFilterWrap" style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;">
-                        <label for="studentStatusFilter" style="margin:0;font-weight:600;font-size:12px;color:#333;white-space:nowrap;">Status:</label>
-                        <select id="studentStatusFilter" class="form-control" style="width:140px;height:34px;padding:4px 8px;display:inline-block;">
-                            <option value="all">All Students</option>
-                            <option value="active">Active Only</option>
-                            <option value="inactive">Inactive Only</option>
-                        </select>
-                    </div>
                     <div class="nav-tabs-custom">
                         <ul class="nav nav-tabs">
                             <li class="active"><a data-toggle="tab" href="#all" aria-expanded="true"><?= $this->lang->line("student_all_students") ?></a></li>
@@ -792,29 +882,30 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table" class="responsive">
                                    
-                                    <table id="example1" class="table table-bordered tableBorder dataTable no-footer">
+                                    <table id="example1" class="table table-bordered tableBorder dataTable student-list-table no-footer">
                                     <h3 class='err' style="margin-left:25%;color:green;"> </h3>
                                         <thead>
                                             <tr>
-                                                <th style="width:30px; text-align:center"><input type="checkbox" id="select_all_students" /></th>
-                                                <th class="col-sm-1 col-slno"><?= $this->lang->line('slno') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                <th class="col-sm-1">Adm No</th>
-                                                <th class="col-sm-1">Roll No</th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
-                                                <th>WhatsApp</th>
-                                                <th class="col-sm-2">Address</th>
-                                                <th class="col-sm-1">Village</th>
-                                                <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
-                                                <th>Class</th>
-                                                <th>Section</th>
-                                                <th>RFID</th>
+                                                <th class="sticky-col-checkbox" style="text-align:center" data-col="slno_photo">
+                                                    <div class="col-merged">
+                                                        <?= $this->lang->line('student_photo') ?>
+                                                        <input type="checkbox" id="select_all_students" />
+                                                        <span class="slno-num"><?= $this->lang->line('slno') ?></span>
+                                                    </div>
+                                                </th>
+                                                <th class="col-sm-2 sticky-col-name" data-col="name"><?= $this->lang->line('student_name') ?></th>
+                                                <th class="col-sm-1" data-col="admno">Adm No</th>
+                                                <th class="col-sm-1" data-col="roll">Roll No</th>
+                                                <th class="col-sm-2" data-col="phone"><?= $this->lang->line('student_phone') ?></th>
+                                                <th data-col="whatsapp">WhatsApp</th>
+                                                <th class="col-sm-2" data-col="address">Address</th>
+                                                <th class="col-sm-1" data-col="village">Village</th>
+                                                <th class="col-sm-2" data-col="type"><?= $this->lang->line('studentType') ?></th>
+                                                <th data-col="class">Class</th>
+                                                <th data-col="section">Section</th>
+                                                <th data-col="rfid">RFID</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
-                                                    <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
-                                                <?php } ?>
-                                                <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                    <th class="col-sm-2 sticky-col-action"><?= $this->lang->line('action') ?></th>
+                                                    <th class="col-sm-1" data-col="status"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>
                                             </tr>
                                         </thead>
@@ -822,35 +913,49 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                             <?php if (customCompute($students)) {
                                                 $i = 1;
                                                 // echo "<pre>";print_r($students);die;
-                                                foreach ($students as $student) { ?>
+                                                foreach ($students as $student) {
+                                                    $rowSet = !empty($set) ? $set : $student->srclassesID;
+                                                    ?>
                                                     <tr>
-                                                        <td style="text-align:center"><input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" /></td>
-                                                        <td class="col-slno" data-title="<?= $this->lang->line('slno') ?>">
-                                                            <?php echo $i; ?>
-                                                        </td>
-                                                        <td class="student-photo-cell" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
+                                                        <td class="sticky-col-checkbox student-photo-cell col-merged" data-col="slno_photo" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?> / <?= $this->lang->line('slno') ?>" data-toggle="modal" data-target="#fileUploadModal">
                                                             <?= profileimage($student->photo); ?>
+                                                            <input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" onclick="event.stopPropagation();" />
+                                                            <span class="slno-num"><?php echo $i; ?></span>
                                                             <span class="photo-zoom-icon" data-img="<?= base_url('uploads/images/') . ($student->photo ? $student->photo : 'default.png') ?>" title="Preview">
                                                                 <i class="fa fa-search-plus" aria-hidden="true"></i>
                                                             </span>
                                                         </td>
-                                                        <td data-title="Adm No">
+                                                        <td class="sticky-col-name" data-col="name" data-title="<?= $this->lang->line('student_name') ?>">
+                                                            <?php if (permissionChecker('student_view')) { ?>
+                                                                <a class="name-link" href="<?php echo base_url('student/view/' . $student->srstudentID . '/' . $rowSet) ?>"><?php echo $student->srname; ?></a>
+                                                            <?php } else { ?>
+                                                                <?php echo $student->srname; ?>
+                                                            <?php } ?>
+                                                            <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
+                                                                <div class="name-action-icons">
+                                                                    <button class="btn btn-success btn-xs mrg btn-send-sms" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login SMS"><i class="fa fa-comment"></i></button>
+                                                                    <button class="btn btn-xs mrg btn-send-wa" style="background:#25D366;color:#fff;border-color:#128C7E;" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login WhatsApp"><i class="fa fa-whatsapp"></i></button>
+                                                                    <button class="btn btn-info btn-xs mrg btn-change-login" data-id="<?= $student->srstudentID ?>" data-username="<?= htmlspecialchars($student->username) ?>" data-name="<?= htmlspecialchars($student->srname) ?>" data-toggle="tooltip" data-placement="top" title="Change Login Details"><i class="fa fa-key"></i></button>
+                                                                    <?php if ($global_payment_permission) { ?>
+                                                                        <a href="<?php echo base_url('global_payment/new/').$student->classesID.'/'.$student->srstudentID;?>" class="btn btn-warning btn-xs mrg" data-placement="top" data-toggle="tooltip" data-original-title="Global Payment (New)"><i class="fa fa-money"></i></a>
+                                                                    <?php } ?>
+                                                                </div>
+                                                            <?php } ?>
+                                                        </td>
+                                                        <td data-col="admno" data-title="Adm No">
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
-                                                        <td data-title="<?= $this->lang->line('student_name') ?>">
-                                                            <?php echo $student->srname; ?>
-                                                        </td>
-                                                        
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" data-col="roll" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
+
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" data-col="phone" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <?php $waNum = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
-                                                        <td data-title="WhatsApp" style="white-space:nowrap;">
+                                                        <td data-col="whatsapp" data-title="WhatsApp" style="white-space:nowrap;">
                                                             <span style="color:green;font-weight:bold;border-bottom:1px dashed green;cursor:text;padding:2px 4px;" contenteditable="true" class="whatsapp_update" studentID="<?= $student->srstudentID ?>"><?= $waNum ?></span>
                                                             <a href="https://wa.me/91<?= $waNum ?>" target="_blank" contenteditable="false" title="Open WhatsApp" style="display:inline-block;background:#25D366;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:13px;margin-left:5px;vertical-align:middle;text-decoration:none;"><i class="fa fa-external-link"></i></a>
                                                         </td>
-                                                        
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="address_update" studentID="<?= $student->srstudentID ?>" data-title="Address"><?php echo htmlspecialchars($student->address ?? ''); ?></td>
-                                                        <td data-title="Village">
+
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="address_update" data-col="address" studentID="<?= $student->srstudentID ?>" data-title="Address"><?php echo htmlspecialchars($student->address ?? ''); ?></td>
+                                                        <td data-col="village" data-title="Village">
                                                             <select class="village_update form-control" studentID="<?= $student->srstudentID ?>" style="min-width:110px;">
                                                                 <option value="0">--Select--</option>
                                                                 <?php foreach ($villages as $v) { ?>
@@ -858,7 +963,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 <?php } ?>
                                                             </select>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('studentType') ?>">
+                                                        <td data-col="type" data-title="<?= $this->lang->line('studentType') ?>">
                                                             <?php $curType = $student->studentType ?: 3; ?>
                                                             <select class="studenttype_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $curType ?>" style="min-width:130px;">
                                                                 <option value="3" <?php if ($curType == 3) echo 'selected'; ?>>DAY SCHOLAR</option>
@@ -866,22 +971,22 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 <option value="2" <?php if ($curType == 2) echo 'selected'; ?>>HOSTEL</option>
                                                             </select>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_class') ?>">
+                                                        <td data-col="class" data-title="<?= $this->lang->line('student_class') ?>">
                                                             <?php echo $student->srclasses; ?>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_section') ?>">
+                                                        <td data-col="section" data-title="<?= $this->lang->line('student_section') ?>">
                                                             <select class="section_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $student->srsectionID ?>" style="min-width:110px;">
-                                                                <?php foreach ($sections as $sec) { ?>
+                                                                <?php foreach ((isset($sectionOptions) ? $sectionOptions : $sections) as $sec) { ?>
                                                                     <option value="<?= $sec->sectionID ?>" <?php if ($student->srsectionID == $sec->sectionID) echo 'selected'; ?>><?= $sec->section ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
+                                                        <td data-col="rfid" data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
 
                                                         <?php if (permissionChecker('student_edit')) { ?>
-                                                            <td data-title="<?= $this->lang->line('student_status') ?>">
+                                                            <td data-col="status" data-title="<?= $this->lang->line('student_status') ?>">
                                                                 <div class="onoffswitch-small" id="<?= $student->srstudentID ?>">
                                                                     <input type="checkbox" id="myonoffswitch<?= $student->srstudentID ?>" class="onoffswitch-small-checkbox" name="paypal_demo" <?php if ($student->active === '1') echo "checked='checked'"; ?>>
                                                                     <label for="myonoffswitch<?= $student->srstudentID ?>" class="onoffswitch-small-label">
@@ -889,34 +994,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                         <span class="onoffswitch-small-switch"></span>
                                                                     </label>
                                                                 </div>
-                                                            </td>
-                                                        <?php } ?>
-                                                        <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { 
-                                                            if(!empty($set)){$set = $set;}else{
-                                                                $set = $student->srclassesID;
-                                                            }
-                                                            ?>
-                                                            <td class="action-btns sticky-col-action" data-title="<?= $this->lang->line('action') ?>">
-                                                                <?php
-                                                                echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
-                                                                if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
-                                                                    echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
-                                                                        // echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
-                                                                        ?>
-                                                                        <button class="btn btn-success btn-xs mrg btn-send-sms" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login SMS"><i class="fa fa-comment"></i></button>
-                                                                        <button class="btn btn-xs mrg btn-send-wa" style="background:#25D366;color:#fff;border-color:#128C7E;" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login WhatsApp"><i class="fa fa-whatsapp"></i></button>
-                                                                        <button class="btn btn-info btn-xs mrg btn-change-login" data-id="<?= $student->srstudentID ?>" data-username="<?= htmlspecialchars($student->username) ?>" data-name="<?= htmlspecialchars($student->srname) ?>" data-toggle="tooltip" data-placement="top" title="Change Login Details"><i class="fa fa-key"></i></button>
-                                                                        <?php
-                                                                        if( $global_payment_permission){
-                                                                        ?>
-
-                                                                         <!-- <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> -->
-                                                                         <a href="<?php echo base_url('global_payment/new/').$student->classesID.'/'.$student->srstudentID;?>" class="btn btn-warning btn-xs mrg" data-placement="top" data-toggle="tooltip" data-original-title="Global Payment (New)"><i class="fa fa-money"></i></a>
-                                                              <?php   }}  ?>
-
-                                                               
-
-
                                                             </td>
                                                         <?php } ?>
                                                     </tr>
@@ -937,30 +1014,31 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                         </a>
                                     </div>
                                     <div id="hide-table">
-                                        <table id="example1" class="table table-bordered   tableBorder dataTable no-footer" style="width:100%">
+                                        <table id="example1_sec<?= $section->classesID . $section->sectionID ?>" class="table table-bordered   tableBorder dataTable student-list-table no-footer" style="width:100%">
                                         
                                             <thead>
                                                 <tr>
-                                                    <th style="width:30px; text-align:center"><input type="checkbox" class="select_all_section" /></th>
-                                                    <th class="col-sm-1 col-slno"><?= $this->lang->line('slno') ?></th>
-                                                    <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                    <th class="col-sm-1">Adm No</th>
-                                                <th class="col-sm-1">Roll No</th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
-                                                    <th>WhatsApp</th>
-                                                    <th class="col-sm-2">Address</th>
-                                                    <th class="col-sm-1">Village</th>
-                                                    <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
+                                                    <th class="sticky-col-checkbox" style="text-align:center" data-col="slno_photo">
+                                                        <div class="col-merged">
+                                                            <?= $this->lang->line('student_photo') ?>
+                                                            <input type="checkbox" class="select_all_section" />
+                                                            <span class="slno-num"><?= $this->lang->line('slno') ?></span>
+                                                        </div>
+                                                    </th>
+                                                    <th class="col-sm-2 sticky-col-name" data-col="name"><?= $this->lang->line('student_name') ?></th>
+                                                    <th class="col-sm-1" data-col="admno">Adm No</th>
+                                                <th class="col-sm-1" data-col="roll">Roll No</th>
+                                                    <th class="col-sm-2" data-col="phone"><?= $this->lang->line('student_phone') ?></th>
+                                                    <th data-col="whatsapp">WhatsApp</th>
+                                                    <th class="col-sm-2" data-col="address">Address</th>
+                                                    <th class="col-sm-1" data-col="village">Village</th>
+                                                    <th class="col-sm-2" data-col="type"><?= $this->lang->line('studentType') ?></th>
 
-                                                     <th>Class</th>
-                                                    <th>Section</th>
-                                                    <th>RFID</th>
+                                                     <th data-col="class">Class</th>
+                                                    <th data-col="section">Section</th>
+                                                    <th data-col="rfid">RFID</th>
                                                     <?php if (permissionChecker('student_edit')) { ?>
-                                                        <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
-                                                    <?php } ?>
-                                                    <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                        <th class="col-sm-2 sticky-col-action"><?= $this->lang->line('action') ?></th>
+                                                        <th class="col-sm-1" data-col="status"><?= $this->lang->line('student_status') ?></th>
                                                     <?php } ?>
                                                     </tr>
                                             </thead>
@@ -968,38 +1046,50 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                 <?php if (customCompute($allsection[$section->sectionID])) {
                                                     $i = 1;
                                                     foreach ($allsection[$section->sectionID] as $student) {
-                                                        if ($section->sectionID == $student->srsectionID) { ?>
+                                                        if ($section->sectionID == $student->srsectionID) {
+                                                            $rowSet = !empty($set) ? $set : $student->srclassesID;
+                                                            ?>
                                                             <tr>
-                                                            <td style="text-align:center"><input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" /></td>
-                                                            <td class="col-slno" data-title="<?= $this->lang->line('slno') ?>">
-                                                            <?php echo $i; ?>
-                                                        </td>
-
-
-                                                        <td class="student-photo-cell" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?>"  data-toggle="modal" data-target="#fileUploadModal">
+                                                            <td class="sticky-col-checkbox student-photo-cell col-merged" data-col="slno_photo" onclick="getStudentID(<?= $student->srstudentID ?>);" data-title="<?= $this->lang->line('student_photo') ?> / <?= $this->lang->line('slno') ?>" data-toggle="modal" data-target="#fileUploadModal">
                                                             <?= profileimage($student->photo); ?>
+                                                            <input type="checkbox" class="student-checkbox" value="<?= $student->srstudentID ?>" onclick="event.stopPropagation();" />
+                                                            <span class="slno-num"><?php echo $i; ?></span>
                                                             <span class="photo-zoom-icon" data-img="<?= base_url('uploads/images/') . ($student->photo ? $student->photo : 'default.png') ?>" title="Preview">
                                                                 <i class="fa fa-search-plus" aria-hidden="true"></i>
                                                             </span>
                                                         </td>
+                                                            <td class="sticky-col-name" data-col="name" data-title="<?= $this->lang->line('student_name') ?>">
+                                                                <?php if (permissionChecker('student_view')) { ?>
+                                                                    <a class="name-link" href="<?php echo base_url('student/view/' . $student->srstudentID . '/' . $rowSet) ?>"><?php echo $student->srname; ?></a>
+                                                                <?php } else { ?>
+                                                                    <?php echo $student->srname; ?>
+                                                                <?php } ?>
+                                                                <?php if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) { ?>
+                                                                    <div class="name-action-icons">
+                                                                        <button class="btn btn-success btn-xs mrg btn-send-sms" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login SMS"><i class="fa fa-comment"></i></button>
+                                                                        <button class="btn btn-xs mrg btn-send-wa" style="background:#25D366;color:#fff;border-color:#128C7E;" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login WhatsApp"><i class="fa fa-whatsapp"></i></button>
+                                                                        <button class="btn btn-info btn-xs mrg btn-change-login" data-id="<?= $student->srstudentID ?>" data-username="<?= htmlspecialchars($student->username) ?>" data-name="<?= htmlspecialchars($student->srname) ?>" data-toggle="tooltip" data-placement="top" title="Change Login Details"><i class="fa fa-key"></i></button>
+                                                                        <?php if ($global_payment_permission) { ?>
+                                                                            <a href="<?php echo base_url('global_payment/new/').$student->classesID.'/'.$student->srstudentID;?>" class="btn btn-warning btn-xs mrg" data-placement="top" data-toggle="tooltip" data-original-title="Global Payment (New)"><i class="fa fa-money"></i></a>
+                                                                        <?php } ?>
+                                                                    </div>
+                                                                <?php } ?>
+                                                            </td>
 
-                                                        <td data-title="Adm No">
+                                                        <td data-col="admno" data-title="Adm No">
                                                             <?php echo $student->srregisterNO; ?>
                                                         </td>
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
-                                                        <td data-title="<?= $this->lang->line('student_name') ?>">
-                                                            <?php echo $student->srname; ?>
-                                                        </td>
-                                                        
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="roll_update" data-col="roll" studentID="<?= $student->srstudentID ?>" data-classes="<?= $student->srclassesID ?>" data-section="<?= $student->srsectionID ?>" data-title="Roll No"><?php echo $student->srroll; ?></td>
+
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="phone_update" data-col="phone" parentID='<?php echo $student->parentID; ?>' studentID="<?= $student->srstudentID ?>" data-title="<?= $this->lang->line('student_phone') ?>"><?php echo $student->phone; ?></td>
                                                         <?php $waNum = preg_replace('/\D+/', '', (string)($student->alternative_phone1 ?: $student->phone)); ?>
-                                                        <td data-title="WhatsApp" style="white-space:nowrap;">
+                                                        <td data-col="whatsapp" data-title="WhatsApp" style="white-space:nowrap;">
                                                             <span style="color:green;font-weight:bold;border-bottom:1px dashed green;cursor:text;padding:2px 4px;" contenteditable="true" class="whatsapp_update" studentID="<?= $student->srstudentID ?>"><?= $waNum ?></span>
                                                             <a href="https://wa.me/91<?= $waNum ?>" target="_blank" contenteditable="false" title="Open WhatsApp" style="display:inline-block;background:#25D366;color:#fff;border-radius:50%;width:22px;height:22px;text-align:center;line-height:22px;font-size:13px;margin-left:5px;vertical-align:middle;text-decoration:none;"><i class="fa fa-external-link"></i></a>
                                                         </td>
-                                                        
-                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="address_update" studentID="<?= $student->srstudentID ?>" data-title="Address"><?php echo htmlspecialchars($student->address ?? ''); ?></td>
-                                                        <td data-title="Village">
+
+                                                        <td style="color:green;border:1px solid gray;" contenteditable="true" class="address_update" data-col="address" studentID="<?= $student->srstudentID ?>" data-title="Address"><?php echo htmlspecialchars($student->address ?? ''); ?></td>
+                                                        <td data-col="village" data-title="Village">
                                                             <select class="village_update form-control" studentID="<?= $student->srstudentID ?>" style="min-width:110px;">
                                                                 <option value="0">--Select--</option>
                                                                 <?php foreach ($villages as $v) { ?>
@@ -1007,7 +1097,7 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 <?php } ?>
                                                             </select>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('studentType') ?>">
+                                                        <td data-col="type" data-title="<?= $this->lang->line('studentType') ?>">
                                                             <?php $curType = $student->studentType ?: 3; ?>
                                                             <select class="studenttype_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $curType ?>" style="min-width:130px;">
                                                                 <option value="3" <?php if ($curType == 3) echo 'selected'; ?>>DAY SCHOLAR</option>
@@ -1015,22 +1105,22 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                 <option value="2" <?php if ($curType == 2) echo 'selected'; ?>>HOSTEL</option>
                                                             </select>
                                                         </td>
-                                                             <td data-title="<?= $this->lang->line('student_class') ?>">
+                                                             <td data-col="class" data-title="<?= $this->lang->line('student_class') ?>">
                                                             <?php echo $student->srclasses; ?>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_section') ?>">
+                                                        <td data-col="section" data-title="<?= $this->lang->line('student_section') ?>">
                                                             <select class="section_update form-control" studentID="<?= $student->srstudentID ?>" data-current="<?= $student->srsectionID ?>" style="min-width:110px;">
-                                                                <?php foreach ($sections as $sec) { ?>
+                                                                <?php foreach ((isset($sectionOptions) ? $sectionOptions : $sections) as $sec) { ?>
                                                                     <option value="<?= $sec->sectionID ?>" <?php if ($student->srsectionID == $sec->sectionID) echo 'selected'; ?>><?= $sec->section ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </td>
-                                                        <td data-title="<?= $this->lang->line('student_village') ?>">
+                                                        <td data-col="rfid" data-title="<?= $this->lang->line('student_village') ?>">
                                                             <?php echo $student->rf_id; ?>
                                                         </td>
 
                                                         <?php if (permissionChecker('student_edit')) { ?>
-                                                            <td data-title="<?= $this->lang->line('student_status') ?>">
+                                                            <td data-col="status" data-title="<?= $this->lang->line('student_status') ?>">
                                                                 <div class="onoffswitch-small" id="<?= $student->srstudentID ?>">
                                                                     <input type="checkbox" id="myonoffswitch<?= $student->srstudentID ?>" class="onoffswitch-small-checkbox" name="paypal_demo" <?php if ($student->active === '1') echo "checked='checked'"; ?>>
                                                                     <label for="myonoffswitch<?= $student->srstudentID ?>" class="onoffswitch-small-label">
@@ -1038,39 +1128,6 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                                                                         <span class="onoffswitch-small-switch"></span>
                                                                     </label>
                                                                 </div>
-                                                            </td>
-                                                        <?php } ?>
-                                                        <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { 
-                                                            if(!empty($set)){$set = $set;}else{
-                                                                $set = $student->srclassesID;
-                                                            }
-                                                            ?>
-                                                            <td class="action-btns sticky-col-action" data-title="<?= $this->lang->line('action') ?>">
-                                                                <?php
-                                                                echo btn_view('student/view/' . $student->srstudentID . "/" . $set, $this->lang->line('view'));
-                                                                if (($siteinfos->school_year == $this->session->userdata('defaultschoolyearID')) || ($this->session->userdata('usertypeID') == 1)) {
-                                                                    echo btn_edit('student/edit/' . $student->srstudentID . "/" . $set, $this->lang->line('edit'));
-                                                                        // echo btn_delete('student/delete/' . $student->srstudentID . "/" . $set, $this->lang->line('delete'));
-                                                                        ?>
-                                                                        <button class="btn btn-success btn-xs mrg btn-send-sms" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login SMS"><i class="fa fa-comment"></i></button>
-                                                                        <button class="btn btn-xs mrg btn-send-wa" style="background:#25D366;color:#fff;border-color:#128C7E;" data-id="<?= $student->srstudentID ?>" data-toggle="tooltip" data-placement="top" title="Send Login WhatsApp"><i class="fa fa-whatsapp"></i></button>
-                                                                        <button class="btn btn-info btn-xs mrg btn-change-login" data-id="<?= $student->srstudentID ?>" data-username="<?= htmlspecialchars($student->username) ?>" data-name="<?= htmlspecialchars($student->srname) ?>" data-toggle="tooltip" data-placement="top" title="Change Login Details"><i class="fa fa-key"></i></button>
-                                                                        <?php
-                                                                        if( $global_payment_permission){
-
-                                                                        ?>
-
-                                                                        <!-- <a href="<?php echo base_url('Global_payment/index/').$student->classesID.'/'.$student->srstudentID;?>"  class="btn btn-primary btn-xs mrg  " data-placement="top" data-toggle="tooltip" data-original-title="Global invoice"><i class="fa fa-balance-scale"></i></a> -->
-                                                                        <a href="<?php echo base_url('global_payment/new/').$student->classesID.'/'.$student->srstudentID;?>" class="btn btn-warning btn-xs mrg" data-placement="top" data-toggle="tooltip" data-original-title="Global Payment (New)"><i class="fa fa-money"></i></a>
-
-                                                              <?php  }
-                                                              }?>
-
-                                                               
-
-                                                                
-
-
                                                             </td>
                                                         <?php } ?>
                                                             </tr>
@@ -1096,27 +1153,23 @@ if($this->session->userdata('usertypeID') == 1 || $this->session->userdata('user
                         <div class="tab-content">
                             <div id="all" class="tab-pane active">
                                 <div id="hide-table">
-                                    <table id="example1" class="table table-striped table-bordered table-hover dataTable no-footer">
+                                    <table id="example1" class="table table-striped table-bordered table-hover dataTable student-list-table no-footer">
                                         <thead>
                                             <tr>
-                                            <th class="col-sm-1 col-slno"><?= $this->lang->line('slno') ?></th>
-                                                <th class="col-sm-1"><?= $this->lang->line('student_photo') ?></th>
-                                                <th class="col-sm-1">Adm No</th>
-                                                <th class="col-sm-1">Roll No</th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_name') ?></th>
-                                                <th class="col-sm-2"><?= $this->lang->line('student_phone') ?></th>
-                                                <th>WhatsApp</th>
-                                                <th class="col-sm-2">Address</th>
-                                                <th class="col-sm-1">Village</th>
-                                                <th class="col-sm-2"><?= $this->lang->line('studentType') ?></th>
-                                                 <th>Class</th>
-                                                <th>Section</th>
-                                                <th>RFID</th>
+                                            <th class="sticky-col-checkbox col-sm-1" style="text-align:center" data-col="slno_photo"><?= $this->lang->line('student_photo') ?> / <?= $this->lang->line('slno') ?></th>
+                                                <th class="col-sm-2 sticky-col-name" data-col="name"><?= $this->lang->line('student_name') ?></th>
+                                                <th class="col-sm-1" data-col="admno">Adm No</th>
+                                                <th class="col-sm-1" data-col="roll">Roll No</th>
+                                                <th class="col-sm-2" data-col="phone"><?= $this->lang->line('student_phone') ?></th>
+                                                <th data-col="whatsapp">WhatsApp</th>
+                                                <th class="col-sm-2" data-col="address">Address</th>
+                                                <th class="col-sm-1" data-col="village">Village</th>
+                                                <th class="col-sm-2" data-col="type"><?= $this->lang->line('studentType') ?></th>
+                                                 <th data-col="class">Class</th>
+                                                <th data-col="section">Section</th>
+                                                <th data-col="rfid">RFID</th>
                                                 <?php if (permissionChecker('student_edit')) { ?>
-                                                    <th class="col-sm-1"><?= $this->lang->line('student_status') ?></th>
-                                                <?php } ?>
-                                                <?php if (permissionChecker('student_edit') || permissionChecker('student_delete') || permissionChecker('student_view')) { ?>
-                                                    <th class="col-sm-2 sticky-col-action"><?= $this->lang->line('action') ?></th>
+                                                    <th class="col-sm-1" data-col="status"><?= $this->lang->line('student_status') ?></th>
                                                 <?php } ?>
                                             </tr>
                                         </thead>
@@ -2141,70 +2194,48 @@ $(document).on('click', '#ahSaveBtn', function () {
 });
 
 // Active/Inactive status filter — checks the row's on/off switch state.
-// Uses the DataTables Api wrapper (rather than settings.aoData[i].nTr directly)
-// so this keeps working regardless of the bundled DataTables version's internals.
-$.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
-    var statusFilter = $('#studentStatusFilter').val();
-    if (!statusFilter || statusFilter === 'all') return true;
+// Everything that touches $.fn.dataTable is wrapped in $(document).ready() below:
+// the DataTables library itself is only <script src>'d in components/page_footer.php,
+// which sits further down the HTML than this inline block, so calling $.fn.dataTable
+// here at top level (as this used to) throws immediately ("$.fn.dataTable is undefined")
+// and silently aborts every statement after it in this same <script> tag — which is why
+// the Status dropdown previously had no effect on the table at all. $(document).ready()
+// only fires once the whole page (including page_footer's scripts) has finished loading,
+// so by then the DataTables plugin is guaranteed to exist.
+$(document).ready(function () {
+    // Uses the DataTables Api wrapper (rather than settings.aoData[i].nTr directly)
+    // so this keeps working regardless of the bundled DataTables version's internals.
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+        var statusFilter = $('#studentStatusFilter').val();
+        if (!statusFilter || statusFilter === 'all') return true;
 
-    var row = new $.fn.dataTable.Api(settings).row(dataIndex).node();
-    if (!row) return true;
+        var row = new $.fn.dataTable.Api(settings).row(dataIndex).node();
+        if (!row) return true;
 
-    var isActive = $(row).find('.onoffswitch-small-checkbox').is(':checked');
+        var isActive = $(row).find('.onoffswitch-small-checkbox').is(':checked');
 
-    if (statusFilter === 'active') return isActive;
-    if (statusFilter === 'inactive') return !isActive;
-    return true;
-});
-
-$(document).on('change', '#studentStatusFilter', function () {
-    // Redraw every currently-visible table (only the active tab's table matches ":visible",
-    // since Bootstrap tabs hide inactive panes with display:none).
-    $('table.dataTable:visible').each(function () {
-        $(this).DataTable().draw();
+        if (statusFilter === 'active') return isActive;
+        if (statusFilter === 'inactive') return !isActive;
+        return true;
     });
-});
 
-$(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function () {
-    var $tabPane = $($(this).attr('href'));
-    var $tbl = $tabPane.find('table.dataTable');
-    if ($tbl.length && $.fn.DataTable.isDataTable($tbl)) {
-        $tbl.DataTable().draw();
-    }
-    moveStudentStatusFilter($tabPane);
-});
+    $(document).on('change', '#studentStatusFilter', function () {
+        // Redraw every currently-visible table (only the active tab's table matches ":visible",
+        // since Bootstrap tabs hide inactive panes with display:none).
+        $('table.dataTable:visible').each(function () {
+            $(this).DataTable().draw();
+        });
+    });
 
-// Relocate the Status filter beside the Copy/Excel/CSV/PDF buttons (right after the
-// search box) of the currently visible table's own toolbar.
-function moveStudentStatusFilter($tabPane) {
-    var $wrap = $('#studentStatusFilterWrap');
-    if (!$wrap.length || !$tabPane || !$tabPane.length) return;
-
-    var $table = $tabPane.find('table.dataTable').first();
-    if (!$table.length) return;
-
-    var $dtRight = $table.closest('.dataTables_wrapper').find('.dt-top-right');
-    if ($dtRight.length) {
-        $dtRight.prepend($wrap.detach());
-    }
-}
-
-// DataTables fires "init.dt" on the table itself once its own initialization
-// (incl. building dt-top-left/dt-top-right) is complete. This is far more reliable
-// than window 'load', which can race with the shared initComplete in page_footer.php.
-var studentStatusFilterPlaced = false;
-$(document).on('init.dt', function () {
-    if (studentStatusFilterPlaced) return;
-    studentStatusFilterPlaced = true;
-    var $activeTab = $('.tab-pane.active');
-    moveStudentStatusFilter($activeTab.length ? $activeTab : $('#all'));
-});
-
-// Fallback in case init.dt never fires (e.g. tables already initialized before this ran)
-$(window).on('load', function () {
-    if (studentStatusFilterPlaced) return;
-    studentStatusFilterPlaced = true;
-    moveStudentStatusFilter($('#all'));
+    $(document).on('shown.bs.tab', 'a[data-toggle="tab"]', function () {
+        // Re-apply the current filter to the tab just switched to — its table may not
+        // have been redrawn while hidden if the dropdown changed on a different tab.
+        var $tabPane = $($(this).attr('href'));
+        var $tbl = $tabPane.find('table.dataTable');
+        if ($tbl.length && $.fn.DataTable.isDataTable($tbl)) {
+            $tbl.DataTable().draw();
+        }
+    });
 });
 
 
@@ -3045,3 +3076,110 @@ $(document).on('click', '.cl-toggle-pw', function() {
         </div>
     </div>
 </div>
+
+<!-- Columns show/hide dropdown (screen-only — the "Export Excel" button on this page is a
+     separate 46-column comprehensive PhpSpreadsheet export, not a mirror of this table, so
+     hiding a column here intentionally does not affect it). Built per the pattern in
+     srinivas_reports_dynamic_columns.md, adapted for this page's plain (non-DataTables-driven
+     at load time) table markup: the same data-col keys are tagged on the "All Students" tab
+     table, every per-section tab table, and the empty-state fallback table, so one checkbox
+     list toggles the column across all of them at once regardless of which tab is active. -->
+<script>
+$(document).ready(function () {
+    var $list = $('#columnSelectorList');
+    if (!$list.length) { return; }
+
+    // Must mirror the .student-list-table [data-col="..."] { width: ... } rules above — used to
+    // recompute the table's min-width so it only ever claims space for columns that
+    // are actually visible (see recalcTableMinWidth below). There's no "action" entry
+    // any more — that column was removed (its icons moved into the Name cell, below the
+    // name link). slno_photo (70px, from .sticky-col-checkbox) once again carries the
+    // select-all checkbox too — merged with Photo/# into one column — so there's no
+    // separate always-visible checkbox width to add on top.
+    var COL_WIDTHS = {
+        slno_photo: 70, admno: 90, roll: 70, name: 190, phone: 110,
+        whatsapp: 140, address: 170, village: 110, type: 130, class: 70,
+        section: 90, rfid: 70, status: 70
+    };
+
+    var seen = {};
+    var $firstTable = null;
+    $('table').each(function () {
+        var $t = $(this);
+        if ($t.find('thead th[data-col]').length) { $firstTable = $t; return false; }
+    });
+    if (!$firstTable) { return; }
+
+    $firstTable.find('thead th[data-col]').each(function () {
+        var col = $(this).attr('data-col');
+        if (seen[col]) { return; }
+        seen[col] = true;
+        var label = $.trim($(this).text());
+        var $item = $('<label>', { class: 'rpt-col-selector-item' });
+        var $checkbox = $('<input>', { type: 'checkbox', 'data-col': col, checked: true });
+        var $text = $('<span>', { text: label, title: label });
+        $item.append($checkbox).append($text);
+        $list.append($item);
+    });
+
+    function updateSelectedCount() {
+        var total = $list.find('input[type="checkbox"][data-col]').length;
+        var selected = $list.find('input[type="checkbox"][data-col]:checked').length;
+        $('#columnSelectedCount').text(selected);
+        $('#columnTotalCount').text(total);
+    }
+    updateSelectedCount();
+
+    // Without this, hiding columns leaves the table's width unchanged (it was a static
+    // min-width before), so table-layout:auto stretches whichever few columns remain
+    // visible to fill that now-empty leftover space. Recomputing min-width to match only
+    // the currently-visible columns keeps each column at its own declared width instead.
+    function recalcTableMinWidth() {
+        var total = 0;
+        $list.find('input[type="checkbox"][data-col]:checked').each(function () {
+            total += COL_WIDTHS[$(this).attr('data-col')] || 0;
+        });
+        $('table.dataTable').css('min-width', total + 'px');
+    }
+    recalcTableMinWidth();
+
+    function toggleColumn(col, visible) {
+        // Applies to every table on the page (All Students tab + each section tab), not just
+        // the currently visible one, so the hidden/shown state stays consistent across tabs.
+        $('table').find('[data-col="' + col + '"]').css('display', visible ? '' : 'none');
+        recalcTableMinWidth();
+        updateSelectedCount();
+    }
+
+    $list.on('change', 'input[type="checkbox"][data-col]', function () {
+        toggleColumn($(this).attr('data-col'), $(this).is(':checked'));
+    });
+    $('#columnSelectAll').on('click', function () {
+        $list.find('input[type="checkbox"][data-col]').prop('checked', true).each(function () {
+            toggleColumn($(this).attr('data-col'), true);
+        });
+    });
+    $('#columnDeselectAll').on('click', function () {
+        $list.find('input[type="checkbox"][data-col]').prop('checked', false).each(function () {
+            toggleColumn($(this).attr('data-col'), false);
+        });
+    });
+    $('#columnSelectorMenu').on('click', function (e) { e.stopPropagation(); });
+});
+</script>
+
+<!-- Disable column sorting on the student list tables only. The shared DataTables init
+     (mvc/views/components/page_footer.php, `$('.dataTable').DataTable({...})`) is used by
+     many other pages too, so sorting can't be turned off there without affecting them.
+     DataTables binds its header click-to-sort handler with the namespace `click.DT`
+     (jquery.dataTables.js, `_fnSortAttachListener`) — removing just that namespaced
+     handler, plus the `sorting*` classes that draw the sort arrows, disables sorting
+     for these tables specifically without touching any other page's tables. -->
+<script>
+$(document).ready(function () {
+    $('table.student-list-table thead th')
+        .off('click.DT')
+        .removeClass('sorting sorting_asc sorting_desc')
+        .css('cursor', 'default');
+});
+</script>

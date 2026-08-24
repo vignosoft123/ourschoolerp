@@ -217,15 +217,26 @@
             <td style="width:38%; vertical-align:top; border:none; padding-right:6px;">
                 <p style="margin:0 0 3px; font-size:9px; font-weight:bold; color:#37474f;">Subject Wise Marks</p>
                 <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse; font-size:9px;">
-                <?php foreach($subjectRows as $row):
+                <?php
+                    // Fixed-pixel track, nested table — same table-cell structure that already
+                    // rendered reliably (it's what the on-screen/PDF designs both used), but the
+                    // inner table's width is now a plain PIXEL number (no "%"), not a percentage.
+                    // A bare pixel HTML width attribute is unambiguous; the previous percentage
+                    // was the part that resolved differently across mPDF versions (identical code
+                    // showed proportional bars on one server, full-width regardless of value on
+                    // another). Plain <div>s with no text content were tried and mPDF collapsed
+                    // them to invisible — table cells are the reliable primitive here, not divs.
+                    $barTrackPx = 120;
+                    foreach($subjectRows as $row):
                     $barPct = $row['max'] > 0 ? min(100, round(($row['obtained'] / $row['max']) * 100)) : 0;
+                    $barPx  = round($barTrackPx * $barPct / 100);
                 ?>
                     <tr>
                         <td style="width:28px; border:none; padding:2px 3px 2px 0;"><?=$row['subject']?></td>
                         <td style="border:none; padding:2px 0;">
-                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                            <table width="<?=$barTrackPx?>" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                                 <td style="background:#e0e0e0; height:8px; font-size:1px;">
-                                    <table width="<?=$barPct?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                                    <table width="<?=$barPx?>" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                                         <td style="background:#3949ab; height:8px; font-size:1px;">&nbsp;</td>
                                     </tr></table>
                                 </td>
@@ -239,9 +250,14 @@
             <!-- Marks Distribution -->
             <td style="width:26%; vertical-align:top; border:none; padding:0 6px;">
                 <p style="margin:0 0 3px; font-size:9px; font-weight:bold; color:#37474f;">Marks Distribution</p>
-                <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                <?php
+                    $mdTrackPx = 150;
+                    $mdPct     = $totalMaxMarks > 0 ? min(100, round(($totalObtained / $totalMaxMarks) * 100)) : 0;
+                    $mdPx      = round($mdTrackPx * $mdPct / 100);
+                ?>
+                <table width="<?=$mdTrackPx?>" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                     <td style="background:#e0e0e0; height:12px; font-size:1px;">
-                        <table width="<?=$totalMaxMarks > 0 ? min(100, round(($totalObtained / $totalMaxMarks) * 100)) : 0?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                        <table width="<?=$mdPx?>" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                             <td style="background:#1a73e8; height:12px; font-size:1px;">&nbsp;</td>
                         </tr></table>
                     </td>
@@ -256,16 +272,18 @@
                     $gradeOrder = array('A+','A','B+','B','C+','C','D');
                     $maxCount   = !empty($classPerf['gradeHistogram']) ? max($classPerf['gradeHistogram']) : 0;
                     $maxCount   = $maxCount > 0 ? $maxCount : 1;
+                    $gradeTrackPx = 110;
                     foreach($gradeOrder as $g):
                         $cnt = isset($classPerf['gradeHistogram'][$g]) ? $classPerf['gradeHistogram'][$g] : 0;
                         $gp  = round(($cnt / $maxCount) * 100);
+                        $gpx = round($gradeTrackPx * $gp / 100);
                 ?>
                     <tr>
                         <td style="width:18px; border:none; padding:1px 3px 1px 0;"><?=$g?></td>
                         <td style="border:none; padding:1px 0;">
-                            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                            <table width="<?=$gradeTrackPx?>" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                                 <td style="background:#e0e0e0; height:7px; font-size:1px;">
-                                    <table width="<?=$gp?>%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
+                                    <table width="<?=$gpx?>" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr>
                                         <td style="background:#00897b; height:7px; font-size:1px;">&nbsp;</td>
                                     </tr></table>
                                 </td>

@@ -206,6 +206,31 @@ class Balancefeesreport extends Admin_Controller{
 					// $this->data['students'] = pluck($this->studentrelation_m->get_studentrelation_join_student($studentArray),'obj','srstudentID');
 
 					$allStudents = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
+
+					$this->data['classes'] = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
+					$this->data['feetypes'] = ($this->feetypes_m->general_get_fee_multi($feetypeIDs));
+					// dd($this->data['feetypes']);
+
+					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
+
+					// echo "<pre>";print_r($this->data['totalAmountAndDiscount']);die;
+
+					// $this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment(array('schoolyearID' => $schoolyearID)));
+
+
+					$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
+
+					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
+
+					// echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
+
+					// "Balance" / "Fully Paid" dropdown (blank/other = no filtering) - has to happen
+					// before pagination below, since it changes which students count/get sliced.
+					$balanceStatus = $this->input->post('balanceStatus');
+					$this->data['balanceStatus'] = $balanceStatus;
+					$allStudents = $this->filterStudentsByBalanceStatus($allStudents, $balanceStatus, $this->data['totalAmountAndDiscount'], $this->data['totalPayment_split']);
+
 					$perPage     = 25;
 					$totalStudents = customCompute($allStudents);
 					$this->data['totalStudents'] = $totalStudents;
@@ -213,24 +238,6 @@ class Balancefeesreport extends Admin_Controller{
 					$this->data['startIndex']    = 0;
 					// For initial load, only send first page of students
 					$this->data['students'] = ($totalStudents > $perPage) ? array_slice($allStudents, 0, $perPage, true) : $allStudents;
-
-					$this->data['classes'] = pluck($this->classes_m->general_get_classes(),'classes','classesID');
-					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
-					$this->data['feetypes'] = ($this->feetypes_m->general_get_fee_multi($feetypeIDs));
-					// dd($this->data['feetypes']);
-		
-					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
-
-					// echo "<pre>";print_r($this->data['totalAmountAndDiscount']);die;
-
-					// $this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment(array('schoolyearID' => $schoolyearID)));
-
-					
-					$this->data['totalPayment'] = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
-
-					$this->data['totalPayment_split'] = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
-
-					// echo "<pre>=========";print_r($this->data['totalPayment_split']);die;
 
 					// Build allFeeTypes: only fee types with non-zero totals for filtered students
 					$allFeeTypesSet = [];
@@ -329,6 +336,22 @@ class Balancefeesreport extends Admin_Controller{
 					$this->db->order_by('srclassesID','ASC');
 					$allStudents = pluck($this->studentrelation_m->get_studentrelation_join_no_student_deletion_data($studentArray),'obj','srstudentID');
 					$perPage     = 25;
+
+					$this->data['classes']     = pluck($this->classes_m->general_get_classes(),'classes','classesID');
+					$this->data['sections']    = pluck($this->section_m->general_get_section(),'section','sectionID');
+					$this->data['feetypes']    = ($this->feetypes_m->general_get_fee_multi($feetypeIDs));
+					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
+					$this->data['totalPayment']         = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
+					$this->data['totalPayment_split']   = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
+
+					// "Balance" / "Fully Paid" dropdown (blank/other = no filtering) - has to happen
+					// before pagination below, since it changes which students count/get sliced.
+					// Must match the same filter applied by getBalanceFeesReport()'s initial load,
+					// so the offset/total this page-load request came in with stays valid.
+					$balanceStatus = $this->input->post('balanceStatus');
+					$this->data['balanceStatus'] = $balanceStatus;
+					$allStudents = $this->filterStudentsByBalanceStatus($allStudents, $balanceStatus, $this->data['totalAmountAndDiscount'], $this->data['totalPayment_split']);
+
 					$totalStudents = customCompute($allStudents);
 
 					// Calculate the slice for this page
@@ -336,12 +359,6 @@ class Balancefeesreport extends Admin_Controller{
 					if($offset > $totalStudents) $offset = $totalStudents;
 
 					$this->data['students']    = ($totalStudents > 0) ? array_slice($allStudents, $offset, $perPage, true) : [];
-					$this->data['classes']     = pluck($this->classes_m->general_get_classes(),'classes','classesID');
-					$this->data['sections']    = pluck($this->section_m->general_get_section(),'section','sectionID');
-					$this->data['feetypes']    = ($this->feetypes_m->general_get_fee_multi($feetypeIDs));
-					$this->data['totalAmountAndDiscount'] = $this->totalAmountAndDiscustomCompute($this->invoice_m->get_all_balancefees_for_report_multi($this->input->post()));
-					$this->data['totalPayment']         = $this->totalPaymentAndWeaver($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
-					$this->data['totalPayment_split']   = $this->totalPaymentAndWeaver_split($this->payment_m->get_order_by_payment_new_multi($schoolyearID,$feetypeIDs,$studentID));
 
 					// Build allFeeTypes: only fee types with non-zero totals for filtered students
 					$allFeeTypesSet = [];
@@ -515,11 +532,46 @@ class Balancefeesreport extends Admin_Controller{
 				if(isset($totalWeaver[$array->studentID]['weaver'])) {
 					$totalWeaver[$array->studentID]['weaver'] += $array->weaver;
 				} else {
-					$totalWeaver[$array->studentID]['weaver'] = $array->weaver; 
+					$totalWeaver[$array->studentID]['weaver'] = $array->weaver;
 				}
 			}
 		}
 		return $totalWeaver;
+	}
+
+	// Sums a student's per-fee-type "remaining" the same way the report table does
+	// for its "Balance" column (BalanceFeesReport.php: $all_remaining += max(0, $remaining)).
+	// Used to filter students by the new "Balance" / "Fully Paid" dropdown before pagination.
+	private function computeStudentTotalBalance($studentID, $totalPayment_split) {
+		$balance = 0;
+		if (isset($totalPayment_split[$studentID]) && is_array($totalPayment_split[$studentID])) {
+			foreach ($totalPayment_split[$studentID] as $feeData) {
+				$balance += isset($feeData['remaining']) ? max(0, $feeData['remaining']) : 0;
+			}
+		}
+		return $balance;
+	}
+
+	// Keeps only students matching the "Balance" / "Fully Paid" dropdown (balanceStatus is
+	// '', 'balance', or 'fullypaid' - any other value leaves $allStudents untouched). Mirrors
+	// the report table's own row-visibility rule (skip students with an empty total amount)
+	// so the count used for pagination matches what will actually render.
+	private function filterStudentsByBalanceStatus($allStudents, $balanceStatus, $totalAmountAndDiscount, $totalPayment_split) {
+		if ($balanceStatus !== 'balance' && $balanceStatus !== 'fullypaid') {
+			return $allStudents;
+		}
+
+		$filtered = [];
+		foreach ($allStudents as $studentID => $student) {
+			if (empty($totalAmountAndDiscount[$studentID]['amount'])) {
+				continue;
+			}
+			$balance = $this->computeStudentTotalBalance($studentID, $totalPayment_split);
+			if ($balanceStatus === 'balance' ? ($balance > 0) : ($balance <= 0)) {
+				$filtered[$studentID] = $student;
+			}
+		}
+		return $filtered;
 	}
 
 	private function totalPayment($arrays, $schoolyearID) {

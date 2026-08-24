@@ -144,6 +144,27 @@
     <button id="exportBtn" class="btn btn-info btn-rpt-action">
         <i class="fa fa-download"></i> Download Excel – Vertical View
     </button>
+
+    <div class="btn-group rpt-col-selector-group" id="columnSelectorGroup">
+        <button type="button" class="btn btn-default btn-rpt-action dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fa fa-columns"></i> Columns <span class="caret"></span>
+        </button>
+        <div class="dropdown-menu rpt-col-selector-menu" id="columnSelectorMenu">
+            <div class="rpt-col-selector-header">
+                <span class="rpt-col-selector-title"><i class="fa fa-eye"></i> Show Columns</span>
+                <span class="rpt-col-selector-actions">
+                    <a href="javascript:void(0)" id="columnSelectAll">Select All</a>
+                    <a href="javascript:void(0)" id="columnDeselectAll">Deselect All</a>
+                </span>
+            </div>
+            <div class="rpt-col-selector-list" id="columnSelectorList">
+                <!-- checkboxes injected by JS -->
+            </div>
+            <div class="rpt-col-selector-footer">
+                <span id="columnSelectedCount">0</span>/<span id="columnTotalCount">0</span> columns shown
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="box" style="border-top: 3px solid #43a047;">
@@ -213,37 +234,37 @@ foreach($getDueFeesReports as $report) {
 <table class="table table-bordered" id="myTable">
     <thead>
         <tr>
-            <th><?=$this->lang->line('slno')?></th>
-            <th><?=$this->lang->line('duefeesreport_name')?></th>
-            <th>Father</th>
-            <th>Phone</th>
-            <th><?=$this->lang->line('duefeesreport_registerNO')?></th>
-            <th><?=$this->lang->line('duefeesreport_roll')?></th>
+            <th data-col="slno"><?=$this->lang->line('slno')?></th>
+            <th data-col="name"><?=$this->lang->line('duefeesreport_name')?></th>
+            <th data-col="father">Father</th>
+            <th data-col="phone">Phone</th>
+            <th data-col="registerno"><?=$this->lang->line('duefeesreport_registerNO')?></th>
+            <th data-col="roll"><?=$this->lang->line('duefeesreport_roll')?></th>
 
-            <?php if($classesID == 0) echo '<th>'.$this->lang->line('duefeesreport_class').'</th>'; ?>
-            <?php if($sectionID == 0) echo '<th>'.$this->lang->line('duefeesreport_section').'</th>'; ?>
+            <?php if($classesID == 0) echo '<th data-col="class">'.$this->lang->line('duefeesreport_class').'</th>'; ?>
+            <?php if($sectionID == 0) echo '<th data-col="section">'.$this->lang->line('duefeesreport_section').'</th>'; ?>
 
-            <?php foreach($allFeeTypes as $feetypeName): ?>
-                <th><?=$feetypeName?></th>
+            <?php foreach($allFeeTypes as $feetypeID => $feetypeName): ?>
+                <th data-col="ft<?=$feetypeID?>"><?=$feetypeName?></th>
             <?php endforeach; ?>
-            <th><?=$this->lang->line('duefeesreport_total_due')?></th>
+            <th data-col="total"><?=$this->lang->line('duefeesreport_total_due')?></th>
         </tr>
     </thead>
     <tbody>
         <?php $i=1; $grandTotal = 0; ?>
         <?php foreach($pivotData as $key => $entry): ?>
             <tr>
-                <td><?=$i++?></td>
-                <td><?=$entry['student'] ? $entry['student']->srname : ''?></td>
-                <td><?=$entry['student'] ? $entry['student']->father_name : ''?></td>
-                <td><?=$entry['student'] ? $entry['student']->phone : ''?></td>
+                <td data-col="slno"><?=$i++?></td>
+                <td data-col="name"><?=$entry['student'] ? $entry['student']->srname : ''?></td>
+                <td data-col="father"><?=$entry['student'] ? $entry['student']->father_name : ''?></td>
+                <td data-col="phone"><?=$entry['student'] ? $entry['student']->phone : ''?></td>
 
-                <td><?=$entry['student'] ? $entry['student']->srregisterNO : ''?></td>
-                <td><?=$entry['student'] ? $entry['student']->srroll : ''?></td>
+                <td data-col="registerno"><?=$entry['student'] ? $entry['student']->srregisterNO : ''?></td>
+                <td data-col="roll"><?=$entry['student'] ? $entry['student']->srroll : ''?></td>
 
                 <?php if($classesID == 0): ?>
-                    <td>
-                        <?php 
+                    <td data-col="class">
+                        <?php
                             $cid = $entry['student'] ? $entry['student']->srclassesID : 0;
                             echo isset($classes[$cid]) ? $classes[$cid] : '';
                         ?>
@@ -251,33 +272,33 @@ foreach($getDueFeesReports as $report) {
                 <?php endif; ?>
 
                 <?php if($sectionID == 0): ?>
-                    <td>
-                        <?php 
+                    <td data-col="section">
+                        <?php
                             $sid = $entry['student'] ? $entry['student']->srsectionID : 0;
                             echo isset($sections[$sid]) ? $sections[$sid] : '';
                         ?>
                     </td>
                 <?php endif; ?>
 
-                <?php 
+                <?php
                     $totalDue = 0;
                     // Display all fee types in separate columns
                     foreach($allFeeTypes as $feetypeID => $feetypeName) {
                         $due = isset($entry['fees'][$feetypeID]) ? $entry['fees'][$feetypeID] : 0;
-                        echo "<td>".number_format($due,2)."</td>";
+                        echo "<td data-col=\"ft".$feetypeID."\">".number_format($due,2)."</td>";
                         $totalDue += $due;
                     }
                     $grandTotal += $totalDue;
                 ?>
-                <td><strong><?=number_format($totalDue, 2)?></strong></td>
+                <td data-col="total"><strong><?=number_format($totalDue, 2)?></strong></td>
             </tr>
         <?php endforeach; ?>
 
         <tr>
-            <td colspan="<?=6 + ($classesID == 0 ? 1 : 0) + ($sectionID == 0 ? 1 : 0) + count($allFeeTypes)?>" class="text-right text-bold">
+            <td data-col-group="group1" colspan="<?=6 + ($classesID == 0 ? 1 : 0) + ($sectionID == 0 ? 1 : 0) + count($allFeeTypes)?>" class="text-right text-bold">
                 <?=$this->lang->line('duefeesreport_grand_total')?> <?=!empty($siteinfos->currency_code) ? '('.$siteinfos->currency_code.')' : '' ?>
             </td>
-            <td class="text-bold"><?=number_format($grandTotal,2)?></td>
+            <td data-col="total" class="text-bold"><?=number_format($grandTotal,2)?></td>
         </tr>
     </tbody>
 </table>
@@ -546,9 +567,95 @@ foreach($getDueFeesReports as $report) {
         $(document).ready(function () {
             $("#exportBtn").click(function () {
                 var table = document.getElementById("myTable");
-                var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1" });
+                // display: true makes SheetJS skip any column hidden via the Columns
+                // selector below (it reads the live DOM table directly, so a plain
+                // css('display','none') on a cell is enough - no cloning needed).
+                var wb = XLSX.utils.table_to_book(table, { sheet: "Sheet1", display: true });
                 XLSX.writeFile(wb, "DueFeeReport.xlsx");
             });
         });
+    </script>
+
+    <!-- Columns show/hide dropdown for the Vertical view's pivot table. NOTE: this only
+         affects the on-screen table and the "Download Excel – Vertical View" button above
+         (client-side SheetJS, reading this table's live DOM). The separate "Export XLSX"
+         link at the top of this page is unrelated - it calls the server-side PhpSpreadsheet
+         export shared with the Horizontal report, which has always produced a fixed
+         10-column layout that does not match this pivot table's columns (one column per
+         fee type). That mismatch pre-exists this feature and is out of scope here. -->
+    <script>
+    $(document).ready(function () {
+        var $table = $('#myTable');
+        if (!$table.length) { return; }
+
+        // Fixed (non fee-type) columns that the Grand Total row's label cell spans across.
+        // Class/Section may not be rendered at all depending on the filter - the $th.length
+        // check below skips those automatically.
+        var BASE_LABEL_COLS = ['slno', 'name', 'father', 'phone', 'registerno', 'roll', 'class', 'section'];
+
+        var $menu = $('#columnSelectorMenu');
+        var $list = $('#columnSelectorList');
+        $table.find('thead th[data-col]').each(function () {
+            var col = $(this).attr('data-col');
+            var label = $.trim($(this).text());
+            var $item = $('<label>', { class: 'rpt-col-selector-item' });
+            var $checkbox = $('<input>', { type: 'checkbox', 'data-col': col, checked: true });
+            var $text = $('<span>', { text: label, title: label });
+            $item.append($checkbox).append($text);
+            $list.append($item);
+        });
+
+        function updateSelectedCount() {
+            var total = $list.find('input[type="checkbox"][data-col]').length;
+            var selected = $list.find('input[type="checkbox"][data-col]:checked').length;
+            $('#columnSelectedCount').text(selected);
+            $('#columnTotalCount').text(total);
+        }
+        updateSelectedCount();
+
+        // Distinct "ftN" fee-type columns currently in the header (varies per search).
+        function getFeetypeCols() {
+            var cols = [];
+            $table.find('thead th[data-col^="ft"]').each(function () {
+                cols.push($(this).attr('data-col'));
+            });
+            return cols;
+        }
+
+        function recomputeGroupColspans() {
+            var baseVisible = BASE_LABEL_COLS.filter(function (col) {
+                var $th = $table.find('thead th[data-col="' + col + '"]');
+                return $th.length && $th.css('display') !== 'none';
+            }).length;
+
+            var feetypeVisible = getFeetypeCols().filter(function (col) {
+                var $th = $table.find('thead th[data-col="' + col + '"]');
+                return $th.length && $th.css('display') !== 'none';
+            }).length;
+
+            $table.find('td[data-col-group="group1"]').attr('colspan', Math.max(baseVisible + feetypeVisible, 1));
+        }
+
+        function toggleColumn(col, visible) {
+            $table.find('[data-col="' + col + '"]').css('display', visible ? '' : 'none');
+            recomputeGroupColspans();
+            updateSelectedCount();
+        }
+
+        $list.on('change', 'input[type="checkbox"][data-col]', function () {
+            toggleColumn($(this).attr('data-col'), $(this).is(':checked'));
+        });
+        $('#columnSelectAll').on('click', function () {
+            $list.find('input[type="checkbox"][data-col]').prop('checked', true).each(function () {
+                toggleColumn($(this).attr('data-col'), true);
+            });
+        });
+        $('#columnDeselectAll').on('click', function () {
+            $list.find('input[type="checkbox"][data-col]').prop('checked', false).each(function () {
+                toggleColumn($(this).attr('data-col'), false);
+            });
+        });
+        $menu.on('click', function (e) { e.stopPropagation(); }); // keeps dropdown open while clicking checkboxes
+    });
     </script>
 

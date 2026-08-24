@@ -555,14 +555,22 @@ public function getDueFeesReport() {
 				$this->data['getFeesReports'] = $this->totalPayment($this->payment_m->get_all_payment_for_report($postArray), $schoolyearID);
 				$this->data['getDueFeesReports'] = $this->invoice_m->get_all_duefees_for_report($postArray);
 
+				// ── Column visibility from the on-screen "Columns" show/hide dropdown ──
+				// ?cols=slno,invoicedate,name,... (comma-separated data-col keys, see DueFeesReport.php)
+				$colsParam = $this->input->get('cols');
+				$visibleCols = null;
+				if ($colsParam !== null && $colsParam !== '') {
+					$visibleCols = array_filter(array_map('trim', explode(',', $colsParam)));
+				}
+
 				if(customCompute($this->data['getDueFeesReports'])) {
-					return $this->generateXML($this->data);
+					return $this->generateXML($this->data, $visibleCols);
 				} else {
 					redirect('duefeesreport');
-				}																		
+				}
 			} else {
 				$this->data["subview"] = "error";
-				$this->load->view('_layout_main', $this->data);	
+				$this->load->view('_layout_main', $this->data);
 			}
 		} else {
 			$this->data["subview"] = "error";
@@ -570,26 +578,36 @@ public function getDueFeesReport() {
 		}
 	}
 
-	private function generateXML($data) {
+	// Full fixed export column set, left-to-right, matching the on-screen Horizontal
+	// Due Fees table's data-col keys (DueFeesReport.php). NOTE: "prevcf" (Prev C/F) is
+	// deliberately not in this list — it has no corresponding column in this export,
+	// so showing/hiding it on screen has no effect on the exported file.
+	private $dueFeesExportCols = ['slno','invoicedate','name','registerno','class','section','roll','feetype','discount','due'];
+
+	private function generateXML($data, $visibleCols = null) {
 		extract($data);
 		$sheet = $this->phpspreadsheet->spreadsheet->getActiveSheet();
 		if(customCompute($getDueFeesReports)) {
-			// $maxColumnCount = 8;
-			if($classesID > 0 ) {
-				$maxColumnCount = 9;
+			$allCols = $this->dueFeesExportCols;
+			if ($visibleCols === null) {
+				$visibleCols = $allCols;
+			}
+			// "class"/"section" only exist as export columns when the report wasn't
+			// already narrowed to one class/section (mirrors the on-screen table's
+			// conditional <th data-col="class"|"section">)
+			if($classesID > 0) {
+				$visibleCols = array_diff($visibleCols, ['class']);
+			}
+			if($sectionID > 0) {
+				$visibleCols = array_diff($visibleCols, ['section']);
+			}
+			// keep a stable left-to-right order regardless of how the checkboxes were submitted
+			$visibleCols = array_values(array_intersect($allCols, $visibleCols));
+			if(!$visibleCols) {
+				$visibleCols = $allCols; // never export a totally empty sheet
 			}
 
-			if($sectionID > 0 ) {
-				$maxColumnCount = 9;
-			}
-
-			if($classesID == 0 && $sectionID == 0 ) {
-				$maxColumnCount = 10;
-			}
-
-			if($classesID > 0 && $sectionID > 0) {
-				$maxColumnCount = 8;
-			}
+			$maxColumnCount = count($visibleCols);
 
 			$headerColumn = "A";
         	for($i= 1; $i < $maxColumnCount; $i++) {
@@ -615,28 +633,26 @@ public function getDueFeesReport() {
 				$sheet->getRowDimension('1')->setVisible(false);
 			}
 
-	        //Make Header Data Array
+	        //Make Header Data Array (only the columns still checked in the "Columns" dropdown)
+	        $colLabels = array(
+	        	'slno'        => $this->lang->line('slno'),
+	        	'invoicedate' => $this->lang->line('duefeesreport_invoice_date'),
+	        	'name'        => $this->lang->line('duefeesreport_name'),
+	        	'registerno'  => $this->lang->line('duefeesreport_registerNO'),
+	        	'class'       => $this->lang->line('duefeesreport_class'),
+	        	'section'     => $this->lang->line('duefeesreport_section'),
+	        	'roll'        => $this->lang->line('duefeesreport_roll'),
+	        	'feetype'     => $this->lang->line('duefeesreport_feetype'),
+	        	'discount'    => $this->lang->line('duefeesreport_discount'),
+	        	'due'         => $this->lang->line('duefeesreport_due'),
+	        );
 	        $headers = array();
-	        $headers['invoice_id'] = $this->lang->line('slno');
-	        $headers['invoice_date'] = $this->lang->line('duefeesreport_invoice_date');
-	        $headers['name'] = $this->lang->line('duefeesreport_name');
-	        $headers['registration_number'] = $this->lang->line('duefeesreport_registerNO');
-
-	        if($classesID == 0) { 
-	        	$headers['class'] = $this->lang->line('duefeesreport_class');
+	        foreach($visibleCols as $colKey) {
+	        	$headers[$colKey] = $colLabels[$colKey];
 	        }
-
-	        if($sectionID == 0) { 
-	        	$headers['section'] = $this->lang->line('duefeesreport_section');
-	        }
-
-	        $headers['roll'] = $this->lang->line('duefeesreport_roll');
-	        $headers['feetype'] = $this->lang->line('duefeesreport_feetype');
-	        $headers['discount'] = $this->lang->line('duefeesreport_discount');
-	        $headers['due'] = $this->lang->line('duefeesreport_due');
 
 	        //Make Xml Header Array
-			$column = 'A';    		
+			$column = 'A';
     		$row = 2;
 	        foreach($headers as $header) {
 	        	$sheet->setCellValue($column.$row,$header);
@@ -649,92 +665,54 @@ public function getDueFeesReport() {
 	        $j = 0;
 	        $totalDue = 0;
 	        foreach($getDueFeesReports as $getDueFeesReport) {
-	        	if($sectionID > 0) { if(isset($students[$getDueFeesReport->studentID]) && $students[$getDueFeesReport->studentID]->srsectionID == $sectionID) { 
-	        		$j++;
-		        	$getDueFeesReportArrays[$i][] = $j;
-		        	$getDueFeesReportArrays[$i][] = date('d M Y',strtotime($getDueFeesReport->create_date));
-		        	$getDueFeesReportArrays[$i][] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '';
-		        	$getDueFeesReportArrays[$i][] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srregisterNO : '';
-
-		        	if($classesID == 0) { 
-	                    if(isset($students[$getDueFeesReport->studentID])) {
-	                        $stclassID = $students[$getDueFeesReport->studentID]->srclassesID;
-		        			$getDueFeesReportArrays[$i][] = isset($classes[$stclassID]) ? $classes[$stclassID] : '';
-	                    } 
-	                }
-
-	                if($sectionID == 0) { 
-	                    if(isset($students[$getDueFeesReport->studentID])) {
-	                        $stsectionID = $students[$getDueFeesReport->studentID]->srsectionID;
-		        			$getDueFeesReportArrays[$i][] = isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
-	                    } 
-	                }
-
-		        	$getDueFeesReportArrays[$i][] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '';
-		        	
-		        	if(isset($feetypes[$getDueFeesReport->feetypeID])) {
-	        			$getDueFeesReportArrays[$i][] = $feetypes[$getDueFeesReport->feetypeID];
-	                }
-		        	
-		        	$getDueFeesReportArrays[$i][] = number_format($getDueFeesReport->discount, 2);
-
-
-		            $discount = $getDueFeesReport->discount;
-		            if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
-		                $due = (($getDueFeesReport->amount - $getFeesReports[$getDueFeesReport->invoiceID]) - $discount);
-		        		$getDueFeesReportArrays[$i][] = number_format($due,2);
-		                $totalDue += $due;
-		            } else {
-		                $due = ($getDueFeesReport->amount - $discount);
-		        		$getDueFeesReportArrays[$i][] = number_format($due,2);
-		                $totalDue += $due;
-		            }
-		        	$i++;
-
-	        	} } else {
-	        		$j++;
-	        		$getDueFeesReportArrays[$i][] = $j;
-		        	$getDueFeesReportArrays[$i][] = date('d M Y',strtotime($getDueFeesReport->create_date));
-		        	$getDueFeesReportArrays[$i][] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '';
-		        	$getDueFeesReportArrays[$i][] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srregisterNO : '';
-
-		        	if($classesID == 0) { 
-	                    if(isset($students[$getDueFeesReport->studentID])) {
-	                        $stclassID = $students[$getDueFeesReport->studentID]->srclassesID;
-		        			$getDueFeesReportArrays[$i][] = isset($classes[$stclassID]) ? $classes[$stclassID] : '';
-	                    } 
-	                }
-
-	                if($sectionID == 0) { 
-	                    if(isset($students[$getDueFeesReport->studentID])) {
-	                        $stsectionID = $students[$getDueFeesReport->studentID]->srsectionID;
-		        			$getDueFeesReportArrays[$i][] = isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
-	                    } 
-	                }
-
-		        	$getDueFeesReportArrays[$i][] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '';
-		        	
-		        	if(isset($feetypes[$getDueFeesReport->feetypeID])) {
-	        			$getDueFeesReportArrays[$i][] = $feetypes[$getDueFeesReport->feetypeID];
-	                }
-		        	
-		        	$getDueFeesReportArrays[$i][] = number_format($getDueFeesReport->discount, 2);
-
-
-		            $discount = $getDueFeesReport->discount;
-		            if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
-		                $due = (($getDueFeesReport->amount - $getFeesReports[$getDueFeesReport->invoiceID]) - $discount);
-		        		$getDueFeesReportArrays[$i][] = number_format($due,2);
-		                $totalDue += $due;
-		            } else {
-		                $due = ($getDueFeesReport->amount - $discount);
-		        		$getDueFeesReportArrays[$i][] = number_format($due,2);
-		                $totalDue += $due;
-		            }
-		        	$i++;
-
+	        	$includeRow = TRUE;
+	        	if($sectionID > 0) {
+	        		$includeRow = isset($students[$getDueFeesReport->studentID]) && $students[$getDueFeesReport->studentID]->srsectionID == $sectionID;
+	        	}
+	        	if(!$includeRow) {
+	        		continue;
 	        	}
 
+	        	$j++;
+	        	$rowVals = array();
+	        	$rowVals['slno'] = $j;
+	        	$rowVals['invoicedate'] = date('d M Y',strtotime($getDueFeesReport->create_date));
+	        	$rowVals['name'] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srname : '';
+	        	$rowVals['registerno'] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srregisterNO : '';
+
+	        	$rowVals['class'] = '';
+	        	$rowVals['section'] = '';
+	        	if(isset($students[$getDueFeesReport->studentID])) {
+	        		$stclassID = $students[$getDueFeesReport->studentID]->srclassesID;
+	        		$rowVals['class'] = isset($classes[$stclassID]) ? $classes[$stclassID] : '';
+	        		$stsectionID = $students[$getDueFeesReport->studentID]->srsectionID;
+	        		$rowVals['section'] = isset($sections[$stsectionID]) ? $sections[$stsectionID] : '';
+	        	}
+
+	        	$rowVals['roll'] = isset($students[$getDueFeesReport->studentID]) ? $students[$getDueFeesReport->studentID]->srroll : '';
+
+	        	$rowVals['feetype'] = '';
+	        	if(isset($feetypes[$getDueFeesReport->feetypeID])) {
+	        		$rowVals['feetype'] = $feetypes[$getDueFeesReport->feetypeID];
+	        	}
+
+	        	$rowVals['discount'] = number_format($getDueFeesReport->discount, 2);
+
+	        	$discount = $getDueFeesReport->discount;
+	        	if(isset($getFeesReports[$getDueFeesReport->invoiceID])) {
+	        		$due = (($getDueFeesReport->amount - $getFeesReports[$getDueFeesReport->invoiceID]) - $discount);
+	        	} else {
+	        		$due = ($getDueFeesReport->amount - $discount);
+	        	}
+	        	$totalDue += $due;
+	        	$rowVals['due'] = number_format($due, 2);
+
+	        	$rowArr = array();
+	        	foreach($visibleCols as $colKey) {
+	        		$rowArr[] = $rowVals[$colKey];
+	        	}
+	        	$getDueFeesReportArrays[$i] = $rowArr;
+	        	$i++;
 	        }
 
 
@@ -755,7 +733,9 @@ public function getDueFeesReport() {
 	        	$total_value = $this->lang->line('duefeesreport_grand_total');
 	        	$total_value .= (!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.')' : '');
 	        	$sheet->setCellValue('A'.$row,$total_value);
-	        	$sheet->setCellValue($headerColumn.$row,number_format($totalDue,2));
+	        	if(in_array('due', $visibleCols)) {
+	        		$sheet->setCellValue($headerColumn.$row,number_format($totalDue,2));
+	        	}
 	        }
 
 

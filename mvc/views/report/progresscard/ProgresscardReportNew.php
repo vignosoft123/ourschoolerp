@@ -2,7 +2,7 @@
 <style>
 #printablediv_new, #students_div_new { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
-.pcn-card { max-width: 980px; margin: 0 auto 32px; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 4px 22px rgba(20,30,70,0.10); border: 3px solid #1a237e; }
+.pcn-card { max-width: 980px; margin: 0 auto 32px; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 4px 22px rgba(20,30,70,0.10); border: 3px solid #1a237e; font-weight: 600; }
 
 /* ---- Header band ---- */
 .pcn-header { display: flex; align-items: center; gap: 18px; padding: 20px 24px; background: linear-gradient(135deg,#eef1fb 0%,#e3e8fb 100%); border-bottom: 4px solid #1a237e; }
@@ -251,14 +251,10 @@
                     elseif ($percent >= 50) { $remarkText = 'Average'; $remarkColor = '#fb8c00'; }
                     else { $remarkText = 'Need Improvement'; $remarkColor = '#e53935'; }
 
-                    // QR — placeholder verify URL only (verify page not built yet).
-                    $qrFilename = 'pc-'.$student->srstudentID.'-'.$examID;
-                    $qrText     = base_url('progresscardreport/verify/'.$student->srregisterNO);
-                    $qrFilepath = FCPATH.'uploads/progresscardQRcode/'.$qrFilename.'.png';
-                    if(!file_exists($qrFilepath)) {
-                        generate_qrcode($qrText, $qrFilename, 'progresscardQRcode');
-                    }
-                    $qrUrl = base_url('uploads/progresscardQRcode/'.$qrFilename.'.png');
+                    // QR generation moved next to its (disabled) display block below — see the
+                    // "Scan to Verify" comment there. It used to run unconditionally here even
+                    // though the display was disabled, writing a PNG per student per exam into
+                    // uploads/progresscardQRcode/ on every report view for no reason.
 
                     $chartUid = 'pcn'.$cardIndex.'_'.$student->srstudentID;
                 ?>
@@ -496,8 +492,19 @@
                                 </div>
                             </div>
                             <?php /* "Scan to Verify" QR box disabled per request (2026-08-22) — not needed on
-                                     screen/JPEG for now, verify page isn't built yet either. Flip to `if (true)`
-                                     to bring it back. */ if (false) { ?>
+                                     screen/JPEG for now, verify page isn't built yet either. QR generation
+                                     (writes a PNG to uploads/progresscardQRcode/) lives inside this same
+                                     disabled block so nothing is written while the feature is off. Flip to
+                                     `if (true)` to bring the whole thing back. */
+                            if (false) {
+                                $qrFilename = 'pc-'.$student->srstudentID.'-'.$examID;
+                                $qrText     = base_url('progresscardreport/verify/'.$student->srregisterNO);
+                                $qrFilepath = FCPATH.'uploads/progresscardQRcode/'.$qrFilename.'.png';
+                                if(!file_exists($qrFilepath)) {
+                                    generate_qrcode($qrText, $qrFilename, 'progresscardQRcode');
+                                }
+                                $qrUrl = base_url('uploads/progresscardQRcode/'.$qrFilename.'.png');
+                            ?>
                             <div class="pcn-box pcn-b--navy pcn-qr-box">
                                 <h4 class="pcn-h--navy"><span class="pcn-h-icon"><i class="fa fa-qrcode"></i></span><span class="pcn-h-text">Scan to Verify</span></h4>
                                 <div class="pcn-box-body">

@@ -17,8 +17,13 @@ foreach ($transactions as $txn) {
     $allModes[$txn['mode']] = true;
 }
 
-$nextDate = date('d-m-Y', strtotime($date . ' +1 day'));
-$displayDate = date('d F Y, l', strtotime($date));
+// $fromDate/$toDate replace the old single $date (2026-08-23, range filter) - the
+// original single-date $date/$nextDate/$displayDate logic is kept commented out
+// alongside the controller/model backups if this ever needs to be rolled back.
+$nextDate = date('d-m-Y', strtotime($toDate . ' +1 day'));
+$displayDate = ($fromDate === $toDate)
+    ? date('d F Y, l', strtotime($fromDate))
+    : date('d M Y', strtotime($fromDate)) . ' &ndash; ' . date('d M Y, l', strtotime($toDate));
 ?>
 
 <style>
@@ -162,7 +167,7 @@ $displayDate = date('d F Y, l', strtotime($date));
         <table class="table table-bordered dsm-tbl" id="dsm-ledger-table" style="margin:0;background:#fff;">
             <thead>
                 <tr>
-                    <th style="width:70px;">Time</th>
+                    <th style="width:150px;">Date &amp; Time</th>
                     <th>Particular</th>
                     <th>Student / Expense</th>
                     <th>Category</th>
@@ -229,7 +234,7 @@ $displayDate = date('d F Y, l', strtotime($date));
 
         <div style="margin-top:12px;padding:10px 14px;background:#f0f8ff;border-radius:6px;font-size:12px;color:#555;">
             <i class="fa fa-info-circle" style="color:#2980b9;"></i>
-            <strong>Note:</strong> Closing Balance of today will be the opening balance of tomorrow (<?=$nextDate?>).
+            <strong>Note:</strong> This Closing Balance will be the opening balance of <?=$nextDate?>.
         </div>
     </div><!-- /.col-sm-8 -->
 
