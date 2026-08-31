@@ -11,10 +11,94 @@
     text-align: left;
     line-height: 30px !important;
     }
+
+    /* ---- SMS / Voice Call / Bulk WhatsApp tabs - visual polish ---- */
+    .mailandsms-form-box .nav-tabs-custom {
+        box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .mailandsms-form-box .nav-tabs-custom > .nav-tabs {
+        background: #f7f8fa;
+        border-bottom: 1px solid #e6e6e6;
+    }
+    .mailandsms-form-box .nav-tabs-custom > .nav-tabs > li > a {
+        padding: 12px 22px;
+        font-weight: 600;
+        font-size: 14px;
+        color: #5b6570;
+        border: none;
+        border-radius: 0;
+    }
+    .mailandsms-form-box .nav-tabs-custom > .nav-tabs > li.active > a,
+    .mailandsms-form-box .nav-tabs-custom > .nav-tabs > li.active > a:hover,
+    .mailandsms-form-box .nav-tabs-custom > .nav-tabs > li.active > a:focus {
+        color: #fff;
+        background: #00a65a;
+        border: none;
+    }
+    .mailandsms-form-box .nav-tabs-custom > .nav-tabs > li:not(.active) > a:hover {
+        color: #00a65a;
+        background: transparent;
+    }
+    .mailandsms-form-box .tab-content {
+        padding: 26px 24px 20px;
+        background: #fff;
+    }
+    .mailandsms-form-box .form-horizontal .form-group {
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #f0f1f3;
+    }
+    .mailandsms-form-box .form-horizontal .form-group:last-of-type {
+        border-bottom: none;
+    }
+    .mailandsms-form-box .control-label {
+        font-weight: 600;
+        color: #444;
+        padding-top: 7px;
+    }
+    .mailandsms-form-box .form-control,
+    .mailandsms-form-box textarea.form-control {
+        border-radius: 6px;
+        border: 1px solid #d7dbe0;
+        box-shadow: none;
+        transition: border-color .15s ease, box-shadow .15s ease;
+    }
+    .mailandsms-form-box .form-control:focus,
+    .mailandsms-form-box textarea.form-control:focus {
+        border-color: #00a65a;
+        box-shadow: 0 0 0 3px rgba(0,166,90,0.12);
+    }
+    .mailandsms-form-box textarea.form-control {
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    .mailandsms-form-box .select2-container .select2-choice {
+        border-radius: 6px;
+        border: 1px solid #d7dbe0;
+        height: 36px;
+        line-height: 34px;
+        padding-left: 12px;
+    }
+    .mailandsms-form-box .select2-container-multi .select2-choices {
+        border-radius: 6px;
+        border: 1px solid #d7dbe0;
+        min-height: 36px;
+    }
+    .mailandsms-form-box .form-group .btn-success {
+        border-radius: 6px;
+        padding: 9px 28px;
+        font-weight: 600;
+        letter-spacing: .3px;
+    }
+    .mailandsms-form-box input[type="file"].form-control {
+        padding-top: 6px;
+    }
 </style>
 
 
-<div class="box">
+<div class="box mailandsms-form-box">
     <div class="box-header">
         <h3 class="box-title"><i class="fa icon-mailandsms"></i> <?=$this->lang->line('panel_title')?></h3>
         <ol class="breadcrumb">
@@ -290,9 +374,15 @@
 
                                                     if(customCompute($usertypes)) {
                                                         foreach ($usertypes as $key => $usertype) {
-                                                            $array[$usertype->usertypeID] = $usertype->usertype;
+                                                            // Only Teacher / Student stay as individual roles - every other
+                                                            // usertype (Accountant, Librarian, Driver, etc.) is bucketed
+                                                            // together as "Non Teaching Staff" below.
+                                                            if($usertype->usertypeID == 2 || $usertype->usertypeID == 3) {
+                                                                $array[$usertype->usertypeID] = $usertype->usertype;
+                                                            }
                                                         }
                                                     }
+                                                    $array['nonteaching'] = 'Non Teaching Staff';
                                                     echo form_dropdown("sms_usertypeID", $array, set_value("sms_usertypeID"), "id='sms_usertypeID' class='form-control select2'");
                                                 ?>
                                             </div>
@@ -507,7 +597,7 @@
                                                 <?=$this->lang->line("mailandsms_message")?> <span class="text-red">*</span>
                                             </label>
                                             <div class="col-sm-10">
-                                                <textarea class="form-control" style="resize:vertical" id="sms_message" name="sms_message" ><?=set_value('sms_message')?></textarea>
+                                                <textarea class="form-control" style="resize:vertical" rows="6" id="sms_message" name="sms_message" ><?=set_value('sms_message')?></textarea>
 
                                                 <div id="manual_template" name="aaa" style="background-color: aliceblue; padding: 25px;">
                                             
@@ -863,9 +953,15 @@
 
                                                         if(customCompute($usertypes)) {
                                                             foreach ($usertypes as $key => $usertype) {
-                                                                $array[$usertype->usertypeID] = $usertype->usertype;
+                                                                // Only Teacher / Student stay as individual roles - every other
+                                                                // usertype (Accountant, Librarian, Driver, etc.) is bucketed
+                                                                // together as "Non Teaching Staff" below.
+                                                                if($usertype->usertypeID == 2 || $usertype->usertypeID == 3) {
+                                                                    $array[$usertype->usertypeID] = $usertype->usertype;
+                                                                }
                                                             }
                                                         }
+                                                        $array['nonteaching'] = 'Non Teaching Staff';
                                                         echo form_dropdown("whatsapp_usertypeID", $array, set_value("whatsapp_usertypeID"), "id='whatsapp_usertypeID' class='form-control select2'");
                                                     ?>
                                                 </div>
@@ -962,8 +1058,29 @@
                                             </span>
                                             </div>
 
-                                            <?php 
-                                                if(form_error('whatsapp_users')) 
+                                            <?php
+                                            if(form_error('whatsapp_hostel_transport'))
+                                                echo "<div id='divwhatsapp_hostel_transport' class='form-group has-error' >";
+                                            else
+                                                echo "<div id='divwhatsapp_hostel_transport' class='form-group' >";
+                                            ?>
+                                            <label for="whatsapp_hostel_transport" class="col-sm-2 control-label">
+                                                Hostel/Trasport
+                                            </label>
+                                            <div class="col-sm-6">
+                                               <select name="whatsapp_hostel_transport" id="whatsapp_hostel_transport" class='form-control select2'>
+                                                <option value="">Select</option>
+                                                <option value="1">Hostel</option>
+                                                <option value="2">Transport</option>
+                                            </select>
+                                            </div>
+                                            <span class="col-sm-4 control-label">
+                                                     <?php echo form_error('whatsapp_hostel_transport'); ?>
+                                               </span>
+                                            </div>
+
+                                            <?php
+                                                if(form_error('whatsapp_users'))
                                                     echo "<div class='form-group has-error' >";
                                                 else     
                                                     echo "<div class='form-group' >";
@@ -1003,7 +1120,7 @@
                                                 Other Whatsapp Numbers   <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-10">
-                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_numbers" name="other_whatsapp_numbers" ><?=set_value('whatsapp_numbers')?></textarea>
+                                                    <textarea class="form-control" style="resize:vertical" rows="3" id="whatsapp_numbers" name="other_whatsapp_numbers" ><?=set_value('whatsapp_numbers')?></textarea>
                                                 </div>
                                                 <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
                                                     <?php //echo form_error('whatsapp_numbers'); ?>
@@ -1055,7 +1172,7 @@
                                                 Whatsapp Template  <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-10">
-                                                    <textarea readonly class="form-control" style="resize:vertical" id="whatsapp_templ" name="whatsapp_templ" ><?=set_value('whatsapp_templ')?></textarea>
+                                                    <textarea readonly class="form-control" style="resize:vertical" rows="7" id="whatsapp_templ" name="whatsapp_templ" ><?=set_value('whatsapp_templ')?></textarea>
                                                 </div>
                                                 <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
                                                     <?php echo form_error('whatsapp_templ'); ?>
@@ -1072,7 +1189,7 @@
                                                 Comma Separated values  <span class="text-red">*</span>
                                                 </label>
                                                 <div class="col-sm-10">
-                                                    <textarea class="form-control" style="resize:vertical" id="whatsapp_message" name="whatsapp_message" > </textarea>
+                                                    <textarea class="form-control" style="resize:vertical" rows="4" id="whatsapp_message" name="whatsapp_message" > </textarea>
                                                 </div>
                                                 <span class="col-xs-12 col-sm-10 col-sm-offset-2 control-label">
                                                     <?php echo form_error('whatsapp_message'); ?>
@@ -1578,11 +1695,12 @@
 $('#divwhatsapp_class').hide();
         $('#divwhatsapp_section').hide();
         $('#divwhatsapp_schoolyear').hide();
+        $('#divwhatsapp_hostel_transport').hide();
         $('#divvoice_schoolyear').hide();
 
         $('#divwhatsapp_class').hide();
         $('#divwhatsapp_section').hide();
-        $('#divwhatsapp_schoolyear').hide(); 
+        $('#divwhatsapp_schoolyear').hide();
 
         var usertypeID = "<?=$setwhatsappUserTypeID?>";
         var userID = "<?=$setwhatsappUserID?>";
@@ -1610,13 +1728,15 @@ $('#divwhatsapp_class').hide();
                     if(usertypeID == 3) {
                         $('#divwhatsapp_class').show();
                         $('#divwhatsapp_section').show();
+                        $('#divwhatsapp_hostel_transport').show();
 
                         $('#divwhatsapp_schoolyear').show();
-                        
+
                         $('#whatsapp_users').val(userID).trigger('change');
                     } else if(nonwhatsappUsertypeID == 3) {
                         $('#divwhatsapp_class').show();
                         $('#divwhatsapp_section').show();
+                        $('#divwhatsapp_hostel_transport').show();
 
                         $('#divwhatsapp_schoolyear').show();
 
@@ -1625,6 +1745,7 @@ $('#divwhatsapp_class').hide();
                         $('#divwhatsapp_schoolyear').hide();
                         $('#divwhatsapp_class').hide();
                         $('#divwhatsapp_section').hide();
+                        $('#divwhatsapp_hostel_transport').hide();
                         $('#whatsapp_users').html(data);
                         $('#whatsapp_users').val(userID).trigger('change');
                     }
@@ -1658,6 +1779,7 @@ $('#divwhatsapp_class').hide();
                         if(usertypeID == 3) {
                             $('#divwhatsapp_class').show();
                             $('#divwhatsapp_section').show();
+                            $('#divwhatsapp_hostel_transport').show();
                             $('#whatsapp_class').html(data);
 
                             $('#divwhatsapp_schoolyear').show();
@@ -1668,6 +1790,7 @@ $('#divwhatsapp_class').hide();
                             $('#divwhatsapp_schoolyear').hide();
                             $('#divwhatsapp_class').hide();
                             $('#divwhatsapp_section').hide();
+                            $('#divwhatsapp_hostel_transport').hide();
                             $('#whatsapp_users').html(data);
                             $('#whatsapp_users').val('select').trigger('change');
                         }
@@ -1699,6 +1822,10 @@ $('#divwhatsapp_class').hide();
         $('#whatsapp_class').change(function() {
             var schoolyear = $('#whatsapp_schoolyear').val();
             var classes = $(this).val();
+
+            $('#whatsapp_hostel_transport option[value=""]').prop('selected',true);
+            $('#whatsapp_hostel_transport').trigger('change');
+
             if(classes != 'select') {
 
                 $.ajax({
@@ -1714,7 +1841,7 @@ $('#divwhatsapp_class').hide();
                 $.ajax({
                     type: 'POST',
                     url: "<?=base_url('mailandsms/allstudent')?>",
-                    data: "schoolyear=" + schoolyear + "&classes=" + classes + "&section=",
+                    data: "schoolyear=" + schoolyear + "&classes=" + classes + "&section=" + "&purpose=whatsapp",
                     dataType: "html",
                     success: function(data) {
                         $('#whatsapp_users').html(data);
@@ -1729,12 +1856,38 @@ $('#divwhatsapp_class').hide();
             var schoolyear = $('#whatsapp_schoolyear').val();
             var section = $(this).val();
             var classes = $('#whatsapp_class').val();
+
+            $('#whatsapp_hostel_transport option[value=""]').prop('selected',true);
+            $('#whatsapp_hostel_transport').trigger('change');
+
             if(section != 'select') {
 
                 $.ajax({
                     type: 'POST',
                     url: "<?=base_url('mailandsms/allstudent')?>",
-                    data: "schoolyear=" + schoolyear + "&classes=" + classes + "&section=" + section,
+                    data: "schoolyear=" + schoolyear + "&classes=" + classes + "&section=" + section + "&purpose=whatsapp",
+                    dataType: "html",
+                    success: function(data) {
+                        console.log(data);
+                        $('#whatsapp_users').html(data);
+                    }
+                });
+            } else {
+                $('#whatsapp_users').html('<?=$useroption?>');
+            }
+        });
+
+        $('#whatsapp_hostel_transport').change(function() {
+            var schoolyear = $('#whatsapp_schoolyear').val();
+            var hostel_transport = $(this).val();
+            var classes = $('#whatsapp_class').val();
+            var section = $('#whatsapp_section').val();
+            if(hostel_transport != '') {
+
+                $.ajax({
+                    type: 'POST',
+                    url: "<?=base_url('mailandsms/allstudent')?>",
+                    data: "schoolyear=" + schoolyear + "&classes=" + classes + "&section=" + section + "&hostel_transport=" + hostel_transport + "&purpose=whatsapp",
                     dataType: "html",
                     success: function(data) {
                         console.log(data);
@@ -1958,17 +2111,79 @@ $(document).ready(function() {
                 toastr.info('Sending WhatsApp messages, please wait...');
             },
             success: function(res) {
+                console.log('WhatsApp send response:', res);
                 if (res.status) {
                     toastr.success(res.message);
+                    showWhatsappStatusReport(res);
                 } else {
                     toastr.error(res.message || 'Failed to send WhatsApp messages');
                 }
             },
-            error: function() {
+            error: function(xhr) {
+                console.log('WhatsApp send error:', xhr.responseText);
                 toastr.error('Error occurred while sending WhatsApp messages.');
             }
         });
     });
 
 });
+
+function showWhatsappStatusReport(res) {
+    var recipients = res.recipients || [];
+    if (!recipients.length) {
+        $('#waStatusTableBody').html('<tr><td colspan="4" class="text-center">No recipients found.</td></tr>');
+        $('#waStatusSummary').html('<b>Total:</b> ' + (res.total_count || 0));
+        $('#whatsappStatusModal').modal('show');
+        return;
+    }
+    var rows = '';
+    $.each(recipients, function(i, r) {
+        var badge = r.status
+            ? '<span class="label label-success"><i class="fa fa-check"></i> Sent</span>'
+            : '<span class="label label-danger"><i class="fa fa-times"></i> Failed</span>';
+        rows += '<tr>'
+              + '<td>' + (i + 1) + '</td>'
+              + '<td>' + $('<div>').text(r.name || '').html() + '</td>'
+              + '<td>' + $('<div>').text(r.phone || '').html() + '</td>'
+              + '<td>' + badge + '</td>'
+              + '</tr>';
+    });
+
+    $('#waStatusTableBody').html(rows);
+    $('#waStatusSummary').html(
+        '<b>Total:</b> ' + res.total_count + '&nbsp;&nbsp;'
+        + '<span style="color:#28a745;"><b>Sent:</b> ' + res.sent_count + '</span>&nbsp;&nbsp;'
+        + '<span style="color:#dc3545;"><b>Failed:</b> ' + res.failed_count + '</span>'
+    );
+    $('#whatsappStatusModal').modal('show');
+}
+</script>
+
+<!-- WhatsApp Sending Status Report modal - kept at the END of the view, outside all tables/forms -->
+<div class="modal fade" id="whatsappStatusModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document" style="max-width:560px;margin-top:80px;">
+        <div class="modal-content" style="border-radius:10px;overflow:hidden;">
+            <div class="modal-header" style="background:#25b566;color:#fff;padding:14px 20px;">
+                <button type="button" class="close" data-dismiss="modal" style="color:#fff;opacity:1;">&times;</button>
+                <h4 class="modal-title"><i class="fa fa-whatsapp"></i> WhatsApp Sending Status</h4>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div style="padding:12px 20px;background:#f9f9f9;border-bottom:1px solid #eee;" id="waStatusSummary"></div>
+                <div style="max-height:50vh;overflow-y:auto;">
+                    <table class="table table-striped" style="margin-bottom:0;">
+                        <thead>
+                            <tr><th style="width:40px;">#</th><th>Name</th><th>Phone</th><th style="width:90px;">Status</th></tr>
+                        </thead>
+                        <tbody id="waStatusTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default btn-sm" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(function() { $('body').append($('#whatsappStatusModal').detach()); });
 </script>

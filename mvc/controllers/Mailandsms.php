@@ -1173,7 +1173,11 @@ class Mailandsms extends Admin_Controller {
 							$retval = 1;
 							$retmess = '';
 							$message = $this->input->post('sms_message');
-							$multiusers = $this->user_m->get_order_by_user(array('usertypeID' => $usertypeID));
+							// 'nonteaching' (Non Teaching Staff option) covers every usertype outside
+							// Admin/Teacher/Student/Parents, so fetch the whole `user` table unfiltered.
+							$multiusers = ($usertypeID === 'nonteaching')
+								? $this->user_m->get_order_by_user()
+								: $this->user_m->get_order_by_user(array('usertypeID' => $usertypeID));
 							if(customCompute($multiusers)) {
 								foreach ($multiusers as $key => $multiuser) {
 									$status = $this->userConfigSMS($message, $multiuser, $usertypeID, $getway);
@@ -3022,7 +3026,7 @@ class Mailandsms extends Admin_Controller {
 				if(customCompute($systemadmins)) {
 					echo "<option value='select'>".$this->lang->line('mailandsms_all_users')."</option>";
 					foreach ($systemadmins as $key => $systemadmin) {
-						echo "<option value='".$systemadmin->systemadminID."'>".$systemadmin->name.'</option>';
+						echo "<option value='".$systemadmin->systemadminID."'>".$this->nameWithPhone($systemadmin->name, $systemadmin->phone).'</option>';
 					}
 				} else {
 					echo '<option value="select">'.$this->lang->line('mailandsms_all_users').'</option>';
@@ -3032,7 +3036,7 @@ class Mailandsms extends Admin_Controller {
 				if(customCompute($teachers)) {
 					echo "<option value='select'>".$this->lang->line('mailandsms_all_users')."</option>";
 					foreach ($teachers as $key => $teacher) {
-						echo "<option value='".$teacher->teacherID."'>".$teacher->name.'</option>';
+						echo "<option value='".$teacher->teacherID."'>".$this->nameWithPhone($teacher->name, $teacher->phone).'</option>';
 					}
 				} else {
 					echo '<option value="select">'.$this->lang->line('mailandsms_all_users').'</option>';
@@ -3052,17 +3056,21 @@ class Mailandsms extends Admin_Controller {
 				if(customCompute($parents)) {
 					echo "<option value='select'>".$this->lang->line('mailandsms_all_users')."</option>";
 					foreach ($parents as $key => $parent) {
-						echo "<option value='".$parent->parentsID."'>".$parent->name.'</option>';
+						echo "<option value='".$parent->parentsID."'>".$this->nameWithPhone($parent->name, $parent->phone).'</option>';
 					}
 				} else {
 					echo '<option value="select">'.$this->lang->line('mailandsms_all_users').'</option>';
 				}
 			} else {
-				$users = $this->user_m->get_order_by_user(array('usertypeID' => $usertypeID));
+				// 'nonteaching' (Non Teaching Staff option) covers every usertype outside
+				// Admin/Teacher/Student/Parents, so fetch the whole `user` table unfiltered.
+				$users = ($usertypeID === 'nonteaching')
+					? $this->user_m->get_order_by_user()
+					: $this->user_m->get_order_by_user(array('usertypeID' => $usertypeID));
 				if(customCompute($users)) {
 					echo "<option value='select'>".$this->lang->line('mailandsms_all_users')."</option>";
 					foreach ($users as $key => $user) {
-						echo "<option value='".$user->userID."'>".$user->name.'</option>';
+						echo "<option value='".$user->userID."'>".$this->nameWithPhone($user->name, $user->phone).'</option>';
 					}
 				} else {
 					echo '<option value="select">'.$this->lang->line('mailandsms_all_users').'</option>';
@@ -3076,6 +3084,7 @@ class Mailandsms extends Admin_Controller {
 		$classesID = $this->input->post('classes');
 		$sectionID = $this->input->post('section');
 		$hostel_transport = $this->input->post('hostel_transport');
+		$purpose = $this->input->post('purpose'); // 'whatsapp' -> show the dedicated WhatsApp number
 		if((int)$schoolyearID && (int)$classesID) {
 		    if ((int)$sectionID){
                 $students = $this->studentrelation_m->get_order_by_student(array('srschoolyearID' => $schoolyearID,'srsectionID' => $sectionID, 'srclassesID' => $classesID));
@@ -3094,7 +3103,13 @@ class Mailandsms extends Admin_Controller {
 			if(customCompute($students)) {
 				echo '<option value="select">'.$this->lang->line('mailandsms_all_users').'</option>';
 				foreach ($students as $key => $student) {
-					echo '<option value="'.$student->srstudentID.'">'.$student->srname.'</option>';
+					// WhatsApp sends use the dedicated alternative_phone1 "Whatsapp Number" field
+					// when set (same fallback the Student list's WhatsApp column uses), not the
+					// plain phone field that SMS uses.
+					$displayPhone = ($purpose === 'whatsapp')
+						? (!empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone)
+						: $student->phone;
+					echo '<option value="'.$student->srstudentID.'">'.$this->nameWithPhone($student->srname, $displayPhone).'</option>';
 				}
 			} else {
 				echo '<option value="select">'.$this->lang->line('mailandsms_all_users').'</option>';
@@ -3102,6 +3117,16 @@ class Mailandsms extends Admin_Controller {
 		} else {
 			echo '<option value="select">'.$this->lang->line('mailandsms_all_users').'</option>';
 		}
+	}
+
+	/* Appends phone number in brackets to a dropdown label, when available */
+	private function nameWithPhone($name, $phone) {
+		$name = html_escape($name);
+		$phone = trim((string) $phone);
+		if($phone === '' || $phone === '0') {
+			return $name;
+		}
+		return $name.' ('.html_escape($phone).')';
 	}
 
     public function allsection() {
@@ -3552,6 +3577,10 @@ public function send_whatsapp_message()
 		]);
 
 		// ✅ Handle specific student selection
+		// "select" (All Users) is a sentinel, not a real studentID - drop it before filtering.
+		if (is_array($users)) {
+			$users = array_filter($users, function($u) { return $u !== 'select' && $u !== ''; });
+		}
 		if (!empty($users) && is_array($users)) {
 			$this->db->where_in('studentrelation.srstudentID', $users);
 		}
@@ -3652,10 +3681,13 @@ public function send_whatsapp_static_message()
     }
 
     // ✅ Step 3: Optimized Query – fetch only necessary fields
-    $this->db->select('student.studentID, student.name, student.parentID, parents.phone');
+    // Use the student's own alternative_phone1 ("Whatsapp Number" on the student form) when set,
+    // falling back to the primary phone - same source the Student list's WhatsApp column uses.
+    // (Previously this joined `parents.phone`, which is a different number entirely and does not
+    // match what the Student list shows as the WhatsApp number.)
+    $this->db->select('student.studentID, student.name, student.phone, student.alternative_phone1');
     $this->db->from('studentrelation');
     $this->db->join('student', 'student.studentID = studentrelation.srstudentID', 'LEFT');
-    $this->db->join('parents', 'parents.parentsID = student.parentID', 'LEFT');
     $this->db->where([
         'studentrelation.srschoolyearID' => $schoolyearID,
         'studentrelation.srclassesID'    => $classesID,
@@ -3663,6 +3695,12 @@ public function send_whatsapp_static_message()
         'student.active'                 => 1
     ]);
 
+    // The "All Users" option posts the literal string "select" - that's a sentinel meaning
+    // "no specific student picked", not a real studentID, so it must not be used as a filter
+    // value (where_in('srstudentID', ['select']) would match zero rows).
+    if (is_array($users)) {
+        $users = array_filter($users, function($u) { return $u !== 'select' && $u !== ''; });
+    }
     if (!empty($users) && is_array($users)) {
         $this->db->where_in('studentrelation.srstudentID', $users);
     }
@@ -3679,19 +3717,21 @@ public function send_whatsapp_static_message()
 
 	// ✅ 1. Add student numbers
 	foreach ($students as $student) {
-		if (!empty($student->phone)) {
+		$waPhone = !empty($student->alternative_phone1) ? $student->alternative_phone1 : $student->phone;
+		if (!empty($waPhone)) {
 			$msgData = [
-				'phone'   => preg_replace('/\D/', '', $student->phone), // sanitize to digits
+				'name'    => $student->name,
+				'phone'   => preg_replace('/\D/', '', $waPhone), // sanitize to digits
 				'message' => $messageText,
 			];
-			
+
 			// Add media parameters if file uploaded
 			if (!empty($media_path)) {
 				$msgData['htype'] = 'document';
 				$msgData['fname'] = 'bulk whatsapp';
 				$msgData['url'] = $media_path;
 			}
-			
+
 			$bulkMessages[] = $msgData;
 		}
 	}
@@ -3704,17 +3744,18 @@ public function send_whatsapp_static_message()
 		foreach ($otherNumbers as $num) {
 			if (preg_match('/^[0-9]{10,15}$/', $num)) { // simple number validation
 				$msgData = [
+					'name'    => $num,
 					'phone'   => $num,
 					'message' => $messageText,
 				];
-				
+
 				// Add media parameters if file uploaded
 				if (!empty($media_path)) {
 					$msgData['htype'] = 'document';
 					$msgData['fname'] = 'WhatsApp_Media_' . $num . '.pdf';
 					$msgData['url'] = $media_path;
 				}
-				
+
 				$bulkMessages[] = $msgData;
 			}
 		}
@@ -3730,13 +3771,32 @@ public function send_whatsapp_static_message()
 	// ✅ 4. Send in batches with media support
 	$this->load->model('Whatsapp_m');
 	if (!empty($media_path)) {
-		$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media_progresscard($bulkMessages, $template['template_name']);
+		$sendResult = $this->Whatsapp_m->sendWhatsapp_bulk_batch_with_media_progresscard_detailed($bulkMessages, $template['template_name']);
 	} else {
-		$sentCount = $this->Whatsapp_m->sendWhatsapp_bulk_batch($bulkMessages, $template['template_name']);
+		$sendResult = $this->Whatsapp_m->sendWhatsapp_bulk_batch_detailed($bulkMessages, $template['template_name']);
+	}
+
+	$results = isset($sendResult['results']) ? $sendResult['results'] : [];
+	$sentCount = isset($sendResult['success_count']) ? $sendResult['success_count'] : 0;
+	$totalCount = count($bulkMessages);
+	$failedCount = $totalCount - $sentCount;
+
+	// ✅ 5. Build a per-recipient status report for the sending status popup
+	$recipients = [];
+	foreach ($results as $r) {
+		$recipients[] = [
+			'name'   => $r['name'] ?? $r['phone'] ?? '',
+			'phone'  => $r['phone'] ?? '',
+			'status' => !empty($r['status'])
+		];
 	}
 
     $retArray['status'] = true;
-    $retArray['message'] = "WhatsApp messages sent successfully to {$sentCount} recipients.";
+    $retArray['message'] = "WhatsApp sent to {$sentCount} of {$totalCount} recipients" . ($failedCount > 0 ? " ({$failedCount} failed)." : ".");
+    $retArray['recipients'] = $recipients;
+    $retArray['sent_count'] = $sentCount;
+    $retArray['failed_count'] = $failedCount;
+    $retArray['total_count'] = $totalCount;
     echo json_encode($retArray);
 }
 

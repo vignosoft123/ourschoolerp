@@ -330,7 +330,7 @@ class Expensereport extends Admin_Controller {
                 $tdate .= date('d M Y',$todate);
 
                 $sheet->setCellValue('A1',$fdate);
-                $sheet->setCellValue('H1',$tdate);
+                $sheet->setCellValue('I1',$tdate);
             } elseif($expensetypesID != 0) {
                 $category = "Category : ";
                 foreach($expensetypes as $expensetype) {
@@ -350,6 +350,7 @@ class Expensereport extends Admin_Controller {
             $headers['slno'] = $this->lang->line('slno');
             $headers['referenceNo'] = $this->lang->line('productpurchasereport_referenceNo');
             $headers['category'] = "Expense Category";
+            $headers['payment_type'] = "Payment Type";
             $headers['date'] = "Expense Date";
             $headers['created_by'] = "Created By";
             $headers['created_date'] = "Created Date";
@@ -360,9 +361,15 @@ class Expensereport extends Admin_Controller {
             $bodys = array();
             $total_amount = 0;
             foreach($expenses as $expense) {
+                $paymentTypeLabel = isset($expense['expense_payment_type']) ? $expense['expense_payment_type'] : '';
+                if(strtolower($paymentTypeLabel) === 'others' && !empty($expense['expense_bank_name'])) {
+                    $paymentTypeLabel = $expense['expense_bank_name'];
+                }
+
                 $bodys[$i][] = $i+1;
                 $bodys[$i][] = $expense['expense_referenceno'];
                 $bodys[$i][] = $expense['expensetypes'];
+                $bodys[$i][] = $paymentTypeLabel;
                 $bodys[$i][] = date('d M Y', strtotime($expense['date']));
                 $bodys[$i][] = $expense['uname'];
                 $bodys[$i][] = date('d M Y', strtotime($expense['create_date']));
@@ -373,6 +380,7 @@ class Expensereport extends Admin_Controller {
             }
 
             $bodys[$i][] = "Grand Total";
+            $bodys[$i][] = "";
             $bodys[$i][] = "";
             $bodys[$i][] = "";
             $bodys[$i][] = "";
@@ -416,7 +424,7 @@ class Expensereport extends Admin_Controller {
                     ]
                 ]
             ];
-            $sheet->getStyle('A1:H2')->applyFromArray($styleArray);
+            $sheet->getStyle('A1:I2')->applyFromArray($styleArray);
 
             $styleArray = [
                 'font' => [
@@ -433,7 +441,7 @@ class Expensereport extends Admin_Controller {
                 ]
             ];
             $styleColumn = $row-2;
-            $sheet->getStyle('A3:H'.$styleColumn)->applyFromArray($styleArray);
+            $sheet->getStyle('A3:I'.$styleColumn)->applyFromArray($styleArray);
 
             $styleArray = [
                 'font' => [
@@ -450,12 +458,12 @@ class Expensereport extends Admin_Controller {
                 ]
             ];
             $styleColumn = $row-1;
-            $sheet->getStyle('A'.$styleColumn.':H'.$styleColumn)->applyFromArray($styleArray);
+            $sheet->getStyle('A'.$styleColumn.':I'.$styleColumn)->applyFromArray($styleArray);
 
             $startmerge = "A".$styleColumn;
-            $endmerge = "G".$styleColumn;
+            $endmerge = "H".$styleColumn;
             $sheet->mergeCells("$startmerge:$endmerge");
-            $sheet->mergeCells("A1:G1");
+            $sheet->mergeCells("A1:H1");
 
         } else {
           redirect('expensereport');

@@ -97,12 +97,12 @@
 
                 <div class="form-group col-sm-4" id="fromdateDiv">
                     <label for="fromdate"><?= $this->lang->line("feesreport_fromdate") ?></label>
-                    <input type="text" name="fromdate" class="form-control" id="fromdate">
+                    <input type="text" name="fromdate" class="form-control" id="fromdate" value="<?= $prefillFromdate ?>">
                 </div>
 
                 <div class="form-group col-sm-4" id="todateDiv">
                     <label><?= $this->lang->line("feesreport_todate") ?></label>
-                    <input type="text" name="todate" class="form-control" id="todate">
+                    <input type="text" name="todate" class="form-control" id="todate" value="<?= $prefillTodate ?>">
                 </div>
 
                 <?php if($this->session->userdata('usertypeID') == 1) { ?>
@@ -178,6 +178,10 @@
             startDate: '<?= $schoolyearsessionobj->startingdate ?>',
             endDate: '<?= $schoolyearsessionobj->endingdate ?>',
         });
+
+        <?php if(!empty($prefillFromdate) && !empty($prefillTodate)) { ?>
+            $('#get_feesreport').click();
+        <?php } ?>
     });
 
     $(document).bind('click', '#fromdate, #todate', function() {

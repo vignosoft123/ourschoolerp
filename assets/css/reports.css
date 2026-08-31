@@ -883,3 +883,170 @@
     color: #e65100;
     font-weight: 700;
 }
+
+/* ── 19. Ledger Cards (Account Ledger Report) ───────────────────
+   Each income/expense/fees/etc. category is a small self-contained
+   card (title + description + total row) rather than a bare
+   table-bordered table — replaces AccountledgerReport.php's old
+   .singleaccountledger float layout + per-file <style> block. */
+.rpt-ledger-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-top: 10px;
+}
+.rpt-ledger-col {
+    flex: 1 1 380px;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.rpt-ledger-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid #4CAF50;
+    border-radius: 8px;
+    padding: 14px 18px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.rpt-ledger-card--income   { border-left-color: #2e7d32; }
+.rpt-ledger-card--balance  { border-left-color: #1a237e; }
+.rpt-ledger-card--fees     { border-left-color: #1565c0; }
+.rpt-ledger-card--fines    { border-left-color: #e65100; }
+.rpt-ledger-card--expense  { border-left-color: #c62828; }
+.rpt-ledger-card--salary   { border-left-color: #6a1b9a; }
+.rpt-ledger-card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #222;
+    margin: 0 0 6px;
+}
+.rpt-ledger-card-desc {
+    font-size: 12px;
+    color: #777;
+    margin: 0 0 10px;
+}
+.rpt-ledger-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-top: 1px dashed #eee;
+    font-size: 13px;
+}
+.rpt-ledger-row:first-of-type { border-top: none; }
+.rpt-ledger-row-label { color: #555; }
+.rpt-ledger-row-value { font-weight: 700; color: #222; }
+.rpt-ledger-row--grand { border-top: 1px solid #ccc; margin-top: 4px; padding-top: 10px; }
+.rpt-ledger-row--grand .rpt-ledger-row-label,
+.rpt-ledger-row--grand .rpt-ledger-row-value { font-size: 15px; }
+
+@media (max-width: 700px) {
+    .rpt-ledger-col { flex: 1 1 100%; }
+}
+
+/* ── 20. Student Session Report ─────────────────────────────────
+   Migrated out of StudentsessionReport.php's two overlapping inline
+   <style> blocks (screen + print rules for the same classes). The
+   on-screen card no longer carries the print-only 794px (A4) width
+   cap — that was clamping this report to a narrow column on-screen
+   and forcing the multi-exam table to scroll far more than needed;
+   it now uses the page's actual available width, with the 794px A4
+   sizing kept only inside @media print. */
+.rpt-session-card {
+    margin: 0 auto 20px;
+    max-width: 100%;
+    background: #f9fafc;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 24px 28px;
+}
+.rpt-session-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 12px;
+    margin-bottom: 15px;
+}
+.rpt-session-header img { width: 64px; height: 64px; border-radius: 6px; object-fit: cover; }
+.rpt-session-header h2 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 22px;
+    color: #1565c0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.rpt-session-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    border-bottom: 1px dashed #ccc;
+    padding-bottom: 15px;
+}
+.rpt-session-info > div:not(.rpt-session-photo) { flex: 1 1 260px; }
+.rpt-session-info h4 {
+    color: #2d2d2d;
+    font-weight: 700;
+    font-size: 14px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 4px;
+    margin-bottom: 8px;
+}
+.rpt-session-info p { margin: 3px 0; font-size: 13px; color: #333; }
+.rpt-session-photo { text-align: right; }
+.rpt-session-photo img {
+    width: 110px;
+    height: 110px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #fff;
+    padding: 4px;
+}
+/* The exam-marks table itself uses the shared .rpt-table/.rpt-table-wrap/
+   .rpt-sticky-left system (§5/§7), not a bespoke style here — Subjects is
+   the sticky-left column, matching every other report's "first column
+   sticky" rule. Only the surrounding "report card" chrome above is
+   genuinely unique to this report's layout. */
+.rpt-session-attendance-title {
+    margin-top: 22px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #1565c0;
+    color: #1565c0;
+    font-weight: 700;
+}
+
+/* Grade / attendance labels used inside the exam-marks table cells */
+.rpt-grade-label {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    display: inline-block;
+    font-size: 13px;
+}
+.rpt-grade-a-plus { background-color: #e6f4ea; color: #2e7d32; }
+.rpt-grade-a      { background-color: #e8f5e9; color: #388e3c; }
+.rpt-grade-b-plus { background-color: #e3f2fd; color: #0288d1; }
+.rpt-grade-b      { background-color: #e1f5fe; color: #039be5; }
+.rpt-grade-c-plus { background-color: #fff9c4; color: #fbc02d; }
+.rpt-grade-c      { background-color: #ffe0b2; color: #f57c00; }
+.rpt-grade-d      { background-color: #ffcdd2; color: #d32f2f; }
+.rpt-attendance-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
+    background: #e74c3c;
+}
+
+@media print {
+    .rpt-session-card { max-width: 794px; margin: 0 auto 10px; padding: 30px; }
+}

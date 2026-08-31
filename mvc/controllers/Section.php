@@ -229,6 +229,15 @@ class Section extends Admin_Controller {
 			$row = $this->section_m->general_get_single_section(array('sectionID' => $id));
 			if ($row) {
 				$new_status = ($row->active_status == 1) ? 0 : 1;
+
+				if ($new_status == 0) {
+					$studentExists = $this->studentrelation_m->get_single_studentrelation(array('srsectionID' => $id));
+					if ($studentExists) {
+						echo json_encode(array('success' => false, 'message' => 'This section already has student(s) enrolled, so it cannot be deactivated.'));
+						return;
+					}
+				}
+
 				$this->section_m->update_section(array('active_status' => $new_status), $id);
 				echo json_encode(array('success' => true, 'active_status' => $new_status));
 				return;

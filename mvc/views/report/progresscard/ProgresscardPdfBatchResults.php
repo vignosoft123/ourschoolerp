@@ -3,7 +3,7 @@
         <h3 class="box-title"><i class="fa fa-file-pdf-o"></i> Progress Card PDFs</h3>
         <ol class="breadcrumb">
             <li><a href="<?=base_url("dashboard/index")?>"><i class="fa fa-laptop"></i> <?=$this->lang->line('menu_dashboard')?></a></li>
-            <li><a href="<?=base_url('progresscardreport/index')?>">Progress Card Report</a></li>
+            <li><a href="<?=base_url('progresscardreport/index')?>">Progress Report</a></li>
             <li class="active">PDFs</li>
         </ol>
     </div>

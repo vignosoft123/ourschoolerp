@@ -90,6 +90,11 @@ class Daysummary_m extends CI_Model {
     // txn_time includes the date (not just time-of-day) since a range can span multiple days;
     // sort_ts is the raw unix timestamp used to sort all 4 transaction types together in true
     // chronological order (needed once rows can come from more than a single calendar day).
+    // Deliberately NOT filtered by schoolyearID: a payment made in this range can settle an
+    // invoice raised in a previous academic year, but it's still real cash collected on that
+    // day. Payment_m::get_all_payment_for_report() (the Fees Report) already omits this filter
+    // for the same reason - filtering here made this report's Fee Collection total disagree
+    // with the Fees Report / Dashboard "Today's Finance" figure for the same date.
     public function get_fee_transactions($fromDate, $toDate, $schoolyearID) {
         $sql = "SELECT p.paymentID, p.paymentamount, p.paymenttype,
                        COALESCE(p.payment_other_details,'') AS bank,
@@ -101,9 +106,9 @@ class Daysummary_m extends CI_Model {
                 LEFT JOIN invoice  inv ON inv.invoiceID   = p.invoiceID
                 LEFT JOIN student  s   ON s.studentID     = inv.studentID
                 LEFT JOIN feetypes ft  ON ft.feetypesID   = inv.feetypeID
-                WHERE p.paymentdate BETWEEN ? AND ? AND p.schoolyearID = ?
+                WHERE p.paymentdate BETWEEN ? AND ?
                 ORDER BY p.created_at, p.paymentID";
-        return $this->db->query($sql, [$fromDate, $toDate, $schoolyearID])->result();
+        return $this->db->query($sql, [$fromDate, $toDate])->result();
     }
 
     // Individual other-income rows for a date range, with category name

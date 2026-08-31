@@ -533,9 +533,15 @@
                     <input type="hidden" name="correspondent_signature" value="<?= $setting->correspondent_signature ?>">
                     <label class="st-file-btn">
                         <i class="fa fa-upload"></i> Choose File
-                        <input type="file" name="image" accept="image/*">
+                        <input type="file" id="sigFormFile" name="image" accept="image/*">
                     </label>
                     <span class="control-label"><?= form_error('signature') ?></span>
+                    <div id="sigPreviewContainer" style="display:none; margin-top:10px; text-align:center;">
+                        <img id="sigImagePreview" style="max-width:100%; max-height:200px;" />
+                    </div>
+                    <div id="sigCropBtnContainer" style="display:none; margin-top:8px; text-align:center;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="sigCropBtn">Crop &amp; Compress</button>
+                    </div>
                 </div>
                 <?php if (!empty($setting->correspondent_signature)): ?>
                 <div class="st-field">
@@ -746,4 +752,51 @@
 
     $(".select2").select2({ placeholder:"", maximumSelectionSize:6 });
     $('#weekends').select2();
+</script>
+
+<!-- Signature upload crop — same Cropper.js flow as the Student list's photo upload
+     (mvc/views/student/index.php, #fileUploadModal), just wired inline here instead of in
+     a modal since this page is one single settings <form> with one Save button at the
+     bottom (line ~586), not a per-field AJAX upload. Cropping replaces the #sigFormFile
+     input's own .files via DataTransfer, so the existing form submit (unchanged, no
+     controller/backend changes) uploads the cropped image exactly as if the user had
+     chosen it directly — no aspectRatio lock, since signatures aren't square. -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+(function() {
+    var sigCropper = null;
+
+    document.getElementById('sigFormFile').addEventListener('change', function(event) {
+        var file = event.target.files[0];
+        if (!file || !file.type.startsWith('image/')) { return; }
+
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var image = document.getElementById('sigImagePreview');
+            image.src = e.target.result;
+            document.getElementById('sigPreviewContainer').style.display = 'block';
+            document.getElementById('sigCropBtnContainer').style.display = 'block';
+            if (sigCropper) { sigCropper.destroy(); }
+            sigCropper = new Cropper(image, {
+                viewMode: 1,
+                autoCropArea: 1
+            });
+        };
+        reader.readAsDataURL(file);
+    });
+
+    document.getElementById('sigCropBtn').addEventListener('click', function() {
+        if (!sigCropper) { return; }
+        var canvas = sigCropper.getCroppedCanvas({ imageSmoothingQuality: 'high' });
+        canvas.toBlob(function(blob) {
+            var croppedFile = new File([blob], 'signature.jpg', { type: 'image/jpeg' });
+            var dataTransfer = new DataTransfer();
+            dataTransfer.items.add(croppedFile);
+            document.getElementById('sigFormFile').files = dataTransfer.files;
+            document.getElementById('sigImagePreview').src = URL.createObjectURL(blob);
+            alert('Signature cropped. It will upload when you click "' + <?= json_encode($this->lang->line('update_setting')) ?> + '" below.');
+        }, 'image/jpeg', 0.9);
+    });
+})();
 </script>

@@ -295,7 +295,7 @@
             <?php if(in_array($this->session->userdata('usertypeID'), array(1,5))): ?>
             <div class="col-lg-2 col-xs-4">
                 <div class="small-box light-blue-clr">
-                    <a class="small-box-footer" href="<?= base_url('income');?>">
+                    <a class="small-box-footer" href="<?= base_url('feesreport?fromdate='.date('d-m-Y').'&todate='.date('d-m-Y'));?>">
                         <div class="icon icon-bg dark-blue-clr">
                             <i class="fa fa-inr" style="font-size:24px; line-height:46px; color:#fff;"></i>
                         </div>
@@ -509,7 +509,22 @@
                     </h3>
                 </div>
                 <div class="box-body" style="padding:0; height:280px; overflow-y:auto;">
-                    <?php if(customCompute($todaysAttendance)): ?>
+                    <?php
+                        // Weekends/holidays leave every class at 0 Present / 0 Absent (see
+                        // _attendanceGraph()) - showing that as a table of 0% rows reads like
+                        // every student was marked absent, so show the same "nothing to show
+                        // yet" state as an unmarked school day instead, with the actual reason.
+                        $hasTodaysAttendance = false;
+                        if (customCompute($todaysAttendance)) {
+                            foreach ($todaysAttendance as $att) {
+                                if ((int)($att['P'] ?? 0) + (int)($att['A'] ?? 0) > 0) {
+                                    $hasTodaysAttendance = true;
+                                    break;
+                                }
+                            }
+                        }
+                    ?>
+                    <?php if($hasTodaysAttendance): ?>
                     <table class="table table-condensed" style="margin:0; font-size:12px;">
                         <thead>
                             <tr style="background:#f9f9f9;">
@@ -520,7 +535,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                        <?php foreach($todaysAttendance as $classID => $att):
+                        <?php foreach($classes as $classID => $classObj):
+                            $att = isset($todaysAttendance[$classID]) ? $todaysAttendance[$classID] : array('P' => 0, 'A' => 0);
                             $p = (int)($att['P'] ?? 0);
                             $a = (int)($att['A'] ?? 0);
                             $total = $p + $a;
@@ -541,7 +557,13 @@
                     <?php else: ?>
                     <div style="text-align:center; color:#bbb; padding:60px 0; font-size:13px;">
                         <i class="fa fa-clock-o" style="font-size:28px; display:block; margin-bottom:8px;"></i>
-                        Attendance not marked yet today
+                        <?php if(!empty($todayIsHoliday)): ?>
+                            Today is a Holiday
+                        <?php elseif(!empty($todayIsWeekend)): ?>
+                            Today is a Weekly Off
+                        <?php else: ?>
+                            Attendance not marked yet today
+                        <?php endif; ?>
                     </div>
                     <?php endif; ?>
                 </div>

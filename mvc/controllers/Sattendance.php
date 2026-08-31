@@ -423,6 +423,253 @@ class Sattendance extends Admin_Controller
 		}
 	}
 
+	// Monthly attendance grid: same "attendance" table/monthyear row-per-student the
+	// single-day add() screen already uses (one row already holds all a1..a31 columns
+	// for a month) - this just displays every day column at once instead of one, and
+	// saves each cell individually as it's clicked instead of one batch submit at the
+	// end. Scoped to the standard (non-subject) attendance mode only, matching what
+	// add() shows by default; subject-wise attendance would need its own day x subject
+	// grid, which nobody has asked for yet.
+	public function monthly()
+	{
+		if (!(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || $this->session->userdata('usertypeID') == 1)) {
+			$this->data["subview"] = "error";
+			$this->load->view('_layout_main', $this->data);
+			return;
+		}
+
+		$this->data['headerassets'] = array(
+			'css' => array(
+				'assets/select2/css/select2.css',
+				'assets/select2/css/select2-bootstrap.css'
+			),
+			'js' => array(
+				'assets/select2/select2.js'
+			)
+		);
+
+		$this->data['classes'] = $this->classes_m->get_classes();
+		$this->data['sections'] = [];
+		$this->data['months'] = array(
+			1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+			5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+			9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+		);
+		$this->data['selectedMonth'] = (int)date('m');
+		$this->data['selectedYear']  = (int)date('Y');
+		$this->data["subview"] = "sattendance/monthly";
+		$this->load->view('_layout_main', $this->data);
+	}
+
+	public function getMonthlyGrid()
+	{
+		$retArray = array('status' => FALSE, 'render' => '');
+
+		if (!permissionChecker('sattendance_add')) {
+			$retArray['message'] = $this->lang->line('sattendance_permission');
+			echo json_encode($retArray);
+			exit;
+		}
+
+		if ($this->data['setting']->attendance == "subject") {
+			$retArray['message'] = "Monthly attendance is only available for standard (non-subject) attendance.";
+			echo json_encode($retArray);
+			exit;
+		}
+
+		$classesID = (int)$this->input->post('classesID');
+		$sectionID = (int)$this->input->post('sectionID');
+		$month     = (int)$this->input->post('month');
+		$year      = (int)$this->input->post('year');
+
+		if (!$classesID || !$sectionID || !$month || !$year || $month < 1 || $month > 12) {
+			$retArray['message'] = 'Please select class, section and month.';
+			echo json_encode($retArray);
+			exit;
+		}
+
+		$schoolyearID = $this->session->userdata('defaultschoolyearID');
+		$userID       = $this->session->userdata('loginuserID');
+		$usertype     = $this->session->userdata('usertype');
+		$monthyear    = sprintf('%02d-%04d', $month, $year);
+
+		$students = $this->studentrelation_m->get_order_by_student(array(
+			'srschoolyearID' => $schoolyearID,
+			'srclassesID'    => $classesID,
+			'srsectionID'    => $sectionID
+		));
+
+		if (!customCompute($students)) {
+			$retArray['message'] = $this->lang->line('sattendance_data_not_found');
+			echo json_encode($retArray);
+			exit;
+		}
+
+		$attendances = pluck($this->sattendance_m->get_order_by_attendance(array(
+			'schoolyearID' => $schoolyearID,
+			'classesID'    => $classesID,
+			'sectionID'    => $sectionID,
+			'monthyear'    => $monthyear
+		)), 'obj', 'studentID');
+
+		// Same "insert a row for anyone missing one this month" step add() already does
+		// before it can show/edit that month's columns for every student.
+		$studentArray = [];
+		foreach ($students as $student) {
+			if (!isset($attendances[$student->studentID])) {
+				$studentArray[] = array(
+					"studentID"    => $student->studentID,
+					'schoolyearID' => $schoolyearID,
+					"classesID"    => $classesID,
+					'sectionID'    => $sectionID,
+					"userID"       => $userID,
+					"usertype"     => $usertype,
+					"monthyear"    => $monthyear
+				);
+			}
+		}
+
+		if (customCompute($studentArray)) {
+			$this->sattendance_m->insert_batch_attendance($studentArray);
+			$attendances = pluck($this->sattendance_m->get_order_by_attendance(array(
+				'schoolyearID' => $schoolyearID,
+				'classesID'    => $classesID,
+				'sectionID'    => $sectionID,
+				'monthyear'    => $monthyear
+			)), 'obj', 'studentID');
+		}
+
+		$daysInMonth = (int)date('t', mktime(0, 0, 0, $month, 1, $year));
+
+		// Weekends/holidays are never marked in the attendance table itself (see the
+		// Dashboard "Today's Attendance" fix) - flag them here the same way
+		// Attendanceoverviewreport.php does, purely from the date, so the grid can grey
+		// those columns out instead of letting someone toggle P/A on a day school wasn't
+		// in session.
+		$weekendDates = $this->getWeekendDaysSession();
+		$holidayDates = array_filter(explode('","', $this->getHolidaysSession()));
+		$nonSchoolDays = [];
+		for ($d = 1; $d <= $daysInMonth; $d++) {
+			$calendarDate = sprintf('%02d-%02d-%04d', $d, $month, $year);
+			if (in_array($calendarDate, $holidayDates)) {
+				$nonSchoolDays[$d] = 'H';
+			} elseif (in_array($calendarDate, $weekendDates)) {
+				$nonSchoolDays[$d] = 'W';
+			}
+		}
+
+		$this->data['students']      = $students;
+		$this->data['attendances']   = $attendances;
+		$this->data['daysInMonth']   = $daysInMonth;
+		$this->data['month']         = $month;
+		$this->data['year']          = $year;
+		$this->data['nonSchoolDays'] = $nonSchoolDays;
+
+		$retArray['render'] = $this->load->view('sattendance/monthly_grid', $this->data, true);
+		$retArray['status'] = TRUE;
+		echo json_encode($retArray);
+		exit;
+	}
+
+	// Saves exactly one student/day cell - the grid calls this on every click instead of
+	// batching the whole month into one submit. A month's grid can be hundreds of cells;
+	// requiring one big "Save" at the end risks losing everything to a closed tab or a
+	// timed-out session, so each toggle persists immediately like the on-screen tick
+	// itself is the save action, same as spreadsheet-style inline editing elsewhere.
+	public function saveMonthlyCell()
+	{
+		$retArray = array('status' => FALSE, 'message' => '');
+
+		if (!permissionChecker('sattendance_add')) {
+			$retArray['message'] = $this->lang->line('sattendance_permission');
+			echo json_encode($retArray);
+			exit;
+		}
+
+		if (!(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || $this->session->userdata('usertypeID') == 1)) {
+			$retArray['message'] = $this->lang->line('sattendance_permission');
+			echo json_encode($retArray);
+			exit;
+		}
+
+		$attendanceID = (int)$this->input->post('attendanceID');
+		$day          = (int)$this->input->post('day');
+		$value        = $this->input->post('value');
+
+		if (!$attendanceID || $day < 1 || $day > 31 || !in_array($value, array('P', 'A'))) {
+			$retArray['message'] = 'Invalid attendance cell.';
+			echo json_encode($retArray);
+			exit;
+		}
+
+		$this->sattendance_m->update_attendance(array('a' . $day => $value), $attendanceID);
+
+		$retArray['status']  = TRUE;
+		$retArray['message'] = 'Saved';
+		echo json_encode($retArray);
+		exit;
+	}
+
+	// Backs the header tick above a date column: the grid only enables it once at
+	// least one student checkbox is ticked, and the click then marks Present for just
+	// those checked students' attendanceIDs on that one day - a single batch update,
+	// not one saveMonthlyCell() call per selected student. See saveMonthlySelectedAbsent()
+	// just below for the header cross's mirror-image counterpart.
+	public function saveMonthlySelectedPresent()
+	{
+		$this->_saveMonthlySelectedValue('P');
+	}
+
+	// Header cross counterpart to saveMonthlySelectedPresent() above - same checked-
+	// students-only gating and single batch update, just writing 'A' instead of 'P'.
+	public function saveMonthlySelectedAbsent()
+	{
+		$this->_saveMonthlySelectedValue('A');
+	}
+
+	private function _saveMonthlySelectedValue($value)
+	{
+		$retArray = array('status' => FALSE, 'message' => '');
+
+		if (!permissionChecker('sattendance_add')) {
+			$retArray['message'] = $this->lang->line('sattendance_permission');
+			echo json_encode($retArray);
+			exit;
+		}
+
+		if (!(($this->data['siteinfos']->school_year == $this->session->userdata('defaultschoolyearID')) || $this->session->userdata('usertypeID') == 1)) {
+			$retArray['message'] = $this->lang->line('sattendance_permission');
+			echo json_encode($retArray);
+			exit;
+		}
+
+		$attendanceIDs = $this->input->post('attendanceIDs');
+		$day           = (int)$this->input->post('day');
+
+		if (!is_array($attendanceIDs) || !customCompute($attendanceIDs) || $day < 1 || $day > 31) {
+			$retArray['message'] = 'Invalid request.';
+			echo json_encode($retArray);
+			exit;
+		}
+
+		$updateArray = [];
+		foreach ($attendanceIDs as $attendanceID) {
+			$attendanceID = (int)$attendanceID;
+			if ($attendanceID) {
+				$updateArray[] = array('attendanceID' => $attendanceID, 'a' . $day => $value);
+			}
+		}
+
+		if (customCompute($updateArray)) {
+			$this->sattendance_m->update_batch_attendance($updateArray, 'attendanceID');
+		}
+
+		$retArray['status']  = TRUE;
+		$retArray['message'] = 'Saved';
+		echo json_encode($retArray);
+		exit;
+	}
+
 	public function student_list()
 	{
 		$classID = $this->input->post('id');

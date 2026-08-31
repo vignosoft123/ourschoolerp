@@ -36,7 +36,7 @@
 
     <table width="100%" style="border:none; background:#fff3e0; margin-top:4px;">
         <tr><td style="border:none; text-align:center; color:#e65100; font-weight:bold; padding:4px;">
-            <?=isset($exams[$examID]) ? strtoupper($exams[$examID]) : ''?> PROGRESS CARD REPORT
+            <?=isset($exams[$examID]) ? strtoupper($exams[$examID]) : ''?> PROGRESS REPORT
         </td></tr>
     </table>
 
@@ -117,7 +117,7 @@
 
     <!-- ===== Result Summary ===== -->
     <table width="100%" cellpadding="4" cellspacing="0" style="border-collapse:collapse; margin-top:5px; text-align:center;">
-        <tr style="background:#1a237e; color:#fff;">
+        <tr style="background:#eceff1; color:#1a237e;">
             <th style="border:1px solid #ddd;">Total Marks</th>
             <th style="border:1px solid #ddd;">Percentage</th>
             <th style="border:1px solid #ddd;">Grade</th>
@@ -309,12 +309,20 @@
 
     <!-- ===== Signatures =====
          mPDF does not support CSS flexbox (display:flex is silently dropped), so the three
-         labels must use a table with explicit column alignment instead — left/center/right. -->
-    <table width="100%" style="border:none; margin-top:8px; font-size:10px;">
+         labels must use a table with explicit column alignment instead — left/center/right.
+         Principal's Signature column also carries the correspondent_signature image, same as
+         the old-design PDF — width/height are forced (not object-fit/max-width) since mPDF
+         stretches to the given box rather than preserving aspect ratio. -->
+    <table width="100%" style="border:none; margin-top:8px; text-align:center; font-size:10px;">
         <tr>
-            <td style="border:none; text-align:left;">Parent's Signature</td>
-            <td style="border:none; text-align:center;">Class Teacher's Signature</td>
-            <td style="border:none; text-align:right;">Principal's Signature</td>
+            <td style="border:none; width:33%;">&nbsp;</td>
+            <td style="border:none; width:33%;">&nbsp;</td>
+            <td style="border:none; width:34%;"><img src="<?=base_url('/uploads/signatures/').$siteinfos->correspondent_signature?>" style="width:150px; height:50px;"></td>
+        </tr>
+        <tr>
+            <td style="border:none;">Parent's Signature</td>
+            <td style="border:none;">Class Teacher's Signature</td>
+            <td style="border:none;">Principal's Signature</td>
         </tr>
     </table>
 </div>

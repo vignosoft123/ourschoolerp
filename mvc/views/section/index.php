@@ -196,7 +196,12 @@ $(document).on('click', '.ft-toggle-switch', function () {
                     }
                     toastr.success('Status updated successfully.');
                 } else {
-                    toastr.error('Failed to update status. Please try again.');
+                    Swal.fire({
+                        title: 'Cannot Deactivate',
+                        text: res.message ? res.message : 'Failed to update status. Please try again.',
+                        icon: 'error',
+                        confirmButtonColor: '#e53935'
+                    });
                 }
             },
             error: function () {

@@ -253,22 +253,27 @@ class Daysheet_m extends CI_Model {
     // NEW - range twin of get_fee_by_paymenttype() above, used only by the Day
     // Sheet Report's own Section 2 query. get_fee_by_paymenttype() itself was left
     // untouched because get_previous_closing() depends on its single-date signature.
+    // Deliberately NOT filtered by schoolyearID: a payment made in this range can settle
+    // an invoice raised in a previous academic year, but it's still real cash collected
+    // on that day - same reasoning as Payment_m::get_all_payment_for_report() (Fees
+    // Report), which never filtered on it. Filtering here made this report's fee
+    // collection total disagree with the Fees Report / Dashboard for the same date.
     public function get_fee_by_paymenttype_range($fromDate, $toDate, $schoolyearID) {
         $sql = "SELECT paymenttype, COALESCE(payment_other_details,'') AS bank,
                        SUM(paymentamount) AS total
                 FROM payment
-                WHERE paymentdate BETWEEN ? AND ? AND schoolyearID = ?
+                WHERE paymentdate BETWEEN ? AND ?
                 GROUP BY paymenttype, payment_other_details
                 ORDER BY paymenttype";
-        return $this->db->query($sql, [$fromDate, $toDate, $schoolyearID])->result();
+        return $this->db->query($sql, [$fromDate, $toDate])->result();
     }
 
-    // Fee count for a date range (for summary card)
+    // Fee count for a date range (for summary card). Not filtered by schoolyearID -
+    // see get_fee_by_paymenttype_range() above for why.
     public function get_fee_count($fromDate, $toDate, $schoolyearID) {
         return $this->db
             ->where('paymentdate >=', $fromDate)
             ->where('paymentdate <=', $toDate)
-            ->where('schoolyearID', $schoolyearID)
             ->count_all_results('payment');
     }
 
@@ -311,16 +316,17 @@ class Daysheet_m extends CI_Model {
         return $this->db->get()->result();
     }
 
-    // Fee collection grouped by fee type for a date range (Section 8)
+    // Fee collection grouped by fee type for a date range (Section 8). Not filtered
+    // by schoolyearID - see get_fee_by_paymenttype_range() above for why.
     public function get_fee_by_feetype($fromDate, $toDate, $schoolyearID) {
         $sql = "SELECT ft.feetypes AS feetype, SUM(p.paymentamount) AS total
                 FROM payment p
                 LEFT JOIN invoice i ON i.invoiceID = p.invoiceID
                 LEFT JOIN feetypes ft ON ft.feetypesID = i.feetypeID
-                WHERE p.paymentdate BETWEEN ? AND ? AND p.schoolyearID = ?
+                WHERE p.paymentdate BETWEEN ? AND ?
                 GROUP BY i.feetypeID
                 ORDER BY ft.feetypes";
-        return $this->db->query($sql, [$fromDate, $toDate, $schoolyearID])->result();
+        return $this->db->query($sql, [$fromDate, $toDate])->result();
     }
 
     // Salary paid across a date range

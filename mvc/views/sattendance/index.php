@@ -18,8 +18,12 @@
                         <?php if(($siteinfos->school_year == $this->session->userdata('defaultschoolyearID') || $this->session->userdata('usertypeID') == 1)) { ?>
                             <?php if(permissionChecker('sattendance_add')) { ?>
                                 <a class="ose-btn create-btn" href="<?php echo base_url('sattendance/add') ?>">
-                                    <i class="fa fa-plus"></i> 
+                                    <i class="fa fa-plus"></i>
                                     <?=$this->lang->line('add_title')?>
+                                </a>
+                                <a class="ose-btn create-btn" href="<?php echo base_url('sattendance/monthly') ?>" target="_blank">
+                                    <i class="fa fa-calendar"></i>
+                                    Add Attendance By Month
                                 </a>
                             <?php } ?>
                         <?php } ?>

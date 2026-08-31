@@ -3115,9 +3115,15 @@ $(document).ready(function () {
         if (seen[col]) { return; }
         seen[col] = true;
         var label = $.trim($(this).text());
-        var $item = $('<label>', { class: 'rpt-col-selector-item' });
+        // This page has a page-wide `label { color: #ffff; }` rule (see the <style>
+        // block near the top of this file), which makes any plain <label> - including
+        // this one - default to white text unless something more specific overrides
+        // it. Setting the color inline guarantees it wins over that rule regardless of
+        // which CSS file version is actually deployed on a given server (this is what
+        // was blanking these labels out on the live site while working locally).
+        var $item = $('<label>', { class: 'rpt-col-selector-item', css: { color: '#444' } });
         var $checkbox = $('<input>', { type: 'checkbox', 'data-col': col, checked: true });
-        var $text = $('<span>', { text: label, title: label });
+        var $text = $('<span>', { text: label, title: label, css: { color: '#444' } });
         $item.append($checkbox).append($text);
         $list.append($item);
     });

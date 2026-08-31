@@ -573,7 +573,7 @@ font-size: 13px;
                         </div>
                         <div class="progresscard-contents progresscardreporttable">
 
-                        <h3 style="text-align:center"><?=isset($exams[$examID]) ? $exams[$examID] : ''?>  Progress card report - 2025-2026.</h3>
+                        <h3 style="text-align:center"><?=isset($exams[$examID]) ? $exams[$examID] : ''?>  Progress report - 2025-2026.</h3>
 
                             <table>
                                 <thead>

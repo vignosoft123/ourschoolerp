@@ -121,6 +121,12 @@ class Feesreport extends Admin_Controller{
 		$this->data['classes'] = $this->classes_m->general_get_classes();
 		$this->data['feetypes'] = $this->feetypes_m->get_feetypes();
 		$this->data['users'] = $this->user_m->get_all_user('user', array('usertypeID' => 5));
+
+		// Supports the Dashboard "Today's Finance" card, which links here with today's
+		// date so the report auto-loads instead of landing on an empty filter form.
+		$this->data['prefillFromdate'] = htmlentities(escapeString($this->input->get('fromdate')));
+		$this->data['prefillTodate']   = htmlentities(escapeString($this->input->get('todate')));
+
 		$this->data["subview"] = "report/fees/FeesReportView";
 		$this->load->view('_layout_main', $this->data);
 	}
@@ -228,7 +234,12 @@ class Feesreport extends Admin_Controller{
 					$this->data['weaverandfine'] = pluck($this->weaverandfine_m->get_order_by_weaverandfine(array('schoolyearID'=>$schoolyearID)),'obj','paymentID');
 					$this->data['classes'] = pluck($this->classes_m->general_get_classes(),'classes','classesID');
 					$this->data['sections'] = pluck($this->section_m->general_get_section(),'section','sectionID');
-					$this->data['invoices'] = pluck($this->invoice_m->get_order_by_invoice(array('schoolyearID'=>$schoolyearID)),'feetypeID','invoiceID');
+					// Not filtered by schoolyearID: get_all_payment_for_report() below deliberately
+					// includes payments that settle a PREVIOUS year's invoice (a payment made today
+					// against old dues still counts as cash collected today). Restricting this
+					// invoiceID->feetypeID lookup to the current year left the Fee Type column blank
+					// for exactly those rows, since their invoice wasn't in the map at all.
+					$this->data['invoices'] = pluck($this->invoice_m->get_order_by_invoice(),'feetypeID','invoiceID');
 					$this->data['feetypes'] = pluck($this->feetypes_m->get_feetypes(),'feetypes','feetypesID');
 					$this->data['getFeesReports'] = $this->payment_m->get_all_payment_for_report($this->input->post());
 

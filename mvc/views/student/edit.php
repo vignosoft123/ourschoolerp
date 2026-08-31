@@ -521,7 +521,7 @@
                                     echo "<div class='col-md-4' >";
                                 ?>
                                 <label for="sub_caste" class=" control-label">
-                                    Sub Caste
+                                    Sub Caste<span class="text-red">*</span>
                                 </label>
                                     <input type="text" class="form-control" id="sub_caste" name="sub_caste" value="<?= set_value('sub_caste', $student->sub_caste) ?>">
                                 <span class="  control-label">
@@ -579,7 +579,7 @@
                                     $mother_name = $this->db->get('parents')->row()->mother_name;
                             ?>
                                 <label for="name_id" class="control-label">
-                                Mother Name <span class="text-red">*</span>
+                                Mother Name
                                 </label>
                                
                                     <input type="text" class="form-control" id="mother_name" name="mother_name" value="<?= $mother_name?$mother_name:''?>" >
@@ -618,7 +618,7 @@
                                     echo "<div class='col-md-4' >";
                             ?>
                                 <label for="phone" class=" control-label">
-                                    <?=$this->lang->line("student_phone")?>
+                                    <?=$this->lang->line("student_phone")?> <span class="text-red">*</span>
                                 </label>
                                 
                                     <input type="text" class="form-control" id="phone"  maxlength="10" name="phone" value="<?=set_value('phone', $student->phone)?>" >
@@ -911,7 +911,7 @@
                                     echo "<div class='col-md-4' >";
                                 ?>
                                 <label for="name_id" class=" control-label">
-                                    Ration Card No <span class="text-red">*</span>
+                                    Ration Card No
                                 </label>
                                 
                                     <input type="text" class="form-control" id="ration_card" name="ration_card" value="<?= set_value('ration_card', $student->ration_card) ?>">
@@ -1686,6 +1686,7 @@ $('.student-form-info').on('submit', function(e) {
      ['#last_name','Last Name is required'],
      ['#name_id','ID Card Name is required'],
      ['#father_name','Father Name is required'],
+     ['#phone','Phone number is required'],
      ['#roll','Roll No is required']
     ].forEach(function(r) {
         var $el=$f.find(r[0]);

@@ -626,6 +626,12 @@ class Progresscardreport extends Admin_Controller {
 	// as its pages are imported; only the final merged PDF is streamed, never saved to disk.
 	private function _mergeStudentPdfsAndOutput($students, $stylesheet, $viewpath, $outputName, $mode) {
 		set_time_limit(0);
+		// Shared hosting (live) commonly caps memory_limit far lower than local XAMPP —
+		// each student here is a full mPDF render held in memory one after another, so a
+		// class of a dozen+ students can exhaust a tight default (e.g. 128M) partway
+		// through the loop. '-1' removes the cap for just this request; if the host's
+		// suexec/php.ini forbids overriding it, this is a silent no-op (safe either way).
+		ini_set('memory_limit', '-1');
 		$merged = new \Mpdf\Mpdf();
 
 		if(customCompute($students)) {
@@ -645,6 +651,11 @@ class Progresscardreport extends Admin_Controller {
 					$merged->useTemplate($tplId);
 				}
 				unlink($tmpPath);
+
+				// Drop this student's rendered PDF string/temp-file references before the
+				// next iteration allocates a new one — without this, peak memory grows
+				// roughly linearly with class size instead of staying flat per-student.
+				unset($pdfString, $tmpPath);
 			}
 		}
 

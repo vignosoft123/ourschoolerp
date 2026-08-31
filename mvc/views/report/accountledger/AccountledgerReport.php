@@ -1,49 +1,22 @@
-<div class="row">
-    <div class="col-sm-12" style="margin:10px 0px">
-        <?php
-            if($fromdate != '' && $todate !='' )  {
-                $pdf_preview_uri = base_url('accountledgerreport/pdf/'.$schoolyearID.'/'.strtotime($fromdate).'/'.strtotime($todate));
-            } else {
-                $pdf_preview_uri = base_url('accountledgerreport/pdf/'.$schoolyearID);
-            } 
-            echo btn_printReport('accountledgerreport', $this->lang->line('report_print'), 'printablediv');
-            echo btn_pdfPreviewReport('accountledgerreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            echo btn_sentToMailReport('accountledgerreport', $this->lang->line('report_send_pdf_to_mail'));
-        ?>
-    </div>
+<div class="rpt-action-bar">
+    <?php
+        if($fromdate != '' && $todate !='' )  {
+            $pdf_preview_uri = base_url('accountledgerreport/pdf/'.$schoolyearID.'/'.strtotime($fromdate).'/'.strtotime($todate));
+        } else {
+            $pdf_preview_uri = base_url('accountledgerreport/pdf/'.$schoolyearID);
+        }
+        echo btn_printReport('accountledgerreport', $this->lang->line('report_print'), 'printablediv');
+        echo btn_pdfPreviewReport('accountledgerreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+        echo btn_sentToMailReport('accountledgerreport', $this->lang->line('report_send_pdf_to_mail'));
+    ?>
 </div>
 <div class="box">
-    <div class="box-header bg-gray">
-        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> 
-            <?=$this->lang->line('accountledgerreport_report_for')?> - <?=$this->lang->line('accountledgerreport_accountledger')?> 
+    <div class="rpt-box-header">
+        <h3><i class="fa fa-clipboard"></i>
+            <?=$this->lang->line('accountledgerreport_report_for')?> - <?=$this->lang->line('accountledgerreport_accountledger')?>
         </h3>
     </div><!-- /.box-header -->
     <div id="printablediv">
-        <style>
-            .accountledgerreport {
-                width: 100%;
-                overflow: hidden;
-            }
-
-            .singleaccountledger {
-                width: 48%;
-                margin-left: 15px;
-                float: left;
-                overflow: hidden;
-            }
-
-            .marginledgerreport { margin-bottom: 20px !important }
-
-            @media print {
-                .singleaccountledger {
-                    width: 47%;
-                    margin-left: 15px;
-                    float: left;
-                    overflow: hidden;
-                }
-            }
-
-        </style>
     <!-- form start -->
         <div class="box-body" style="margin-bottom: 50px;">
             <div class="row">
@@ -53,127 +26,103 @@
                         <p class="title"><?=$siteinfos->sname?></p>
                         <p class="title-desc"><?=$siteinfos->address?></p>
                         <p class="title-desc"><?=$this->lang->line('topbar_academic_year'). ' : '. $schoolyearName?></p>
-                    </div> 
+                    </div>
                 </div>
                 <?php $m = true; if($fromdate !='' && $todate !='') { $m = false; ?>
                     <div class="col-sm-12">
-                        <h5 class="pull-left"><?=$this->lang->line('accountledgerreport_fromdate')?> : <?=date('d M Y',strtotime($fromdate))?></h5>                         
+                        <h5 class="pull-left"><?=$this->lang->line('accountledgerreport_fromdate')?> : <?=date('d M Y',strtotime($fromdate))?></h5>
                         <h5 class="pull-right"><?=$this->lang->line('accountledgerreport_todate')?> : <?=date('d M Y',strtotime($todate))?></h5>
                     </div>
                 <?php } ?>
-                
-                <div class="col-sm-12 accountledgerreport" style="<?=$m ? "margin-top: 15px" :''?>">
-                    <div class="row">
-                        <div class="singleaccountledger">
-                            <table class="table table-bordered marginledgerreport">
-                                <tr>
-                                    <td class="text-bold" colspan="2"><?=$this->lang->line('accountledgerreport_income')?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2"><?=$this->lang->line('accountledgerreport_income_des')?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_total')?> <span class="text-bold"><?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></span></td>
-                                    <td><?=number_format($totalincome,2)?></td>
-                                </tr>
-                            </table>
+                <?php $currencyLabel = !empty($siteinfos->currency_code) ? " (".$siteinfos->currency_code.")" : ''; ?>
+                <div class="col-sm-12" style="<?=$m ? "margin-top: 15px" :''?>">
+                    <div class="rpt-ledger-grid">
+                        <div class="rpt-ledger-col">
+                            <div class="rpt-ledger-card rpt-ledger-card--income">
+                                <p class="rpt-ledger-card-title"><?=$this->lang->line('accountledgerreport_income')?></p>
+                                <p class="rpt-ledger-card-desc"><?=$this->lang->line('accountledgerreport_income_des')?></p>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_total')?><?=$currencyLabel?></span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalincome,2)?></span>
+                                </div>
+                            </div>
 
-                            <table class="table table-bordered marginledgerreport">
-                                <tr>
-                                    <td class="text-bold" colspan="2"><?=$this->lang->line('accountledgerreport_total_balance')?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_income')?> (+)</td>
-                                    <td><?=number_format($totalincome,2)?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_fees_collections')?> (+)</td>
-                                    <td><?=number_format($totalcollection,2)?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_fines')?> (+)</td>
-                                    <td><?=number_format($totalfine,2)?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_expense')?> (-)</td>
-                                    <td><?=number_format($totalexpense,2)?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_salary')?> (-)</td>
-                                    <td><?=number_format($totalsalarypayment,2)?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_grand_total')?> <span class="text-bold"><?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></span></td>
-                                    <td>
-                                        <?php 
+                            <div class="rpt-ledger-card rpt-ledger-card--balance">
+                                <p class="rpt-ledger-card-title"><?=$this->lang->line('accountledgerreport_total_balance')?></p>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_income')?> (+)</span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalincome,2)?></span>
+                                </div>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_fees_collections')?> (+)</span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalcollection,2)?></span>
+                                </div>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_fines')?> (+)</span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalfine,2)?></span>
+                                </div>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_expense')?> (-)</span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalexpense,2)?></span>
+                                </div>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_salary')?> (-)</span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalsalarypayment,2)?></span>
+                                </div>
+                                <div class="rpt-ledger-row rpt-ledger-row--grand">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_grand_total')?><?=$currencyLabel?></span>
+                                    <span class="rpt-ledger-row-value">
+                                        <?php
                                             $mainincome  = ($totalincome + $totalcollection + $totalfine);
                                             $mainexpense = ($totalexpense + $totalsalarypayment);
                                             $mainbalance  = ($mainincome - $mainexpense);
                                             echo number_format($mainbalance,2);
                                         ?>
-                                    </td>
-                                </tr>
-                            </table>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
-                  
 
-                        <div class="singleaccountledger">
-                        
-                            <table class="table table-bordered marginledgerreport">
-                                <tr>
-                                    <td class="text-bold" colspan="2"><?=$this->lang->line('accountledgerreport_fees_collections')?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2"><?=$this->lang->line('accountledgerreport_fees_collections_des')?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_total')?> <span class="text-bold"><?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></span></td>
-                                    <td><?=number_format($totalcollection,2)?></td>
-                                </tr>
-                            </table>
-                        
-                            <table class="table table-bordered marginledgerreport">
-                                <tr>
-                                    <td class="text-bold" colspan="2"><?=$this->lang->line('accountledgerreport_fines')?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2"><?=$this->lang->line('accountledgerreport_fines_des')?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_total')?> <span class="text-bold"><?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></span></td>
-                                    <td><?=number_format($totalfine,2)?></td>
-                                </tr>
-                            </table>
+                        <div class="rpt-ledger-col">
+                            <div class="rpt-ledger-card rpt-ledger-card--fees">
+                                <p class="rpt-ledger-card-title"><?=$this->lang->line('accountledgerreport_fees_collections')?></p>
+                                <p class="rpt-ledger-card-desc"><?=$this->lang->line('accountledgerreport_fees_collections_des')?></p>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_total')?><?=$currencyLabel?></span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalcollection,2)?></span>
+                                </div>
+                            </div>
 
-                            <table class="table table-bordered marginledgerreport">
-                                <tr>
-                                    <td class="text-bold" colspan="2"><?=$this->lang->line('accountledgerreport_expense')?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2"><?=$this->lang->line('accountledgerreport_expense_des')?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_total')?> <span class="text-bold"><?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></span></td>
-                                    <td><?=number_format($totalexpense,2)?></td>
-                                </tr>
-                            </table>
+                            <div class="rpt-ledger-card rpt-ledger-card--fines">
+                                <p class="rpt-ledger-card-title"><?=$this->lang->line('accountledgerreport_fines')?></p>
+                                <p class="rpt-ledger-card-desc"><?=$this->lang->line('accountledgerreport_fines_des')?></p>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_total')?><?=$currencyLabel?></span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalfine,2)?></span>
+                                </div>
+                            </div>
 
-                            <table class="table table-bordered marginledgerreport">
-                                <tr>
-                                    <td class="text-bold" colspan="2"><?=$this->lang->line('accountledgerreport_salary')?></td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2"><?=$this->lang->line('accountledgerreport_salary_des')?></td>
-                                </tr>
-                                <tr>
-                                    <td><?=$this->lang->line('accountledgerreport_total')?> <span class="text-bold"><?=!empty($siteinfos->currency_code) ? "(".$siteinfos->currency_code.")" : ''?></span></td>
-                                    <td><?=number_format($totalsalarypayment,2)?></td>
-                                </tr>
-                            </table>
+                            <div class="rpt-ledger-card rpt-ledger-card--expense">
+                                <p class="rpt-ledger-card-title"><?=$this->lang->line('accountledgerreport_expense')?></p>
+                                <p class="rpt-ledger-card-desc"><?=$this->lang->line('accountledgerreport_expense_des')?></p>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_total')?><?=$currencyLabel?></span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalexpense,2)?></span>
+                                </div>
+                            </div>
+
+                            <div class="rpt-ledger-card rpt-ledger-card--salary">
+                                <p class="rpt-ledger-card-title"><?=$this->lang->line('accountledgerreport_salary')?></p>
+                                <p class="rpt-ledger-card-desc"><?=$this->lang->line('accountledgerreport_salary_des')?></p>
+                                <div class="rpt-ledger-row">
+                                    <span class="rpt-ledger-row-label"><?=$this->lang->line('accountledgerreport_total')?><?=$currencyLabel?></span>
+                                    <span class="rpt-ledger-row-value"><?=number_format($totalsalarypayment,2)?></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="col-sm-12 text-center footerAll">
                     <?=reportfooter($siteinfos, $schoolyearsessionobj)?>
                 </div>

@@ -1,358 +1,30 @@
 <link rel="stylesheet" href="/assets/css/report-buttons.css">
-<div class="row">
-    <div class="col-sm-12" style="margin:10px 0px">
-        <?php
-            $pdf_preview_uri = base_url('studentsessionreport/pdf/'.$studentID);
-            echo btn_printReport('studentsessionreport', $this->lang->line('report_print'), 'printablediv');
-            // echo btn_pdfPreviewReport('studentsessionreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
-            // echo btn_sentToMailReport('studentsessionreport', $this->lang->line('report_send_pdf_to_mail'));
-        ?>
-    </div>
+<div class="rpt-action-bar">
+    <?php
+        $pdf_preview_uri = base_url('studentsessionreport/pdf/'.$studentID);
+        echo btn_printReport('studentsessionreport', $this->lang->line('report_print'), 'printablediv');
+        // echo btn_pdfPreviewReport('studentsessionreport',$pdf_preview_uri, $this->lang->line('report_pdf_preview'));
+        // echo btn_sentToMailReport('studentsessionreport', $this->lang->line('report_send_pdf_to_mail'));
+    ?>
 </div>
 
-<style type="text/css">
-    /* ==== Base Container ==== */
-    .mainstudentsessionreport {
-        margin: 0 auto 20px auto;
-        overflow: hidden;
-        border: 1px solid #ddd;
-        /* max-width: 850px; */
-        background: #f9fafc;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        padding: 30px 35px;
-    }
-
-    /* ==== Header Section ==== */
-    .studentsession-headers {
-        display: flex;
-        align-items: center;
-        border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 12px;
-        margin-bottom: 15px;
-    }
-
-    .studentsession-logo img {
-        width: 70px;
-        height: 70px;
-        border-radius: 6px;
-    }
-
-    .school-name h2 {
-        margin: 0;
-        padding-left: 20px;
-        font-weight: 700;
-        font-size: 24px;
-        color: #6b9ce2;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    /* ==== Info Section ==== */
-    .studentsession-infos {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        margin-bottom: 15px;
-        border-bottom: 1px dashed #ccc;
-        padding-bottom: 15px;
-    }
-
-    .school-address, .student-profile {
-        /* width: 45%; */
-    }
-
-    .school-address h4, .student-profile h4 {
-        color: #2d2d2d;
-        font-weight: 600;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 4px;
-        margin-bottom: 8px;
-    }
-
-    .school-address p, .student-profile p {
-        margin: 3px 0;
-        font-size: 14px;
-        color: #333;
-    }
-
-    .student-profile-img {
-        /* width: 100%; */
-        text-align: right;
-        margin-top: 10px;
-    }
-
-    .student-profile-img img {
-        width: 120px;
-        height: 120px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        object-fit: cover;
-        background: #fff;
-        padding: 4px;
-    }
-
-    /* ==== Table Section ==== */
-    .studentsession-contents {
-        margin-top: 20px;
-    }
-
-    .studentsession-contents table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-    }
-
-    .studentsession-contents table th {
-        background: #6b9ce2;
-        color: #fff;
-        padding: 10px;
-        font-weight: 600;
-        border: 1px solid #ccc;
-        text-align: center;
-    }
-
-    .studentsession-contents table td {
-        padding: 8px;
-        border: 1px solid #ddd;
-        text-align: center;
-        background-color: #fff;
-    }
-
-    .studentsession-contents table tr:nth-child(even) td {
-        background: #f7f9fb;
-    }
-
-    .studentsession-contents table tr:hover td {
-        background: #eef6ff;
-    }
-
-    /* ==== Attendance Section ==== */
-    h5.text-blue {
-        margin-top: 25px;
-        padding-bottom: 5px;
-        border-bottom: 2px solid #6b9ce2;
-        color: #6b9ce2;
-        font-weight: 600;
-    }
-
-    table.table-bordered {
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1px solid #ddd;
-    }
-
-    table.table-bordered th {
-        background: #457b9d;
-        color: white;
-        text-align: center;
-    }
-
-    .row_background td, .row_absent td, .row_workingdays td {
-        text-align: center;
-    }
-
-    .text-green { color: #2a9d8f; }
-    .text-red { color: #e63946; }
-    .text-blue { color: #6b9ce2; }
-    .text-purple { color: #6a1b9a; }
-
-    /* Attendance badge */
-    .attendance-badge {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #fff;
-        background: #e74c3c; /* red for absent */
-        box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-    }
-    .attendance-na {
-        display: inline-block;
-        padding: 2px 6px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #fff;
-        background: #7f8c8d; /* gray for N/A */
-    }
-
-    /* ==== Grade Labels ==== */
-    .grade-label {
-        padding: 3px 8px;
-        border-radius: 4px;
-        font-weight: bold;
-        display: inline-block;
-        font-size: 13px;
-    }
-
-    .grade-a-plus { background-color: #e6f4ea; color: #2e7d32; }
-    .grade-a      { background-color: #e8f5e9; color: #388e3c; }
-    .grade-b-plus { background-color: #e3f2fd; color: #0288d1; }
-    .grade-b      { background-color: #e1f5fe; color: #039be5; }
-    .grade-c-plus { background-color: #fff9c4; color: #fbc02d; }
-    .grade-c      { background-color: #ffe0b2; color: #f57c00; }
-    .grade-d      { background-color: #ffcdd2; color: #d32f2f; }
-
-    /* ==== Print Optimization ==== */
- 
-</style>
-
 <div class="box">
-    <div class="box-header bg-gray">
-        <h3 class="box-title text-navy"><i class="fa fa-clipboard"></i> 
+    <div class="rpt-box-header">
+        <h3><i class="fa fa-clipboard"></i>
         <?=$this->lang->line('studentsessionreport_report_for')?> - <?=$this->lang->line('studentsessionreport_student_session')?></h3>
     </div><!-- /.box-header -->
     <div id="printablediv">
-        <style type="text/css">
-            .mainstudentsessionreport{
-                margin: 0px;
-                overflow: hidden;
-                border:1px solid #ddd;
-                max-width:794px;
-                margin: 0px auto;
-                margin-bottom: 10px;
-                padding:30px;
-            }
-
-            .studentsession-headers{
-                border-bottom: 1px solid #ddd;
-                overflow: hidden;
-                padding-bottom: 10px;
-                vertical-align: middle;
-                margin-bottom: 4px;
-            }
-
-            .studentsession-logo {
-                float: left;
-            }
-
-            .studentsession-headers img{
-                width: 60px;
-                height: 60px;
-            }
-
-            .school-name h2{
-                float: left;
-                padding-left: 20px;
-                padding-top: 7px;
-                font-weight: bold;
-            }
-
-            .studentsession-infos {
-                width: 100%;
-                overflow: hidden;
-            }
-
-            .studentsession-infos h3{
-                padding: 2px 0px;
-                margin: 0px;
-            }
-
-            .studentsession-infos p{
-                margin-bottom: 3px;
-                font-size: 15px;
-            }
-
-            .school-address{
-                float: left;
-                width: 40%;
-            }
-
-            .student-profile {
-                float: left;
-                width: 40%;
-
-            }
-
-            .student-profile-img {
-                float: left;
-                width: 20%;
-                text-align: right;
-            }
-
-            .student-profile-img img {
-                width: 120px;
-                height: 120px;
-                border: 1px solid #ddd;
-                margin-top: 5px;
-                margin-right: 2px;
-            }
-
-             @media screen and (max-width: 480px) {
-                .school-name h2{
-                    padding-left: 0px;
-                    float: none;
-                }
-
-                .school-address {
-                    width: 100%;
-                }
-
-                .student-profile {
-                    width: 100%;
-                } 
-
-                .student-profile-img  {
-                    margin-top: 10px;
-                    width: 100%;
-                }
-
-                .student-profile-img img {
-                    width: 100%;
-                    height: 100%;
-                    margin: 10px 0px;
-                }
-            }
-
-            .studentsession-contents {
-                width: 100%;
-                overflow: hidden;
-                margin-top: 10px;
-            }
-
-            .studentsession-contents table {
-                width: 100%;
-            }
-
-            .studentsession-contents table tr,.studentsession-contents table td,.studentsession-contents table th {
-                border:1px solid #ddd;
-                padding: 8px 1px;
-                font-size: 14px;
-                text-align: center;
-            }
-
-            @media print {
-                .mainstudentsessionreport{
-                    border:0px solid #ddd;
-                    padding: 0px 20px;
-                }
-
-                .student-profile-img img {
-                    margin-right: 5px !important;
-                }
-
-                .studentsession-contents table td,.studentsession-contents table th {
-                    font-size: 12px;
-                }
-            }
-        </style>
         <div class="box-body" style="margin-bottom: 50px;">
             <div class="row">
                 <div class="col-sm-12">
                 <?php if(customCompute($students)) { foreach($students as $schoolyearID => $student) { ?>
-                    <div class="mainstudentsessionreport">
-                        <div class="studentsession-headers">
-                            <div class="studentsession-logo">
-                                <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="">
-                            </div>
-                            <div class="school-name">
-                                <h2><?=$siteinfos->sname?></h2>
-                            </div>
+                    <div class="rpt-session-card">
+                        <div class="rpt-session-header">
+                            <img src="<?=base_url("uploads/images/$siteinfos->photo")?>" alt="">
+                            <h2><?=$siteinfos->sname?></h2>
                         </div>
-                        <div class="studentsession-infos">
-                            <div class="school-address">
+                        <div class="rpt-session-info">
+                            <div>
                                 <h4><b><?=$siteinfos->sname?></b></h4>
                                 <p><?=$siteinfos->address?></p>
                                 <p><?=$this->lang->line('studentsessionreport_phone')?> : <?=$siteinfos->phone?></p>
@@ -361,22 +33,22 @@
                                 <p><?=$this->lang->line('website')?> : <?=$siteinfos->website?></p>
 
                             </div>
-                            <div class="student-profile">
+                            <div>
                                 <h4><b><?=$student->srname?></b></h4>
                                 <p><?=$this->lang->line('studentsessionreport_academic_year')?> : <b><?=isset($schoolyears[$schoolyearID]) ? $schoolyears[$schoolyearID] : []?></b>
                                 <p><?=$this->lang->line('studentsessionreport_reg_no')?> : <b><?=$student->srregisterNO?></b>, <?=$this->lang->line('studentsessionreport_class')?> : <b><?=isset($classes[$student->srclassesID]) ? $classes[$student->srclassesID] : ''?></b></p>
-                                <p><?=$this->lang->line('studentsessionreport_section')?> : <b><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></b>, <?=$this->lang->line('studentsessionreport_roll_no')?> : <b><?=$student->srroll?></b></p>  
-                                <p><?=$this->lang->line('studentsessionreport_group')?> : <b><?=isset($groups[$student->srstudentgroupID]) ? $groups[$student->srstudentgroupID] : ''?></b></p> 
+                                <p><?=$this->lang->line('studentsessionreport_section')?> : <b><?=isset($sections[$student->srsectionID]) ? $sections[$student->srsectionID] : ''?></b>, <?=$this->lang->line('studentsessionreport_roll_no')?> : <b><?=$student->srroll?></b></p>
+                                <p><?=$this->lang->line('studentsessionreport_group')?> : <b><?=isset($groups[$student->srstudentgroupID]) ? $groups[$student->srstudentgroupID] : ''?></b></p>
                             </div>
-                            <div class="student-profile-img">
+                            <div class="rpt-session-photo">
                                 <img src="<?=imagelink($student->photo)?>" alt="">
                             </div>
                         </div>
-                        <div class="studentsession-contents studentsessionreporttable">
-                        <table>
+                        <div id="rpt-wrap-studentsession" class="rpt-table-wrap">
+                        <table class="table table-bordered rpt-table">
     <thead>
         <tr>
-            <th rowspan="2"><?= $this->lang->line('studentsessionreport_subjects') ?></th>
+            <th rowspan="2" class="rpt-sticky-left-hd"><?= $this->lang->line('studentsessionreport_subjects') ?></th>
             <?php
             $markpercentagesexamArr = isset($markpercentagesmainArr[$student->srclassesID]) ? $markpercentagesmainArr[$student->srclassesID] : [];
 
@@ -454,7 +126,7 @@
                 $totalSubjectMark = 0;
                 $totalGradeSubjectMark = 0; ?>
                 <tr>
-                    <td><?= $subject->subject ?></td>
+                    <td class="rpt-sticky-left"><?= $subject->subject ?></td>
                     <?php
                     if (customCompute($markpercentagesexamArr)) {
                         foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
@@ -494,7 +166,7 @@
                                             $mark = $retMark[$schoolyearID][$student->srclassesID][$examID][$subjectID][$markpercentageID];
                                         }
                                         if ($mark === 'A' || $mark === 'a' || (is_string($mark) && strtolower($mark) === 'absent')) {
-                                            echo '<span class="attendance-badge" title="Absent">Ab</span>';
+                                            echo '<span class="rpt-attendance-badge" title="Absent">Ab</span>';
                                         } elseif ($mark !== 0 && $mark !== '' && $mark !== null) {
                                             echo $mark;
                                         } else {
@@ -535,7 +207,7 @@
 
         <!-- Total Marks Row -->
         <tr>
-            <td colspan="<?= $leftColumn ?>"><?= $this->lang->line('studentsessionreport_total_mark') ?></td>
+            <td class="rpt-sticky-left" colspan="<?= $leftColumn ?>"><?= $this->lang->line('studentsessionreport_total_mark') ?></td>
             <?php
             if (customCompute($markpercentagesexamArr)) {
                 foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
@@ -573,7 +245,7 @@
 
         <!-- Percentage Row -->
         <tr>
-            <td colspan="<?= $leftColumn ?>">Percentage</td>
+            <td class="rpt-sticky-left" colspan="<?= $leftColumn ?>">Percentage</td>
             <?php
             if (customCompute($markpercentagesexamArr)) {
                 foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
@@ -618,7 +290,7 @@
 
         <!-- Grade Row -->
         <tr>
-            <td colspan="<?= $leftColumn ?>">Grade</td>
+            <td class="rpt-sticky-left" colspan="<?= $leftColumn ?>">Grade</td>
             <?php
             if (customCompute($markpercentagesexamArr)) {
                 foreach ($markpercentagesexamArr as $examID => $markpercentagessubjectArr) {
@@ -657,28 +329,28 @@
                     $percent_cal = ($totalMaxMarks > 0) ? ($totalExamMarks / $totalMaxMarks) * 100 : 0;
                     
                     $grade = "D";
-                    $gradeClass = "grade-d";
+                    $gradeClass = "rpt-grade-d";
                     if ($percent_cal >= 95) {
                         $grade = "A+";
-                        $gradeClass = "grade-a-plus";
+                        $gradeClass = "rpt-grade-a-plus";
                     } else if ($percent_cal >= 90) {
                         $grade = "A";
-                        $gradeClass = "grade-a";
+                        $gradeClass = "rpt-grade-a";
                     } else if ($percent_cal >= 80) {
                         $grade = "B+";
-                        $gradeClass = "grade-b-plus";
+                        $gradeClass = "rpt-grade-b-plus";
                     } else if ($percent_cal >= 70) {
                         $grade = "B";
-                        $gradeClass = "grade-b";
+                        $gradeClass = "rpt-grade-b";
                     } else if ($percent_cal >= 60) {
                         $grade = "C+";
-                        $gradeClass = "grade-c-plus";
+                        $gradeClass = "rpt-grade-c-plus";
                     } else if ($percent_cal >= 50) {
                         $grade = "C";
-                        $gradeClass = "grade-c";
+                        $gradeClass = "rpt-grade-c";
                     }
                     ?>
-                    <td><span class='grade-label <?= $gradeClass ?>'><?= $grade ?></span></td>
+                    <td><span class='rpt-grade-label <?= $gradeClass ?>'><?= $grade ?></span></td>
                 <?php }
             } ?>
         </tr>
@@ -736,28 +408,27 @@
 <?php */ ?>
 
         <tr>
-            <td colspan="<?= $leftColumn ?>">Teacher Signature</td>
+            <td class="rpt-sticky-left" colspan="<?= $leftColumn ?>">Teacher Signature</td>
             <td colspan="<?= $totalColumn - $leftColumn ?>"></td>
         </tr>
         <tr>
-            <td colspan="<?= $leftColumn ?>">Correspondent Signature</td>
+            <td class="rpt-sticky-left" colspan="<?= $leftColumn ?>">Correspondent Signature</td>
             <td colspan="<?= $totalColumn - $leftColumn ?>"><img src="<?= base_url('/uploads/signatures/') . $siteinfos->correspondent_signature ?>" style="width:150px;height:50px;"></td>
         </tr>
         <tr>
-            <td colspan="<?= $leftColumn ?>">Parent or Guardian Signature</td>
+            <td class="rpt-sticky-left" colspan="<?= $leftColumn ?>">Parent or Guardian Signature</td>
             <td colspan="<?= $totalColumn - $leftColumn ?>"></td>
         </tr>
     </tbody>
 </table>
-
+                        </div><!-- /.rpt-table-wrap -->
 
  <!-- code for attendance table start -->
 
-<?php 
+<?php
 if($is_display_attendance > 0){ ?>
 
-<br/>
-<h5 class="text-blue"><b>Attendance</b></h5>
+<h5 class="rpt-session-attendance-title"><b>Attendance</b></h5>
 
 <?php
 $months = array(
@@ -808,15 +479,16 @@ $this->data['startYear'] = $startYear;
 $this->data['endYear']   = $endYear;
 ?>
 
-<table class="table table-bordered table-striped">
+<div class="rpt-table-wrap">
+<table class="table table-bordered rpt-table">
     <thead>
         <tr class="row_head">
-            <th>Months</th>
-            <?php 
-                for($m=6; $m<count($months)+6; $m++){  
+            <th class="rpt-sticky-left-hd">Months</th>
+            <?php
+                for($m=6; $m<count($months)+6; $m++){
                     $d_m = ($m > 12) ? $m - 12 : $m;
             ?>
-                <th class="text-purple"><?= $months[$d_m]?></th>
+                <th><?= $months[$d_m]?></th>
             <?php } ?>
         </tr>
     </thead>
@@ -824,9 +496,9 @@ $this->data['endYear']   = $endYear;
     <tbody>
         <!-- Present Row -->
         <tr class="row_background">
-            <td class="text-green"><b>Present</b></td>
-            <?php  
-                for($m=6; $m<count($months)+6; $m++){  
+            <td class="rpt-sticky-left text-green"><b>Present</b></td>
+            <?php
+                for($m=6; $m<count($months)+6; $m++){
                     $d_m = ($m > 12) ? $m - 12 : $m;
             ?>
                 <td><?= $attendance[$d_m][$student->studentID]['present'] ?? 0; ?></td>
@@ -835,9 +507,9 @@ $this->data['endYear']   = $endYear;
 
         <!-- Absent Row -->
         <tr class="row_absent">
-            <td class="text-red"><b>Absent</b></td>
-            <?php  
-                for($m=6; $m<count($months)+6; $m++){  
+            <td class="rpt-sticky-left text-red"><b>Absent</b></td>
+            <?php
+                for($m=6; $m<count($months)+6; $m++){
                     $d_m = ($m > 12) ? $m - 12 : $m;
             ?>
                 <td><?= $attendance[$d_m][$student->studentID]['absent'] ?? 0; ?></td>
@@ -846,9 +518,9 @@ $this->data['endYear']   = $endYear;
 
         <!-- Working Days Row -->
         <tr class="row_workingdays">
-            <td class="text-blue"><b>Working Days</b></td>
-            <?php  
-                for($m=6; $m<count($months)+6; $m++){  
+            <td class="rpt-sticky-left text-blue"><b>Working Days</b></td>
+            <?php
+                for($m=6; $m<count($months)+6; $m++){
                     $d_m = ($m > 12) ? $m - 12 : $m;
                     $year = ($m > 12) ? $endYear : $startYear;
 
@@ -862,6 +534,7 @@ $this->data['endYear']   = $endYear;
         </tr>
     </tbody>
 </table>
+</div><!-- /.rpt-table-wrap -->
 
 <?php } ?>
 <!-- code for attendance table end -->
@@ -955,10 +628,6 @@ $this->data['endYear']   = $endYear;
 
 <script type="text/javascript">
 
-    $('.studentsessionreporttable').mCustomScrollbar({
-        axis:"x"
-    });
-    
     function check_email(email) {
         var status = false;
         var emailRegEx = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;

@@ -1,6 +1,6 @@
 <?php
 
-$lang['panel_title'] = "Progress Card Report";
+$lang['panel_title'] = "Progress Report";
 $lang['progresscardreport_please_select'] = "Please Select";
 $lang['progresscardreport_class'] = "Class";
 $lang['progresscardreport_section'] = "Section";

@@ -12,7 +12,7 @@
 .pcn-header-info { flex: 1; }
 .pcn-header-info h2 { margin: 0 0 3px; font-size: 22px; color: #1a237e; font-weight: 800; letter-spacing: 0.2px; }
 .pcn-header-info p { margin: 0; font-size: 12px; color: #5c6b8a; line-height: 1.5; }
-.pcn-header-photo { width: 68px; height: 68px; border-radius: 50%; background-size: cover; background-position: center center; background-repeat: no-repeat; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); flex-shrink: 0; }
+.pcn-header-photo { width: 100px; height: 100px; border-radius: 0; background-size: cover; background-position: center center; background-repeat: no-repeat; border: 3px solid #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.18); flex-shrink: 0; }
 .pcn-year-box { background: linear-gradient(160deg,#1a237e,#0d1550); color: #fff; border-radius: 10px; padding: 10px 16px; font-size: 11px; min-width: 200px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(26,35,126,0.35); }
 .pcn-year-box .pcn-year-label { opacity: 0.75; letter-spacing: 0.6px; font-size: 10px; }
 .pcn-year-box .pcn-year-big { font-size: 20px; font-weight: 800; margin: 2px 0 8px; letter-spacing: 0.3px; color: #ffb300 !important; }
@@ -100,6 +100,10 @@
 .pcn-qr-box { text-align: center; min-width: 140px; }
 .pcn-qr-box img { width: 92px; height: 92px; border: 1px solid #e6e9f2; border-radius: 8px; padding: 4px; background: #fff; }
 .pcn-signatures { display: flex; justify-content: space-between; margin-top: 26px; padding: 0 6px; font-size: 12px; color: #444 !important; font-weight: 600; }
+.pcn-signature-imgs { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 6px; min-height: 70px; }
+.pcn-signature-imgs span { flex: 1; text-align: center; }
+.pcn-signature-imgs span:last-child { text-align: right; }
+.pcn-signature-imgs img { display: inline-block; width: 180px; height: 65px; }
 .pcn-charts-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .pcn-chart-box { flex: 1; min-width: 260px; height: 250px; }
 
@@ -288,7 +292,7 @@
                     </div>
 
                     <div class="pcn-title-band">
-                        <?=isset($exams[$examID]) ? strtoupper($exams[$examID]) : ''?> PROGRESS CARD REPORT
+                        <?=isset($exams[$examID]) ? strtoupper($exams[$examID]) : ''?> PROGRESS REPORT
                     </div>
 
                     <div class="pcn-body">
@@ -516,6 +520,11 @@
                             <?php } ?>
                         </div>
 
+                        <div class="pcn-signature-imgs">
+                            <span></span>
+                            <span></span>
+                            <span><img src="<?=base_url('/uploads/signatures/').$siteinfos->correspondent_signature?>" alt=""></span>
+                        </div>
                         <div class="pcn-signatures">
                             <span>Parent's Signature</span>
                             <span>Class Teacher's Signature</span>

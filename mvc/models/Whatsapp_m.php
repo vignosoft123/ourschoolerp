@@ -150,6 +150,7 @@ public function send_to_api($payload)
         // Each $msg should be like: ['phone' => '919876543210', 'message' => 'text message']
 
         $to       = trim($msg['phone']);
+        $name     = isset($msg['name']) ? $msg['name'] : '';
         $text     = urlencode($templateName);
         $params   = isset($msg['message']) ? $msg['message'] : '';
 
@@ -182,7 +183,17 @@ public function send_to_api($payload)
         curl_close($ch);
 
         // ✅ Prepare result log
-        $status = ($httpCode == 200 && stripos($response, 'success') !== false);
+        // The MindWhile API returns a success ID like "S.190644" rather than the literal
+        // word "success" - match the same pattern used by the media-send variant so a
+        // real delivery isn't misreported as failed.
+        $status = false;
+        if ($response !== false && !empty($response) && $httpCode == 200) {
+            if (preg_match('/S\.\d+/', $response) ||
+                stripos($response, 'success') !== false ||
+                stripos($response, 'sent') !== false) {
+                $status = true;
+            }
+        }
 
         if ($status) $successCount++;
 
@@ -192,10 +203,13 @@ public function send_to_api($payload)
             'created_on'    => date("Y-m-d H:i:s"),
             'type'          => "whatsapp",
             'message'       =>$msg['message'],
-            'template_name' => $templateName
+            'template_name' => $templateName,
+            'name'          => $name,
+            'phone'         => $to,
+            'status'        => $status
         ];
 
-		 
+
 
     }
 
@@ -208,6 +222,33 @@ public function send_to_api($payload)
         'success_count' => $successCount,
         'results'       => $results
     ];
+}
+
+/* Same chunked send as sendWhatsapp_bulk_batch(), but returns the full per-recipient
+   results (name, phone, status) across all chunks instead of just a sent count -
+   used to build the send-status report shown after a bulk WhatsApp send. */
+public function sendWhatsapp_bulk_batch_detailed($dataBatch, $templateName)
+{
+    $successCount = 0;
+    $allResults = [];
+    $chunkSize = 50;
+    foreach (array_chunk($dataBatch, $chunkSize) as $batch) {
+        $payload = [
+            'template_name' => $templateName,
+            'messages' => $batch
+        ];
+
+        $response = $this->send_to_api($payload);
+
+        if ($response) {
+            $successCount += isset($response['success_count']) ? $response['success_count'] : 0;
+            if (isset($response['results'])) {
+                $allResults = array_merge($allResults, $response['results']);
+            }
+        }
+    }
+
+    return ['success_count' => $successCount, 'results' => $allResults];
 }
 
 public function sendWhatsapp_bulk_batch_with_media($dataBatch, $templateName)
@@ -333,6 +374,30 @@ public function sendWhatsapp_bulk_batch_with_media_progresscard($dataBatch, $tem
     return $sent;
 }
 
+/* Same chunked send as sendWhatsapp_bulk_batch_with_media_progresscard(), but returns the
+   full per-recipient results (name, phone, status) across all chunks instead of just a
+   sent count - used to build the send-status report shown after a bulk WhatsApp send. */
+public function sendWhatsapp_bulk_batch_with_media_progresscard_detailed($dataBatch, $templateName)
+{
+    $successCount = 0;
+    $allResults = [];
+    $chunkSize = 50;
+    foreach (array_chunk($dataBatch, $chunkSize) as $batch) {
+        $payload = [
+            'template_name' => $templateName,
+            'messages' => $batch
+        ];
+        $response = $this->send_to_api_with_media_progresscard($payload);
+        if ($response) {
+            $successCount += isset($response['success_count']) ? $response['success_count'] : 0;
+            if (isset($response['results'])) {
+                $allResults = array_merge($allResults, $response['results']);
+            }
+        }
+    }
+    return ['success_count' => $successCount, 'results' => $allResults];
+}
+
 public function send_to_api_with_media_progresscard($payload)
 {
 	// echo "<pre>";print_r($payload);die;
@@ -352,6 +417,7 @@ public function send_to_api_with_media_progresscard($payload)
 
     foreach ($messages as $msg) {
         $to       = trim($msg['phone']);
+        $name     = isset($msg['name']) ? $msg['name'] : '';
         $text     = $templateName;
         $params   = isset($msg['message']) ? $msg['message'] : '';
         $htype   = isset($msg['htype']) ? $msg['htype'] : '';
@@ -434,7 +500,10 @@ public function send_to_api_with_media_progresscard($payload)
             'created_on'    => date("Y-m-d H:i:s"),
             'type'          => "whatsapp",
             'message'       => isset($msg['message']) ? $msg['message'] : '',
-            'template_name' => $templateName
+            'template_name' => $templateName,
+            'name'          => $name,
+            'phone'         => $to,
+            'status'        => $status
         ];
     }
 

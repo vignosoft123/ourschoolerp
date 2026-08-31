@@ -1,5 +1,6 @@
 <?php defined('BASEPATH') or exit('No direct script access allowed');
 
+$lang['panel_title']                    = 'Day Sheet Report';
 $lang['daysheetreport_title']           = 'Day Sheet Report';
 $lang['daysheetreport_date']            = 'Date';
 $lang['daysheetreport_load']            = 'Load Day Sheet';

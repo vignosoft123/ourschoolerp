@@ -634,6 +634,23 @@ if ( !defined('BASEPATH') ) {
             $attendanceSystem               = $this->data['siteinfos']->attendance;
             $this->data['attendanceSystem'] = $attendanceSystem;
 
+            // Weekly-offs and holidays are never written into the attendance table (the
+            // a1..a31 columns just stay NULL for those days - AttendanceOverviewReport only
+            // shows "W"/"H" for them by checking these same date lists, not from a stored
+            // value). The loops below used to treat anything that wasn't P/L/LE as an
+            // absence, so a NULL column on a weekend/holiday counted the entire class as
+            // absent for that day. getWeekendDaysSession()/getHolidaysSession() come from
+            // Admin_Controller (same helpers Attendanceoverviewreport.php uses) and return
+            // 'd-m-Y' dates, matching the $calendarDate built per-day below.
+            $weekendDates = $this->getWeekendDaysSession();
+            $holidayDates = array_filter(explode('","', $this->getHolidaysSession()));
+            $monthNum     = date('m');
+            $yearNum      = date('Y');
+            $todayDate    = date('d-m-Y');
+
+            $this->data['todayIsHoliday'] = in_array($todayDate, $holidayDates);
+            $this->data['todayIsWeekend'] = in_array($todayDate, $weekendDates);
+
             if ( $attendanceSystem != 'subject' ) {
                 $attendances = $this->sattendance_m->get_order_by_attendance([
                     'schoolyearID' => $schoolyearID,
@@ -654,6 +671,12 @@ if ( !defined('BASEPATH') ) {
 
                         if ( !isset($classWiseAttendance[ $attendance->classesID ][ $i ]['A']) ) {
                             $classWiseAttendance[ $attendance->classesID ][ $i ]['A'] = 0;
+                        }
+
+                        $calendarDate = sprintf('%02d-%02d-%04d', $i, $monthNum, $yearNum);
+                        if ( in_array($calendarDate, $weekendDates) || in_array($calendarDate, $holidayDates)
+                            || $attendance->$date === NULL || $attendance->$date === '' ) {
+                            continue;
                         }
 
                         if ( $attendance->$date == 'P' || $attendance->$date == 'L' || $attendance->$date == 'LE' ) {
@@ -691,6 +714,12 @@ if ( !defined('BASEPATH') ) {
 
                         if ( !isset($subjectWiseAttendance[ $attendance->classesID ][ $attendance->subjectID ][ $i ]['A']) ) {
                             $subjectWiseAttendance[ $attendance->classesID ][ $attendance->subjectID ][ $i ]['A'] = 0;
+                        }
+
+                        $calendarDate = sprintf('%02d-%02d-%04d', $i, $monthNum, $yearNum);
+                        if ( in_array($calendarDate, $weekendDates) || in_array($calendarDate, $holidayDates)
+                            || $attendance->$date === NULL || $attendance->$date === '' ) {
+                            continue;
                         }
 
                         if ( $attendance->$date == 'P' || $attendance->$date == 'L' || $attendance->$date == 'LE' ) {
@@ -861,9 +890,13 @@ if ( !defined('BASEPATH') ) {
             $schoolyearID = $this->session->userdata('defaultschoolyearID');
             $today        = date('Y-m-d');
 
+            // Fees Report (Payment_m::get_all_payment_for_report()) deliberately does NOT
+            // filter payments by schoolyearID — a payment made today can settle dues raised
+            // in a previous academic year, but still counts as cash collected today. This sum
+            // must match that same "no schoolyearID filter" behavior or the two figures
+            // (and the "Today's Finance" -> Fees Report link) disagree for the same day.
             $this->db->select_sum('paymentamount', 'total');
             $this->db->from('payment');
-            $this->db->where('schoolyearID', $schoolyearID);
             $this->db->where("DATE(paymentdate) =", $today);
             $todayFee = $this->db->get()->row();
 
